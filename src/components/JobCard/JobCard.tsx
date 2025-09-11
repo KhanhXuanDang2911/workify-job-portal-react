@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin } from "lucide-react";
+import { routes } from "@/routes/routes.const";
+import { Link } from "react-router-dom";
 
 type Job = {
   id: number;
@@ -29,9 +31,12 @@ export default function JobCard({ job }: { job: Job }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 pr-2">
+            <Link
+              to={`/${routes.JOB_DETAIL}`}
+              className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 pr-2"
+            >
               {job.title}
-            </h3>
+            </Link>
             <Badge
               className={`${job.typeColor} text-white text-xs px-2 py-1 flex-shrink-0`}
             >
@@ -69,7 +74,7 @@ export default function JobCard({ job }: { job: Job }) {
               size="sm"
               className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors bg-transparent text-xs px-3 py-1"
             >
-              Browse Job
+              <Link to={`/${routes.JOB_DETAIL}`}>Browse Job</Link>
             </Button>
           </div>
         </div>

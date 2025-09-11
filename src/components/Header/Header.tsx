@@ -66,39 +66,9 @@ export default function Header() {
               >
                 <div className="grid grid-cols-2 gap-0.5">
                   {[
-                    { label: "Jobs Grid", to: "/jobs/grid" },
-                    { label: "Jobs Grid with Map", to: "/jobs/grid-map" },
-                    { label: "Jobs List", to: "/jobs/list" },
-                    { label: "Job Detail", to: "/jobs/1" },
-                    { label: "Apply Jobs", to: "/jobs/apply" },
-                    { label: "Job Categories", to: "/jobs/categories" },
-                  ].map(({ label, to }) => (
-                    <Link
-                      key={label}
-                      to={to}
-                      className="px-3 py-2 text-[13px] font-medium text-slate-700 hover:text-[#1967d2] hover:bg-[#f8faff] transition-all duration-200 hover:translate-x-0.5 border-l-2 border-transparent hover:border-[#1967d2]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
-                Blog <ChevronDown className="ml-1 w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                sideOffset={8}
-                className="w-[320px] p-2 rounded-none border border-gray-100 shadow-xl bg-white backdrop-blur-sm"
-              >
-                <div className="grid grid-cols-2 gap-0.5">
-                  {[
-                    { label: "Blog Grid", to: "/blog/grid" },
-                    { label: "Blog List", to: "/blog/list" },
-                    { label: "Blog Single", to: "/blog/1" },
-                    { label: "Author", to: "/blog/author" },
+                    { label: "Find jobs", to: routes.JOB_SEARCH },
+                    { label: "Bookmarked Jobs", to: "/" },
+                    { label: "Applied Jobs", to: "/" },
                   ].map(({ label, to }) => (
                     <Link
                       key={label}
@@ -125,7 +95,6 @@ export default function Header() {
                     { label: "Create CV", to: "/cv/create" },
                     { label: "CV Templates", to: "/cv/templates" },
                     { label: "My CVs", to: "/cv" },
-                    { label: "Import from PDF", to: "/cv/import" },
                   ].map(({ label, to }) => (
                     <Link
                       key={label}
@@ -138,6 +107,18 @@ export default function Header() {
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Link
+              to={routes.ARTICLES}
+              className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
+            >
+              Career guide
+            </Link>
+            <Link
+              to={routes.EMPLOYER_SEARCH}
+              className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
+            >
+              Companies
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 Pages <ChevronDown className="ml-1 w-4 h-4" />
@@ -322,96 +303,25 @@ export default function Header() {
                 {mobileSections.jobs && (
                   <div className="mt-2 ml-4 flex flex-col space-y-2">
                     <Link
-                      to="/jobs/grid"
+                      to={routes.JOB_SEARCH}
                       className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Jobs Grid
+                      Find jobs
                     </Link>
                     <Link
-                      to="/jobs/grid-map"
+                      to="/"
                       className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Jobs Grid with Map
+                      Applied jobs
                     </Link>
                     <Link
-                      to="/jobs/list"
+                      to="/"
                       className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Jobs List
-                    </Link>
-                    <Link
-                      to="/jobs/1"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Job Detail
-                    </Link>
-                    <Link
-                      to="/jobs/apply"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Apply Jobs
-                    </Link>
-                    <Link
-                      to="/jobs/categories"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Job Categories
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Blog - mobile dropdown */}
-              <div>
-                <button
-                  onClick={() =>
-                    setMobileSections((prev) => ({ ...prev, blog: !prev.blog }))
-                  }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
-                  aria-expanded={mobileSections.blog}
-                >
-                  Blog
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      mobileSections.blog ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {mobileSections.blog && (
-                  <div className="mt-2 ml-4 flex flex-col space-y-2">
-                    <Link
-                      to="/blog/grid"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blog Grid
-                    </Link>
-                    <Link
-                      to="/blog/list"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blog List
-                    </Link>
-                    <Link
-                      to="/blog/1"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blog Single
-                    </Link>
-                    <Link
-                      to="/blog/author"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1 font-[600]"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Author
+                      Bookmarked jobs
                     </Link>
                   </div>
                 )}
@@ -456,16 +366,27 @@ export default function Header() {
                     >
                       My CVs
                     </Link>
-                    <Link
-                      to="/cv/import"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Import from PDF
-                    </Link>
                   </div>
                 )}
               </div>
+
+              {/* Companies - mobile dropdown */}
+              <Link
+                to={routes.EMPLOYER_SEARCH}
+                className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Companies
+              </Link>
+
+              {/* Articles - mobile dropdown */}
+              <Link
+                to={routes.ARTICLES}
+                className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Career guide
+              </Link>
 
               {/* Pages - mobile dropdown */}
               <div>
