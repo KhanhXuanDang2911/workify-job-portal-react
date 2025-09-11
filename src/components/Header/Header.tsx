@@ -51,12 +51,12 @@ export default function Header() {
           <nav className="hidden lg:flex items-center lg:space-x-8">
             <Link
               to={routes.BASE}
-              className="text-[#4b4b4b] hover:text-[#1967d2] font-normal"
+              className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
             >
               Home
             </Link>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-normal">
+              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 Jobs <ChevronDown className="ml-1 w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -85,7 +85,7 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-normal">
+              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 Blog <ChevronDown className="ml-1 w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -112,7 +112,7 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-normal">
+              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 CV <ChevronDown className="ml-1 w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -139,7 +139,7 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-normal">
+              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 Pages <ChevronDown className="ml-1 w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -297,7 +297,7 @@ export default function Header() {
 
               <Link
                 to={routes.BASE}
-                className="text-[#4b4b4b] hover:text-[#1967d2] font-normal"
+                className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
@@ -309,7 +309,7 @@ export default function Header() {
                   onClick={() =>
                     setMobileSections((prev) => ({ ...prev, jobs: !prev.jobs }))
                   }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-normal flex items-center justify-between"
+                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
                   aria-expanded={mobileSections.jobs}
                 >
                   Jobs
@@ -373,7 +373,7 @@ export default function Header() {
                   onClick={() =>
                     setMobileSections((prev) => ({ ...prev, blog: !prev.blog }))
                   }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-normal flex items-center justify-between"
+                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
                   aria-expanded={mobileSections.blog}
                 >
                   Blog
@@ -408,7 +408,7 @@ export default function Header() {
                     </Link>
                     <Link
                       to="/blog/author"
-                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1"
+                      className="text-sm text-slate-600 hover:text-[#1967d2] py-1 font-[600]"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Author
@@ -423,7 +423,7 @@ export default function Header() {
                   onClick={() =>
                     setMobileSections((prev) => ({ ...prev, cv: !prev.cv }))
                   }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-normal flex items-center justify-between"
+                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
                   aria-expanded={mobileSections.cv}
                 >
                   CV
@@ -476,7 +476,7 @@ export default function Header() {
                       pages: !prev.pages,
                     }))
                   }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-normal flex items-center justify-between"
+                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
                   aria-expanded={mobileSections.pages}
                 >
                   Pages
@@ -574,7 +574,7 @@ export default function Header() {
               <div className="border-t border-gray-200 pt-3 mt-2">
                 <Link
                   to={employer_routes.BASE}
-                  className="text-[#4b4b4b] hover:text-[#1967d2] font-medium block py-2 px-3 hover:bg-[#f8faff] rounded-md transition-colors duration-200"
+                  className="text-[#4b4b4b] hover:text-[#1967d2] font-[600] block py-2 px-3 hover:bg-[#f8faff] rounded-md transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Employers

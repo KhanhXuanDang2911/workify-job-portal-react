@@ -5,6 +5,7 @@ export const routes = {
   JOB_SEARCH: "job-search",
   JOB_DETAIL: "job-detail",
   EMPLOYER_SEARCH: "employer-search",
+  EMPLOYER_DETAIL: "employer-detail",
 };
 
 export const employer_routes = {
