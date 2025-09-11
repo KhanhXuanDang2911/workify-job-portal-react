@@ -8,6 +8,7 @@ import SignIn from "@/pages/SignIn";
 import JobSearch from "@/pages/JobSearch";
 import EmployerSearch from "@/pages/EmployerSearch";
 import JobDetail from "@/pages/JobDetail/JobDetail";
+import EmployerDetail from "@/pages/EmployerDetail";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -37,6 +38,10 @@ const PublicRoutes: RouteObject[] = [
       {
         path: routes.JOB_DETAIL,
         element: <JobDetail />,
+      },
+      {
+        path: routes.EMPLOYER_DETAIL,
+        element: <EmployerDetail />,
       },
       {
         path: "*",
