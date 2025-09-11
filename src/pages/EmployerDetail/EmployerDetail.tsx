@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import JobCard from "@/components/JobCard";
+import Pagination from "@/components/Pagination";
 import {
   MapPin,
   PhoneCall,
@@ -15,7 +16,6 @@ import {
   MessageSquare,
   Home,
   ChevronLeft,
-  ChevronRight,
   Filter,
   Users,
 } from "lucide-react";
@@ -391,7 +391,7 @@ export default function EmployerDetail() {
               <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-pink-50/30 opacity-60"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-blue-600">
+                  <h2 className="text-xl font-semibold text-[#1967d2]">
                     Available Jobs ({availableJobs.length})
                   </h2>
 
@@ -416,58 +416,17 @@ export default function EmployerDetail() {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                    <div className="text-sm text-gray-600">
+                  <div className="mt-6 pt-4 border-t">
+                    <div className="text-sm text-gray-600 mb-4">
                       Showing {startIndex + 1}-
                       {Math.min(startIndex + jobsPerPage, availableJobs.length)}{" "}
                       of {availableJobs.length} jobs
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        {Array.from(
-                          { length: totalPages },
-                          (_, i) => i + 1
-                        ).map((page) => (
-                          <Button
-                            key={page}
-                            variant={
-                              currentPage === page ? "default" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {page}
-                          </Button>
-                        ))}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
                   </div>
                 )}
               </div>

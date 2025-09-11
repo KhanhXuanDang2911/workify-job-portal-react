@@ -6,6 +6,8 @@ export const routes = {
   JOB_DETAIL: "job-detail",
   EMPLOYER_SEARCH: "employer-search",
   EMPLOYER_DETAIL: "employer-detail",
+  ARTICLES: "articles",
+  ARTICLES_DETAIL: "article-detail",
 };
 
 export const employer_routes = {

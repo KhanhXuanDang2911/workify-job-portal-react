@@ -9,6 +9,8 @@ import JobSearch from "@/pages/JobSearch";
 import EmployerSearch from "@/pages/EmployerSearch";
 import JobDetail from "@/pages/JobDetail/JobDetail";
 import EmployerDetail from "@/pages/EmployerDetail";
+import Articles from "@/pages/Articles";
+import ArticleDetail from "@/pages/ArticleDetail";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -42,6 +44,14 @@ const PublicRoutes: RouteObject[] = [
       {
         path: routes.EMPLOYER_DETAIL,
         element: <EmployerDetail />,
+      },
+      {
+        path: routes.ARTICLES,
+        element: <Articles />,
+      },
+      {
+        path: routes.ARTICLES_DETAIL,
+        element: <ArticleDetail />,
       },
       {
         path: "*",
