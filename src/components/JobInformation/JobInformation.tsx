@@ -25,6 +25,7 @@ import {
   User,
   Grid3X3,
 } from "lucide-react";
+import JobApplicationModal from "../JobApplicationModal";
 
 interface JobInformationProps {
   job: {
@@ -166,9 +167,14 @@ const JobInformation: React.FC<JobInformationProps> = ({
                   <Heart className="w-4 h-4 mr-2" />
                   Lưu
                 </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">
-                  Nộp đơn ngay
-                </Button>
+                <JobApplicationModal
+                  jobTitle={job.title}
+                  companyName={job.company}
+                >
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">
+                    Nộp đơn ngay
+                  </Button>
+                </JobApplicationModal>
               </div>
             </div>
 

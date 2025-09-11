@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import SuggestedJobs from "@/components/SuggestedJob";
 import JobInformation from "@/components/JobInformation";
+import JobApplicationModal from "@/components/JobApplicationModal";
 
 const sampleJob = {
   title: "Senior Frontend Developer",
@@ -283,9 +284,14 @@ const JobDetail = () => {
                   </div>
 
                   <div className="mt-6 pt-4 border-t space-y-3">
-                    <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300">
-                      Nộp đơn ngay
-                    </Button>
+                    <JobApplicationModal
+                      jobTitle={job.title}
+                      companyName={job.company}
+                    >
+                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300">
+                        Nộp đơn ngay
+                      </Button>
+                    </JobApplicationModal>
                     <Button
                       variant="outline"
                       className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
