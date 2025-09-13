@@ -5,6 +5,7 @@ import type { RouteObject } from "react-router-dom";
 import EmployerSignUp from "@/pages/EmployerSignUp";
 import EmployerSignIn from "@/pages/EmployerSignIn";
 import EmployerHome from "@/pages/EmployerHome";
+import Candidates from "@/pages/Candidates";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -26,6 +27,16 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: "*",
         element: <NotFound />,
+      },
+    ],
+  },
+  {
+    path: employer_routes.AUTH.BASE,
+    element: <EmployerLayout authenticated={true} />,
+    children: [
+      {
+        path: employer_routes.AUTH.CANDIDATES,
+        element: <Candidates />,
       },
     ],
   },
