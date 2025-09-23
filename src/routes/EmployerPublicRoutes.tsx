@@ -6,6 +6,7 @@ import EmployerSignUp from "@/pages/EmployerSignUp";
 import EmployerSignIn from "@/pages/EmployerSignIn";
 import EmployerHome from "@/pages/EmployerHome";
 import Candidates from "@/pages/Candidates";
+import EmployerPostJob from "@/pages/EmployerPostJob";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -25,18 +26,17 @@ const EmployerPublicRoutes: RouteObject[] = [
         element: <EmployerSignIn />,
       },
       {
+        path: employer_routes.APPLICATIONS,
+        element: <Candidates />,
+      },
+      {
+        path: employer_routes.JOB_ADD,
+        element: <EmployerPostJob />,
+      }
+      ,
+      {
         path: "*",
         element: <NotFound />,
-      },
-    ],
-  },
-  {
-    path: employer_routes.AUTH.BASE,
-    element: <EmployerLayout authenticated={true} />,
-    children: [
-      {
-        path: employer_routes.AUTH.CANDIDATES,
-        element: <Candidates />,
       },
     ],
   },

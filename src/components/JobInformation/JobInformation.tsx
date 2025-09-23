@@ -503,16 +503,16 @@ const JobInformation: React.FC<JobInformationProps> = ({
               <div className="space-y-3">
                 {companyInfo.applicationInstructions.map(
                   (instruction, index) => (
-                    <p key={index} className="text-gray-700">
+                    <div key={index} className="text-gray-700">
                       {instruction.startsWith("-") ? (
-                        <span className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="flex items-start gap-3">
+                          <span className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0"></span>
                           <span>{instruction.substring(1).trim()}</span>
-                        </span>
+                        </div>
                       ) : (
                         instruction
                       )}
-                    </p>
+                    </div>
                   )
                 )}
               </div>

@@ -14,10 +14,12 @@ export const employer_routes = {
   BASE: "/employer",
   SIGN_UP: "sign-up",
   SIGN_IN: "sign-in",
-  CANDIDATES: "candidates",
-  AUTH: {
-    BASE: "auth",
-    DASHBOARD: "dashboard",
-    CANDIDATES: "candidates",
-  }
+  HOME: "home",
+  APPLICATIONS: "applications",
+  SEARCH_TALENTS: "search-talents",
+  VIEWED_TALENTS: "viewed-talents",
+  SAVED_TALENTS: "saved-talents",
+  JOBS: "jobs",
+  JOB_ADD: "jobs/add",
+  SETTINGS: "settings",
 };
