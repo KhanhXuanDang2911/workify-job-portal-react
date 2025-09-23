@@ -145,22 +145,6 @@ export const mockEmployerSearchData = {
       founded: 1988,
       rating: 4.5,
     },
-    {
-      id: 5,
-      name: "Viettel Group",
-      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic4.jpg",
-      coverImage:
-        "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-      openJobs: 23,
-      location: "Hanoi",
-      description:
-        "Vietnam's largest telecommunications company with global presence",
-      featured: false,
-      size: CompanySize.ENTERPRISE,
-      type: CompanyType.GOVERNMENT,
-      founded: 1989,
-      rating: 4.3,
-    },
   ],
   industries: [
     "Technology",

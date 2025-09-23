@@ -12,7 +12,7 @@ export const mockJobSearchData = {
       type: "New",
       typeColor: "bg-green-500",
       posted: "1 days ago",
-      logo: "/company-logo-1.png",
+      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic2.jpg",
     },
     {
       id: 2,
@@ -24,7 +24,7 @@ export const mockJobSearchData = {
       type: "Internship",
       typeColor: "bg-orange-500",
       posted: "15 days ago",
-      logo: "/company-logo-2.png",
+      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic4.jpg",
     },
     {
       id: 3,
@@ -36,7 +36,7 @@ export const mockJobSearchData = {
       type: "Full-time",
       typeColor: "bg-purple-500",
       posted: "6 months ago",
-      logo: "/company-logo-3.png",
+      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic2.jpg",
     },
     {
       id: 4,
@@ -48,7 +48,7 @@ export const mockJobSearchData = {
       type: "Freelancer",
       typeColor: "bg-cyan-500",
       posted: "2 days ago",
-      logo: "/company-logo-4.png",
+      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic2.jpg",
     },
     {
       id: 5,
@@ -60,7 +60,7 @@ export const mockJobSearchData = {
       type: "Temporary",
       typeColor: "bg-yellow-600",
       posted: "1 days ago",
-      logo: "/company-logo-5.png",
+      logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic4.jpg",
     },
   ],
   industries: [
