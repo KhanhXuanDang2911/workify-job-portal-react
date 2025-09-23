@@ -7,7 +7,6 @@ import { candidates } from "./candidatesMockData";
 import { useContext, useState } from "react";
 import Pagination from "@/components/Pagination";
 import { ResponsiveContext } from "@/context/ResponsiveContext";
-import MenuSheet from "@/components/MenuSheet";
 
 type CandidateStatus = "Interview" | "Shortlisted" | "Declined" | "Hired" | "Interviewed";
 
@@ -23,7 +22,6 @@ function Candidates() {
   const { device } = useContext(ResponsiveContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const totalPages = Math.ceil(candidates.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -33,7 +31,6 @@ function Candidates() {
   return (
     <>
       {/* Main Content */}
-      {device !== "desktop" && <MenuSheet isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />}
       <main className="flex-1 p-6 ">
         {/* Content Header */}
         <div className={`flex items-center ${device !== "desktop" ? "flex-col items-stretch gap-5" : ""} justify-between mb-6`}>
