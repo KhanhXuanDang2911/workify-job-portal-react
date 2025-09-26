@@ -41,7 +41,7 @@ export default function EmployerLayout() {
             isAuthenticated={true}
           />
 
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-row flex-1 overflow-hidden">
             <EmployerSidebar
               mobileOpen={device !== "desktop" && mobileSidebarOpen}
               onClose={() => setMobileSidebarOpen(false)}

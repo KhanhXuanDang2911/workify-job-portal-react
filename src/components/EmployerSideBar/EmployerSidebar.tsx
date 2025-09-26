@@ -120,21 +120,21 @@ export default function EmployerSidebar({
   useEffect(() => {
     if (mobileOpen) setIsCollapsed(false);
   }, [mobileOpen, setIsCollapsed]);
-
+console.log(isCollapsed,mobileOpen)
   return (
     <>
       {/* Backdrop for mobile */}
-      {mobileOpen && <div className="backdrop fixed inset-0 bg-gray-900 opacity-50 z-40 lg:hidden transition-colors" onClick={onClose} aria-label="Close sidebar" />}
+      {mobileOpen && <div className="backdrop fixed inset-0 bg-gray-900 opacity-50 z-40 xl:hidden transition-colors" onClick={onClose} aria-label="Close sidebar" />}
       <div
         className={cn(
-          "flex flex-col  bg-white border-r border-gray-200 transition-all duration-300 z-45  overflow-y-auto",
+          "flex flex-col h-screen bg-white border-r border-gray-200 transition-all duration-300 z-45  overflow-y-auto",
           isCollapsed ? "w-16" : "w-64",
-          mobileOpen ? "fixed top-16 left-0 lg:static shadow-lg" : "hidden lg:flex"
+          mobileOpen ? "fixed top-16 left-0 xl:static shadow-lg W-64" : "hidden xl:flex"
         )}
         style={mobileOpen ? { height: "100vh" } : {}}
       >
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-2 ">
+        <nav className="overflow-y-auto p-2 ">
           <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.id}>

@@ -1,5 +1,5 @@
 import type React from "react";
-import { useRef } from "react";
+import { useRef, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -74,12 +74,16 @@ interface JobInformationProps {
   };
 }
 
-const JobInformation: React.FC<JobInformationProps> = ({
-  job,
-  jobDescription,
-  qualifications,
-  companyInfo,
-}) => {
+export interface JobInformationRef {
+  scrollToDescription: () => void;
+  scrollToBenefits: () => void;
+  scrollToSkills: () => void;
+  scrollToDetails: () => void;
+  scrollToContact: () => void;
+  scrollToCompany: () => void;
+}
+
+const JobInformation = forwardRef<JobInformationRef, JobInformationProps>(({ job, jobDescription, qualifications, companyInfo }, ref) => {
   const descriptionRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
@@ -88,28 +92,48 @@ const JobInformation: React.FC<JobInformationProps> = ({
   const companyRef = useRef<HTMLDivElement>(null);
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!ref.current) return;
+
+    const previewContainer = ref.current.closest(".job-information-preview");
+    if (!previewContainer) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const containerRect = previewContainer.getBoundingClientRect();
+    const elementRect = ref.current.getBoundingClientRect();
+
+    const containerScrollTop = previewContainer.scrollTop;
+    const elementOffsetTop = elementRect.top - containerRect.top + containerScrollTop;
+    const containerHeight = containerRect.height;
+    const elementHeight = elementRect.height;
+
+    const targetScrollTop = elementOffsetTop - (containerHeight - elementHeight) / 2;
+
+    previewContainer.scrollTo({
+      top: Math.max(0, targetScrollTop),
+      behavior: "smooth",
+    });
   };
+
+  useImperativeHandle(ref, () => ({
+    scrollToDescription: () => scrollToSection(descriptionRef),
+    scrollToBenefits: () => scrollToSection(benefitsRef),
+    scrollToSkills: () => scrollToSection(skillsRef),
+    scrollToDetails: () => scrollToSection(detailsRef),
+    scrollToContact: () => scrollToSection(contactRef),
+    scrollToCompany: () => scrollToSection(companyRef),
+  }));
 
   return (
     <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
       {/* Company Cover Image */}
       <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 overflow-hidden">
-        {job.coverImage && (
-          <img
-            src={job.coverImage || "/placeholder.svg"}
-            alt={`${job.company} cover`}
-            className="w-full h-full object-cover"
-          />
-        )}
+        {job.coverImage && <img src={job.coverImage || "/placeholder.svg"} alt={`${job.company} cover`} className="w-full h-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/10"></div>
 
         {/* New Badge - Repositioned */}
-        {job.isNew && (
-          <Badge className="absolute top-4 left-4 bg-green-500 text-white text-xs px-3 py-1 font-medium">
-            New
-          </Badge>
-        )}
+        {job.isNew && <Badge className="absolute top-4 left-4 bg-green-500 text-white text-xs px-3 py-1 font-medium">New</Badge>}
       </div>
 
       {/* Job Header */}
@@ -117,25 +141,17 @@ const JobInformation: React.FC<JobInformationProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* Company Logo */}
           <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white -mt-10 relative z-10">
-            <img
-              src={job.logo || "/placeholder.svg"}
-              alt={job.company}
-              className="w-16 h-16 object-contain"
-            />
+            <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-16 h-16 object-contain" />
           </div>
 
           {/* Job Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                  {job.title}
-                </h1>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{job.title}</h1>
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-blue-600" />
-                  <p className="text-lg font-medium text-gray-800">
-                    {job.company}
-                  </p>
+                  <p className="text-lg font-medium text-gray-800">{job.company}</p>
                 </div>
                 <div className="flex items-center text-gray-600 mb-2">
                   <MapPin className="w-4 h-4 mr-2" />
@@ -143,37 +159,22 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 </div>
                 <div className="flex items-center text-blue-600 text-sm">
                   <Globe className="w-4 h-4 mr-2" />
-                  <span className="hover:underline cursor-pointer">
-                    {job.website}
-                  </span>
+                  <span className="hover:underline cursor-pointer">{job.website}</span>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent"
-                >
+                <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent">
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent"
-                >
+                <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent">
                   <Heart className="w-4 h-4 mr-2" />
                   Lưu
                 </Button>
-                <JobApplicationModal
-                  jobTitle={job.title}
-                  companyName={job.company}
-                >
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">
-                    Nộp đơn ngay
-                  </Button>
+                <JobApplicationModal jobTitle={job.title} companyName={job.company}>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>
                 </JobApplicationModal>
               </div>
             </div>
@@ -185,8 +186,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 <div>
                   <p className="text-sm text-gray-600">Salary</p>
                   <p className="font-semibold text-gray-900">
-                    {job.salary}{" "}
-                    <span className="text-sm font-normal">/ {job.period}</span>
+                    {job.salary} <span className="text-sm font-normal">/ {job.period}</span>
                   </p>
                 </div>
               </div>
@@ -201,9 +201,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 <CalendarDays className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-gray-600">Hết hạn trong</p>
-                  <p className="font-semibold text-red-600">
-                    {job.remainingDays}
-                  </p>
+                  <p className="font-semibold text-red-600">{job.remainingDays}</p>
                 </div>
               </div>
             </div>
@@ -264,10 +262,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
 
           <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-lg p-6 border border-blue-100">
             {jobDescription.description ? (
-              <div
-                className="prose prose-gray max-w-none text-gray-700"
-                dangerouslySetInnerHTML={{ __html: jobDescription.description }}
-              />
+              <div className="prose prose-gray max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: jobDescription.description }} />
             ) : (
               <div className="space-y-4 text-gray-700">
                 {jobDescription.keyResponsibilities.map((item, index) => (
@@ -292,14 +287,9 @@ const JobInformation: React.FC<JobInformationProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900 mb-3">
-                What We Offer
-              </h4>
+              <h4 className="font-semibold text-gray-900 mb-3">What We Offer</h4>
               {jobDescription.whatWeOffer.map((benefit, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100"
-                >
+                <div key={index} className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-gray-700">{benefit}</span>
                 </div>
@@ -309,10 +299,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
             <div className="space-y-4">
               <h4 className="font-semibold text-gray-900 mb-3">Quyền lợi</h4>
               {jobDescription.benefits.map((benefit, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100"
-                >
+                <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-gray-700">{benefit}</span>
                 </div>
@@ -327,9 +314,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
         <div ref={skillsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <GraduationCap className="w-6 h-6 text-orange-600" />
-            <h3 className="text-xl font-bold text-orange-600">
-              Kỹ năng yêu cầu
-            </h3>
+            <h3 className="text-xl font-bold text-orange-600">Kỹ năng yêu cầu</h3>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 rounded-lg p-6 border border-orange-100">
@@ -386,9 +371,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
         <div ref={detailsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <UserCheck className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-purple-600">
-              Chi tiết công việc
-            </h3>
+            <h3 className="text-xl font-bold text-purple-600">Chi tiết công việc</h3>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50/50 to-indigo-50/50 rounded-lg p-6 border border-purple-100">
@@ -397,12 +380,8 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 <div className="flex items-start gap-4">
                   <Briefcase className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">
-                      Loại công việc
-                    </p>
-                    <p className="font-semibold text-gray-900">
-                      {job.workType || "Nhân viên toàn thời gian"}
-                    </p>
+                    <p className="text-sm text-gray-600 font-medium">Loại công việc</p>
+                    <p className="font-semibold text-gray-900">{job.workType || "Nhân viên toàn thời gian"}</p>
                   </div>
                 </div>
 
@@ -418,9 +397,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
                   <GraduationCap className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Học vấn</p>
-                    <p className="font-semibold text-gray-900">
-                      {job.education}
-                    </p>
+                    <p className="font-semibold text-gray-900">{job.education}</p>
                   </div>
                 </div>
               </div>
@@ -429,21 +406,15 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 <div className="flex items-start gap-4">
                   <Briefcase className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">
-                      Kinh nghiệm
-                    </p>
-                    <p className="font-semibold text-gray-900">
-                      {job.experience}
-                    </p>
+                    <p className="text-sm text-gray-600 font-medium">Kinh nghiệm</p>
+                    <p className="font-semibold text-gray-900">{job.experience}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <Users className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
+                  <Users className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">
-                      Giới tính
-                    </p>
+                    <p className="text-sm text-gray-600 font-medium">Giới tính</p>
                     <p className="font-semibold text-gray-900">{job.gender}</p>
                   </div>
                 </div>
@@ -452,21 +423,15 @@ const JobInformation: React.FC<JobInformationProps> = ({
                   <User className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Tuổi</p>
-                    <p className="font-semibold text-gray-900">
-                      {job.age || "28 - 40"}
-                    </p>
+                    <p className="font-semibold text-gray-900">{job.age || "28 - 40"}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <Grid3X3 className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">
-                      Ngành nghề
-                    </p>
-                    <p className="font-semibold text-gray-900">
-                      {job.industry || job.jobType}
-                    </p>
+                    <p className="text-sm text-gray-600 font-medium">Ngành nghề</p>
+                    <p className="font-semibold text-gray-900">{job.industry || job.jobType}</p>
                   </div>
                 </div>
               </div>
@@ -480,18 +445,14 @@ const JobInformation: React.FC<JobInformationProps> = ({
         <div ref={contactRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Phone className="w-6 h-6 text-indigo-600" />
-            <h3 className="text-xl font-bold text-indigo-600">
-              Thông tin liên hệ
-            </h3>
+            <h3 className="text-xl font-bold text-indigo-600">Thông tin liên hệ</h3>
           </div>
 
           <div className="space-y-6">
             <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
               <div className="flex items-center gap-3 mb-4">
                 <Mail className="w-5 h-5 text-indigo-600" />
-                <h4 className="font-semibold text-gray-900">
-                  Tên liên hệ: {companyInfo.name}
-                </h4>
+                <h4 className="font-semibold text-gray-900">Tên liên hệ: {companyInfo.name}</h4>
               </div>
               <div className="flex items-start gap-3 mb-4">
                 <MapPin className="w-5 h-5 text-indigo-600 mt-0.5" />
@@ -501,20 +462,18 @@ const JobInformation: React.FC<JobInformationProps> = ({
               </div>
 
               <div className="space-y-3">
-                {companyInfo.applicationInstructions.map(
-                  (instruction, index) => (
-                    <div key={index} className="text-gray-700">
-                      {instruction.startsWith("-") ? (
-                        <div className="flex items-start gap-3">
-                          <span className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0"></span>
-                          <span>{instruction.substring(1).trim()}</span>
-                        </div>
-                      ) : (
-                        instruction
-                      )}
-                    </div>
-                  )
-                )}
+                {companyInfo.applicationInstructions.map((instruction, index) => (
+                  <div key={index} className="text-gray-700">
+                    {instruction.startsWith("-") ? (
+                      <div className="flex items-start gap-3">
+                        <span className="w-2 h-2 bg-indigo-600 rounded-full mt-2 flex-shrink-0"></span>
+                        <span>{instruction.substring(1).trim()}</span>
+                      </div>
+                    ) : (
+                      instruction
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -547,9 +506,7 @@ const JobInformation: React.FC<JobInformationProps> = ({
           <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/50 rounded-lg p-6 border border-emerald-100">
             <div className="flex items-center gap-3 mb-4">
               <Award className="w-6 h-6 text-emerald-600" />
-              <h4 className="text-lg font-semibold text-gray-900">
-                {companyInfo.name}
-              </h4>
+              <h4 className="text-lg font-semibold text-gray-900">{companyInfo.name}</h4>
             </div>
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-5 h-5 text-emerald-600" />
@@ -557,14 +514,14 @@ const JobInformation: React.FC<JobInformationProps> = ({
                 <strong>Quy mô:</strong> {companyInfo.size}
               </p>
             </div>
-            <div className="text-gray-700 leading-relaxed">
-              <p>{companyInfo.description}</p>
-            </div>
+            <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: companyInfo.description }} />
           </div>
         </div>
       </div>
     </div>
   );
-};
+});
+
+JobInformation.displayName = "JobInformation";
 
 export default JobInformation;
