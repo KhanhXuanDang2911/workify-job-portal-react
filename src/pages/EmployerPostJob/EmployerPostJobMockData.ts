@@ -100,3 +100,96 @@ export const sampleCompanyInfo = {
     "- Thời gian phản hồi: 3-5 ngày làm việc",
   ],
 };
+
+
+export const educationLevels = [
+  { value: "high-school", label: "High School" },
+  { value: "associate", label: "Associate Degree" },
+  { value: "bachelor", label: "Bachelor's Degree" },
+  { value: "master", label: "Master's Degree" },
+  { value: "phd", label: "PhD" },
+  { value: "other", label: "Other" },
+];
+
+export const experienceLevels = [
+  { value: "internship", label: "Internship" },
+  { value: "entry", label: "Entry Level" },
+  { value: "junior", label: "Junior (1-3 years)" },
+  { value: "mid", label: "Mid Level (3-5 years)" },
+  { value: "senior", label: "Senior (5+ years)" },
+  { value: "lead", label: "Lead/Manager" },
+];
+
+export const entryLevels = [
+  { value: "fresh-graduate", label: "Fresh Graduate" },
+  { value: "experienced", label: "Experienced" },
+  { value: "manager", label: "Manager" },
+  { value: "director", label: "Director" },
+];
+
+export const positionTypes = [
+  { value: "full-time", label: "Full-time" },
+  { value: "part-time", label: "Part-time" },
+  { value: "contract", label: "Contract" },
+  { value: "freelance", label: "Freelance" },
+  { value: "internship", label: "Internship" },
+];
+
+export const genders = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "any", label: "Any" },
+];
+
+export const jobCategories = [
+  { value: "it-software", label: "IT - Software" },
+  { value: "marketing", label: "Marketing" },
+  { value: "sales", label: "Sales" },
+  { value: "finance", label: "Finance" },
+  { value: "hr", label: "Human Resources" },
+  { value: "design", label: "Design" },
+  { value: "engineering", label: "Engineering" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "education", label: "Education" },
+  { value: "other", label: "Other" },
+];
+
+export const ages = [
+  { value: "18-25", label: "18-25" },
+  { value: "26-35", label: "26-35" },
+  { value: "36-45", label: "36-45" },
+  { value: "46-55", label: "46-55" },
+  { value: "55+", label: "55+" },
+  { value: "any", label: "Any age" },
+];
+
+export const provinces = [
+  {
+    value: "Da Nang",
+    label: "Da Nang",
+    districts: [
+      { value: "Hai Chau", label: "Hai Chau District" },
+      { value: "Thanh Khe", label: "Thanh Khe District" },
+    ],
+  },
+  {
+    value: "Ha Noi",
+    label: "Ha Noi",
+    districts: [
+      { value: "Ba Dinh", label: "Ba Dinh District" },
+      { value: "Dong Da", label: "Dong Da District" },
+    ],
+  },
+];
+
+export const languages = [
+  { value: "english", label: "English" },
+  { value: "vietnamese", label: "Vietnamese" },
+  { value: "japanese", label: "Japanese" },
+  { value: "chinese", label: "Chinese" },
+  { value: "korean", label: "Korean" },
+  { value: "french", label: "French" },
+  { value: "german", label: "German" },
+  { value: "spanish", label: "Spanish" },
+]
+  
