@@ -7,6 +7,7 @@ import EmployerSignIn from "@/pages/EmployerSignIn";
 import EmployerHome from "@/pages/EmployerHome";
 import Candidates from "@/pages/Candidates";
 import EmployerPostJob from "@/pages/EmployerPostJob";
+import Jobs from "@/pages/Jobs";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -30,10 +31,14 @@ const EmployerPublicRoutes: RouteObject[] = [
         element: <Candidates />,
       },
       {
-        path: employer_routes.JOB_ADD,
-        element: <EmployerPostJob />,
+        path: employer_routes.JOBS,
+        element: <Jobs />,
       }
       ,
+      {
+        path: employer_routes.JOB_ADD,
+        element: <EmployerPostJob />,
+      },
       {
         path: "*",
         element: <NotFound />,
