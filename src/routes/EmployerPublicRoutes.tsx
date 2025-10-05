@@ -8,6 +8,7 @@ import EmployerHome from "@/pages/EmployerHome";
 import Candidates from "@/pages/Candidates";
 import EmployerPostJob from "@/pages/EmployerPostJob";
 import Jobs from "@/pages/Jobs";
+import SearchTalents from "@/pages/Employer/SearchTalents";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -39,6 +40,11 @@ const EmployerPublicRoutes: RouteObject[] = [
         path: employer_routes.JOB_ADD,
         element: <EmployerPostJob />,
       },
+      {
+        path: employer_routes.SEARCH_TALENTS,
+        element: <SearchTalents />,
+      }
+      ,
       {
         path: "*",
         element: <NotFound />,
