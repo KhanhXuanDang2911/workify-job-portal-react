@@ -20,6 +20,7 @@ export default function EmployerLayout() {
     "/employer/jobs",
     "/employer/jobs/add",
     "/employer/settings",
+    "/employer/organization",
   ];
   const publicPaths = [
     "/employer/sign-up",

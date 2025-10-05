@@ -9,6 +9,7 @@ import Candidates from "@/pages/Candidates";
 import EmployerPostJob from "@/pages/EmployerPostJob";
 import Jobs from "@/pages/Jobs";
 import SearchTalents from "@/pages/Employer/SearchTalents";
+import Organization from "@/pages/Employer/Organization";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -34,8 +35,7 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: employer_routes.JOBS,
         element: <Jobs />,
-      }
-      ,
+      },
       {
         path: employer_routes.JOB_ADD,
         element: <EmployerPostJob />,
@@ -43,8 +43,11 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: employer_routes.SEARCH_TALENTS,
         element: <SearchTalents />,
-      }
-      ,
+      },
+      {
+        path: employer_routes.ORGANIZATION,
+        element: <Organization />,
+      },
       {
         path: "*",
         element: <NotFound />,
