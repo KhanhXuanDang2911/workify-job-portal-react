@@ -19,6 +19,7 @@ export const employer_routes = {
   SEARCH_TALENTS: "search-talents",
   VIEWED_TALENTS: "viewed-talents",
   SAVED_TALENTS: "saved-talents",
+  ORGANIZATION: "organization",
   JOBS: "jobs",
   JOB_ADD: "jobs/add",
   SETTINGS: "settings",
