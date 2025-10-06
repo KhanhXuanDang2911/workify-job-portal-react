@@ -21,7 +21,7 @@ function MenuSheet({ isMobileSidebarOpen, setIsMobileSidebarOpen }: MenuSheetPro
           </SheetTrigger>
         </div>
         <SheetContent side="left" className="w-64 bg-[#e9ebfd] p-0">
-          <EmployerSidebar />
+          {/* <EmployerSidebar /> */}
         </SheetContent>
       </Sheet>
     </>
