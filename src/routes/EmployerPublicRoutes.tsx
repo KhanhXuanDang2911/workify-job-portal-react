@@ -11,6 +11,7 @@ import Jobs from "@/pages/Jobs";
 import SearchTalents from "@/pages/Employer/SearchTalents";
 import Organization from "@/pages/Employer/Organization";
 import JobDetailManage from "@/pages/Employer/JobDetailManage";
+import Settings from "@/pages/Employer/Settings";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -43,9 +44,8 @@ const EmployerPublicRoutes: RouteObject[] = [
       },
       {
         path: `${employer_routes.JOBS}/:jobId`,
-        element: <JobDetailManage />
-      }
-      ,
+        element: <JobDetailManage />,
+      },
       {
         path: employer_routes.SEARCH_TALENTS,
         element: <SearchTalents />,
@@ -53,6 +53,10 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: employer_routes.ORGANIZATION,
         element: <Organization />,
+      },
+      {
+        path: employer_routes.SETTINGS,
+        element: <Settings />,
       },
       {
         path: "*",
