@@ -27,18 +27,18 @@ interface Candidate {
 const mockCandidates: Candidate[] = [
   {
     id: "1",
-    name: "Darlene Robertson",
+    name: "Nguyen Xuan Son",
     avatar: "",
     email: "darlene@example.com",
     rating: 0,
     stage: "Screening",
     stageProgress: [1, 1, 0, 0, 0, 0],
     appliedDate: "01 March, 2021",
-    owner: { name: "Kristin Watson", avatar: "" },
+    owner: { name: "Bao Tuan", avatar: "" },
   },
   {
     id: "2",
-    name: "Cody Fisher",
+    name: "Minh Quan",
     avatar: "",
     email: "cody@example.com",
     rating: 4.5,
@@ -49,7 +49,7 @@ const mockCandidates: Candidate[] = [
   },
   {
     id: "3",
-    name: "Jenny Wilson",
+    name: "Hoang Vo",
     avatar: "",
     email: "jenny@example.com",
     rating: 5.0,
@@ -60,7 +60,7 @@ const mockCandidates: Candidate[] = [
   },
   {
     id: "4",
-    name: "Ahmad Rafi S",
+    name: "Dang Xuan Khanh",
     avatar: "https://i.pinimg.com/474x/8f/85/4e/8f854e4b78ecc4c356b0ae6f940e796d.jpg",
     email: "ahmad@example.com",
     rating: 0,
@@ -71,7 +71,7 @@ const mockCandidates: Candidate[] = [
   },
   {
     id: "5",
-    name: "Brooklyn Simmons",
+    name: "Tran Van Tung",
     avatar: "https://i.pinimg.com/474x/6f/12/07/6f120710820e1b04e88a0255baa18f7f.jpg",
     email: "brooklyn@example.com",
     rating: 0,
@@ -82,7 +82,7 @@ const mockCandidates: Candidate[] = [
   },
   {
     id: "6",
-    name: "Bessie Cooper",
+    name: "Dung Van",
     avatar: "https://i.pinimg.com/474x/37/ac/bc/37acbc2aa095fe2ef333828fc24dfb17.jpg",
     email: "bessie@example.com",
     rating: 3.0,
@@ -93,7 +93,7 @@ const mockCandidates: Candidate[] = [
   },
   {
     id: "7",
-    name: "Marvin McKinney",
+    name: "Ly Thanh",
     avatar: "",
     email: "marvin@example.com",
     rating: 2.0,

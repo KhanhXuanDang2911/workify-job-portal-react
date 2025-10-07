@@ -81,11 +81,11 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                 </div>
                 <div>
                   <span className="text-gray-500">Applied at</span>
-                  <p className="font-medium text-gray-900">19 October, 2023</p>
+                  <p className="font-medium text-gray-900">19 October, 2025</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Job Applied</span>
-                  <p className="font-medium text-gray-900">Research and Development</p>
+                  <p className="font-medium text-gray-900">Senior Frontend Developer</p>
                 </div>
               </div>
             </div>
@@ -172,7 +172,7 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                   <GraduationCap className="w-4 h-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-gray-500 text-xs mb-0.5">University</p>
-                    <p className="text-gray-900">Boston University</p>
+                    <p className="text-gray-900">Da Nang University of Science and Technology</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">

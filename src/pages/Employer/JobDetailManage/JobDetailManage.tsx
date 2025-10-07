@@ -28,7 +28,7 @@ export default function JobDetailManage() {
             </Button>
             <div>
               <h1 className="text-xl font-semibold text-[#1967d2] flex items-center gap-2">
-                Senior Product Designer
+                Senior Frontend Developer
                 <MoreHorizontal className="h-5 w-5 text-gray-400 cursor-pointer" />
               </h1>
               <p className="text-sm text-gray-500">IT Developer • Full time</p>

@@ -10,7 +10,7 @@ interface CreateLocationModalProps {
   onAddLocation: (location: { officeName: string; officeAddress: string }) => void;
 }
 
-export default function CreateLocationModal({ onAddLocation }: CreateLocationModalProps){
+export default function CreateLocationModal({ onAddLocation }: CreateLocationModalProps) {
   const [formData, setFormData] = useState({
     officeName: "",
     province: "",
@@ -44,7 +44,6 @@ export default function CreateLocationModal({ onAddLocation }: CreateLocationMod
           Add new location
         </Button>
       }
-      className="!max-w-2xl"
       footer={(onClose) => (
         <div className="flex gap-3 justify-end">
           <Button
@@ -59,8 +58,9 @@ export default function CreateLocationModal({ onAddLocation }: CreateLocationMod
           </Button>
         </div>
       )}
+      className="!min-w-xl"
     >
-      <div className="space-y-4 max-h-[70vh] overflow-y-auto py-4 px-2">
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto py-4 px-2 ">
         <div>
           <Label htmlFor="officeName">
             Office name <span className="text-red-500">*</span>
@@ -165,5 +165,4 @@ export default function CreateLocationModal({ onAddLocation }: CreateLocationMod
       </div>
     </BaseModal>
   );
-};
-
+}
