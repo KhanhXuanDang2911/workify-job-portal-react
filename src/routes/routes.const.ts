@@ -8,6 +8,7 @@ export const routes = {
   EMPLOYER_DETAIL: "employer-detail",
   ARTICLES: "articles",
   ARTICLES_DETAIL: "article-detail",
+  SETTINGS: "settings",
 };
 
 export const employer_routes = {

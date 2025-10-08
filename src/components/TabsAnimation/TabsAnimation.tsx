@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
+import type { LucideProps } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
 
 interface TabsAnimationProps {
-  tabs: { id: string; label: string }[];
+  tabs: { id: string; label: string; icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>|null }[];
   activeTab: string;
   setActiveTab: (id: string) => void;
   indicatorClassName?: string;
@@ -57,6 +58,7 @@ function TabsAnimation({ tabs, activeTab, setActiveTab, indicatorClassName, tabs
             activeTab === tab.id ? "text-[#1967d2] " : "text-gray-700 hover:text-[#1967d2]"
           )}
         >
+          {tab.icon && <tab.icon className="w-4 h-4 inline-block mr-2" />}
           {tab.label}
         </button>
       ))}
