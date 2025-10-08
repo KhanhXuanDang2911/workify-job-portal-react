@@ -11,6 +11,7 @@ import JobDetail from "@/pages/JobDetail/JobDetail";
 import EmployerDetail from "@/pages/EmployerDetail";
 import Articles from "@/pages/Articles";
 import ArticleDetail from "@/pages/ArticleDetail";
+import Settings from "@/pages/User/Settings";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -53,6 +54,11 @@ const PublicRoutes: RouteObject[] = [
         path: routes.ARTICLES_DETAIL,
         element: <ArticleDetail />,
       },
+      {
+        path: routes.SETTINGS,
+        element: <Settings />,
+      }
+      ,
       {
         path: "*",
         element: <NotFound />,
