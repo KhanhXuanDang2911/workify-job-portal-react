@@ -77,13 +77,13 @@ export default function PersonalTab() {
                   handleProfileClick();
                 }
               }}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-white hover:border-[#1967d2] transition-colors cursor-pointer"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-white hover:border-[#1967d2] hover:bg-[#e3eefc] group transition-colors cursor-pointer"
             >
               {formData.profilePicture ? (
                 <img src={formData.profilePicture} alt="Profile preview" className="w-24 h-24 rounded-full object-cover mb-2" />
               ) : (
                 <>
-                  <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                  <Upload className="w-12 h-12 text-gray-400 mb-2 group-hover:text-[#1967d2]" />
                   <p className="text-sm font-medium text-gray-700 mb-1">Browse photo or drop here</p>
                   <p className="text-xs text-gray-500 text-center">A photo larger than 400 pixels work best. Max photo size 5 MB.</p>
                 </>

@@ -12,6 +12,7 @@ import EmployerDetail from "@/pages/EmployerDetail";
 import Articles from "@/pages/Articles";
 import ArticleDetail from "@/pages/ArticleDetail";
 import Settings from "@/pages/User/Settings";
+import MyResume from "@/pages/User/MyResume";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -57,6 +58,10 @@ const PublicRoutes: RouteObject[] = [
       {
         path: routes.SETTINGS,
         element: <Settings />,
+      },
+      {
+        path: routes.MY_RESUME,
+        element:<MyResume />,
       }
       ,
       {

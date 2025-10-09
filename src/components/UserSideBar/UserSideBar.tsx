@@ -61,7 +61,7 @@ export default function UserSideBar({ className }: UserSideBarProps) {
           {menuItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
-              <li key={item.id}>
+              <li key={item.id} className="bg-amber-200 rounded-lg border border-[#368289]">
                 <Link to={item.href}>
                   <div
                     className={cn(
