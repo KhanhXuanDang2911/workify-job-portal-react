@@ -9,6 +9,7 @@ export const routes = {
   ARTICLES: "articles",
   ARTICLES_DETAIL: "article-detail",
   SETTINGS: "settings",
+  MY_RESUME: "resumes",
 };
 
 export const employer_routes = {
