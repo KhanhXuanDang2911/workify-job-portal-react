@@ -10,6 +10,7 @@ export const routes = {
   ARTICLES_DETAIL: "article-detail",
   SETTINGS: "settings",
   MY_RESUME: "resumes",
+  MY_SAVED_JOBS: "saved-jobs",
 };
 
 export const employer_routes = {

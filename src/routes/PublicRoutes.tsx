@@ -13,6 +13,7 @@ import Articles from "@/pages/Articles";
 import ArticleDetail from "@/pages/ArticleDetail";
 import Settings from "@/pages/User/Settings";
 import MyResume from "@/pages/User/MyResume";
+import MySavedJobs from "@/pages/User/MySavedJobs";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -62,6 +63,11 @@ const PublicRoutes: RouteObject[] = [
       {
         path: routes.MY_RESUME,
         element:<MyResume />,
+      }
+      ,
+      {
+        path: routes.MY_SAVED_JOBS,
+        element: <MySavedJobs />,
       }
       ,
       {

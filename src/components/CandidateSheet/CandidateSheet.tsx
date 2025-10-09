@@ -28,9 +28,9 @@ interface CandidateSheetProps {
 }
 
 const tabs = [
-  { id: "job-application", label: "Job Application" },
-  { id: "resume", label: "Resume" },
-  { id: "interview", label: "Interview" },
+  { id: "job-application", label: "Job Application", icon: null },
+  { id: "resume", label: "Resume", icon: null },
+  { id: "interview", label: "Interview", icon: null },
 ];
 
 export function CandidateSheet({ candidate, children, className }: CandidateSheetProps) {
