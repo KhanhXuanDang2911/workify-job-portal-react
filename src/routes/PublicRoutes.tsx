@@ -14,6 +14,7 @@ import ArticleDetail from "@/pages/ArticleDetail";
 import Settings from "@/pages/User/Settings";
 import MyResume from "@/pages/User/MyResume";
 import MySavedJobs from "@/pages/User/MySavedJobs";
+import VerifyEmail from "@/pages/VerifyEmail";
 
 const PublicRoutes: RouteObject[] = [
   {
@@ -62,14 +63,16 @@ const PublicRoutes: RouteObject[] = [
       },
       {
         path: routes.MY_RESUME,
-        element:<MyResume />,
-      }
-      ,
+        element: <MyResume />,
+      },
       {
         path: routes.MY_SAVED_JOBS,
         element: <MySavedJobs />,
-      }
-      ,
+      },
+      {
+        path: routes.VERIFY_EMAIL,
+        element: <VerifyEmail />,
+      },
       {
         path: "*",
         element: <NotFound />,

@@ -4,6 +4,7 @@ export const routes = {
   SIGN_IN: "sign-in",
   JOB_SEARCH: "job-search",
   JOB_DETAIL: "job-detail",
+  VERIFY_EMAIL: "verify-email",
   EMPLOYER_SEARCH: "employer-search",
   EMPLOYER_DETAIL: "employer-detail",
   ARTICLES: "articles",
