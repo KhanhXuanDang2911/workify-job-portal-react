@@ -14,6 +14,7 @@ import { authService } from "@/services";
 import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
+import { routes } from "@/routes/routes.const";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -218,7 +219,7 @@ export default function SignIn() {
             <div className="text-center">
               <p className="text-gray-600">
                 Don't have an account?{" "}
-                <Link to="/register" className="text-primary-color hover:text-primary-color/80 font-medium transition-colors hover:underline">
+                <Link to={`/${routes.SIGN_UP}`} className="text-primary-color hover:text-primary-color/80 font-medium transition-colors hover:underline">
                   Sign up now
                 </Link>
               </p>

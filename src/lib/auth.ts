@@ -1,23 +1,27 @@
-const TOKEN_KEY = "workify_access_token";
-const REFRESH_TOKEN_KEY = "workify_refresh_token";
-const USER_KEY = "workify_user";
+const ACCESS_TOKEN = "";
+const REFRESH_TOKEN = "";
+const USER_KEY = "";
 
 export const authUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.setItem(ACCESS_TOKEN, accessToken);
+    localStorage.setItem(REFRESH_TOKEN, refreshToken);
+
+    window.dispatchEvent(new Event("storage"));
   },
 
   getAccessToken: (): string | null => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(ACCESS_TOKEN);
   },
 
   getRefreshToken: (): string | null => {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+    return localStorage.getItem(REFRESH_TOKEN);
   },
 
   setUser: (user: unknown) => {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+    window.dispatchEvent(new Event("storage"));
   },
 
   getUser: () => {
@@ -26,12 +30,14 @@ export const authUtils = {
   },
 
   clearAuth: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
     localStorage.removeItem(USER_KEY);
+
+    window.dispatchEvent(new Event("storage"));
   },
 
   isAuthenticated: (): boolean => {
-    return !!localStorage.getItem(TOKEN_KEY);
+    return !!localStorage.getItem(ACCESS_TOKEN);
   },
 };

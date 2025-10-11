@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth.schema";
 import { toast } from "react-toastify";
+import { routes } from "@/routes/routes.const";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -186,7 +187,7 @@ export default function SignUp() {
                         type="text"
                         placeholder="Enter your full name"
                         {...register("fullName")}
-                        className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-gray-400"
+                        className="pl-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200"
                       />
                     </div>
                     {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
@@ -203,7 +204,7 @@ export default function SignUp() {
                         id="email"
                         type="email"
                         placeholder="Enter your email"
-                        className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-gray-400"
+                        className="pl-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200"
                         {...register("email")}
                       />
                     </div>
@@ -222,7 +223,7 @@ export default function SignUp() {
                           type={showPassword ? "text" : "password"}
                           placeholder="Password"
                           {...register("password")}
-                          className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-gray-400"
+                          className="pl-10 pr-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200"
                         />
                         <button
                           type="button"
@@ -246,7 +247,7 @@ export default function SignUp() {
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm password"
                           {...register("confirmPassword")}
-                          className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-gray-400"
+                          className="pl-10 pr-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200"
                         />
                         <button
                           type="button"
@@ -291,7 +292,8 @@ export default function SignUp() {
             <div className="text-center">
               <p className="text-gray-600 mt-2">
                 Already have an account?
-                <Link to="/sign-in" className="text-primary-color hover:text-primary-color/80 font-medium transition-colors hover:underline">{" "}
+                <Link to={`/${routes.SIGN_IN}`} className="text-primary-color hover:text-primary-color/80 font-medium transition-colors hover:underline">
+                  {" "}
                   Sign in
                 </Link>
               </p>

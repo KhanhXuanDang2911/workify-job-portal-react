@@ -1,5 +1,3 @@
-import { string } from "zod";
-
 export interface ApiResponse<T = unknown> {
   status: number;
   message: string;
