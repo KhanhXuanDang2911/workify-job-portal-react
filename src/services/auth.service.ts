@@ -1,9 +1,14 @@
 import axiosInstance from "@/lib/http";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, User } from "@/types";
 
 export const authService = {
   signUp: async (data: { fullName: string; email: string; password: string }): Promise<ApiResponse> => {
     const response = await axiosInstance.post<ApiResponse>("/users/sign-up", data);
+    return response.data;
+  },
+
+  signIn: async (data: { email: string; password: string }): Promise<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>>("/auth/users/sign-in", data);
     return response.data;
   },
 
