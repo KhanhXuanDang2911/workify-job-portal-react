@@ -12,6 +12,8 @@ export const routes = {
   SETTINGS: "settings",
   MY_RESUME: "resumes",
   MY_SAVED_JOBS: "saved-jobs",
+  MY_APPLIED_JOBS: "applied-jobs",
+  MESSAGES: "messages",
 };
 
 export const employer_routes = {

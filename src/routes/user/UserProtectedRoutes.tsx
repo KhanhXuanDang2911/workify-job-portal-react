@@ -35,6 +35,14 @@ const UserProtectedRoutes: RouteObject[] = [
           </ProtectedRoute>
         ),
       },
+      {
+        path: routes.MY_APPLIED_JOBS,
+        element: (
+          <ProtectedRoute>
+            <MySavedJobs />
+          </ProtectedRoute>
+        ),
+      }
     ],
   },
 ];
