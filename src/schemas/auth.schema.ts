@@ -28,4 +28,12 @@ export const signUpSchema = z
     path: ["confirmPassword"],
   });
 
+export const signInSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email là bắt buộc")
+    .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/, "Đinh dạng email không hợp lệ"),
+  password: z.string().min(1, "Mật khẩu là bắt buộc"),
+});
+
 export type SignUpFormData = z.infer<typeof signUpSchema>;
