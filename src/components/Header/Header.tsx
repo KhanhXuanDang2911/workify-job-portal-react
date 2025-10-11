@@ -8,6 +8,7 @@ import { employer_routes, routes } from "@/routes/routes.const";
 import JobSeekerNotificationDropdown from "../JobSeekerNotificationDropdown";
 import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
+import { authService } from "@/services";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileSections, setMobileSections] = useState({
@@ -35,11 +36,22 @@ export default function Header() {
     return () => window.removeEventListener("storage", checkAuth);
   }, []);
 
-  const handleLogout = () => {
-    authUtils.clearAuth();
-    setIsAuthenticated(false);
-    setUser(null);
-    toast("See you again soon!");
+  const handleLogout = async () => {
+    const accessToken = authUtils.getAccessToken();
+    const refreshToken = authUtils.getRefreshToken();
+    try {
+      if (accessToken && refreshToken) {
+        await authService.signOut(accessToken, refreshToken);
+      }
+    } catch (error) {
+      console.error("Logout error:",error);
+    } finally {
+      authUtils.clearAuth();
+
+      window.dispatchEvent(new Event("storage"));
+
+      toast("Bạn đã đăng xuất khỏi hệ thống");
+    }
     navigate(routes.SIGN_IN);
   };
 
@@ -200,13 +212,13 @@ export default function Header() {
                         Saved Jobs
                       </Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
+                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
                       <Link to={routes.MY_RESUME} className="cursor-pointer">
                         <File className="w-4 h-4 mr-2" />
                         My Resumes
                       </Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
+                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
                       <Link to={routes.MESSAGES} className="cursor-pointer">
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Messages
@@ -220,8 +232,8 @@ export default function Header() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-red-600 cursor-pointer focus:bg-sky-200 focus:text-red-600" onClick={handleLogout}>
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

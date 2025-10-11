@@ -12,6 +12,20 @@ export const authService = {
     return response.data;
   },
 
+  signOut: async (accessToken: string, refreshToken: string): Promise<ApiResponse<null>> => {
+    const response = await axiosInstance.post<ApiResponse<null>>(
+      "/auth/sign-out",
+      {},
+      {
+        headers: {
+          "X-Token": accessToken,
+          "Y-Token": refreshToken,
+        },
+      }
+    );
+    return response.data;
+  },
+
   verifyEmail: async (token: string): Promise<ApiResponse<{ message: string }>> => {
     const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(
       "/auth/users/verify-email",
