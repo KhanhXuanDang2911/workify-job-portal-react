@@ -4,6 +4,8 @@ import EmployerSignUp from "@/pages/EmployerSignUp";
 import EmployerSignIn from "@/pages/EmployerSignIn";
 import EmployerHome from "@/pages/EmployerHome";
 import { employer_routes } from "../routes.const";
+import ResetPassword from "@/pages/ResetPassword";
+import ForgotPassword from "@/pages/ForgotPassword";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -21,6 +23,14 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: employer_routes.SIGN_IN,
         element: <EmployerSignIn />,
+      },
+      {
+        path: employer_routes.FORGOT_PASSWORD,
+        element: <ForgotPassword />,
+      },
+      {
+        path: employer_routes.RESET_PASSWORD,
+        element: <ResetPassword />,
       },
     ],
   },

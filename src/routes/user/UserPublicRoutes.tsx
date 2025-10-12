@@ -1,16 +1,18 @@
-import type { RouteObject } from "react-router-dom"
-import MainLayout from "@/layouts/MainLayout/MainLayout"
-import Home from "@/pages/Home"
-import SignUp from "@/pages/SignUp"
-import SignIn from "@/pages/SignIn"
-import VerifyEmail from "@/pages/VerifyEmail"
-import JobSearch from "@/pages/JobSearch"
-import EmployerSearch from "@/pages/EmployerSearch"
-import JobDetail from "@/pages/JobDetail/JobDetail"
-import EmployerDetail from "@/pages/EmployerDetail"
-import Articles from "@/pages/Articles"
-import ArticleDetail from "@/pages/ArticleDetail"
-import { routes } from "../routes.const"
+import type { RouteObject } from "react-router-dom";
+import MainLayout from "@/layouts/MainLayout/MainLayout";
+import Home from "@/pages/Home";
+import SignUp from "@/pages/SignUp";
+import SignIn from "@/pages/SignIn";
+import VerifyEmail from "@/pages/VerifyEmail";
+import JobSearch from "@/pages/JobSearch";
+import EmployerSearch from "@/pages/EmployerSearch";
+import JobDetail from "@/pages/JobDetail/JobDetail";
+import EmployerDetail from "@/pages/EmployerDetail";
+import Articles from "@/pages/Articles";
+import ArticleDetail from "@/pages/ArticleDetail";
+import { routes } from "../routes.const";
+import ResetPassword from "@/pages/ResetPassword";
+import ForgotPassword from "@/pages/ForgotPassword";
 
 const UserPublicRoutes: RouteObject[] = [
   {
@@ -57,8 +59,16 @@ const UserPublicRoutes: RouteObject[] = [
         path: routes.ARTICLES_DETAIL,
         element: <ArticleDetail />,
       },
+      {
+        path: routes.FORGOT_PASSWORD,
+        element: <ForgotPassword />,
+      },
+      {
+        path: routes.RESET_PASSWORD,
+        element: <ResetPassword />,
+      },
     ],
   },
-]
+];
 
-export default UserPublicRoutes
+export default UserPublicRoutes;

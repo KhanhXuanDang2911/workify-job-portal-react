@@ -56,6 +56,30 @@ export const changePasswordFormSchema = z
     path: ["newPassword"],
   });
 
+  export const forgotPasswordSchema = z.object({
+    email: z
+      .string()
+      .min(1, "Email là bắt buộc")
+      .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/, "Đinh dạng email không hợp lệ"),
+  });
+
+  export const resetPasswordSchema = z
+    .object({
+      newPassword: z
+        .string()
+        .min(1, "Mật khẩu mới là bắt buộc")
+        .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+        .max(160, "Mật khẩu không được vượt quá 160 ký tự")
+        .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,160}$/, "Mật khẩu chứa ít nhất 8 kí tự gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"),
+      confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: "Mật khẩu xác nhận không khớp",
+      path: ["confirmPassword"],
+    });
+
 export type ChangePasswordFormData = z.infer<typeof changePasswordFormSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 export type SignUpFormData = z.infer<typeof signUpSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

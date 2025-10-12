@@ -14,6 +14,8 @@ export const routes = {
   MY_SAVED_JOBS: "saved-jobs",
   MY_APPLIED_JOBS: "applied-jobs",
   MESSAGES: "messages",
+  FORGOT_PASSWORD: "forgot-password",
+  RESET_PASSWORD: "reset-password",
 };
 
 export const employer_routes = {
@@ -29,4 +31,6 @@ export const employer_routes = {
   JOBS: "jobs",
   JOB_ADD: "jobs/add",
   SETTINGS: "settings",
+  FORGOT_PASSWORD: "forgot-password",
+  RESET_PASSWORD: "reset-password",
 };
