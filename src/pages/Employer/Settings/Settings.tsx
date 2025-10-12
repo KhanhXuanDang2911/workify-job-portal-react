@@ -39,7 +39,7 @@ export default function Settings() {
 
           <div className="mt-6 ">
             {activeTab === "account-settings" && <AccountSettingsTab accountInformation={employerInfo} setAccountInformation={setEmployerInfo} />}
-            {activeTab === "login-security" && <LoginSecurityTab currentPassword={employerInfo.password} />}
+            {activeTab === "login-security" && <LoginSecurityTab />}
             {activeTab === "notification-settings" && <NotificationSettingsTab />}
           </div>
         </div>
