@@ -43,4 +43,22 @@ export const authService = {
     const response = await axiosInstance.patch<ApiResponse<{ message: string }>>("/users/me/password", data);
     return response.data;
   },
+
+  forgotPassword: async (email: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ message: string }>>(`/auth/${role}/forgot-password`, { email });
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ message: string }>>(
+      `/auth/${role}/reset-password`,
+      { newPassword },
+      {
+        headers: {
+          "R-Token": token,
+        },
+      }
+    );
+    return response.data;
+  },
 };

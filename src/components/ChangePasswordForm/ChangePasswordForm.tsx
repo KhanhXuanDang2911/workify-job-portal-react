@@ -14,6 +14,8 @@ import { employerService } from "@/services/employer.service";
 import { adminService } from "@/services/admin.service";
 import { changePasswordFormSchema, type ChangePasswordFormData } from "@/schemas/auth.schema";
 import type { Role } from "@/types/user.type";
+import { Link, useLocation } from "react-router-dom";
+import { employer_routes, routes } from "@/routes/routes.const";
 
 interface PasswordRequirement {
   label: string;
@@ -37,7 +39,8 @@ export default function ChangePasswordForm({ userType = "seeker", passwordRequir
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const location = useLocation();
+  const isEmployer = location.pathname.includes("/employer");
   const {
     register,
     handleSubmit,
@@ -199,9 +202,9 @@ export default function ChangePasswordForm({ userType = "seeker", passwordRequir
 
       {/* Forgot Password Link */}
       <div className="text-center">
-        <a href="#" className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+        <Link to={isEmployer?`${employer_routes.BASE}/${employer_routes.SIGN_IN}`:`/${routes.SIGN_IN}`} className="text-blue-500 hover:text-blue-600 text-sm font-medium">
           Forgot Password?
-        </a>
+        </Link>
       </div>
     </form>
   );
