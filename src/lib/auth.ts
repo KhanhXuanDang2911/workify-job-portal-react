@@ -1,6 +1,6 @@
-const ACCESS_TOKEN = "";
-const REFRESH_TOKEN = "";
-const USER_KEY = "";
+const ACCESS_TOKEN = "accessToken"
+const REFRESH_TOKEN = "refreshToken"
+const USER_KEY = "user"
 
 export const authUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {

@@ -38,4 +38,9 @@ export const authService = {
     );
     return response.data;
   },
+
+  changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<ApiResponse<{ message: string }>> => {
+    const response = await axiosInstance.patch<ApiResponse<{ message: string }>>("/users/me/password", data);
+    return response.data;
+  },
 };
