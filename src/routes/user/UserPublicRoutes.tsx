@@ -13,6 +13,7 @@ import ArticleDetail from "@/pages/ArticleDetail";
 import { routes } from "../routes.const";
 import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
+import CreatePassword from "@/pages/CreatePassword";
 
 const UserPublicRoutes: RouteObject[] = [
   {
@@ -66,6 +67,10 @@ const UserPublicRoutes: RouteObject[] = [
       {
         path: routes.RESET_PASSWORD,
         element: <ResetPassword />,
+      },
+      {
+        path: routes.CREATE_PASSWORD,
+        element: <CreatePassword />,
       },
     ],
   },

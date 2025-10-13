@@ -15,6 +15,7 @@ import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { routes } from "@/routes/routes.const";
+import { useGoogleLogin } from "@react-oauth/google";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +46,39 @@ export default function SignIn() {
     },
   });
 
+  const googleLoginMutation = useMutation({
+    mutationFn: authService.googleLogin,
+    onSuccess: (response) => {
+      
+      if (response.data.accessToken && response.data.refreshToken && response.data.data) {
+        authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
+        authUtils.setUser(response.data.data);
+        toast.success(`Welcome ${response.data.data.fullName}!`);
+        navigate("/", { replace: true });
+      }
+     
+      else if (response.data.createPasswordToken) {
+        toast.info("Vui lòng tạo mật khẩu để hoàn tất đăng ký");
+        navigate(`/${routes.CREATE_PASSWORD}?token=${response.data.createPasswordToken}`);
+      }
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
+    },
+  });
+
+   const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => {
+      console.log(codeResponse.code)
+      googleLoginMutation.mutate(codeResponse.code)
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error("Đăng nhập Google thất bại")
+    },
+    flow: "auth-code",
+   })
+  
   const onSubmit = (data: { email: string; password: string }) => {
     signInMutation.mutate(data);
   };
@@ -117,6 +151,8 @@ export default function SignIn() {
             <div className="flex space-x-3">
               <Button
                 variant="outline"
+                onClick={() => handleGoogleLogin()}
+                disabled={googleLoginMutation.isPending}
                 className="flex-1 h-12 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 hover:shadow-md bg-transparent hover:scale-105"
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -125,7 +161,7 @@ export default function SignIn() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Sign in with Google
+                {googleLoginMutation.isPending ? "Signing in..." : "Sign in with Google"}
               </Button>
 
               <Button
