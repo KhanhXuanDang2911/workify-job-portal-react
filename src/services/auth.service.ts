@@ -61,4 +61,30 @@ export const authService = {
     );
     return response.data;
   },
+
+  googleLogin: async (authorizationCode: string): Promise<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>>(
+      "/auth/authenticate/google",
+      {},
+      {
+        headers: {
+          "G-Code": authorizationCode,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  createPassword: async (token: string, password: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>>(
+      "/auth/create-password",
+      { password },
+      {
+        headers: {
+          "CR-Token": token,
+        },
+      }
+    );
+    return response.data;
+  },
 };
