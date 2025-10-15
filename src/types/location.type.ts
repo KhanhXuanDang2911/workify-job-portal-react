@@ -1,13 +1,18 @@
 export interface Province {
   id: number;
+  createdAt?: string;
+  updatedAt?: string;
+  code: string;
   name: string;
   engName: string;
-  code: string;
+  provinceSlug?: string;
 }
 
 export interface District {
   id: number;
-  name: string;
+  createdAt?: string;
+  updatedAt?: string;
   code: string;
-//   province: Province;
+  name: string;
+  districtSlug?: string;
 }
