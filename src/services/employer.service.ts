@@ -23,4 +23,9 @@ export const employerService = {
     const response = await http.post<ApiResponse<Employer>>("/employers/sign-up", data);
     return response.data;
   },
+
+  signIn: async (data: { email: string; password: string }): Promise<ApiResponse<{ accessToken: string; refreshToken: string; data: Employer }>> => {
+    const response = await http.post<ApiResponse<{ accessToken: string; refreshToken: string; data: Employer }>>("/auth/employers/sign-in", data);
+    return response.data;
+  },
 };
