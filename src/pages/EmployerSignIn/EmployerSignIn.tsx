@@ -1,43 +1,51 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  LogIn,
-  ArrowLeft,
-  Building2,
-  Users,
-  BarChart3,
-} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Building2, Users, BarChart3 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { signInSchema, type SignInFormData } from "@/schemas/employer";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { employerService } from "@/services";
+import { authUtils } from "@/lib/auth";
+import type { ApiError } from "@/types";
+import { toast } from "react-toastify";
+import type { AxiosError } from "axios";
 
 export default function EmployerSignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const {
+    register,
+    formState: { errors },
+    reset,
+    handleSubmit,
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const signInMutation = useMutation({
+    mutationFn: (data: SignInFormData) => employerService.signIn(data),
+    onSuccess: (response) => {
+      authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
+      authUtils.setEmployer(response.data.data);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success(`Welcome ${response.data.data.companyName}!`);
+      
+      navigate("/employer/home", { replace: true });
+    },
+    onError: (error: AxiosError<ApiError>) => {
+      toast.error(error?.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+    },
+  });
 
-    setIsLoading(false);
-    console.log("Sign in attempt:", { email, password });
+  const onSubmit = (data: SignInFormData) => {
+    signInMutation.mutate(data);
+    reset();
   };
 
   return (
@@ -76,12 +84,8 @@ export default function EmployerSignIn() {
               <div className="w-16 h-16 bg-gradient-to-br from-[#1967d2] to-[#1557b8] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
                 <Building2 className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Welcome Back
-              </h1>
-              <p className="text-xl text-gray-600">
-                Access your employer dashboard
-              </p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+              <p className="text-xl text-gray-600">Access your employer dashboard</p>
             </div>
 
             <div className="space-y-6">
@@ -90,12 +94,8 @@ export default function EmployerSignIn() {
                   <Users className="w-6 h-6 text-[#1967d2]" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-gray-900">
-                    Manage Candidates
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Review and hire top talent
-                  </p>
+                  <h3 className="font-semibold text-gray-900">Manage Candidates</h3>
+                  <p className="text-sm text-gray-600">Review and hire top talent</p>
                 </div>
               </div>
 
@@ -104,12 +104,8 @@ export default function EmployerSignIn() {
                   <BarChart3 className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-gray-900">
-                    Track Performance
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Monitor your job postings
-                  </p>
+                  <h3 className="font-semibold text-gray-900">Track Performance</h3>
+                  <p className="text-sm text-gray-600">Monitor your job postings</p>
                 </div>
               </div>
 
@@ -118,12 +114,8 @@ export default function EmployerSignIn() {
                   <Building2 className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-gray-900">
-                    Build Your Team
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Post jobs and grow your company
-                  </p>
+                  <h3 className="font-semibold text-gray-900">Build Your Team</h3>
+                  <p className="text-sm text-gray-600">Post jobs and grow your company</p>
                 </div>
               </div>
             </div>
@@ -135,10 +127,7 @@ export default function EmployerSignIn() {
           <div className="w-full max-w-md animate-fade-in-up delay-300">
             {/* Back to Job Seeker Link */}
             <div className="mb-6">
-              <Link
-                to="/"
-                className="inline-flex items-center text-gray-600 hover:text-[#1967d2] transition-colors duration-200 group"
-              >
+              <Link to="/" className="inline-flex items-center text-gray-600 hover:text-[#1967d2] transition-colors duration-200 group">
                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
                 Back to Job Seeker
               </Link>
@@ -149,22 +138,15 @@ export default function EmployerSignIn() {
                 <div className="w-12 h-12 bg-gradient-to-br from-[#1967d2] to-[#1557b8] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <LogIn className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  Employer Sign In
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Access your employer dashboard to manage jobs and candidates
-                </CardDescription>
+                <CardTitle className="text-2xl font-bold text-gray-900">Employer Sign In</CardTitle>
+                <CardDescription className="text-gray-600">Access your employer dashboard to manage jobs and candidates</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Email Field */}
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-medium text-gray-700"
-                    >
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                       Email Address
                     </Label>
                     <div className="relative">
@@ -173,20 +155,16 @@ export default function EmployerSignIn() {
                         id="email"
                         type="email"
                         placeholder="Enter your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-12 border-gray-200 focus:border-[#1967d2] focus:ring-[#1967d2]/20 transition-all duration-300 rounded-xl"
-                        required
+                        {...register("email")}
+                        className="pl-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 rounded-xl"
                       />
                     </div>
+                    {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
                   </div>
 
                   {/* Password Field */}
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="password"
-                      className="text-sm font-medium text-gray-700"
-                    >
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                       Password
                     </Label>
                     <div className="relative">
@@ -195,38 +173,27 @@ export default function EmployerSignIn() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 h-12 border-gray-200 focus:border-[#1967d2] focus:ring-[#1967d2]/20 transition-all duration-300 rounded-xl"
-                        required
+                        {...register("password")}
+                        className="pl-10 pr-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200  rounded-xl"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                       >
-                        {showPassword ? (
-                          <EyeOff className="w-5 h-5" />
-                        ) : (
-                          <Eye className="w-5 h-5" />
-                        )}
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
+                    {errors.password && <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>}
                   </div>
 
                   {/* Remember Me & Forgot Password */}
                   <div className="flex items-center justify-between">
                     <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-[#1967d2] border-gray-300 rounded focus:ring-[#1967d2]/20"
-                      />
+                      <input type="checkbox" className="w-4 h-4 text-[#1967d2] border-gray-300 rounded focus:ring-[#1967d2]/20" />
                       <span className="text-sm text-gray-600">Remember me</span>
                     </label>
-                    <Link
-                      to="/forgot-password"
-                      className="text-sm text-[#1967d2] hover:text-[#1557b8] font-medium transition-colors duration-200"
-                    >
+                    <Link to="/employer/forgot-password" className="text-sm text-[#1967d2] hover:text-[#1557b8] font-medium transition-colors duration-200">
                       Forgot password?
                     </Link>
                   </div>
@@ -234,29 +201,20 @@ export default function EmployerSignIn() {
                   {/* Sign In Button */}
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={signInMutation.isPending}
                     className="w-full h-12 bg-gradient-to-r from-[#1967d2] via-[#1557b8] to-[#1445a0] hover:from-[#1557b8] hover:via-[#1445a0] hover:to-[#1334a0] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] rounded-xl animate-gradient-shift"
                   >
-                    {isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Signing In...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <LogIn className="w-4 h-4" />
-                        <span>Sign In</span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      <LogIn className="w-4 h-4" />
+                      <span>Sign In</span>
+                    </div>
                   </Button>
                 </form>
 
                 <div className="relative">
                   <Separator className="my-6" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="bg-white px-4 text-sm text-gray-500">
-                      or
-                    </span>
+                    <span className="bg-white px-4 text-sm text-gray-500">or</span>
                   </div>
                 </div>
 
@@ -264,10 +222,7 @@ export default function EmployerSignIn() {
                 <div className="text-center">
                   <p className="text-gray-600">
                     Don't have an employer account?{" "}
-                    <Link
-                      to="/employer/sign-up"
-                      className="text-[#1967d2] hover:text-[#1557b8] font-semibold transition-colors duration-200"
-                    >
+                    <Link to="/employer/sign-up" className="text-[#1967d2] hover:text-[#1557b8] font-semibold transition-colors duration-200">
                       Sign up here
                     </Link>
                   </p>
@@ -277,10 +232,7 @@ export default function EmployerSignIn() {
                 <div className="text-center pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-500">
                     Looking for a job?{" "}
-                    <Link
-                      to="/sign-in"
-                      className="text-[#1967d2] hover:text-[#1557b8] font-medium transition-colors duration-200"
-                    >
+                    <Link to="/sign-in" className="text-[#1967d2] hover:text-[#1557b8] font-medium transition-colors duration-200">
                       Job Seeker Sign In
                     </Link>
                   </p>

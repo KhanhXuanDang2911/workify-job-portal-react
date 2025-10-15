@@ -1,6 +1,9 @@
+import type { Employer } from "@/types";
+
 const ACCESS_TOKEN = "accessToken"
 const REFRESH_TOKEN = "refreshToken"
 const USER_KEY = "user"
+const EMPLOYER_KEY = "employer"
 
 export const authUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {
@@ -27,6 +30,17 @@ export const authUtils = {
   getUser: () => {
     const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
+  },
+
+  setEmployer: (employer: Employer) => {
+    localStorage.setItem(EMPLOYER_KEY, JSON.stringify(employer));
+
+    window.dispatchEvent(new Event("storage"));
+  },
+
+  getEmployer: (): Employer | null => {
+    const employer = localStorage.getItem(EMPLOYER_KEY);
+    return employer ? JSON.parse(employer) : null;
   },
 
   clearAuth: () => {
