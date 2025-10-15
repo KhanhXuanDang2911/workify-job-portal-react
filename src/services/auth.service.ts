@@ -26,9 +26,9 @@ export const authService = {
     return response.data;
   },
 
-  verifyEmail: async (token: string): Promise<ApiResponse<{ message: string }>> => {
+  verifyEmail: async (token: string, role: "user" | "employer"): Promise<ApiResponse<{ message: string }>> => {
     const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(
-      "/auth/users/verify-email",
+      `/auth/${role}s/verify-email`,
       {},
       {
         headers: {

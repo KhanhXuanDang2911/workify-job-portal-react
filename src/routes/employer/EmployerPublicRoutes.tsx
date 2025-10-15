@@ -6,6 +6,7 @@ import EmployerHome from "@/pages/EmployerHome";
 import { employer_routes } from "../routes.const";
 import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
+import VerifyEmail from "@/pages/VerifyEmail";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -32,6 +33,10 @@ const EmployerPublicRoutes: RouteObject[] = [
         path: employer_routes.RESET_PASSWORD,
         element: <ResetPassword />,
       },
+      {
+        path: employer_routes.VERIFY_EMAIL,
+        element: <VerifyEmail />,
+      }
     ],
   },
 ];

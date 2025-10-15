@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
@@ -10,21 +10,27 @@ import NotFound from "@/pages/NotFound";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const [hasVerified, setHasVerified] = useState(false);
+  const role = pathname.includes("/employers/") ? "employer" : "user";
 
   const token = searchParams.get("token");
 
   const verifyMutation = useMutation({
     mutationFn: (token: string) => {
-      return authService.verifyEmail(token);
+      return authService.verifyEmail(token, role);
     },
     onSuccess: (data) => {
       console.log("Email verification successful:", data);
       toast(data.message || "Email của bạn đã được xác thực thành công");
 
       setTimeout(() => {
-        navigate("/sign-in", { replace: true });
+        if (role === "employer") {
+          navigate("/employers/sign-in", { replace: true });
+        } else {
+          navigate("/sign-in", { replace: true });
+        }
       }, 3000);
     },
     onError: (error: any) => {
@@ -73,9 +79,7 @@ export default function VerifyEmail() {
               <XCircle className="h-8 w-8 text-destructive" />
             </div>
             <CardTitle className="text-2xl">Xác thực thất bại</CardTitle>
-            <CardDescription className="text-base">
-              {errorMessage}
-            </CardDescription>
+            <CardDescription className="text-base">{errorMessage}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
@@ -114,7 +118,17 @@ export default function VerifyEmail() {
               <Mail className="mx-auto mb-2 h-6 w-6 text-green-600" />
               <p className="text-sm text-green-800">Bạn sẽ được tự động chuyển đến trang đăng nhập trong giây lát...</p>
             </div>
-            <Button onClick={() => navigate("/sign-in", { replace: true })} className="w-full" size="lg">
+            <Button
+              onClick={() => {
+                if (role === "employer") {
+                  navigate("/employers/sign-in", { replace: true });
+                } else {
+                  navigate("/sign-in", { replace: true });
+                }
+              }}
+              className="w-full"
+              size="lg"
+            >
               Đăng nhập ngay
             </Button>
           </CardContent>
