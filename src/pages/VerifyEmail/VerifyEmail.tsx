@@ -13,12 +13,14 @@ export default function VerifyEmail() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [hasVerified, setHasVerified] = useState(false);
-  const role = pathname.includes("/employers/") ? "employer" : "user";
+  const rolePath = pathname.split("/")[1];
+  const role = rolePath === "employer" ? "employer" : "user";
 
   const token = searchParams.get("token");
 
   const verifyMutation = useMutation({
     mutationFn: (token: string) => {
+      console.log(role);
       return authService.verifyEmail(token, role);
     },
     onSuccess: (data) => {
@@ -27,7 +29,7 @@ export default function VerifyEmail() {
 
       setTimeout(() => {
         if (role === "employer") {
-          navigate("/employers/sign-in", { replace: true });
+          navigate("/employer/sign-in", { replace: true });
         } else {
           navigate("/sign-in", { replace: true });
         }
@@ -93,7 +95,17 @@ export default function VerifyEmail() {
             >
               Thử lại
             </Button>
-            <Button onClick={() => navigate("/sign-in")} className="w-full" size="lg">
+            <Button
+              onClick={() => {
+                if (role === "employer") {
+                  return navigate("/employer/sign-in");
+                } else {
+                  navigate("/sign-in");
+                }
+              }}
+              className="w-full"
+              size="lg"
+            >
               Quay lại đăng nhập
             </Button>
           </CardContent>
@@ -121,7 +133,7 @@ export default function VerifyEmail() {
             <Button
               onClick={() => {
                 if (role === "employer") {
-                  navigate("/employers/sign-in", { replace: true });
+                  navigate("/employer/sign-in", { replace: true });
                 } else {
                   navigate("/sign-in", { replace: true });
                 }
