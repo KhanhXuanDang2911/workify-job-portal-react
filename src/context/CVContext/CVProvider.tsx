@@ -1,4 +1,4 @@
-import { FolderKanban, Hash } from "lucide-react";
+import { BriefcaseBusiness, GraduationCap, Hand,  Info, Medal, Pencil, ShieldCheck, SquareUser, Target, ThumbsUp, UserStar } from "lucide-react";
 import { CVContext, type BlockItem } from "./CVContext";
 import { useState, type ReactNode } from "react";
 
@@ -9,8 +9,17 @@ export const CVProvider = ({ children }: { children: ReactNode }) => {
   const [color, setColor] = useState("#000000");
   const [background, setBackground] = useState("bg0");
   const [usedBlocks, setUsedBlocks] = useState<BlockItem[]>([
-    { id: "project", label: "Dự án", icon: FolderKanban },
-    { id: "additional", label: "Thông tin thêm", icon: Hash },
+    { id: "intro", label: "Danh thiếp", icon: SquareUser },
+    { id: "contact", label: "Thông tin liên hệ", icon: Info },
+    { id: "career", label: "Mục tiêu nghề nghiệp", icon: Target },
+    { id: "experience", label: "Kinh nghiệm làm việc", icon: BriefcaseBusiness },
+    { id: "education", label: "Học vấn", icon: GraduationCap },
+    { id: "skill", label: "Kỹ năng", icon: Pencil },
+    { id: "prize", label: "Giải thưởng", icon: Medal },
+    { id: "certificate", label: "Chứng chỉ", icon: ShieldCheck },
+    { id: "activity", label: "Hoạt động", icon: Hand },
+    { id: "reference_people", label: "Người tham chiếu", icon: UserStar },
+    { id: "hobby", label: "Sở thích", icon: ThumbsUp },
   ]);
 
   return (

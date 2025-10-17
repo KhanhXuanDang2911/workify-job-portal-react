@@ -30,12 +30,25 @@ function AddBlockTab() {
   const unusedBlocks = useMemo(() => allBlocks.filter((block) => !usedBlocks.some((used) => used.id === block.id)), [usedBlocks]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    const target = e.currentTarget as HTMLDivElement;
     const blockId = (e.currentTarget as HTMLDivElement).getAttribute("data-id");
     if (blockId) {
       e.dataTransfer.setData("application/block-id", blockId);
       e.dataTransfer.effectAllowed = "move";
     }
-    // const feedback = createDragFeedback()
+    const block = allBlocks.find((block) => block.id === blockId);
+    if (!block) return;
+    console.log(block);
+    const feedback = createDragFeedback(block.icon, block.label);
+    e.dataTransfer.setDragImage(feedback, 50, 20);
+
+    target.addEventListener(
+      "dragend",
+      () => {
+        feedback.remove();
+      },
+      { once: true }
+    );
   };
 
   return (
