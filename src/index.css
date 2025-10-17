@@ -161,6 +161,7 @@
   }
 
   @keyframes float {
+
     0%,
     100% {
       transform: translateY(0px) rotate(0deg);
@@ -185,6 +186,7 @@
   }
 
   @keyframes pulseSlow {
+
     0%,
     100% {
       opacity: 0.3;
@@ -243,6 +245,7 @@
   }
 
   @keyframes pulse-gentle {
+
     0%,
     100% {
       transform: scale(1);
@@ -289,12 +292,10 @@
 
   /* Added shimmer effect for loading states */
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent);
     animation: shimmer 2s infinite;
   }
 
@@ -404,8 +405,37 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Override Color Picker */
+@layer utilities {
+  .custom-layout {
+    padding: 16px;
+  }
+
+  .custom-layout .react-colorful {
+    width: 300px !important;
+    height: 250px !important;
+  }
+
+  .custom-layout .react-colorful .react-colorful__hue {
+    order: -1;
+    height: 12px !important;
+    border-radius: 5px !important;
+  }
+
+  .custom-layout .react-colorful .react-colorful__saturation {
+    margin-top: 15px;
+    border-radius: 5px !important;
+  }
+
+  .custom-layout .react-colorful .react-colorful__hue-pointer {
+    width: 22px !important;
+    height: 22px !important;
   }
 }
