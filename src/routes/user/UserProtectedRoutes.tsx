@@ -5,6 +5,7 @@ import MyResume from "@/pages/User/MyResume";
 import MySavedJobs from "@/pages/User/MySavedJobs";
 import { routes } from "../routes.const";
 import ProtectedRoute from "@/routes/ProtectedRoute";
+import CVBuilder from "@/pages/CVBuilder";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -42,7 +43,15 @@ const UserProtectedRoutes: RouteObject[] = [
             <MySavedJobs />
           </ProtectedRoute>
         ),
-      }
+      },
+      {
+        path: routes.CREATE_CV,
+        element: (
+          <ProtectedRoute>
+            <CVBuilder />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ];

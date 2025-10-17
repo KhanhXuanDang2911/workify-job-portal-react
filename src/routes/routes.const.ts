@@ -17,6 +17,7 @@ export const routes = {
   FORGOT_PASSWORD: "forgot-password",
   RESET_PASSWORD: "reset-password",
   CREATE_PASSWORD: "create-password",
+  CREATE_CV: "cv-builder",
 };
 
 export const employer_routes = {
