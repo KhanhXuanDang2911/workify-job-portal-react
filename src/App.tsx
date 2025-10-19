@@ -6,6 +6,7 @@ import "flowbite";
 import { useEffect, useState } from "react";
 import { ResponsiveContext } from "./context/ResponsiveContext";
 import type { DeviceType, ResponsiveContextProps } from "./context/ResponsiveContext";
+import AuthProvider from "@/context/auth/AuthProvider";
 
 const getDevice = (): DeviceType => {
   const width = window.innerWidth;
@@ -28,24 +29,26 @@ export default function App() {
 
   return (
     <>
-      <ResponsiveContext value={responsive}>
-        <GlobalLoading />
-        <AppRoutes />
-        <ToastContainer
-          toastClassName="text-[14px]"
-          // position="bottom-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={true}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
-        <ScrollToTopButton />
-      </ResponsiveContext>
+      <AuthProvider>
+        <ResponsiveContext value={responsive}>
+          <GlobalLoading />
+          <AppRoutes />
+          <ToastContainer
+            toastClassName="text-[14px]"
+            // position="bottom-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
+          <ScrollToTopButton />
+        </ResponsiveContext>
+      </AuthProvider>
     </>
   );
 }

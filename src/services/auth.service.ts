@@ -100,4 +100,9 @@ export const authService = {
     );
     return response.data;
   },
+
+  getProfile: async () => {
+    const res = await axiosInstance.get<ApiResponse<User>>("/users/me");
+    return res.data;
+  },
 };
