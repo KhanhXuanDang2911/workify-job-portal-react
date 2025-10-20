@@ -9,6 +9,13 @@ import JobSeekerNotificationDropdown from "../JobSeekerNotificationDropdown";
 import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { authService } from "@/services";
+import { useAuth } from "@/context/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import { signOut } from "@/context/auth/auth.action";
+import type { User as UserType } from "@/types";
+import { getNameInitials } from "@/utils/string";
+import { ROLE } from "@/constants";
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileSections, setMobileSections] = useState({
@@ -18,50 +25,26 @@ export default function Header() {
     cv: false,
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
+  const { state, dispatch } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const authenticated = authUtils.isAuthenticated();
-      const userData = authUtils.getUser();
-      setIsAuthenticated(authenticated);
-      setUser(userData);
-    };
+  const user = state.user as UserType | null;
 
-    checkAuth();
+  const signOutMutation = useMutation({
+    mutationFn: () => {
+      const accessToken = authUtils.getAccessToken() || "";
+      const refreshToken = authUtils.getRefreshToken() || "";
+      return authService.signOut(accessToken, refreshToken);
+    },
+    onSettled: () => {
+      dispatch(signOut());
 
-    window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
-  }, []);
-
-  const handleLogout = async () => {
-    const accessToken = authUtils.getAccessToken();
-    const refreshToken = authUtils.getRefreshToken();
-    try {
-      if (accessToken && refreshToken) {
-        await authService.signOut(accessToken, refreshToken);
-      }
-    } catch (error) {
-      console.error("Logout error:",error);
-    } finally {
       authUtils.clearAuth();
+      toast.success("Signed out successfully");
+    },
+  });
 
-      window.dispatchEvent(new Event("storage"));
-
-      toast("Bạn đã đăng xuất khỏi hệ thống");
-    }
-    navigate(routes.SIGN_IN);
-  };
-
-  const getUserInitials = () => {
-    if (!user?.fullName) return "U";
-    const names = user.fullName.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    return user.fullName[0].toUpperCase();
+  const handleSignOut = () => {
+    signOutMutation.mutate();
   };
 
   return (
@@ -164,18 +147,7 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center space-x-3">
-            {!isAuthenticated ? (
-              <>
-                <Button variant="outline" size="sm" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e0eeff] bg-transparent font-semibold">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  <Link to={routes.SIGN_UP}>Sign Up</Link>
-                </Button>
-                <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b8] text-white font-semibold">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  <Link to={routes.SIGN_IN}>Sign In</Link>
-                </Button>
-              </>
-            ) : (
+            {state.isAuthenticated && state.role === ROLE.JOB_SEEKER ? (
               <>
                 {/* Notifications */}
                 <JobSeekerNotificationDropdown />
@@ -184,8 +156,8 @@ export default function Header() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 focus:border-none focus:outline-0 hover:bg-gray-50 rounded-lg p-2 transition-colors">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
-                      <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                      <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
+                      <AvatarFallback>{getNameInitials(user?.fullName)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
                       <span className="text-sm font-medium text-gray-900">{user?.fullName || "User"}</span>
@@ -231,12 +203,23 @@ export default function Header() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600 cursor-pointer focus:bg-sky-200 focus:text-red-600" onClick={handleLogout}>
+                    <DropdownMenuItem className="text-red-600 cursor-pointer focus:bg-sky-200 focus:text-red-600" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e0eeff] bg-transparent font-semibold">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  <Link to={routes.SIGN_UP}>Sign Up</Link>
+                </Button>
+                <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b8] text-white font-semibold">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  <Link to={routes.SIGN_IN}>Sign In</Link>
+                </Button>
               </>
             )}
 
@@ -251,7 +234,12 @@ export default function Header() {
 
           {/* Mobile menu button (visible until lg) */}
           <div className="lg:hidden flex items-center space-x-2">
-            {!isAuthenticated ? (
+            {state.isAuthenticated && state.role === ROLE.JOB_SEEKER ? (
+              <>
+                {/* Mobile Notifications */}
+                <JobSeekerNotificationDropdown />
+              </>
+            ) : (
               <>
                 <Link to={routes.SIGN_UP}>
                   <Button variant="outline" size="sm" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e0eeff] bg-transparent font-semibold p-2">
@@ -265,11 +253,6 @@ export default function Header() {
                   </Button>
                 </Link>
               </>
-            ) : (
-              <>
-                {/* Mobile Notifications */}
-                <JobSeekerNotificationDropdown />
-              </>
             )}
 
             <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -281,11 +264,11 @@ export default function Header() {
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-3">
-              {isAuthenticated && (
+              {state.isAuthenticated && state.role === ROLE.JOB_SEEKER && (
                 <div className="flex items-center space-x-3 px-4 py-2 bg-gray-50 rounded-lg">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
-                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                    <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
+                    <AvatarFallback>{getNameInitials(user?.fullName)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900">{user?.fullName || "User"}</span>
@@ -397,7 +380,7 @@ export default function Header() {
                 )}
               </div>
 
-              {isAuthenticated && (
+              {state.isAuthenticated && state.role === ROLE.JOB_SEEKER && (
                 <div className="border-t border-gray-200 pt-3 mt-3">
                   <Link to={routes.SETTINGS} className="flex items-center space-x-3 text-gray-700 hover:text-[#1967d2] font-medium py-2" onClick={() => setIsMenuOpen(false)}>
                     <User className="w-5 h-5" />
@@ -427,7 +410,7 @@ export default function Header() {
                     className="flex items-center space-x-3 text-red-600 hover:text-red-700 font-medium py-2 w-full text-left"
                     onClick={() => {
                       setIsMenuOpen(false);
-                      handleLogout();
+                      handleSignOut();
                     }}
                   >
                     <LogOut className="w-5 h-5" />

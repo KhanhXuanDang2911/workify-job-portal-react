@@ -1,19 +1,34 @@
 import type React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
-import { authUtils } from "@/lib/auth";
+import { employer_routes } from "@/routes/routes.const";
+import { useAuth } from "@/context/auth/useAuth";
+import { ROLE } from "@/constants";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
+  requiredRole?: string;
 }
 
-export default function ProtectedRoute({ children, redirectTo = `/${routes.SIGN_IN}` }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, redirectTo, requiredRole }: ProtectedRouteProps) {
   const location = useLocation();
-  const isAuthenticated = authUtils.isAuthenticated();
+  const {
+    state: { isAuthenticated, role },
+  } = useAuth();
+
+  console.log("LOCATION",location);
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    const defaultRedirect = location.pathname.startsWith("/employer") ? `/${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+
+    return <Navigate to={redirectTo || defaultRedirect} state={{ from: location }}  />;
+  }
+
+  if (requiredRole && role !== requiredRole) {
+    const loginPath = requiredRole === ROLE.EMPLOYER ? `/${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+
+    return <Navigate to={loginPath} state={{ from: location }} />;
   }
 
   return <>{children}</>;

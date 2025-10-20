@@ -6,6 +6,7 @@ import MySavedJobs from "@/pages/User/MySavedJobs";
 import { routes } from "../routes.const";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import CVBuilder from "@/pages/CVBuilder";
+import { ROLE } from "@/constants";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -15,7 +16,7 @@ const UserProtectedRoutes: RouteObject[] = [
       {
         path: routes.SETTINGS,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <Settings />
           </ProtectedRoute>
         ),
@@ -23,7 +24,7 @@ const UserProtectedRoutes: RouteObject[] = [
       {
         path: routes.MY_RESUME,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <MyResume />
           </ProtectedRoute>
         ),
@@ -31,7 +32,7 @@ const UserProtectedRoutes: RouteObject[] = [
       {
         path: routes.MY_SAVED_JOBS,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <MySavedJobs />
           </ProtectedRoute>
         ),
@@ -39,7 +40,7 @@ const UserProtectedRoutes: RouteObject[] = [
       {
         path: routes.MY_APPLIED_JOBS,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <MySavedJobs />
           </ProtectedRoute>
         ),
@@ -47,7 +48,7 @@ const UserProtectedRoutes: RouteObject[] = [
       {
         path: routes.CREATE_CV,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <CVBuilder />
           </ProtectedRoute>
         ),

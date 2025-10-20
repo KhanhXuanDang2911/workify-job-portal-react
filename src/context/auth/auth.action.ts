@@ -1,9 +1,17 @@
 import type { AuthState } from "./auth.state";
 
-export type AuthPayloadAction = { type: "SIGN_IN"; payload: Partial<AuthState> } | { type: "SIGN_OUT" };
+export type AuthPayloadAction =
+  | { type: "SIGN_IN_JOB_SEEKER"; payload: Partial<AuthState> }
+  | { type: "SIGN_IN_EMPLOYER"; payload: Partial<AuthState> }
+  | { type: "SIGN_IN_ADMIN"; payload: Partial<AuthState> }
+  | { type: "SIGN_OUT" };
 
-export const signIn = (payload: Partial<AuthState>): AuthPayloadAction => ({
-  type: "SIGN_IN",
+export const signInJobSeeker = (payload: Partial<AuthState>): AuthPayloadAction => ({
+  type: "SIGN_IN_JOB_SEEKER",
+  payload,
+});
+export const signInEmployer = (payload: Partial<AuthState>): AuthPayloadAction => ({
+  type: "SIGN_IN_EMPLOYER",
   payload,
 });
 

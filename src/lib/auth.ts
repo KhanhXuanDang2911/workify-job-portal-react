@@ -1,9 +1,9 @@
 import type { Employer } from "@/types";
 
-const ACCESS_TOKEN = "accessToken"
-const REFRESH_TOKEN = "refreshToken"
-const USER_KEY = "user"
-const EMPLOYER_KEY = "employer"
+const ACCESS_TOKEN = "accessToken";
+const REFRESH_TOKEN = "refreshToken";
+const USER_KEY = "user";
+const EMPLOYER_KEY = "employer";
 
 export const authUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {
@@ -47,6 +47,7 @@ export const authUtils = {
     localStorage.removeItem(ACCESS_TOKEN);
     localStorage.removeItem(REFRESH_TOKEN);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(EMPLOYER_KEY);
 
     window.dispatchEvent(new Event("storage"));
   },

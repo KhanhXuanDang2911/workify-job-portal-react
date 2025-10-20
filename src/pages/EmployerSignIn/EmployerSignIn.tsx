@@ -15,8 +15,12 @@ import { authUtils } from "@/lib/auth";
 import type { ApiError } from "@/types";
 import { toast } from "react-toastify";
 import type { AxiosError } from "axios";
+import { useAuth } from "@/context/auth/useAuth";
+import { signInEmployer } from "@/context/auth/auth.action";
+import { ROLE } from "@/constants";
 
 export default function EmployerSignIn() {
+  const { dispatch } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const {
@@ -34,9 +38,11 @@ export default function EmployerSignIn() {
       authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
       authUtils.setEmployer(response.data.data);
 
+      dispatch(signInEmployer({ isAuthenticated: true, user: response.data.data, role: ROLE.EMPLOYER }));
+
       toast.success(`Welcome ${response.data.data.companyName}!`);
-      
-      navigate("/employer/home", { replace: true });
+
+      navigate("/employer/organization", { replace: true });
     },
     onError: (error: AxiosError<ApiError>) => {
       toast.error(error?.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");

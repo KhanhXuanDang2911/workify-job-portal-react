@@ -16,8 +16,12 @@ import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { routes } from "@/routes/routes.const";
 import { useGoogleLogin } from "@react-oauth/google";
+import { signInJobSeeker } from "@/context/auth/auth.action";
+import { useAuth } from "@/context/auth/useAuth";
+import { ROLE } from "@/constants";
 
 export default function SignIn() {
+  const { dispatch } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
@@ -33,10 +37,10 @@ export default function SignIn() {
   const signInMutation = useMutation({
     mutationFn: authService.signIn,
     onSuccess: (response) => {
-      console.log(response);
-
       authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
       authUtils.setUser(response.data.data);
+
+      dispatch(signInJobSeeker({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
 
       toast.success(`Welcome ${response.data.data.fullName}!`);
       navigate("/", { replace: true });
@@ -52,6 +56,9 @@ export default function SignIn() {
       if (response.data.accessToken && response.data.refreshToken && response.data.data) {
         authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
         authUtils.setUser(response.data.data);
+
+        dispatch(signInJobSeeker({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
+
         toast.success(`Welcome ${response.data.data.fullName}!`);
         navigate("/", { replace: true });
       } else if (response.data.createPasswordToken) {
@@ -70,6 +77,9 @@ export default function SignIn() {
       if (response.data.accessToken && response.data.refreshToken && response.data.data) {
         authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
         authUtils.setUser(response.data.data);
+
+        dispatch(signInJobSeeker({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
+
         toast.success(`Welcome ${response.data.data.fullName}!`);
         navigate("/", { replace: true });
       } else if (response.data.createPasswordToken) {

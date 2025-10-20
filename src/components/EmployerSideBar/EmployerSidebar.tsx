@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Home, Briefcase, Users, Search, Eye, Bookmark, FileText, ChevronDown, ChevronRight, MessageSquare, HelpCircle, Building, Settings, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
+import { useAuth } from "@/context/auth/useAuth";
 
 const menuItems = [
   {
@@ -120,7 +121,8 @@ export default function EmployerSidebar({
   useEffect(() => {
     if (mobileOpen) setIsCollapsed(false);
   }, [mobileOpen, setIsCollapsed]);
-console.log(isCollapsed,mobileOpen)
+  console.log(isCollapsed, mobileOpen);
+
   return (
     <>
       {/* Backdrop for mobile */}

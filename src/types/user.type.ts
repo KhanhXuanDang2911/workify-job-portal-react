@@ -1,7 +1,5 @@
 import type { District, Province } from "@/types/location.type";
 
-export type Role = "seeker" | "employer" | "admin";
-
 export interface User {
   id: number;
   createdAt: string;
