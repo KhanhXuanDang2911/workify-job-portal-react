@@ -19,7 +19,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.APPLICATIONS,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <Candidates />
           </ProtectedRoute>
         ),
@@ -27,7 +27,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.JOBS,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <Jobs />
           </ProtectedRoute>
         ),
@@ -35,7 +35,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.JOB_ADD,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <EmployerPostJob />
           </ProtectedRoute>
         ),
@@ -43,7 +43,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: `${employer_routes.JOBS}/:jobId`,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <JobDetailManage />
           </ProtectedRoute>
         ),
@@ -51,7 +51,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.SEARCH_TALENTS,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute  requiredRole={ROLE.EMPLOYER}>
             <SearchTalents />
           </ProtectedRoute>
         ),
@@ -59,7 +59,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.ORGANIZATION,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <Organization />
           </ProtectedRoute>
         ),
@@ -67,7 +67,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.SETTINGS,
         element: (
-          <ProtectedRoute redirectTo={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <Settings />
           </ProtectedRoute>
         ),

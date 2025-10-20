@@ -7,27 +7,26 @@ import { ROLE } from "@/constants";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  redirectTo?: string;
   requiredRole?: string;
 }
 
-export default function ProtectedRoute({ children, redirectTo, requiredRole }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const location = useLocation();
   const {
     state: { isAuthenticated, role },
   } = useAuth();
 
-  console.log("LOCATION",location);
+  console.log("LOCATION", location);
 
   if (!isAuthenticated) {
-    const defaultRedirect = location.pathname.startsWith("/employer") ? `/${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+    const defaultRedirect = location.pathname.startsWith("/employer") ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
 
-    return <Navigate to={redirectTo || defaultRedirect} state={{ from: location }}  />;
+    return <Navigate to={defaultRedirect} state={{ from: location }} />;
   }
 
   if (requiredRole && role !== requiredRole) {
-    const loginPath = requiredRole === ROLE.EMPLOYER ? `/${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
-
+    const loginPath = requiredRole === ROLE.EMPLOYER ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+    console.log(role);
     return <Navigate to={loginPath} state={{ from: location }} />;
   }
 
