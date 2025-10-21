@@ -1,4 +1,4 @@
-import { Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Menu, X, UserPlus, LogIn, ChevronDown, User, Settings, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,13 +23,9 @@ interface EmployerHeaderProps {
   device?: string;
 }
 
-export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, isCollapsed, onToggleCollapsed, device, }: EmployerHeaderProps) {
-  const {
-    state,
-    dispatch,
-  } = useAuth();
+export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, isCollapsed, onToggleCollapsed, device }: EmployerHeaderProps) {
+  const { state, dispatch } = useAuth();
   const employer = state.user as Employer | null;
-  
 
   const signOutMutation = useMutation({
     mutationFn: () => {
@@ -39,7 +35,7 @@ export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, i
     },
     onSettled: () => {
       dispatch(signOut());
-      
+
       authUtils.clearAuth();
 
       toast.success("Signed out successfully");
@@ -84,7 +80,7 @@ export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, i
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-[#1967d2]">
-                  <Link to="/employer/dashboard">Workify</Link>
+                  <Link to="/employer">Workify</Link>
                 </span>
                 <span className="text-xs text-gray-500 font-medium">Employer Portal</span>
               </div>
@@ -93,29 +89,60 @@ export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, i
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-4">
-            {state.isAuthenticated && state.role ===ROLE.EMPLOYER ? (
+            {state.isAuthenticated && state.role === ROLE.EMPLOYER ? (
               <>
                 <NotificationDropdown />
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg p-2 transition-colors">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={employer?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${employer?.companyName}`} alt={employer?.companyName || "Employer"} />
+                      <AvatarImage
+                        src={employer?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${employer?.companyName}`}
+                        alt={employer?.companyName || "Employer"}
+                      />
                       <AvatarFallback>{getNameInitials(employer?.companyName)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-gray-900">{ employer?.companyName}</span>
+                      <span className="text-sm font-medium text-gray-900">{employer?.companyName}</span>
                       <span className="text-xs text-gray-500">Tech Corp</span>
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-500" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem>
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
+                      <Link to={employer_routes.ORGANIZATION} className="cursor-pointer flex items-center gap-3">
+                        <User className="w-4 h-4 mr-2" />
+                        Organization
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
+                      <Link to={employer_routes.SETTINGS} className="cursor-pointer flex items-center gap-3">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={employer_routes.JOBS} className="cursor-pointer flex items-center gap-3">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Jobs
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={employer_routes.SEARCH_TALENTS} className="cursor-pointer flex items-center gap-3">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Search Talents
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={employer_routes.JOB_ADD} className="cursor-pointer flex items-center gap-3">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Post Job
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={employer_routes.SAVED_TALENTS} className="cursor-pointer flex items-center gap-3">
+                        <Settings className="w-4 h-4 mr-2" />
+                       Saved Talents
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-red-600" onClick={handleSignOut}>
