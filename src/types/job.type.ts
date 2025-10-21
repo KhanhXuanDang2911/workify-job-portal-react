@@ -1,6 +1,7 @@
 import type { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, JobStatus } from "@/constants/job.constant";
 import type { CompanySize } from "@/constants/company.constant";
 import type { Province, District } from "@/types/location.type";
+import type { JobBenefit } from "@/types/benefit.type";
 
 export interface JobLocationRequest {
   provinceId: number;
@@ -43,6 +44,7 @@ export interface JobRequest {
   salaryUnit?: SalaryUnit;
   jobDescription: string;
   requirement: string;
+  jobBenefits: JobBenefit[];
   educationLevel: EducationLevel;
   experienceLevel: ExperienceLevel;
   jobLevel: JobLevel;
@@ -57,7 +59,7 @@ export interface JobRequest {
   phoneNumber: string;
   contactLocation: JobContactLocationRequest;
   description?: string;
-  expirationDate: string; 
+  expirationDate: string;
 }
 
 export interface JobResponse {

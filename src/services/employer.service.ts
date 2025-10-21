@@ -28,4 +28,9 @@ export const employerService = {
     const response = await http.post<ApiResponse<{ accessToken: string; refreshToken: string; data: Employer }>>("/auth/employers/sign-in", data);
     return response.data;
   },
+  
+  getEmployerProfile: async (): Promise<ApiResponse<Employer>> => {
+    const response = await http.get<ApiResponse<Employer>>("/employers/me");
+    return response.data;
+  },
 };

@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { CompanySize, CompanySizeLabel } from "@/constants";
+import { employer_routes } from "@/routes/routes.const";
 
 const initialEmployerSignUpFormData: EmployerSignUpFormData = {
   email: "",
@@ -82,7 +83,7 @@ function EmployerSignUp() {
       toast.success(response.message);
 
       setTimeout(() => {
-        navigate("/sign-in");
+        navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`);
       }, 2000);
 
     } catch (error) {
@@ -100,7 +101,7 @@ function EmployerSignUp() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Floating Geometric Shapes */}
@@ -108,7 +109,6 @@ function EmployerSignUp() {
         <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-lg float-animation"></div>
         <div className="absolute bottom-40 left-20 w-40 h-40 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-2xl float-animation-delayed"></div>
         <div className="absolute bottom-20 right-40 w-28 h-28 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 rounded-full blur-xl float-animation-delayed-2"></div>
-
       </div>
 
       {/* Main Content */}
@@ -312,11 +312,11 @@ function EmployerSignUp() {
                       provinceId={provinceId}
                       districtId={districtId}
                       onProvinceChange={(id) => {
-                        setValue("provinceId", Number(id));
-                        setValue("districtId", 0);
+                        setValue("provinceId", Number(id), { shouldValidate: true });
+                        setValue("districtId", 0, { shouldValidate: true });
                       }}
                       onDistrictChange={(id) => {
-                        setValue("districtId", Number(id));
+                        setValue("districtId", Number(id), { shouldValidate: true });
                       }}
                       errors={{
                         provinceId: errors.provinceId?.message,

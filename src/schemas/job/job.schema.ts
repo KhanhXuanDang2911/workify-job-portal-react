@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PHONE_REGEX } from "@/constants/regex.constant";
-import { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, CompanySize } from "@/constants";
+import { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, CompanySize, BenefitType } from "@/constants";
 
 const salaryTypeEnum = z.enum(Object.keys(SalaryType) as [keyof typeof SalaryType]);
 const salaryUnitEnum = z.enum(Object.keys(SalaryUnit) as [keyof typeof SalaryUnit]);
@@ -11,6 +11,8 @@ const jobTypeEnum = z.enum(Object.keys(JobType) as [keyof typeof JobType]);
 const jobGenderEnum = z.enum(Object.keys(JobGender) as [keyof typeof JobGender]);
 const ageTypeEnum = z.enum(Object.keys(AgeType) as [keyof typeof AgeType]);
 const companySizeEnum = z.enum(Object.keys(CompanySize) as [keyof typeof CompanySize]);
+const benefitTypeEnum = z.enum(Object.keys(BenefitType) as [keyof typeof BenefitType]);
+
 
 const jobLocationSchema = z.object({
   provinceId: z.number().int().positive("Tỉnh/Thành phố không hợp lệ"),
@@ -22,6 +24,11 @@ const jobContactLocationSchema = z.object({
   provinceId: z.number().int().positive("Tỉnh/Thành phố không hợp lệ"),
   districtId: z.number().int().positive("Quận/Huyện không hợp lệ"),
   detailAddress: z.string().max(1000, "Địa chỉ không được vượt quá 1000 ký tự"),
+});
+
+const jobBenefitSchema = z.object({
+  type: benefitTypeEnum,
+  description: z.string().min(1, "Mô tả lợi ích là bắt buộc").max(1000, "Mô tả không được vượt quá 1000 ký tự"),
 });
 
 export const postJobSchema = z
@@ -38,6 +45,7 @@ export const postJobSchema = z
     salaryUnit: salaryUnitEnum.optional(),
     jobDescription: z.string().min(1, "Mô tả công việc là bắt buộc"),
     requirement: z.string().min(1, "Yêu cầu công việc là bắt buộc"),
+    jobBenefits: z.array(jobBenefitSchema).min(1, "Cần ít nhất một lợi ích").max(10, "Tối đa 10 lợi ích"),
     educationLevel: educationLevelEnum,
     experienceLevel: experienceLevelEnum,
     jobLevel: jobLevelEnum,
