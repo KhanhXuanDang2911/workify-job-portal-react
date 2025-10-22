@@ -3,27 +3,17 @@ import type { CompanySize } from "@/constants/company.constant";
 import type { Province, District } from "@/types/location.type";
 import type { JobBenefit } from "@/types/benefit.type";
 
-export interface JobLocationRequest {
+export interface Location {
   provinceId: number;
   districtId: number;
+  provinceName: string;
+  districtName: string;
   detailAddress: string;
 }
 
-export interface JobLocationResponse extends JobLocationRequest {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  province: Province;
-  district: District;
-}
+export type LocationRequest = Pick<Location, "provinceId" | "districtId" | "detailAddress">;
 
-export interface JobContactLocationRequest {
-  provinceId: number;
-  districtId: number;
-  detailAddress: string;
-}
-
-export interface JobContactLocationResponse extends JobContactLocationRequest {
+export interface LocationResponse {
   id: number;
   createdAt: string;
   updatedAt: string;
@@ -37,7 +27,7 @@ export interface JobRequest {
   companyWebsite?: string;
   aboutCompany: string;
   jobTitle: string;
-  jobLocations: JobLocationRequest[];
+  jobLocations: LocationRequest[];
   salaryType: SalaryType;
   minSalary?: number;
   maxSalary?: number;
@@ -57,7 +47,7 @@ export interface JobRequest {
   maxAge?: number;
   contactPerson: string;
   phoneNumber: string;
-  contactLocation: JobContactLocationRequest;
+  contactLocation: LocationRequest;
   description?: string;
   expirationDate: string;
 }
@@ -71,7 +61,7 @@ export interface JobResponse {
   companyWebsite?: string;
   aboutCompany: string;
   jobTitle: string;
-  jobLocations: JobLocationResponse[];
+  jobLocations: LocationResponse[];
   salaryType: SalaryType;
   minSalary?: number;
   maxSalary?: number;
@@ -94,7 +84,7 @@ export interface JobResponse {
   maxAge?: number;
   contactPerson: string;
   phoneNumber: string;
-  contactLocation: JobContactLocationResponse;
+  contactLocation: LocationResponse;
   description?: string;
   expirationDate: string;
   status: JobStatus;

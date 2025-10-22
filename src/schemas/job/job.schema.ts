@@ -2,98 +2,232 @@ import { z } from "zod";
 import { PHONE_REGEX } from "@/constants/regex.constant";
 import { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, CompanySize, BenefitType } from "@/constants";
 
-const salaryTypeEnum = z.enum(Object.keys(SalaryType) as [keyof typeof SalaryType]);
-const salaryUnitEnum = z.enum(Object.keys(SalaryUnit) as [keyof typeof SalaryUnit]);
-const educationLevelEnum = z.enum(Object.keys(EducationLevel) as [keyof typeof EducationLevel]);
-const experienceLevelEnum = z.enum(Object.keys(ExperienceLevel) as [keyof typeof ExperienceLevel]);
-const jobLevelEnum = z.enum(Object.keys(JobLevel) as [keyof typeof JobLevel]);
-const jobTypeEnum = z.enum(Object.keys(JobType) as [keyof typeof JobType]);
-const jobGenderEnum = z.enum(Object.keys(JobGender) as [keyof typeof JobGender]);
-const ageTypeEnum = z.enum(Object.keys(AgeType) as [keyof typeof AgeType]);
-const companySizeEnum = z.enum(Object.keys(CompanySize) as [keyof typeof CompanySize]);
-const benefitTypeEnum = z.enum(Object.keys(BenefitType) as [keyof typeof BenefitType]);
-
-
-const jobLocationSchema = z.object({
-  provinceId: z.number().int().positive("Tỉnh/Thành phố không hợp lệ"),
-  districtId: z.number().int().positive("Quận/Huyện không hợp lệ"),
-  detailAddress: z.string().max(1000, "Địa chỉ không được vượt quá 1000 ký tự"),
+const salaryTypeEnum = z.enum(Object.keys(SalaryType) as [keyof typeof SalaryType], {
+  message: "Required",
+});
+const salaryUnitEnum = z.enum(Object.keys(SalaryUnit) as [keyof typeof SalaryUnit], {
+  message: "Required",
+});
+const educationLevelEnum = z.enum(Object.keys(EducationLevel) as [keyof typeof EducationLevel], {
+  message: "Required",
+});
+const experienceLevelEnum = z.enum(Object.keys(ExperienceLevel) as [keyof typeof ExperienceLevel], {
+  message: "Required",
+});
+const jobLevelEnum = z.enum(Object.keys(JobLevel) as [keyof typeof JobLevel], {
+  message: "Required",
+});
+const jobTypeEnum = z.enum(Object.keys(JobType) as [keyof typeof JobType], {
+  message: "Required",
+});
+const jobGenderEnum = z.enum(Object.keys(JobGender) as [keyof typeof JobGender], {
+  message: "Required",
+});
+const ageTypeEnum = z.enum(Object.keys(AgeType) as [keyof typeof AgeType], {
+  message: "Required",
+});
+const companySizeEnum = z.enum(Object.keys(CompanySize) as [keyof typeof CompanySize], {
+  message: "Required",
+});
+const benefitTypeEnum = z.enum(Object.keys(BenefitType) as [keyof typeof BenefitType], {
+  message: "Required",
 });
 
-const jobContactLocationSchema = z.object({
-  provinceId: z.number().int().positive("Tỉnh/Thành phố không hợp lệ"),
-  districtId: z.number().int().positive("Quận/Huyện không hợp lệ"),
-  detailAddress: z.string().max(1000, "Địa chỉ không được vượt quá 1000 ký tự"),
+export const locationSchema = z.object({
+  provinceId: z.number().int().positive("Required"),
+
+  districtId: z.number().int().positive("Required"),
+
+  detailAddress: z
+    .string()
+    .min(1, "Required")
+    .refine((val) => val.trim().length > 0, { message: "Required" }),
+
+  provinceName: z.string().optional(),
+  districtName: z.string().optional(),
 });
 
-const jobBenefitSchema = z.object({
+export type LocationFormData = z.infer<typeof locationSchema>;
+
+export const jobBenefitSchema = z.object({
   type: benefitTypeEnum,
-  description: z.string().min(1, "Mô tả lợi ích là bắt buộc").max(1000, "Mô tả không được vượt quá 1000 ký tự"),
+  description: z.string().min(1, "Required").max(1000, "Description cannot exceed 1000 characters"),
 });
+
+export type JobBenefitFormData = z.infer<typeof jobBenefitSchema>;
 
 export const postJobSchema = z
   .object({
-    companyName: z.string().min(1, "Tên công ty là bắt buộc").max(1000, "Tên công ty không được vượt quá 1000 ký tự"),
+    companyName: z.string().min(1, "Required").max(1000, "Company name cannot exceed 1000 characters"),
     companySize: companySizeEnum,
-    companyWebsite: z.string().max(1000, "Website không được vượt quá 1000 ký tự").optional(),
-    aboutCompany: z.string().min(1, "Giới thiệu công ty là bắt buộc"),
-    jobTitle: z.string().min(1, "Tên công việc là bắt buộc").max(1000, "Tên công việc không được vượt quá 1000 ký tự"),
-    jobLocations: z.array(jobLocationSchema).min(1, "Cần ít nhất một địa điểm làm việc"),
+    companyWebsite: z
+      .string()
+      .max(1000, "Website cannot exceed 1000 characters")
+      .transform((val) => (val === "" ? undefined : val))
+      .optional(),
+    aboutCompany: z.string().min(1, "Required"),
+    jobTitle: z.string().min(1, "Required").max(1000, "Job title cannot exceed 1000 characters"),
+    jobLocations: z
+      .array(locationSchema)
+      .catch([])
+      .refine((val) => val && val.length > 0, { message: "Required" }),
     salaryType: salaryTypeEnum,
-    minSalary: z.number().nonnegative("Lương tối thiểu phải là số không âm").optional(),
-    maxSalary: z.number().nonnegative("Lương tối đa phải là số không âm").optional(),
-    salaryUnit: salaryUnitEnum.optional(),
-    jobDescription: z.string().min(1, "Mô tả công việc là bắt buộc"),
-    requirement: z.string().min(1, "Yêu cầu công việc là bắt buộc"),
-    jobBenefits: z.array(jobBenefitSchema).min(1, "Cần ít nhất một lợi ích").max(10, "Tối đa 10 lợi ích"),
+    minSalary: z.preprocess(
+      (val) => (val === "" || val === null ? undefined : Number(val)),
+      z.number("Required").nonnegative("Minimum salary must be a non-negative number").optional()
+    ),
+    maxSalary: z.preprocess(
+      (val) => (val === "" || val === null ? undefined : Number(val)),
+      z.number("Required").nonnegative("Maximum salary must be a non-negative number").optional()
+    ),
+    salaryUnit: salaryUnitEnum,
+    jobDescription: z.string().min(1, "Required"),
+    requirement: z.string().min(1, "Required"),
+    jobBenefits: z.array(jobBenefitSchema).min(1, "At least one benefit is required").max(10, "Maximum 10 benefits allowed"),
     educationLevel: educationLevelEnum,
     experienceLevel: experienceLevelEnum,
     jobLevel: jobLevelEnum,
     jobType: jobTypeEnum,
     gender: jobGenderEnum,
     jobCode: z.string().optional(),
-    industryIds: z.array(z.number().int().positive()).min(1, "Cần chọn ít nhất một ngành nghề"),
+    industryIds: z
+      .array(z.number().int().positive())
+      .catch([])
+      .refine((val) => val && val.length > 0, { message: "Required" }),
     ageType: ageTypeEnum,
-    minAge: z.number().int().min(15, "Tuổi tối thiểu phải từ 15").max(100, "Tuổi tối thiểu không vượt quá 100").optional(),
-    maxAge: z.number().int().min(15, "Tuổi tối đa phải từ 15").max(100, "Tuổi tối đa không vượt quá 100").optional(),
-    contactPerson: z.string().min(1, "Tên người liên hệ là bắt buộc"),
-    phoneNumber: z.string().regex(PHONE_REGEX, "Số điện thoại không hợp lệ"),
-    contactLocation: jobContactLocationSchema,
+    minAge: z.preprocess(
+      (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+      z.number().int().min(15, "Minimum age must be at least 15").max(100, "Minimum age cannot exceed 100").nullable()
+    ),
+    maxAge: z.preprocess(
+      (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+      z.number().int().min(15, "Maximum age must be at least 15").max(100, "Maximum age cannot exceed 100").nullable()
+    ),
+    contactPerson: z.string().min(1, "Required"),
+    phoneNumber: z.string().regex(PHONE_REGEX, "Invalid"),
+    contactLocation: locationSchema.refine((val) => val !== undefined, {
+      message: "Required",
+    }),
     description: z.string().optional(),
-    expirationDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Ngày hết hạn phải có định dạng dd/MM/yyyy"),
+    expirationDate: z
+      .string({
+        error: "Required",
+      })
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Expiration date must be in dd/MM/yyyy format")
+      .refine((val) => {
+        const [day, month, year] = val.split("/").map(Number);
+        const expiration = new Date(year, month - 1, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return expiration > today;
+      }, "Expiration date must be after today"),
   })
-  .refine(
-    (data) => {
-      if (data.salaryType === "RANGE") {
-        return data.minSalary !== undefined && data.maxSalary !== undefined && data.salaryUnit !== undefined;
+  .superRefine((data, ctx) => {
+    if (data.salaryType === "RANGE") {
+      if (data.minSalary === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["minSalary"],
+        });
       }
-      if (data.salaryType === "GREATER_THAN") {
-        return data.minSalary !== undefined && data.salaryUnit !== undefined;
+
+      if (data.maxSalary === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["maxSalary"],
+        });
       }
-      return true;
-    },
-    {
-      message: "Vui lòng nhập đầy đủ thông tin lương tương ứng với loại lương đã chọn",
-      path: ["salaryType"],
+
+      if (!data.salaryUnit) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["salaryUnit"],
+        });
+      }
+
+      if (data.minSalary !== undefined && data.maxSalary !== undefined) {
+        console.log("Checking range:", data.minSalary, ">=", data.maxSalary);
+        if (data.minSalary >= data.maxSalary) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Invalid range",
+            path: ["minSalary"],
+          });
+          ctx.addIssue({
+            code: "custom",
+            message: "Invalid range",
+            path: ["maxSalary"],
+          });
+        }
+      }
     }
-  )
-  .refine(
-    (data) => {
-      if (data.ageType === "ABOVE") {
-        return data.minAge !== undefined;
+
+    if (data.salaryType === "GREATER_THAN") {
+      if (data.minSalary === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["minSalary"],
+        });
       }
-      if (data.ageType === "BELOW") {
-        return data.maxAge !== undefined;
+      if (!data.salaryUnit) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["salaryUnit"],
+        });
       }
-      if (data.ageType === "INPUT") {
-        return data.minAge !== undefined && data.maxAge !== undefined && data.minAge <= data.maxAge;
-      }
-      return true;
-    },
-    {
-      message: "Vui lòng nhập thông tin tuổi phù hợp với loại giới hạn tuổi đã chọn",
-      path: ["ageType"],
     }
-  );
+
+    if (data.ageType === "ABOVE" && data.minAge === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Required",
+        path: ["minAge"],
+      });
+    }
+
+    if (data.ageType === "BELOW" && data.maxAge === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Required",
+        path: ["maxAge"],
+      });
+    }
+
+    if (data.ageType === "INPUT") {
+      if (data.minAge === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["minAge"],
+        });
+      }
+      if (data.maxAge === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Required",
+          path: ["maxAge"],
+        });
+      }
+      if (data.minAge != null && data.maxAge != null) {
+        if (data.minAge >= data.maxAge) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Invalid range",
+          path: ["minAge"],
+        });
+        ctx.addIssue({
+          code: "custom",
+          message: "Invalid range",
+          path: ["maxAge"],
+        });
+      }
+      }
+    }
+  });
 
 export type PostJobFormData = z.infer<typeof postJobSchema>;

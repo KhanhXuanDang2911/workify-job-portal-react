@@ -1,27 +1,34 @@
 import JobInformation from "@/components/JobInformation";
 import { Button } from "@/components/ui/button";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm, type Resolver } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import "react-quill-new/dist/quill.snow.css";
 import ReactQuill from "react-quill-new";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { SelectGroup } from "@radix-ui/react-select";
 import BaseModal from "@/components/BaseModal";
-import { Plus, Trash2, Loader2 } from "lucide-react";
-import { useRef, useCallback, useEffect } from "react";
+import { Plus, Trash2, Loader2, ChevronDownIcon, MapPin } from "lucide-react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import type { JobBenefit } from "@/types/benefit.type";
-import { postJobSchema, type PostJobFormData } from "@/schemas/job/job.schema";
+import { jobBenefitSchema, locationSchema, postJobSchema, type JobBenefitFormData, type LocationFormData, type PostJobFormData } from "@/schemas/job/job.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { jobService } from "@/services";
+import { jobService, provinceService } from "@/services";
 import { toast } from "react-toastify";
-import { useMutation } from "@tanstack/react-query";
-import { AgeType, benefitMapVN, CompanySize, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType, type SalaryType, type SalaryUnit } from "@/constants";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AgeType, benefitMapVN, CompanySize, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType, SalaryUnit, type SalaryType } from "@/constants";
 import type { AxiosError } from "axios";
-import type { ApiError, Employer, JobLocationRequest } from "@/types";
+import type { ApiError, Employer, JobRequest, Location, LocationRequest, Province } from "@/types";
 import { sampleCompanyInfo, sampleJob, sampleJobDescription, sampleQualifications } from "@/pages/EmployerPostJob/EmployerPostJobMockData";
 import { useAuth } from "@/context/auth/useAuth";
+import { useIndustries } from "@/hooks/industry/useIndustries";
+import { useProvinces } from "@/hooks/province/useProvinces";
+import { useDistrictsByProvinceId } from "@/hooks/district/useDistrictsByProvinceId";
+import { formatDate, sortByName } from "@/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import z from "zod";
+import { useDistrictsForLocations } from "@/hooks/district/useDistrictsForLocations";
 
 // type WorkAreaItem = {
 //   city: string;
@@ -40,12 +47,23 @@ import { useAuth } from "@/context/auth/useAuth";
 
 function EmployerPostJob() {
   const mainForm = useForm<PostJobFormData>({
-    resolver: zodResolver(postJobSchema),
+    resolver: zodResolver(postJobSchema) as Resolver<PostJobFormData>,
     mode: "onBlur",
+    defaultValues: {
+      jobBenefits: [],
+    },
+  });
+
+  const { data: industries, isFetching: isFetchingIndustries } = useIndustries();
+
+  const { data: provinces, isFetching: isFetchingProvinces } = useProvinces({
+    enabled: false,
+    select: sortByName,
   });
 
   const { state } = useAuth();
-  const employer = state.user as Employer
+  const employer = state.user as Employer;
+  const [openDatePicker, setOpenDatePicker] = useState(false);
 
   useEffect(() => {
     if (employer) {
@@ -55,52 +73,26 @@ function EmployerPostJob() {
       mainForm.setValue("aboutCompany", employer.aboutCompany || "");
       mainForm.setValue("contactPerson", employer.contactPerson || "");
       mainForm.setValue("phoneNumber", employer.phoneNumber || "");
+      mainForm.setValue("jobDescription", "");
+      mainForm.setValue("requirement", "");
     }
   }, [employer, mainForm]);
 
   const createJobMutation = useMutation({
-    mutationFn: async (data: PostJobFormData) => {
-      const jobRequest = {
-        companyName: data.companyName,
-        companySize: data.companySize as CompanySize,
-        companyWebsite: data.companyWebsite,
-        aboutCompany: data.aboutCompany,
-        jobTitle: data.jobTitle,
-        jobLocations: data.jobLocations,
-        salaryType: data.salaryType as SalaryType,
-        minSalary: data.minSalary,
-        maxSalary: data.maxSalary,
-        salaryUnit: data.salaryUnit as SalaryUnit,
-        jobDescription: data.jobDescription,
-        requirement: data.requirement,
-        jobBenefits: data.jobBenefits,
-        educationLevel: data.educationLevel as EducationLevel,
-        experienceLevel: data.experienceLevel as ExperienceLevel,
-        jobLevel: data.jobLevel as JobLevel,
-        jobType: data.jobType as JobType,
-        gender: data.gender as JobGender,
-        jobCode: data.jobCode,
-        industryIds: data.industryIds,
-        ageType: data.ageType as AgeType,
-        minAge: data.minAge,
-        maxAge: data.maxAge,
-        contactPerson: data.contactPerson,
-        phoneNumber: data.phoneNumber,
-        contactLocation: data.contactLocation,
-        description: data.description,
-        expirationDate: data.expirationDate,
-      };
-      return jobService.createJob(jobRequest);
+    mutationFn: async (data: JobRequest) => {
+      return jobService.createJob(data);
     },
     onSuccess: () => {
       toast.success("Job posted successfully!");
-      mainForm.reset();
+      // mainForm.reset();
     },
     onError: (error: AxiosError<ApiError>) => {
       const errorMessage = error.response?.data?.message || "Failed to post job";
       toast.error(errorMessage);
     },
   });
+
+  const queryClient = useQueryClient();
 
   // Modal form cho workAreas location
   // const modalWorkAreasForm = useForm<{ workAreas: WorkAreaItem[] }>({
@@ -112,8 +104,16 @@ function EmployerPostJob() {
   // });
   // const modal_workAreas: WorkAreaItem[] = mainForm.watch("workAreas") || [];
 
-  const modalJobLocationsForm = useForm<{ jobLocations: JobLocationRequest[] }>({
+  const modalJobLocationsForm = useForm<{
+    jobLocations: LocationFormData[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        jobLocations: z.array(locationSchema),
+      })
+    ),
     defaultValues: { jobLocations: [] },
+    mode: "onChange",
   });
 
   const jobLocationsFieldArray = useFieldArray({
@@ -121,20 +121,48 @@ function EmployerPostJob() {
     name: "jobLocations",
   });
 
-  const main_jobLocations: JobLocationRequest[] = (mainForm.watch("jobLocations") as any) || [];
+  const main_jobLocations: LocationFormData[] = mainForm.watch("jobLocations") || [];
 
   // Modal form cho contact location
   const modalContactLocationForm = useForm<{
-    contactLocation: JobLocationRequest;
+    contactLocation: LocationFormData;
   }>({
+    resolver: zodResolver(
+      z.object({
+        contactLocation: locationSchema,
+      })
+    ),
     defaultValues: {
-      contactLocation: {},
+      contactLocation: {
+        provinceId: 0,
+        districtId: 0,
+        detailAddress: "",
+        provinceName: "",
+        districtName: "",
+      },
     },
+    mode: "onChange",
   });
 
-  const modalBenefitForm = useForm<{ benefits: JobBenefit[] }>({
+  const modalBenefitForm = useForm<{ benefits: JobBenefitFormData[] }>({
+    resolver: zodResolver(
+      z.object({
+        benefits: z.array(jobBenefitSchema),
+      })
+    ),
     defaultValues: { benefits: [] },
+    mode: "onBlur",
   });
+
+  const watchedJobLocations = modalJobLocationsForm.watch("jobLocations");
+
+  const { getDistrictsByIndex, isLoadingByIndex } = useDistrictsForLocations({
+    locations: watchedJobLocations || [],
+    sortFn: sortByName,
+  });
+  const selectedProvinceIdContact = modalContactLocationForm.watch("contactLocation.provinceId");
+
+  const { data: districtsByContactProvince } = useDistrictsByProvinceId(selectedProvinceIdContact, { select: sortByName });
 
   const benefitFieldArray = useFieldArray({
     control: modalBenefitForm.control,
@@ -142,6 +170,20 @@ function EmployerPostJob() {
   });
 
   const main_benefits: JobBenefit[] = (mainForm.watch("jobBenefits") as any) || [];
+
+  const handlePrefetchProvinces = () => {
+    const cached = queryClient.getQueryData(["provinces"]);
+    if (!cached) {
+      queryClient.prefetchQuery({
+        queryKey: ["provinces"],
+        queryFn: async () => {
+          const response = await provinceService.getProvinces();
+          return response.data;
+        },
+        staleTime: 1000 * 60 * 60,
+      });
+    }
+  };
 
   const watchedValues = mainForm.watch();
 
@@ -157,9 +199,53 @@ function EmployerPostJob() {
   }>(null);
 
   const onSubmit = async (data: PostJobFormData) => {
-    createJobMutation.mutate(data);
+    const jobRequest = {
+      companyName: data.companyName,
+      companySize: data.companySize as CompanySize,
+      companyWebsite: data.companyWebsite,
+      aboutCompany: data.aboutCompany,
+      jobTitle: data.jobTitle,
+      jobLocations: data.jobLocations.map((loc) => ({
+        provinceId: loc.provinceId,
+        districtId: loc.districtId,
+        detailAddress: loc.detailAddress,
+      })),
+      salaryType: data.salaryType as SalaryType,
+      minSalary: data.minSalary ?? undefined,
+      maxSalary: data.maxSalary ?? undefined,
+      salaryUnit: data.salaryUnit as SalaryUnit,
+      jobDescription: data.jobDescription,
+      requirement: data.requirement,
+      jobBenefits: data.jobBenefits,
+      educationLevel: data.educationLevel as EducationLevel,
+      experienceLevel: data.experienceLevel as ExperienceLevel,
+      jobLevel: data.jobLevel as JobLevel,
+      jobType: data.jobType as JobType,
+      gender: data.gender as JobGender,
+      jobCode: data.jobCode,
+      industryIds: data.industryIds,
+      ageType: data.ageType as AgeType,
+      minAge: data.minAge ?? undefined,
+      maxAge: data.maxAge ?? undefined,
+      contactPerson: data.contactPerson,
+      phoneNumber: data.phoneNumber,
+      contactLocation: {
+        provinceId: data.contactLocation.provinceId,
+        districtId: data.contactLocation.districtId,
+        detailAddress: data.contactLocation.detailAddress,
+      },
+      description: data.description,
+      expirationDate: data.expirationDate,
+    };
+    console.log("job: ", jobRequest);
+
+    createJobMutation.mutate(jobRequest);
   };
 
+  const onError = (errors: any) => {
+    console.error("Form validation failed!");
+    console.error("Errors:", errors);
+  };
   const handleOpenModalEditJobLocations = () => {
     modalJobLocationsForm.reset({
       jobLocations: main_jobLocations.length ? main_jobLocations : [],
@@ -169,7 +255,10 @@ function EmployerPostJob() {
   const handleSaveModalJobLocations = async (onClose: () => void) => {
     const valid = await modalJobLocationsForm.trigger();
     if (!valid) return;
-    mainForm.setValue("jobLocations", modalJobLocationsForm.getValues("jobLocations") as any, { shouldValidate: true });
+
+    mainForm.setValue("jobLocations", modalJobLocationsForm.getValues("jobLocations"), {
+      shouldValidate: true,
+    });
     onClose();
   };
 
@@ -178,10 +267,12 @@ function EmployerPostJob() {
       contactLocation: (mainForm.getValues("contactLocation") as any) || {},
     });
   };
+
   const handleSaveModalContactLocation = async (onClose: () => void) => {
     const valid = await modalContactLocationForm.trigger();
     if (!valid) return;
-    mainForm.setValue("contactLocation", modalContactLocationForm.getValues("contactLocation") as any, {
+
+    mainForm.setValue("contactLocation", modalContactLocationForm.getValues("contactLocation"), {
       shouldValidate: true,
     });
     onClose();
@@ -192,6 +283,7 @@ function EmployerPostJob() {
       benefits: main_benefits.length ? main_benefits : [],
     });
   };
+
   const handleSaveBenefits = async (onClose: () => void) => {
     const valid = await modalBenefitForm.trigger();
     if (!valid) return;
@@ -237,7 +329,7 @@ function EmployerPostJob() {
       title: formData.jobTitle || sampleJob.title,
       company: formData.companyName || sampleJob.company,
       companySize: formData.companySize || sampleJob.companySize,
-      location: formData.jobLocations?.map((loc: JobLocationRequest) => loc.detailAddress).join(", ") || sampleJob.location,
+      location: formData.jobLocations?.map((loc: LocationFormData) => `${loc.detailAddress}, ${loc.districtName}, ${loc.provinceName}`).join(" | ") || sampleJob.location,
       salary:
         formData.salaryType === "RANGE"
           ? `${formData.minSalary || ""} - ${formData.maxSalary || ""} ${formData.salaryUnit || "VND"}`
@@ -255,7 +347,9 @@ function EmployerPostJob() {
       age: formData.ageType || sampleJob.age,
       website: formData.companyWebsite || sampleJob.website,
       workType: formData.jobType || sampleJob.workType,
-      address: formData.contactLocation?.detailAddress ? `${formData.contactLocation.detailAddress}` : sampleJob.address,
+      address: formData.contactLocation?.detailAddress
+        ? `${formData.contactLocation.detailAddress}, ${formData.contactLocation.districtName}, ${formData.contactLocation.provinceName}`
+        : sampleJob.address,
     };
 
     const jobDescription = {
@@ -281,26 +375,26 @@ function EmployerPostJob() {
   const previewData = getPreviewData(watchedValues);
 
   return (
-    <main className="flex flex-col flex-1 bg-sky-50 relative">
+    <main className="relative flex flex-col flex-1 bg-sky-50">
       {/* Header cố định trên cùng */}
-      <div className=" bg-white py-3 border-b  border-gray-200 sticky top-0 z-20">
+      <div className="sticky top-0 z-20 py-3 bg-white border-b border-gray-200 ">
         <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">Post Job</h1>
       </div>
       {/* Nội dung  */}
-      <div className=" p-3 flex gap-4 h-screen ">
+      <div className="flex h-screen gap-4 p-3 ">
         {/* Job Information Section */}
         <div className="bg-white rounded shadow overflow-auto w-full flex-1 lg:w-[60%] xl:w-[50%] flex-shrink-0">
-          <div className="border-b p-3 mb-4 bg-white">
+          <div className="p-3 mb-4 bg-white border-b">
             <h2 className="text-xl font-semibold text-center text-gray-900 ">Job Information</h2>
           </div>
           <div className="overflow-y-auto max-h-[calc(100vh-330px)] px-4">
-            <form id="post-job-form" className="space-y-6" onSubmit={mainForm.handleSubmit(onSubmit)}>
+            <form id="post-job-form" className="space-y-6" onSubmit={mainForm.handleSubmit(onSubmit, onError)}>
               {/* Company Information */}
               <div>
                 <label className="block text-2xl text-[#1967d2] font-medium mb-2">Company Information</label>
                 {/*  Company Name */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Company Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -309,11 +403,11 @@ function EmployerPostJob() {
                     className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                     onFocus={() => handleFieldFocus("company")}
                   />
-                  {mainForm.formState.errors.companyName && <span className="text-red-500 text-xs">{mainForm.formState.errors.companyName.message}</span>}
+                  {mainForm.formState.errors.companyName && <span className="text-xs text-red-500">{mainForm.formState.errors.companyName.message}</span>}
                 </div>
                 {/*  Company Size */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Company Size <span className="text-red-500">*</span>
                   </label>
                   <Controller
@@ -334,22 +428,22 @@ function EmployerPostJob() {
                       </Select>
                     )}
                   />
-                  {mainForm.formState.errors.companySize && <span className="text-red-500 text-xs">{mainForm.formState.errors.companySize.message}</span>}
+                  {mainForm.formState.errors.companySize && <span className="text-xs text-red-500">{mainForm.formState.errors.companySize.message}</span>}
                 </div>
                 {/* Company Website */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">Company Website</label>
+                  <label className="block mb-1 text-sm font-medium">Company Website</label>
                   <Input
                     {...mainForm.register("companyWebsite")}
                     placeholder="Company Website"
                     className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                     onFocus={() => handleFieldFocus("company")}
                   />
-                  {mainForm.formState.errors.companyWebsite && <span className="text-red-500 text-xs">{mainForm.formState.errors.companyWebsite.message}</span>}
+                  {mainForm.formState.errors.companyWebsite && <span className="text-xs text-red-500">{mainForm.formState.errors.companyWebsite.message}</span>}
                 </div>
                 {/* About Company */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     About Company <span className="text-red-500">*</span>
                   </label>
                   <Controller
@@ -365,7 +459,7 @@ function EmployerPostJob() {
                       />
                     )}
                   />
-                  {mainForm.formState.errors.aboutCompany && <span className="text-red-500 text-xs">{mainForm.formState.errors.aboutCompany.message}</span>}
+                  {mainForm.formState.errors.aboutCompany && <span className="text-xs text-red-500">{mainForm.formState.errors.aboutCompany.message}</span>}
                 </div>
               </div>
 
@@ -374,7 +468,7 @@ function EmployerPostJob() {
                 <label className="block text-2xl text-[#1967d2] font-medium mb-2">Job Information</label>
                 {/*Job title */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Job title <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -383,14 +477,14 @@ function EmployerPostJob() {
                     className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                     onFocus={() => handleFieldFocus("description")}
                   />
-                  {mainForm.formState.errors.jobTitle && <span className="text-red-500 text-xs">{mainForm.formState.errors.jobTitle.message}</span>}
+                  {mainForm.formState.errors.jobTitle && <span className="text-xs text-red-500">{mainForm.formState.errors.jobTitle.message}</span>}
                 </div>
                 {/* Location */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Location <span className="text-red-500">*</span>
                   </label>
-                  <div className="border p-3 rounded space-y-5">
+                  <div className="p-3 space-y-5 border rounded">
                     <div>
                       <div className="mb-2 text-xs text-gray-500">Choose work locations</div>
                       <BaseModal
@@ -399,12 +493,20 @@ function EmployerPostJob() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="w-full flex flex-col items-start justify-start text-left font-normal !h-auto min-h-0 py-2  bg-transparent"
+                            className="w-full flex flex-col items-start justify-start text-left font-normal !h-auto min-h-0 py-2   bg-transparent"
                             onClick={handleOpenModalEditJobLocations}
+                            onMouseEnter={handlePrefetchProvinces}
                             onFocus={() => handleFieldFocus("details")}
                           >
                             {main_jobLocations.length > 0 && main_jobLocations[0].detailAddress ? (
-                              main_jobLocations.map((loc: JobLocationRequest, index: number) => <p key={index}>{loc.detailAddress}</p>)
+                              main_jobLocations.map((loc: LocationFormData, index: number) => (
+                                <div className="max-w-[500px] flex items-center gap-2 mt-2" key={index}>
+                                  <MapPin className="self-start text-[#1967d2]" />
+                                  <p className="text-sm break-words whitespace-normal leading-relaxed">
+                                    {loc.detailAddress}, {loc.districtName}, {loc.provinceName}
+                                  </p>
+                                </div>
+                              ))
                             ) : (
                               <span className="text-gray-400">Job location</span>
                             )}
@@ -424,34 +526,55 @@ function EmployerPostJob() {
                             </Button>
                           </>
                         )}
+                        className=""
                       >
-                        <div className="min-w-[600px]">
+                        <div className="!w-[800px]">
                           <Label htmlFor="modal-location" className="mb-3">
                             Work Location
                           </Label>
                           {jobLocationsFieldArray.fields.map((loc, idx) => (
-                            <div key={idx} className="flex gap-2 justify-between mb-3">
+                            <div key={idx} className="flex justify-between gap-2 mb-3">
                               {/* Select province */}
                               <Controller
                                 control={modalJobLocationsForm.control}
-                                name={`jobLocations.${idx}.provinceId`}
                                 rules={{ required: "Required" }}
+                                name={`jobLocations.${idx}.provinceId`}
                                 render={({ field, fieldState }) => (
                                   <div className="flex flex-col gap-2">
-                                    <Select value={field.value?.toString() || ""} onValueChange={(val) => field.onChange(Number.parseInt(val))}>
+                                    <Select
+                                      value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                      onValueChange={(val) => {
+                                        const provinceId = Number.parseInt(val);
+                                        const selectedProvince = provinces?.find((p: Province) => p.id === provinceId);
+
+                                        field.onChange(provinceId);
+
+                                        if (selectedProvince) {
+                                          modalJobLocationsForm.setValue(`jobLocations.${idx}.provinceName`, selectedProvince.name);
+                                        }
+
+                                        modalJobLocationsForm.setValue(`jobLocations.${idx}.districtId`, 0);
+                                        modalJobLocationsForm.setValue(`jobLocations.${idx}.districtName`, "");
+                                      }}
+                                    >
                                       <SelectTrigger className="min-w-[200px] bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
                                         <SelectValue placeholder="Select province" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="1" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                          Hà Nội
-                                        </SelectItem>
-                                        <SelectItem value="2" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                          Hồ Chí Minh
-                                        </SelectItem>
+                                        {isFetchingProvinces ? (
+                                          <SelectItem value="loading" disabled>
+                                            Loading...
+                                          </SelectItem>
+                                        ) : (
+                                          provinces?.map((province: Province) => (
+                                            <SelectItem key={province.id} value={province.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                              {province.name}
+                                            </SelectItem>
+                                          ))
+                                        )}
                                       </SelectContent>
                                     </Select>
-                                    {fieldState.error && <span className="text-red-500 text-xs mt-1">{fieldState.error.message || "Required"}</span>}
+                                    {fieldState.error && <span className="mt-1 text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                                   </div>
                                 )}
                               />
@@ -459,57 +582,65 @@ function EmployerPostJob() {
                               <Controller
                                 control={modalJobLocationsForm.control}
                                 name={`jobLocations.${idx}.districtId`}
-                                rules={{ required: "Required" }}
-                                render={({ field, fieldState }) => (
-                                  <div className="flex flex-col gap-2">
-                                    <Select
-                                      value={field.value?.toString() || ""}
-                                      onValueChange={(val) => field.onChange(Number.parseInt(val))}
-                                      disabled={!modalJobLocationsForm.watch(`jobLocations.${idx}.provinceId`)}
-                                    >
-                                      <SelectTrigger className="min-w-[200px] bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
-                                        <SelectValue placeholder="Select district" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {modalJobLocationsForm.watch(`jobLocations.${idx}.provinceId`) === 1 && (
-                                          <>
-                                            <SelectItem value="1" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                              Ba Đình
+                                render={({ field, fieldState }) => {
+                                  const currentDistricts = getDistrictsByIndex(idx);
+                                  const currentProvinceId = watchedJobLocations?.[idx]?.provinceId || 0;
+                                  const isLoading = isLoadingByIndex(idx);
+
+                                  return (
+                                    <div className="flex flex-col gap-2">
+                                      <Select
+                                        value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                        onValueChange={(val) => {
+                                          const districtId = Number.parseInt(val);
+                                          const selectedDistrict = currentDistricts?.find((d) => d.id === districtId);
+
+                                          field.onChange(districtId);
+
+                                          if (selectedDistrict) {
+                                            modalJobLocationsForm.setValue(`jobLocations.${idx}.districtName`, selectedDistrict.name);
+                                          }
+                                        }}
+                                        disabled={!currentProvinceId || currentProvinceId === 0}
+                                      >
+                                        <SelectTrigger className="min-w-[200px] bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
+                                          <SelectValue placeholder="Select district" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {isLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                              Loading...
                                             </SelectItem>
-                                            <SelectItem value="2" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                              Đống Đa
+                                          ) : currentDistricts.length === 0 && currentProvinceId > 0 ? (
+                                            <SelectItem value="no-data" disabled>
+                                              No districts
                                             </SelectItem>
-                                          </>
-                                        )}
-                                        {modalJobLocationsForm.watch(`jobLocations.${idx}.provinceId`) === 2 && (
-                                          <>
-                                            <SelectItem value="3" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                              Quận 1
-                                            </SelectItem>
-                                            <SelectItem value="4" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                              Quận 3
-                                            </SelectItem>
-                                          </>
-                                        )}
-                                      </SelectContent>
-                                    </Select>
-                                    {fieldState.error && <span className="text-red-500 text-xs mt-1">{fieldState.error.message || "Required"}</span>}
-                                  </div>
-                                )}
+                                          ) : (
+                                            currentDistricts.map((district) => (
+                                              <SelectItem key={district.id} value={district.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                                {district.name}
+                                              </SelectItem>
+                                            ))
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                      {fieldState.error && <span className="mt-1 text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
+                                    </div>
+                                  );
+                                }}
                               />
                               {/* Detail Address */}
                               <Controller
                                 control={modalJobLocationsForm.control}
                                 name={`jobLocations.${idx}.detailAddress`}
-                                rules={{ required: "Required" }}
                                 render={({ field, fieldState }) => (
-                                  <div className="flex flex-col gap-2 flex-1">
+                                  <div className="flex flex-col flex-1 gap-2">
                                     <Input
                                       {...field}
                                       placeholder="Detail address"
-                                      className="bg-gray-100 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
+                                      className="bg-gray-100 !w-[330px] focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                                     />
-                                    {fieldState.error && <span className="text-red-500 text-xs mt-1">{fieldState.error.message || "Required"}</span>}
+                                    {fieldState.error && <span className="mt-1 text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                                   </div>
                                 )}
                               />
@@ -524,7 +655,15 @@ function EmployerPostJob() {
                           <Button
                             variant="link"
                             className="text-[#1967d2] p-0 h-auto mt-2 text-lg"
-                            onClick={() => jobLocationsFieldArray.append({ provinceId: 0, districtId: 0, detailAddress: "" })}
+                            onClick={() =>
+                              jobLocationsFieldArray.append({
+                                provinceId: 0,
+                                districtId: 0,
+                                detailAddress: "",
+                                provinceName: "",
+                                districtName: "",
+                              })
+                            }
                             disabled={jobLocationsFieldArray.fields.length >= 5}
                           >
                             <Plus strokeWidth={3} /> Add new location
@@ -533,11 +672,11 @@ function EmployerPostJob() {
                       </BaseModal>
                     </div>
                   </div>
-                  {mainForm.formState.errors.jobLocations && <span className="text-red-500 text-xs">{mainForm.formState.errors.jobLocations.message}</span>}
+                  {mainForm.formState.errors.jobLocations && <span className="text-xs text-red-500">{mainForm.formState.errors.jobLocations.message}</span>}
                 </div>
                 {/* Salary */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Salary <span className="text-red-500">*</span>
                   </label>
                   <Controller
@@ -547,7 +686,7 @@ function EmployerPostJob() {
                       <RadioGroup
                         value={field.value}
                         onValueChange={field.onChange}
-                        className="flex flex-row justify-between pr-5 gap-6 mb-2 mt-3"
+                        className="flex flex-row justify-between gap-6 pr-5 mt-3 mb-2"
                         onFocus={() => handleFieldFocus("details")}
                       >
                         <div className="flex items-center space-x-2">
@@ -571,12 +710,111 @@ function EmployerPostJob() {
                   />
                   {/* Hiển thị các ô nhập khi chọn Input */}
                   {mainForm.watch("salaryType") === "RANGE" && (
-                    <div className="flex flex-col sm:flex-row items-center gap-2 mt-4">
-                      <div className="flex flex-row sm:flex-1 has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
+                    <div className="flex flex-col items-center gap-2 mt-4 sm:flex-row">
+                      {/* Min salary */}
+                      <div className="flex flex-col sm:flex-1">
+                        <div className="flex flex-row has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
+                          <Input
+                            {...mainForm.register("minSalary", { valueAsNumber: true })}
+                            placeholder="Ex: 10"
+                            className="rounded-none min-w-32 focus-visible:ring-0"
+                            type="number"
+                            onBlur={() => {
+                              const minSalary = mainForm.getValues("minSalary");
+                              const maxSalary = mainForm.getValues("maxSalary");
+                              if (maxSalary !== undefined && minSalary !== undefined && minSalary > maxSalary) {
+                                mainForm.setError("minSalary", {
+                                  type: "manual",
+                                  message: "Invalid range",
+                                });
+                              } else {
+                                mainForm.clearErrors("minSalary");
+                              }
+                            }}
+                          />
+                          <Controller
+                            name="salaryUnit"
+                            control={mainForm.control}
+                            render={({ field }) => (
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <SelectTrigger className="rounded-none min-w-36 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
+                                  <SelectValue placeholder="Select Unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(SalaryUnit).map(([key, value]) => (
+                                    <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                      {key}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </div>
+                        <div className="flex flex-row justify-between mt-1 items-center h-[24px]">
+                          <span className="text-xs text-red-500">{mainForm.formState.errors.minSalary ? mainForm.formState.errors.minSalary.message : " "}</span>
+                          <span className="text-xs text-red-500">{mainForm.formState.errors.salaryUnit ? mainForm.formState.errors.salaryUnit.message : " "}</span>
+                        </div>
+                      </div>
+
+                      <span className="text-gray-500">-</span>
+
+                      {/* Max salary */}
+                      <div className="flex flex-col sm:flex-1">
+                        <div className="flex flex-row has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
+                          <Input
+                            {...mainForm.register("maxSalary", { valueAsNumber: true })}
+                            placeholder="Ex: 20"
+                            className="rounded-none min-w-32 focus-visible:ring-0"
+                            type="number"
+                            onBlur={() => {
+                              const minSalary = mainForm.getValues("minSalary");
+                              const maxSalary = mainForm.getValues("maxSalary");
+                              if (maxSalary !== undefined && minSalary !== undefined && minSalary > maxSalary) {
+                                mainForm.setError("minSalary", {
+                                  type: "manual",
+                                  message: "Invalid range",
+                                });
+                              } else {
+                                mainForm.clearErrors("minSalary");
+                              }
+                            }}
+                          />
+                          <Controller
+                            name="salaryUnit"
+                            control={mainForm.control}
+                            render={({ field }) => (
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <SelectTrigger className="rounded-none min-w-36 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
+                                  <SelectValue placeholder="Select Unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(SalaryUnit).map(([key, value]) => (
+                                    <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                      {key}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </div>
+                        <div className="flex flex-row justify-between mt-1 items-center h-[24px]">
+                          <span className="text-xs text-red-500"> {mainForm.formState.errors.maxSalary ? mainForm.formState.errors.maxSalary.message : " "}</span>
+                          <span className="text-xs text-red-500">{mainForm.formState.errors.salaryUnit ? mainForm.formState.errors.salaryUnit.message : " "}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/*Khi chọn More than */}
+                  {mainForm.watch("salaryType") === "GREATER_THAN" && (
+                    <div className="flex flex-col gap-1 mt-2">
+                      <div className="flex justify-between has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
                         <Input
                           {...mainForm.register("minSalary", { valueAsNumber: true })}
-                          placeholder="Ex: 10"
-                          className="min-w-32 rounded-none focus-visible:border-none focus-visible:ring-0"
+                          placeholder="Ex: 10 or 10.5"
+                          className="rounded-none focus-visible:ring-0"
                           type="number"
                         />
                         <Controller
@@ -584,93 +822,33 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value || ""}>
-                              <SelectTrigger className="min-w-36 rounded-none focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
-                                <SelectValue placeholder="Select Unit" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-none">
-                                <SelectGroup>
-                                  <SelectItem value="VND" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    VND
-                                  </SelectItem>
-                                  <SelectItem value="USD" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    USD
-                                  </SelectItem>
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </div>
-                      <span>-</span>
-                      <div className="flex flex-row sm:flex-1 has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
-                        <Input
-                          {...mainForm.register("maxSalary", { valueAsNumber: true })}
-                          placeholder="Ex: 10 "
-                          className="min-w-32 rounded-none focus-visible:border-none focus-visible:ring-0"
-                          type="number"
-                        />
-                        <Controller
-                          name="salaryUnit"
-                          control={mainForm.control}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
-                              <SelectTrigger className="min-w-36 rounded-none focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
+                              <SelectTrigger className="rounded-none min-w-40 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
                                 <SelectValue placeholder="Select Unit" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectGroup>
-                                  <SelectItem value="VND" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    VND
+                                {Object.entries(SalaryUnit).map(([key, value]) => (
+                                  <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                    {key}
                                   </SelectItem>
-                                  <SelectItem value="USD" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    USD
-                                  </SelectItem>
-                                </SelectGroup>
+                                ))}
                               </SelectContent>
                             </Select>
                           )}
                         />
                       </div>
+                      <div className="flex flex-row justify-between mt-1 items-center h-[24px]">
+                        <span className="text-xs text-red-500">{mainForm.formState.errors.minSalary ? mainForm.formState.errors.minSalary.message : " "}</span>
+                        <span className="text-xs text-red-500"> {mainForm.formState.errors.salaryUnit ? mainForm.formState.errors.salaryUnit.message : " "}</span>
+                      </div>
                     </div>
                   )}
-                  {/*Khi chọn More than */}
-                  {mainForm.watch("salaryType") === "GREATER_THAN" && (
-                    <div className="flex justify-between mt-2 has-focus-visible:ring-1 has-focus-visible:ring-[#1967d2]">
-                      <Input
-                        {...mainForm.register("minSalary", { valueAsNumber: true })}
-                        placeholder="Ex: 10 or 10.5"
-                        className="rounded-none focus-visible:border-none focus-visible:ring-0"
-                        type="number"
-                      />
-                      <Controller
-                        name="salaryUnit"
-                        control={mainForm.control}
-                        render={({ field }) => (
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="min-w-40 rounded-none focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
-                              <SelectValue placeholder="VND" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem value="VND" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                  VND
-                                </SelectItem>
-                                <SelectItem value="USD" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                  USD
-                                </SelectItem>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
-                  )}
-                  {mainForm.formState.errors.salaryType && <span className="text-red-500 text-xs">{mainForm.formState.errors.salaryType.message}</span>}
+
+                  {mainForm.formState.errors.salaryType && <span className="text-xs text-red-500">{mainForm.formState.errors.salaryType.message}</span>}
                 </div>
 
                 {/* Job Description */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Job Description Detail <span className="text-red-500">*</span>
                   </label>
                   <Controller
@@ -686,11 +864,11 @@ function EmployerPostJob() {
                       />
                     )}
                   />
-                  {mainForm.formState.errors.jobDescription && <span className="text-red-500 text-xs">{mainForm.formState.errors.jobDescription.message}</span>}
+                  {mainForm.formState.errors.jobDescription && <span className="text-xs text-red-500">{mainForm.formState.errors.jobDescription.message}</span>}
                 </div>
                 {/* Job Requirement */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Job Requirement <span className="text-red-500">*</span>
                   </label>
                   <Controller
@@ -706,11 +884,11 @@ function EmployerPostJob() {
                       />
                     )}
                   />
-                  {mainForm.formState.errors.requirement && <span className="text-red-500 text-xs">{mainForm.formState.errors.requirement.message}</span>}
+                  {mainForm.formState.errors.requirement && <span className="text-xs text-red-500">{mainForm.formState.errors.requirement.message}</span>}
                 </div>
                 {/* Benefits */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Benefits <span className="text-red-500">*</span>
                   </label>
                   <div>
@@ -719,10 +897,10 @@ function EmployerPostJob() {
                         {main_benefits.map((benefit: JobBenefit, idx: number) => {
                           const Icon = benefitMapVN[benefit.type].icon;
                           return (
-                            <li key={idx} className="flex items-center gap-2 border p-1 ">
-                              <div className="flex items-center gap-1 self-start">
+                            <li key={idx} className="flex items-center gap-2 p-1 border ">
+                              <div className="flex items-center self-start gap-1">
                                 <Icon size={28} strokeWidth={1.8} color="#1967d2" />
-                                <span className="font-medium text-sm">{benefitMapVN[benefit.type].label}:</span>
+                                <span className="text-sm font-medium">{benefitMapVN[benefit.type].label}:</span>
                               </div>
                               <span className="text-sm">{benefit.description}</span>
                             </li>
@@ -799,20 +977,19 @@ function EmployerPostJob() {
                               <Controller
                                 name={`benefits.${idx}.description`}
                                 control={modalBenefitForm.control}
-                                rules={{ required: "Description is required" }}
                                 render={({ field, fieldState }) => (
-                                  <div className="gap-2 flex flex-col flex-1">
+                                  <div className="flex flex-col flex-1 gap-2">
                                     <Input
                                       {...field}
                                       placeholder="Ex: A chance to travel 2-3 times a year"
                                       className=" bg-gray-100 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                                     />
-                                    {(!field.value || field.value.trim() === "") && <span className="text-red-500 text-xs mt-1">Required</span>}
+                                    {fieldState.error && <span className="mt-1 text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                                   </div>
                                 )}
                               />
                               {benefitFieldArray.fields.length >= 1 && (
-                                <Button type="button" variant="ghost" className="text-gray-500  self-start size-8 hover:bg-red-400" onClick={() => benefitFieldArray.remove(idx)}>
+                                <Button type="button" variant="ghost" className="self-start text-gray-500 size-8 hover:bg-red-400" onClick={() => benefitFieldArray.remove(idx)}>
                                   <Trash2 size={18} />
                                 </Button>
                               )}
@@ -838,6 +1015,7 @@ function EmployerPostJob() {
                       </div>
                     </BaseModal>
                   </div>
+                  {mainForm.formState.errors.jobBenefits && <span className="text-xs text-red-500">{mainForm.formState.errors.jobBenefits.message}</span>}
                 </div>
               </div>
               {/* Job Details */}
@@ -847,7 +1025,7 @@ function EmployerPostJob() {
                 {/* Education Level */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Education Level <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -856,7 +1034,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0  w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Please select" />
                             </SelectTrigger>
                             <SelectContent>
@@ -869,7 +1047,7 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.educationLevel && <span className="text-red-500 text-xs">{mainForm.formState.errors.educationLevel.message}</span>}
+                      {mainForm.formState.errors.educationLevel && <span className="text-xs text-red-500">{mainForm.formState.errors.educationLevel.message}</span>}
                     </div>
                   </div>
                 </div>
@@ -877,7 +1055,7 @@ function EmployerPostJob() {
                 {/* Experience Level */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Experience Level <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -886,7 +1064,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Please select" />
                             </SelectTrigger>
                             <SelectContent>
@@ -899,14 +1077,14 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.experienceLevel && <span className="text-red-500 text-xs">{mainForm.formState.errors.experienceLevel.message}</span>}
+                      {mainForm.formState.errors.experienceLevel && <span className="text-xs text-red-500">{mainForm.formState.errors.experienceLevel.message}</span>}
                     </div>
                   </div>
                 </div>
                 {/* Job Level */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Job Level <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -915,7 +1093,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Please select" />
                             </SelectTrigger>
                             <SelectContent>
@@ -928,14 +1106,14 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.jobLevel && <span className="text-red-500 text-xs">{mainForm.formState.errors.jobLevel.message}</span>}
+                      {mainForm.formState.errors.jobLevel && <span className="text-xs text-red-500">{mainForm.formState.errors.jobLevel.message}</span>}
                     </div>
                   </div>
                 </div>
                 {/* Job Type */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Job Type <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -944,7 +1122,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Please select" />
                             </SelectTrigger>
                             <SelectContent>
@@ -957,7 +1135,7 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.jobType && <span className="text-red-500 text-xs">{mainForm.formState.errors.jobType.message}</span>}
+                      {mainForm.formState.errors.jobType && <span className="text-xs text-red-500">{mainForm.formState.errors.jobType.message}</span>}
                     </div>
                   </div>
                 </div>
@@ -965,7 +1143,7 @@ function EmployerPostJob() {
                 {/* Gender */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Gender <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -974,7 +1152,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Please select" />
                             </SelectTrigger>
                             <SelectContent>
@@ -987,7 +1165,7 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.gender && <span className="text-red-500 text-xs">{mainForm.formState.errors.gender.message}</span>}
+                      {mainForm.formState.errors.gender && <span className="text-xs text-red-500">{mainForm.formState.errors.gender.message}</span>}
                     </div>
                   </div>
                 </div>
@@ -995,7 +1173,7 @@ function EmployerPostJob() {
                 {/* Job Code */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">Job Code</label>
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">Job Code</label>
                     <div className="flex-1">
                       <Input
                         {...mainForm.register("jobCode")}
@@ -1010,7 +1188,7 @@ function EmployerPostJob() {
                 {/* Industry IDs */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Industries <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -1018,28 +1196,62 @@ function EmployerPostJob() {
                         name="industryIds"
                         control={mainForm.control}
                         render={({ field }) => (
-                          <Select onValueChange={(val) => field.onChange([...field.value, Number.parseInt(val)])} value="">
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
-                              <SelectValue placeholder="Select industries" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                Technology
-                              </SelectItem>
-                              <SelectItem value="2" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                Finance
-                              </SelectItem>
-                              <SelectItem value="3" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                Healthcare
-                              </SelectItem>
-                              <SelectItem value="4" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                Education
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2">
+                            {field.value && field.value.length > 0 && (
+                              <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto mb-2">
+                                {field.value.map((id) => {
+                                  const industry = industries.find((ind: any) => ind.id === id);
+                                  return (
+                                    <div key={id} className="bg-sky-100 text-[#1967d2] px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                      {industry?.name || `Industry ${id}`}
+                                      <button
+                                        type="button"
+                                        onClick={() => field.onChange((field.value ?? []).filter((industryId: number) => industryId !== id))}
+                                        className="text-lg leading-none hover:text-red-500"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            <Select
+                              onValueChange={(val) => {
+                                const id = Number.parseInt(val);
+                                const current = field.value ?? [];
+                                if (!current.includes(id)) {
+                                  field.onChange([...current, id]);
+                                }
+                              }}
+                              value=""
+                            >
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                                <SelectValue placeholder="Select industries" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {isFetchingIndustries ? (
+                                  <SelectItem value="loading" disabled>
+                                    Loading...
+                                  </SelectItem>
+                                ) : (
+                                  industries.map((industry: any) => (
+                                    <SelectItem
+                                      key={industry.id}
+                                      value={industry.id.toString()}
+                                      className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                      disabled={field.value?.includes(industry.id)}
+                                    >
+                                      {industry.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         )}
                       />
-                      {mainForm.formState.errors.industryIds && <span className="text-red-500 text-xs">{mainForm.formState.errors.industryIds.message}</span>}
+                      {mainForm.formState.errors.industryIds && <span className="text-xs text-red-500">{mainForm.formState.errors.industryIds.message}</span>}
                     </div>
                   </div>
                 </div>
@@ -1047,7 +1259,7 @@ function EmployerPostJob() {
                 {/* Age Type */}
                 <div className="mb-4">
                   <div className="flex items-center gap-4">
-                    <label className="block text-sm mb-1 font-medium w-48 self-start">
+                    <label className="self-start block w-48 mb-1 text-sm font-medium">
                       Age <span className="text-red-500">*</span>
                     </label>
                     <div className="flex-1">
@@ -1056,7 +1268,7 @@ function EmployerPostJob() {
                         control={mainForm.control}
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <SelectTrigger className="focus-visible:ring-0 w-full" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                            <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
                               <SelectValue placeholder="Select age type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1069,7 +1281,7 @@ function EmployerPostJob() {
                           </Select>
                         )}
                       />
-                      {mainForm.formState.errors.ageType && <span className="text-red-500 text-xs">{mainForm.formState.errors.ageType.message}</span>}
+                      {mainForm.formState.errors.ageType && <span className="text-xs text-red-500">{mainForm.formState.errors.ageType.message}</span>}
                     </div>
                   </div>
                 </div>
@@ -1078,7 +1290,7 @@ function EmployerPostJob() {
                 {(mainForm.watch("ageType") === "ABOVE" || mainForm.watch("ageType") === "INPUT") && (
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
-                      <label className="block text-sm mb-1 font-medium w-48 self-start">
+                      <label className="self-start block w-48 mb-1 text-sm font-medium">
                         Min Age <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
@@ -1089,7 +1301,7 @@ function EmployerPostJob() {
                           className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                           onFocus={() => handleFieldFocus("details")}
                         />
-                        {mainForm.formState.errors.minAge && <span className="text-red-500 text-xs">{mainForm.formState.errors.minAge.message}</span>}
+                        {mainForm.formState.errors.minAge && <span className="text-xs text-red-500">{mainForm.formState.errors.minAge.message}</span>}
                       </div>
                     </div>
                   </div>
@@ -1099,7 +1311,7 @@ function EmployerPostJob() {
                 {(mainForm.watch("ageType") === "BELOW" || mainForm.watch("ageType") === "INPUT") && (
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
-                      <label className="block text-sm mb-1 font-medium w-48 self-start">
+                      <label className="self-start block w-48 mb-1 text-sm font-medium">
                         Max Age <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
@@ -1110,7 +1322,7 @@ function EmployerPostJob() {
                           className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                           onFocus={() => handleFieldFocus("details")}
                         />
-                        {mainForm.formState.errors.maxAge && <span className="text-red-500 text-xs">{mainForm.formState.errors.maxAge.message}</span>}
+                        {mainForm.formState.errors.maxAge && <span className="text-xs text-red-500">{mainForm.formState.errors.maxAge.message}</span>}
                       </div>
                     </div>
                   </div>
@@ -1122,7 +1334,7 @@ function EmployerPostJob() {
 
                 {/* Contact Person */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Contact Person <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -1131,12 +1343,12 @@ function EmployerPostJob() {
                     className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                     onFocus={() => handleFieldFocus("contact")}
                   />
-                  {mainForm.formState.errors.contactPerson && <span className="text-red-500 text-xs">{mainForm.formState.errors.contactPerson.message}</span>}
+                  {mainForm.formState.errors.contactPerson && <span className="text-xs text-red-500">{mainForm.formState.errors.contactPerson.message}</span>}
                 </div>
 
                 {/* Phone Number */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -1145,29 +1357,37 @@ function EmployerPostJob() {
                     className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                     onFocus={() => handleFieldFocus("contact")}
                   />
-                  {mainForm.formState.errors.phoneNumber && <span className="text-red-500 text-xs">{mainForm.formState.errors.phoneNumber.message}</span>}
+                  {mainForm.formState.errors.phoneNumber && <span className="text-xs text-red-500">{mainForm.formState.errors.phoneNumber.message}</span>}
                 </div>
 
                 {/* Contact Location */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <label className="block mb-1 text-sm font-medium">
                     Contact Location <span className="text-red-500">*</span>
                   </label>
                   <BaseModal
                     title="Edit contact location"
                     trigger={
-                      <Input
-                        readOnly
-                        value={
-                          mainForm.watch("contactLocation")?.detailAddress && mainForm.watch("contactLocation")?.provinceId && mainForm.watch("contactLocation")?.districtId
-                            ? `${mainForm.watch("contactLocation").detailAddress}`
-                            : ""
-                        }
-                        placeholder="Contact location"
-                        className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] cursor-pointer bg-white text-left"
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full flex flex-col items-start justify-start text-left font-normal !h-auto min-h-0 py-2   bg-transparent"
                         onClick={handleOpenModalEditContactLocation}
+                        onMouseEnter={handlePrefetchProvinces}
                         onFocus={() => handleFieldFocus("contact")}
-                      />
+                      >
+                        {mainForm.watch("contactLocation")?.detailAddress && mainForm.watch("contactLocation")?.provinceId && mainForm.watch("contactLocation")?.districtId ? (
+                          <div className="max-w-[500px] flex items-center gap-2 mt-2">
+                            <MapPin className="self-start text-[#1967d2]" />
+                            <p className="text-sm break-words whitespace-normal leading-relaxed">
+                              {mainForm.watch("contactLocation")?.detailAddress}, {mainForm.watch("contactLocation")?.districtName},
+                              {mainForm.watch("contactLocation")?.provinceName}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400"> Select contact location</span>
+                        )}
+                      </Button>
                     }
                     footer={(onClose) => (
                       <>
@@ -1187,96 +1407,118 @@ function EmployerPostJob() {
                     <div className="min-w-[600px]">
                       <div className="flex gap-4 mb-4">
                         <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">
+                          <label className="block mb-1 text-sm font-medium">
                             Province <span className="text-red-500">*</span>
                           </label>
                           <Controller
                             name="contactLocation.provinceId"
                             control={modalContactLocationForm.control}
-                            rules={{ required: "Province is required" }}
+                            rules={{ required: "Required" }}
                             render={({ field, fieldState }) => (
                               <div className="flex flex-col gap-2">
                                 <Select
                                   value={field.value?.toString() || ""}
                                   onValueChange={(val) => {
-                                    field.onChange(Number.parseInt(val));
+                                    const provinceId = Number.parseInt(val);
+                                    const selectedProvince = provinces?.find((p: Province) => p.id === provinceId);
+
+                                    field.onChange(provinceId);
+                                    if (selectedProvince) {
+                                      modalContactLocationForm.setValue("contactLocation.provinceName", selectedProvince.name);
+                                    }
+
                                     modalContactLocationForm.setValue("contactLocation.districtId", 0);
+                                    modalContactLocationForm.setValue("contactLocation.districtName", "");
                                   }}
                                 >
                                   <SelectTrigger className="w-full bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
                                     <SelectValue placeholder="Select province" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="1" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                      Hà Nội
-                                    </SelectItem>
-                                    <SelectItem value="2" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                      Hồ Chí Minh
-                                    </SelectItem>
+                                    {isFetchingProvinces ? (
+                                      <SelectItem value="loading" disabled>
+                                        Loading...
+                                      </SelectItem>
+                                    ) : (
+                                      provinces?.map((province: Province) => (
+                                        <SelectItem key={province.id} value={province.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                          {province.name}
+                                        </SelectItem>
+                                      ))
+                                    )}
                                   </SelectContent>
                                 </Select>
-                                {fieldState.error && <span className="text-red-500 text-xs">{fieldState.error.message || "Required"}</span>}
+                                {fieldState.error && <span className="text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                               </div>
                             )}
                           />
                         </div>
                         <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">
+                          <label className="block mb-1 text-sm font-medium">
                             District <span className="text-red-500">*</span>
                           </label>
                           <Controller
                             name="contactLocation.districtId"
                             control={modalContactLocationForm.control}
-                            rules={{ required: "District is required" }}
+                            rules={{ required: "Required" }}
                             render={({ field, fieldState }) => (
-                              <div className=" flex flex-col gap-2">
+                              <div className="flex flex-col gap-2 ">
                                 <Select
                                   value={field.value?.toString() || ""}
-                                  onValueChange={(val) => field.onChange(Number.parseInt(val))}
+                                  onValueChange={(val) => {
+                                    const districtId = Number.parseInt(val);
+                                    const selectedDistrict = districtsByContactProvince?.find((d) => d.id === districtId);
+                                    field.onChange(districtId);
+
+                                    field.onChange(districtId);
+
+                                    if (selectedDistrict) {
+                                      modalContactLocationForm.setValue("contactLocation.districtName", selectedDistrict.name);
+                                    }
+                                  }}
                                   disabled={!modalContactLocationForm.watch("contactLocation.provinceId")}
                                 >
                                   <SelectTrigger className="w-full bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
                                     <SelectValue placeholder="Select district" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="1" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                      Ba Đình
-                                    </SelectItem>
-                                    <SelectItem value="2" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                      Đống Đa
-                                    </SelectItem>
+                                    {districtsByContactProvince?.map((district) => (
+                                      <SelectItem key={district.id} value={district.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                                        {district.name}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
-                                {fieldState.error && <span className="text-red-500 text-xs">{fieldState.error.message || "Required"}</span>}
+                                {fieldState.error && <span className="text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                               </div>
                             )}
                           />
                         </div>
                       </div>
                       <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="block mb-1 text-sm font-medium">
                           Address <span className="text-red-500">*</span>
                         </label>
                         <Controller
                           name="contactLocation.detailAddress"
                           control={modalContactLocationForm.control}
-                          rules={{ required: "Address is required" }}
+                          rules={{ required: "Required" }}
                           render={({ field, fieldState }) => (
-                            <div className=" flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 ">
                               <Input {...field} className="bg-gray-100 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" placeholder="Enter address" />
-                              {fieldState.error && <span className="text-red-500 text-xs">{fieldState.error.message || "Required"}</span>}
+                              {fieldState.error && <span className="text-xs text-red-500">{fieldState.error.message || "Required"}</span>}
                             </div>
                           )}
                         />
                       </div>
                     </div>
                   </BaseModal>
-                  {mainForm.formState.errors.contactLocation && <span className="text-red-500 text-xs">{mainForm.formState.errors.contactLocation.message}</span>}
+                  {mainForm.formState.errors.contactLocation && <span className="text-xs text-red-500">{mainForm.formState.errors.contactLocation.message}</span>}
                 </div>
 
                 {/* Description */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">Description</label>
+                  <label className="block mb-1 text-sm font-medium">Description</label>
                   <Controller
                     name="description"
                     control={mainForm.control}
@@ -1298,16 +1540,50 @@ function EmployerPostJob() {
 
                 {/* Expiration Date */}
                 <div className="mb-4">
-                  <label className="block text-sm mb-1 font-medium">
+                  <Label htmlFor="date" className="px-1">
                     Expiration Date <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    {...mainForm.register("expirationDate")}
-                    placeholder="dd/MM/yyyy"
-                    className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                    onFocus={() => handleFieldFocus("details")}
-                  />
-                  {mainForm.formState.errors.expirationDate && <span className="text-red-500 text-xs">{mainForm.formState.errors.expirationDate.message}</span>}
+                  </Label>
+                  <div className="flex flex-col gap-2">
+                    <Controller
+                      name="expirationDate"
+                      control={mainForm.control}
+                      render={({ field }) => {
+                        const parsedDate = field.value
+                          ? (() => {
+                              const [day, month, year] = field.value.split("/").map(Number);
+                              return new Date(year, month - 1, day);
+                            })()
+                          : undefined;
+
+                        return (
+                          <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" id="date" className="w-48 mt-3 justify-between font-normal" onFocus={() => handleFieldFocus("details")}>
+                                {field.value || "Select date"}
+                                <ChevronDownIcon />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={parsedDate}
+                                captionLayout="dropdown"
+                                disabled={{ before: new Date() }}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    const formatted = formatDate(date);
+                                    field.onChange(formatted);
+                                  }
+                                  setOpenDatePicker(false);
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        );
+                      }}
+                    />
+                    {mainForm.formState.errors.expirationDate && <span className="text-xs text-red-500">{mainForm.formState.errors.expirationDate.message}</span>}
+                  </div>
                 </div>
               </div>
             </form>
@@ -1316,7 +1592,7 @@ function EmployerPostJob() {
 
         {/* Preview Section */}
         <div className="bg-white rounded shadow  overflow-auto hidden  lg:block flex-auto  md:max-w-[620px] " ref={previewRef}>
-          <div className="bg-white border-b p-4 mb-4">
+          <div className="p-4 mb-4 bg-white border-b">
             <h2 className="text-xl font-semibold text-center text-gray-900 ">Preview</h2>
           </div>
           <div className="overflow-y-auto job-information-preview max-h-[calc(100vh-330px)] px-2 overflow-x-hidden flex-1">
@@ -1325,7 +1601,7 @@ function EmployerPostJob() {
         </div>
       </div>
       {/* Footer cố định dưới cùng */}
-      <div className=" bg-white py-5 border-t flex gap-4 px-5 sticky bottom-0 border-gray-200   z-20">
+      <div className="sticky bottom-0 z-20 flex gap-4 px-5 py-5 bg-white border-t border-gray-200 ">
         <Button className="w-[40%] border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] bg-transparent" variant="outline" size="lg">
           Save Job
         </Button>
@@ -1339,7 +1615,7 @@ function EmployerPostJob() {
         >
           {createJobMutation.isPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Posting...
             </>
           ) : (
