@@ -105,4 +105,30 @@ export const authService = {
     const res = await axiosInstance.get<ApiResponse<User>>("/users/me");
     return res.data;
   },
+
+  refreshTokenUser: async (refreshToken: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+      "/auth/users/refresh-token",
+      {},
+      {
+        headers: {
+          "Y-Token": refreshToken,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  refreshTokenEmployer: async (refreshToken: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
+    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+      "/auth/employers/refresh-token",
+      {},
+      {
+        headers: {
+          "Y-Token": refreshToken,
+        },
+      }
+    );
+    return response.data;
+  },
 };

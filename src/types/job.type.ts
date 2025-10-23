@@ -94,3 +94,28 @@ export interface JobResponse {
     companyName: string;
   };
 }
+
+export interface PageResponse<T> {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  numberOfElements: number;
+  items: T[];
+}
+
+export interface JobsAdvancedSearchParams {
+  keyword?: string;
+  industryIds?: number[];
+  provinceIds?: number[];
+  jobLevels?: string[];
+  jobTypes?: string[];
+  experienceLevels?: string[];
+  educationLevels?: string[];
+  postedWithinDays?: number;
+  minSalary?: number;
+  maxSalary?: number;
+  salaryUnit?: string;
+  sort?: "createdAt" | "updatedAt" | "expirationDate";
+  pageNumber?: number;
+  pageSize?: number;
+}

@@ -1,5 +1,5 @@
 import http from "@/lib/http";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province } from "@/types";
 import type { JobRequest, JobResponse } from "@/types";
 
 export const jobService = {
@@ -8,8 +8,8 @@ export const jobService = {
     return response.data;
   },
 
-  getMyJobs: async (pageNumber = 1, pageSize = 10, keyword?: string): Promise<ApiResponse> => {
-    const response = await http.get<ApiResponse>("/jobs/me", {
+  getMyJobs: async (pageNumber = 1, pageSize = 10, keyword?: string): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/me", {
       params: {
         pageNumber,
         pageSize,
@@ -36,6 +36,37 @@ export const jobService = {
 
   deleteJob: async (id: number): Promise<ApiResponse> => {
     const response = await http.delete<ApiResponse>(`/jobs/${id}`);
+    return response.data;
+  },
+
+  searchJobsAdvanced: async (params: JobsAdvancedSearchParams): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/advanced", {
+      params,
+    });
+    return response.data;
+  },
+
+  getPopularLocations: async (limit = 10): Promise<ApiResponse> => {
+    const response = await http.get<ApiResponse>("/jobs/locations/popular", {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  getPopularIndustries: async (limit = 10): Promise<ApiResponse> => {
+    const response = await http.get<ApiResponse>("/jobs/industries/popular", {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  getMyCurrentIndustries: async (): Promise<ApiResponse<Industry[]>> => {
+    const response = await http.get<ApiResponse<Industry[]>>("/jobs/me/industries/current");
+    return response.data;
+  },
+
+  getMyCurrentLocations: async (): Promise<ApiResponse<Province[]>> => {
+    const response = await http.get<ApiResponse<Province[]>>("/jobs/me/locations/current");
     return response.data;
   },
 };

@@ -4,6 +4,7 @@ import { routes } from "@/routes/routes.const";
 import { employer_routes } from "@/routes/routes.const";
 import { useAuth } from "@/context/auth/useAuth";
 import { ROLE } from "@/constants";
+import Loading from "@/components/Loading";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,12 +14,16 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const location = useLocation();
   const {
-    state: { isAuthenticated, role },
+    state: { isAuthenticated, role, isLoading },
   } = useAuth();
 
-  console.log("LOCATION", location);
+  // console.log("LOCATION", location);
+  if (isLoading) { 
+    return <Loading size="lg" variant="bars" />;
+  }
 
   if (!isAuthenticated) {
+     console.log("Auth failed → redirect", { isAuthenticated, role });
     const defaultRedirect = location.pathname.startsWith("/employer") ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
 
     return <Navigate to={defaultRedirect} state={{ from: location }} />;
