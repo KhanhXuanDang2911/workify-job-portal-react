@@ -213,7 +213,7 @@ function EmployerPostJob() {
       salaryType: data.salaryType as SalaryType,
       minSalary: data.minSalary ?? undefined,
       maxSalary: data.maxSalary ?? undefined,
-      salaryUnit: data.salaryUnit as SalaryUnit,
+      salaryUnit: data.salaryUnit,
       jobDescription: data.jobDescription,
       requirement: data.requirement,
       jobBenefits: data.jobBenefits,

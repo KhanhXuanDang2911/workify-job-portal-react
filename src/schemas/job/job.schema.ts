@@ -73,14 +73,14 @@ export const postJobSchema = z
       .refine((val) => val && val.length > 0, { message: "Required" }),
     salaryType: salaryTypeEnum,
     minSalary: z.preprocess(
-      (val) => (val === "" || val === null ? undefined : Number(val)),
+      (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
       z.number("Required").nonnegative("Minimum salary must be a non-negative number").optional()
     ),
     maxSalary: z.preprocess(
-      (val) => (val === "" || val === null ? undefined : Number(val)),
+      (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
       z.number("Required").nonnegative("Maximum salary must be a non-negative number").optional()
     ),
-    salaryUnit: salaryUnitEnum,
+    salaryUnit: salaryUnitEnum.optional(),
     jobDescription: z.string().min(1, "Required"),
     requirement: z.string().min(1, "Required"),
     jobBenefits: z.array(jobBenefitSchema).min(1, "At least one benefit is required").max(10, "Maximum 10 benefits allowed"),
@@ -121,6 +121,23 @@ export const postJobSchema = z
         today.setHours(0, 0, 0, 0);
         return expiration > today;
       }, "Expiration date must be after today"),
+  })
+  .transform((data) => {
+    if (data.salaryType === "NEGOTIABLE" || data.salaryType === "COMPETITIVE") {
+      return {
+        ...data,
+        minSalary: undefined,
+        maxSalary: undefined,
+        salaryUnit: undefined,
+      };
+    }
+    if (data.salaryType === "GREATER_THAN") {
+      return {
+        ...data,
+        maxSalary: undefined,
+      };
+    }
+    return data;
   })
   .superRefine((data, ctx) => {
     if (data.salaryType === "RANGE") {
@@ -215,17 +232,17 @@ export const postJobSchema = z
       }
       if (data.minAge != null && data.maxAge != null) {
         if (data.minAge >= data.maxAge) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Invalid range",
-          path: ["minAge"],
-        });
-        ctx.addIssue({
-          code: "custom",
-          message: "Invalid range",
-          path: ["maxAge"],
-        });
-      }
+          ctx.addIssue({
+            code: "custom",
+            message: "Invalid range",
+            path: ["minAge"],
+          });
+          ctx.addIssue({
+            code: "custom",
+            message: "Invalid range",
+            path: ["maxAge"],
+          });
+        }
       }
     }
   });
