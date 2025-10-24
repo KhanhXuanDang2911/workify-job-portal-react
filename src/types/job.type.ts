@@ -19,6 +19,7 @@ export interface LocationResponse {
   updatedAt: string;
   province: Province;
   district: District;
+  detailAddress: string;
 }
 
 export interface JobRequest {
@@ -68,6 +69,7 @@ export interface JobResponse {
   salaryUnit?: SalaryUnit;
   jobDescription: string;
   requirement: string;
+  jobBenefits: JobBenefit[];
   educationLevel: EducationLevel;
   experienceLevel: ExperienceLevel;
   jobLevel: JobLevel;
@@ -90,8 +92,13 @@ export interface JobResponse {
   status: JobStatus;
   author: {
     id: number;
+    createdAt: string;
+    updatedAt: string;
     email: string;
     companyName: string;
+    avatarUrl?: string;
+    backgroundUrl?: string;
+    employerSlug: string;
   };
 }
 

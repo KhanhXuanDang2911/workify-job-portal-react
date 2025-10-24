@@ -41,6 +41,14 @@ const EmployerProtectedRoutes: RouteObject[] = [
         ),
       },
       {
+        path: `${employer_routes.JOBS}/:jobId/edit`,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
+            <EmployerPostJob />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: `${employer_routes.JOBS}/:jobId`,
         element: (
           <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
@@ -51,7 +59,7 @@ const EmployerProtectedRoutes: RouteObject[] = [
       {
         path: employer_routes.SEARCH_TALENTS,
         element: (
-          <ProtectedRoute  requiredRole={ROLE.EMPLOYER}>
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <SearchTalents />
           </ProtectedRoute>
         ),

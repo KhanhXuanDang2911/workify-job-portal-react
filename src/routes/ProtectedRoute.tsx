@@ -18,12 +18,15 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   } = useAuth();
 
   // console.log("LOCATION", location);
-  if (isLoading) { 
-    return <Loading size="lg" variant="bars" />;
+  if (isLoading) {
+    return (
+      <div className="absolute top-1/2 left-1/2">
+        <Loading size="lg" variant="bars" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-     console.log("Auth failed → redirect", { isAuthenticated, role });
     const defaultRedirect = location.pathname.startsWith("/employer") ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
 
     return <Navigate to={defaultRedirect} state={{ from: location }} />;

@@ -131,20 +131,22 @@ export default function Jobs() {
   //   return job.status === "Draft" && job.progress === 100;
   // };
 
- const filteredJobs = useMemo(() => {
-   if (!jobsData?.data?.items) return [];
+  const filteredJobs = useMemo(() => {
+    if (!jobsData?.data?.items) return [];
 
-   return jobsData.data.items.filter((job: JobResponse) => {
-     const matchesSearch =
-       debouncedSearchTerm.trim() === "" || job.jobTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || job.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    return jobsData.data.items.filter((job: JobResponse) => {
+      const matchesSearch =
+        debouncedSearchTerm.trim() === "" ||
+        job.jobTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        job.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
 
-     const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
-     const matchesCategory = !selectedCategory || job.industries?.some((ind) => ind.id.toString() === selectedCategory);
-     const matchesLocation = !selectedLocation || job.jobLocations?.some((loc) => loc.province.id.toString() === selectedLocation);
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
+      const matchesCategory = !selectedCategory || job.industries?.some((ind) => ind.id.toString() === selectedCategory);
+      const matchesLocation = !selectedLocation || job.jobLocations?.some((loc) => loc.province.id.toString() === selectedLocation);
 
-     return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
-   });
- }, [jobsData, debouncedSearchTerm, selectedStatuses, selectedCategory, selectedLocation]);
+      return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
+    });
+  }, [jobsData, debouncedSearchTerm, selectedStatuses, selectedCategory, selectedLocation]);
 
   const totalJobs = filteredJobs.length;
   const totalPages = Math.ceil(totalJobs / rowsPerPage);
@@ -452,7 +454,15 @@ export default function Jobs() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hidden sm:flex" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hidden sm:flex"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/employer/jobs/${job.id}/edit`);
+                          }}
+                        >
                           <Edit className="w-4 h-4 mr-1" />
                           Sửa
                         </Button>
@@ -463,7 +473,13 @@ export default function Jobs() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="sm:hidden">
+                            <DropdownMenuItem
+                              className="sm:hidden"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/employer/jobs/${job.id}/edit`);
+                              }}
+                            >
                               <Edit className="w-4 h-4 mr-2" />
                               Sửa
                             </DropdownMenuItem>
