@@ -164,6 +164,15 @@ export const JobStatusLabelVN: Record<JobStatus, string> = {
   EXPIRED: "Hết hạn",
 };
 
+export const JobStatusLabelEN: Record<JobStatus, string> = {
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  CLOSED: "Closed",
+  PENDING: "Pending",
+  DRAFT: "Draft",
+  EXPIRED: "Expired",
+};
+
 export const BenefitType = {
   TRAVEL_OPPORTUNITY: "TRAVEL_OPPORTUNITY",
   BONUS_GIFTS: "BONUS_GIFTS",

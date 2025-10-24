@@ -3,32 +3,23 @@ import type { CompanySize } from "@/constants/company.constant";
 import type { Province, District } from "@/types/location.type";
 import type { JobBenefit } from "@/types/benefit.type";
 
-export interface JobLocationRequest {
+export interface Location {
   provinceId: number;
   districtId: number;
+  provinceName: string;
+  districtName: string;
   detailAddress: string;
 }
 
-export interface JobLocationResponse extends JobLocationRequest {
+export type LocationRequest = Pick<Location, "provinceId" | "districtId" | "detailAddress">;
+
+export interface LocationResponse {
   id: number;
   createdAt: string;
   updatedAt: string;
   province: Province;
   district: District;
-}
-
-export interface JobContactLocationRequest {
-  provinceId: number;
-  districtId: number;
   detailAddress: string;
-}
-
-export interface JobContactLocationResponse extends JobContactLocationRequest {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  province: Province;
-  district: District;
 }
 
 export interface JobRequest {
@@ -37,7 +28,7 @@ export interface JobRequest {
   companyWebsite?: string;
   aboutCompany: string;
   jobTitle: string;
-  jobLocations: JobLocationRequest[];
+  jobLocations: LocationRequest[];
   salaryType: SalaryType;
   minSalary?: number;
   maxSalary?: number;
@@ -57,7 +48,7 @@ export interface JobRequest {
   maxAge?: number;
   contactPerson: string;
   phoneNumber: string;
-  contactLocation: JobContactLocationRequest;
+  contactLocation: LocationRequest;
   description?: string;
   expirationDate: string;
 }
@@ -71,13 +62,14 @@ export interface JobResponse {
   companyWebsite?: string;
   aboutCompany: string;
   jobTitle: string;
-  jobLocations: JobLocationResponse[];
+  jobLocations: LocationResponse[];
   salaryType: SalaryType;
   minSalary?: number;
   maxSalary?: number;
   salaryUnit?: SalaryUnit;
   jobDescription: string;
   requirement: string;
+  jobBenefits: JobBenefit[];
   educationLevel: EducationLevel;
   experienceLevel: ExperienceLevel;
   jobLevel: JobLevel;
@@ -94,13 +86,43 @@ export interface JobResponse {
   maxAge?: number;
   contactPerson: string;
   phoneNumber: string;
-  contactLocation: JobContactLocationResponse;
+  contactLocation: LocationResponse;
   description?: string;
   expirationDate: string;
   status: JobStatus;
   author: {
     id: number;
+    createdAt: string;
+    updatedAt: string;
     email: string;
     companyName: string;
+    avatarUrl?: string;
+    backgroundUrl?: string;
+    employerSlug: string;
   };
+}
+
+export interface PageResponse<T> {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  numberOfElements: number;
+  items: T[];
+}
+
+export interface JobsAdvancedSearchParams {
+  keyword?: string;
+  industryIds?: number[];
+  provinceIds?: number[];
+  jobLevels?: string[];
+  jobTypes?: string[];
+  experienceLevels?: string[];
+  educationLevels?: string[];
+  postedWithinDays?: number;
+  minSalary?: number;
+  maxSalary?: number;
+  salaryUnit?: string;
+  sort?: "createdAt" | "updatedAt" | "expirationDate";
+  pageNumber?: number;
+  pageSize?: number;
 }

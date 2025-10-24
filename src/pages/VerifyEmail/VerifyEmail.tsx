@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import NotFound from "@/pages/NotFound";
+import { employer_routes, routes } from "@/routes/routes.const";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -14,7 +15,7 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const [hasVerified, setHasVerified] = useState(false);
   const rolePath = pathname.split("/")[1];
-  const role = rolePath === "employer" ? "employer" : "user";
+  const role = rolePath === "employer" ? "employers" : "users";
 
   const token = searchParams.get("token");
 
@@ -28,10 +29,10 @@ export default function VerifyEmail() {
       toast(data.message || "Email của bạn đã được xác thực thành công");
 
       setTimeout(() => {
-        if (role === "employer") {
-          navigate("/employer/sign-in", { replace: true });
+        if (role === "employers") {
+          navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, { replace: true });
         } else {
-          navigate("/sign-in", { replace: true });
+          navigate(`${routes.BASE}/${routes.SIGN_IN}`, { replace: true });
         }
       }, 3000);
     },
@@ -97,10 +98,10 @@ export default function VerifyEmail() {
             </Button>
             <Button
               onClick={() => {
-                if (role === "employer") {
-                  return navigate("/employer/sign-in");
+                if (role === "employers") {
+                  return navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`);
                 } else {
-                  navigate("/sign-in");
+                  return navigate(`${routes.BASE}/${routes.SIGN_IN}`);
                 }
               }}
               className="w-full"
@@ -132,10 +133,10 @@ export default function VerifyEmail() {
             </div>
             <Button
               onClick={() => {
-                if (role === "employer") {
-                  navigate("/employer/sign-in", { replace: true });
+                if (role === "employers") {
+                  navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, { replace: true });
                 } else {
-                  navigate("/sign-in", { replace: true });
+                  navigate(`${routes.BASE}/${routes.SIGN_IN}`, { replace: true });
                 }
               }}
               className="w-full"

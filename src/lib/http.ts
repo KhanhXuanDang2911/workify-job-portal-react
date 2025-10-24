@@ -1,3 +1,6 @@
+import { authUtils } from "@/lib/auth";
+import { employer_routes, routes } from "@/routes/routes.const";
+import { authService } from "@/services";
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -12,46 +15,60 @@ export const http = axios.create({
 
 http.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = authUtils.getAccessToken();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    console.log("Request:",config);
+    console.log("Request:", config);
     return config;
   },
   (error) => {
-    console.log("Request error:",error);
+    console.log("Request error:", error);
     return Promise.reject(error);
   }
 );
 
 http.interceptors.response.use(
   (response) => {
-    console.log("Response:",response);
+    console.log("Response:", response);
     return response;
   },
   async (error) => {
-    console.log("Response Error:",error);
+    console.log("Response Error:", error);
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (refreshToken) {
-          const response = await axios.post(`${BASE_URL}/auth/users/refresh-token`, {
-            refreshToken,
-          });
-          const { accessToken } = response.data.data;
-          localStorage.setItem("accessToken", accessToken);
+        const refreshToken = authUtils.getRefreshToken();
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        if (refreshToken) {
+          const isEmployerApp = window.location.pathname.startsWith(`${employer_routes.BASE}`);
+
+          let response;
+          if (isEmployerApp) {
+            response = await authService.refreshTokenEmployer(refreshToken);
+          } else {
+            response = await authService.refreshTokenUser(refreshToken);
+          }
+
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+          authUtils.setTokens(accessToken, newRefreshToken || refreshToken);
+
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${accessToken}`,
+          };
+
           return http(originalRequest);
         }
       } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/sign-in";
+        console.error("refreshError:", refreshError);
+
+        authUtils.clearAuth();
+        const isEmployerApp = window.location.pathname.startsWith(`${employer_routes.BASE}`);
+        window.location.href = isEmployerApp ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
         return Promise.reject(refreshError);
       }
     }

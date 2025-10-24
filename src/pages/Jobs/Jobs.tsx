@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,22 +8,33 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, ChevronDown, MoreHorizontal, Edit, Eye, CheckCircle, Clock, XCircle, AlertCircle, Download, Plus, RotateCcw, MapPin, Briefcase, Folder } from "lucide-react";
-import { mockJobs, statusOptions, type Job, type JobStatus } from "./JobsMockData";
+import { Search, ChevronDown, MoreHorizontal, Edit, Eye, CheckCircle, AlertCircle, Download, Plus, RotateCcw, MapPin, Briefcase, Folder } from "lucide-react";
 import BaseModal from "@/components/BaseModal";
 import Pagination from "@/components/Pagination";
+import { JobStatus, JobStatusLabelEN, RowsPerPageOptions, type RowsPerPage } from "@/constants";
+import { useQuery } from "@tanstack/react-query";
+import { jobService } from "@/services";
+import type { JobResponse } from "@/types";
+import { getStatusColor } from "@/utils/jobStatus.util";
+import { useNavigate } from "react-router-dom";
+import useDebounce from "@/hooks/useDebounce";
 
-const categoryOptions = ["Accounting / Audit", "Chemical / Biochemical / Food Science", "Construction", "IT - Software"];
-
-const locationOptions = ["Ha Noi", "Da Nang", "Bac Giang"];
-
-export default function JobsPage() {
+export default function Jobs() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<JobStatus[]>(["Draft", "Active"]);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [selectedStatuses, setSelectedStatuses] = useState<JobStatus[]>([
+    JobStatus.APPROVED,
+    JobStatus.PENDING,
+    JobStatus.DRAFT,
+    JobStatus.EXPIRED,
+    JobStatus.REJECTED,
+    JobStatus.CLOSED,
+  ]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(10);
 
   // Export modal state
   const [exportStartDate, setExportStartDate] = useState<Date>(new Date("2025-09-20"));
@@ -33,13 +44,66 @@ export default function JobsPage() {
   const [exportLocation, setExportLocation] = useState<string>("Da Nang");
   const [exportTab, setExportTab] = useState("job-list");
 
+  const {
+    data: jobsData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["my-jobs", currentPage, rowsPerPage],
+    queryFn: () => jobService.getMyJobs(currentPage, rowsPerPage),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: locationsData } = useQuery({
+    queryKey: ["my-current-locations"],
+    queryFn: async () => {
+      const response = await jobService.getMyCurrentLocations();
+      return response.data;
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const { data: industriesData } = useQuery({
+    queryKey: ["my-current-industries"],
+    queryFn: async () => {
+      const response = await jobService.getMyCurrentIndustries();
+      return response.data;
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const locationOptions = useMemo(() => {
+    if (locationsData) {
+      return locationsData.map((loc: any) => ({
+        id: loc.id,
+        name: loc.name,
+      }));
+    }
+    return [];
+  }, [locationsData]);
+
+  const categoryOptions = useMemo(() => {
+    if (industriesData) {
+      return industriesData.map((ind: any) => ({
+        id: ind.id,
+        name: ind.name,
+      }));
+    }
+    return [];
+  }, [industriesData]);
+
+  const statusOptions = Object.entries(JobStatusLabelEN).map(([key, label]) => ({
+    value: key,
+    label,
+  }));
+
   const handleStatusChange = (status: JobStatus, checked: boolean) => {
     if (checked) {
       setSelectedStatuses([...selectedStatuses, status]);
     } else {
       setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
     }
-    handleFiltersChange();
+    setCurrentPage(1);
   };
 
   const resetFilters = () => {
@@ -47,68 +111,42 @@ export default function JobsPage() {
     setSelectedCategory("");
     setSelectedLocation("");
     setSearchTerm("");
-    handleFiltersChange();
+    setCurrentPage(1);
   };
 
   const resetStatusFilter = () => {
     setSelectedStatuses([]);
-    handleFiltersChange();
-  };
-
-  const getStatusIcon = (status: JobStatus) => {
-    switch (status) {
-      case "Draft":
-        return <Edit className="w-4 h-4" />;
-      case "Pending":
-        return <Clock className="w-4 h-4" />;
-      case "Active":
-        return <CheckCircle className="w-4 h-4" />;
-      case "Expired":
-        return <XCircle className="w-4 h-4" />;
-      case "Inactive":
-        return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case "Draft":
-        return "bg-gray-100 text-gray-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Active":
-        return "bg-green-100 text-green-800";
-      case "Expired":
-        return "bg-red-100 text-red-800";
-      case "Inactive":
-        return "bg-gray-100 text-gray-600";
-    }
-  };
-
-  const getProgressTooltip = (progress: number, status: JobStatus) => {
-    if (progress === 100) {
-      return "Your progress: 100%\nYour job is ready to post";
-    } else {
-      return `Your progress: ${progress}%\nYour job needs more information`;
-    }
-  };
-
-  const canPostJob = (job: Job) => {
-    return job.status === "Draft" && job.progress === 100;
-  };
-
-  const handleFiltersChange = () => {
     setCurrentPage(1);
   };
 
-  const filteredJobs = mockJobs.filter((job) => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
-    const matchesCategory = !selectedCategory || job.category === selectedCategory;
-    const matchesLocation = !selectedLocation || job.location === selectedLocation;
+  // const getProgressTooltip = (progress: number, status: JobStatus) => {
+  //   if (progress === 100) {
+  //     return "Your progress: 100%\nYour job is ready to post";
+  //   } else {
+  //     return `Your progress: ${progress}%\nYour job needs more information`;
+  //   }
+  // };
 
-    return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
-  });
+  // const canPostJob = (job: Job) => {
+  //   return job.status === "Draft" && job.progress === 100;
+  // };
+
+  const filteredJobs = useMemo(() => {
+    if (!jobsData?.data?.items) return [];
+
+    return jobsData.data.items.filter((job: JobResponse) => {
+      const matchesSearch =
+        debouncedSearchTerm.trim() === "" ||
+        job.jobTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        job.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
+      const matchesCategory = !selectedCategory || job.industries?.some((ind) => ind.id.toString() === selectedCategory);
+      const matchesLocation = !selectedLocation || job.jobLocations?.some((loc) => loc.province.id.toString() === selectedLocation);
+
+      return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
+    });
+  }, [jobsData, debouncedSearchTerm, selectedStatuses, selectedCategory, selectedLocation]);
 
   const totalJobs = filteredJobs.length;
   const totalPages = Math.ceil(totalJobs / rowsPerPage);
@@ -138,7 +176,7 @@ export default function JobsPage() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                handleFiltersChange();
+                setCurrentPage(1);
               }}
               className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
             />
@@ -205,17 +243,17 @@ export default function JobsPage() {
                   <div className="space-y-1">
                     {categoryOptions.map((category) => (
                       <div
-                        key={category}
+                        key={category.id}
                         className="flex items-center space-x-2 p-2 hover:bg-sky-200 hover:text-[#1967d2] rounded-xl  cursor-pointer"
                         onClick={() => {
-                          setSelectedCategory(category === selectedCategory ? "" : category);
-                          handleFiltersChange();
+                          setSelectedCategory(selectedCategory === category.id.toString() ? "" : category.id.toString());
+                          setCurrentPage(1);
                         }}
                       >
-                        <div className={`w-4 h-4 rounded-full border-2 ${selectedCategory === category ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
-                          {selectedCategory === category && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
+                        <div className={`w-4 h-4 rounded-full border-2 ${selectedCategory === category.id.toString() ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
+                          {selectedCategory === category.id.toString() && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
                         </div>
-                        <span className="text-sm">{category}</span>
+                        <span className="text-sm">{category.name}</span>
                       </div>
                     ))}
                   </div>
@@ -241,17 +279,17 @@ export default function JobsPage() {
                   <div className="space-y-1">
                     {locationOptions.map((location) => (
                       <div
-                        key={location}
+                        key={location.id}
                         className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
                         onClick={() => {
-                          setSelectedLocation(location === selectedLocation ? "" : location);
-                          handleFiltersChange();
+                          setSelectedLocation(selectedLocation === location.id.toString() ? "" : location.id.toString());
+                          setCurrentPage(1);
                         }}
                       >
-                        <div className={`w-4 h-4 rounded-full border-2 ${selectedLocation === location ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
-                          {selectedLocation === location && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
+                        <div className={`w-4 h-4 rounded-full border-2 ${selectedLocation === location.id.toString() ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
+                          {selectedLocation === location.id.toString() && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
                         </div>
-                        <span className="text-sm">{location}</span>
+                        <span className="text-sm">{location.name}</span>
                       </div>
                     ))}
                   </div>
@@ -320,8 +358,8 @@ export default function JobsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {categoryOptions.map((category) => (
-                            <SelectItem key={category} value={category} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                              {category}
+                            <SelectItem key={category.id} value={category.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                              {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -353,8 +391,8 @@ export default function JobsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {locationOptions.map((location) => (
-                          <SelectItem key={location} value={location} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                            {location}
+                          <SelectItem key={location.id} value={location.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                            {location.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -375,98 +413,92 @@ export default function JobsPage() {
               <TableRow className="bg-[#95b5e1] text-base  hover:bg-[#95b5e1] rounded-tl-lg rounded-tr-lg ">
                 <TableHead className="w-16">Status</TableHead>
                 <TableHead>Job</TableHead>
-                <TableHead className="w-24">Members</TableHead>
-                <TableHead className="w-24">Applications</TableHead>
-                <TableHead className="w-24">Views</TableHead>
-                <TableHead className="w-24 hidden md:table-cell">Display type</TableHead>
-                <TableHead className="w-24 hidden lg:table-cell">Refresh</TableHead>
+                <TableHead className="w-24">Salary</TableHead>
+                <TableHead className="w-24">Location</TableHead>
+                <TableHead className="w-24 hidden md:table-cell">Type</TableHead>
+                <TableHead className="w-24 hidden md:table-cell">Create Date</TableHead>
                 <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentJobs.map((job) => (
-                <TableRow key={job.id} className="hover:bg-gray-100 ">
-                  <TableCell>
-                    <Badge className={`${getStatusColor(job.status)} p-2 border-0`}>{job.status.toUpperCase()}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
+              {currentJobs.length > 0 ? (
+                currentJobs.map((job: JobResponse) => (
+                  <TableRow key={job.id} className="hover:bg-gray-100 hover:cursor-pointer" onClick={() => navigate(`/employer/jobs/${job.id}`)}>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(job.status)} p-2 border-0`}>{JobStatusLabelEN[job.status as keyof typeof JobStatusLabelEN]}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium text-gray-900 truncate max-w-xs">{job.jobTitle}</h3>
+                        </div>
+                        <div className="text-sm text-gray-500">{job.companyName}</div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(job.createdAt).toLocaleDateString("vi-VN")} - {new Date(job.expirationDate).toLocaleDateString("vi-VN")}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {job.salaryType === "RANGE" ? `${job.minSalary?.toLocaleString()} - ${job.maxSalary?.toLocaleString()} ${job.salaryUnit}` : job.salaryType}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{job.jobLocations?.[0]?.province?.name || "N/A"}</div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-sm text-gray-600">{job.jobType}</span>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <span className="text-sm text-gray-500">{new Date(job.createdAt).toLocaleDateString("vi-VN")}</span>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center space-x-2">
-                        <h3 className="font-medium text-gray-900 truncate max-w-xs">{job.title}</h3>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="flex items-center">
-                              {job.progress === 100 ? <CheckCircle className="w-5 h-5 text-green-600" /> : <AlertCircle className="w-5 h-5 text-yellow-600" />}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-gray-800 text-white p-2 rounded text-xs whitespace-pre-line">{getProgressTooltip(job.progress, job.status)}</TooltipContent>
-                        </Tooltip>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hidden sm:flex"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/employer/jobs/${job.id}/edit`);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Sửa
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="sm:hidden"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/employer/jobs/${job.id}/edit`);
+                              }}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Sửa
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Sao chép</DropdownMenuItem>
+                            <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Đóng</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600 focus:bg-sky-200">Xóa</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        60 days | {job.createdDate} - {job.endDate}
-                      </div>
-                      {/* <div className="flex items-center text-sm text-gray-500">
-                        <span>Created by</span>
-                        <div className="w-6 h-6 bg-gray-300 rounded-full ml-2"></div>
-                      </div> */}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-600 font-medium">{job.applications}</span>
-                      <Eye className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2 cursor-pointer">
-                      <span className="font-medium">{job.applications}</span>
-                      <Folder className="w-8 h-8 text-gray-400" />
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">{job.views}</span>
-                      <Eye className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <span className="text-sm text-gray-600">{job.displayType}</span>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <span className="text-sm text-gray-500">{job.createdDate}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hidden sm:flex">
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="sm:hidden">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={!canPostJob(job)}
-                            className={`${canPostJob(job) ? "" : "opacity-50 cursor-not-allowed "} focus:bg-sky-200 focus:text-[#1967d2] hover:bg-sky-200 hover:text-[#1967d2]`}
-                          >
-                            Post this job
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Copy</DropdownMenuItem>
-                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Set Inactive</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600 focus:bg-sky-200 ">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <p className="text-gray-500">Không tìm thấy công việc nào</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
@@ -479,7 +511,7 @@ export default function JobsPage() {
               <Select
                 value={rowsPerPage.toString()}
                 onValueChange={(value) => {
-                  setRowsPerPage(Number(value));
+                  setRowsPerPage(Number(value) as RowsPerPage);
                   setCurrentPage(1);
                 }}
               >
@@ -487,9 +519,11 @@ export default function JobsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
+                  {RowsPerPageOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <span>Rows</span>

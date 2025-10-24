@@ -35,7 +35,7 @@ export default function App() {
           <AppRoutes />
           <ToastContainer
             toastClassName="text-[14px]"
-            // position="bottom-right"
+            position="bottom-right"
             autoClose={3000}
             hideProgressBar={false}
             newestOnTop={true}

@@ -7,6 +7,7 @@ import { useReducer, useEffect } from "react";
 import { authUtils } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services";
+import { setLoading, signInEmployer, signInJobSeeker } from "@/context/auth/auth.action";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initAuthState);
@@ -18,33 +19,31 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       return response.data;
     },
     enabled: state.isAuthenticated && state.role === "EMPLOYER",
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
     const accessToken = authUtils.getAccessToken();
     const user = authUtils.getUser();
     const employer = authUtils.getEmployer();
-
     if (accessToken) {
       if (employer) {
-        dispatch({
-          type: "SIGN_IN_EMPLOYER",
-          payload: {
+        dispatch(
+          signInEmployer({
             isAuthenticated: true,
             user: employer,
-          },
-        });
+          })
+        );
       } else if (user) {
-        dispatch({
-          type: "SIGN_IN_JOB_SEEKER",
-          payload: {
+        dispatch(
+          signInJobSeeker({
             isAuthenticated: true,
             user: user,
-          },
-        });
+          })
+        );
       }
     }
+    dispatch(setLoading(false));
   }, []);
 
   return <AuthContext.Provider value={{ state, dispatch }}>{children}</AuthContext.Provider>;

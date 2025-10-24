@@ -1,0 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
+import { industryService } from "@/services/industry.service";
+
+export function useIndustries(options?: { enabled?: boolean; select?: (data: any) => any }) {
+  return useQuery({
+    queryKey: ["industries"],
+    queryFn: async () => {
+      const response = await industryService.getAllIndustries();
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 30,
+    ...options,
+  });
+}
