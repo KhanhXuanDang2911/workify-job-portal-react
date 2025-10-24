@@ -2,21 +2,45 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import BaseModal from "@/components/BaseModal/BaseModal";
-import { Pencil } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { employerService } from "@/services";
+import { toast } from "react-toastify";
 
 interface AboutCompanyModalProps {
   currentAbout?: string;
   onSave?: (about: string) => void;
 }
 
-function AboutCompanyModal ({ currentAbout = "", onSave }: AboutCompanyModalProps)  {
+function AboutCompanyModal({ currentAbout = "", onSave }: AboutCompanyModalProps) {
   const [aboutContent, setAboutContent] = useState(currentAbout);
+  const queryClient = useQueryClient();
+
+  const updateAboutMutation = useMutation({
+    mutationFn: (data: { aboutCompany: string }) => employerService.updateEmployerProfile(data),
+    onSuccess: (response) => {
+      const updatedAbout = response.data?.aboutCompany || "";
+      onSave?.(updatedAbout);
+      toast.success("About company updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
+    },
+    onError: () => {
+      toast.error("Failed to update about company");
+    },
+  });
 
   const handleSave = (onClose: () => void) => {
-    onSave?.(aboutContent !== "<p><br></p>" ? aboutContent : "");
-    onClose();
+    const cleanContent = aboutContent !== "<p><br></p>" ? aboutContent : "";
+    updateAboutMutation.mutate(
+      { aboutCompany: cleanContent },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   };
 
   const handleCancel = (onClose: () => void) => {
@@ -39,11 +63,19 @@ function AboutCompanyModal ({ currentAbout = "", onSave }: AboutCompanyModalProp
             variant="outline"
             onClick={() => handleCancel(onClose)}
             className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
+            disabled={updateAboutMutation.isPending}
           >
             Cancel
           </Button>
-          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleSave(onClose)}>
-            Update
+          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleSave(onClose)} disabled={updateAboutMutation.isPending}>
+            {updateAboutMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update"
+            )}
           </Button>
         </>
       )}
@@ -61,6 +93,6 @@ function AboutCompanyModal ({ currentAbout = "", onSave }: AboutCompanyModalProp
       </div>
     </BaseModal>
   );
-};
+}
 
 export default AboutCompanyModal;

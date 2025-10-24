@@ -9,13 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { useMutation } from "@tanstack/react-query";
-import { userService } from "@/services/user.service";
-import { employerService } from "@/services/employer.service";
-import { adminService } from "@/services/admin.service";
 import { changePasswordFormSchema, type ChangePasswordFormData } from "@/schemas/auth.schema";
-import type { Role } from "@/types/user.type";
 import { Link, useLocation } from "react-router-dom";
 import { employer_routes, routes } from "@/routes/routes.const";
+import type { Role } from "@/constants";
+import { authService } from "@/services";
 
 interface PasswordRequirement {
   label: string;
@@ -35,7 +33,7 @@ interface ChangePasswordFormProps {
   passwordRequirements?: PasswordRequirement[];
 }
 
-export default function ChangePasswordForm({ userType = "seeker", passwordRequirements = pwdRequirements, className }: ChangePasswordFormProps) {
+export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRequirements = pwdRequirements, className }: ChangePasswordFormProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -55,13 +53,13 @@ export default function ChangePasswordForm({ userType = "seeker", passwordRequir
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) => {
-      if (userType === "seeker") {
-        return userService.changePassword(data);
+      if (userType === "JOB_SEEKER") {
+        return authService.changePassword(data, "users");
       }
-      if (userType === "employer") {
-        return employerService.changePassword(data);
+      if (userType === "EMPLOYER") {
+        return authService.changePassword(data, "employers");
       }
-      return adminService.changePassword(data);
+      return authService.changePassword(data, "admins");
     },
     onSuccess: (response) => {
       toast.success(response.message || "Cập nhật mật khẩu thành công");
@@ -202,7 +200,7 @@ export default function ChangePasswordForm({ userType = "seeker", passwordRequir
 
       {/* Forgot Password Link */}
       <div className="text-center">
-        <Link to={isEmployer?`${employer_routes.BASE}/${employer_routes.SIGN_IN}`:`/${routes.SIGN_IN}`} className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+        <Link to={isEmployer ? `${employer_routes.BASE}/${employer_routes.FORGOT_PASSWORD}` : `${routes.BASE}/${routes.FORGOT_PASSWORD}`} className="text-blue-500 hover:text-blue-600 text-sm font-medium">
           Forgot Password?
         </Link>
       </div>

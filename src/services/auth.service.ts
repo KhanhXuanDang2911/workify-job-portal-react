@@ -26,9 +26,9 @@ export const authService = {
     return response.data;
   },
 
-  verifyEmail: async (token: string, role: "user" | "employer"): Promise<ApiResponse<{ message: string }>> => {
+  verifyEmail: async (token: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
     const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(
-      `/auth/${role}s/verify-email`,
+      `/auth/${role}/verify-email`,
       {},
       {
         headers: {
@@ -39,8 +39,8 @@ export const authService = {
     return response.data;
   },
 
-  changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<ApiResponse<{ message: string }>> => {
-    const response = await axiosInstance.patch<ApiResponse<{ message: string }>>("/users/me/password", data);
+  changePassword: async (data: { currentPassword: string; newPassword: string }, role: "users" | "employers"|"admins"): Promise<ApiResponse<{ message: string }>> => {
+    const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(`/${role}/me/password`, data);
     return response.data;
   },
 

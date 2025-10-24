@@ -5,9 +5,9 @@ import NotificationSettingsTab from "@/pages/Employer/Settings/components/Notifi
 import { useState } from "react";
 
 const tabs = [
-  { id: "account-settings", label: "Account Settings" },
-  { id: "login-security", label: "Login & Security" },
-  { id: "notification-settings", label: "Notification Settings" },
+  { id: "account-settings", label: "Account Settings", icon:null },
+  { id: "login-security", label: "Login & Security", icon:null },
+  { id: "notification-settings", label: "Notification Settings", icon: null },
 ];
 
 const accountInformation = {
