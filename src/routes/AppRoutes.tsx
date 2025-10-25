@@ -4,6 +4,8 @@ import UserPublicRoutes from "./user/UserPublicRoutes";
 import UserProtectedRoutes from "./user/UserProtectedRoutes";
 import EmployerPublicRoutes from "./employer/EmployerPublicRoutes";
 import EmployerProtectedRoutes from "./employer/EmployerProtectedRoutes";
+import AdminPublicRoutes from "./admin/AdminPublicRoutes";
+import AdminProtectedRoutes from "./admin/AdminProtectedRoutes";
 
 export default function AppRoutes() {
   const element = useRoutes([
@@ -11,7 +13,9 @@ export default function AppRoutes() {
     ...UserProtectedRoutes,
     ...EmployerPublicRoutes,
     ...EmployerProtectedRoutes,
-    
+    ...AdminPublicRoutes,
+    ...AdminProtectedRoutes,
+
     {
       path: "*",
       element: <NotFound />,

@@ -37,3 +37,19 @@ export const employer_routes = {
   RESET_PASSWORD: "reset-password",
   VERIFY_EMAIL: "verify-email",
 };
+
+export const admin_routes = {
+  BASE: "/admin",
+  SIGN_IN: "sign-in",
+  DASHBOARD: "dashboard",
+  USERS: "users",
+  EMPLOYERS: "employers",
+  POSTS: "posts",
+  JOBS: "jobs",
+  SETTINGS: "settings",
+  FORGOT_PASSWORD: "forgot-password",
+  RESET_PASSWORD: "reset-password",
+  VERIFY_EMAIL: "verify-email",
+  LOCATION: "location",
+  INDUSTRIES: "industries",
+};
