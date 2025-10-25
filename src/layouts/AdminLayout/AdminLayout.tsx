@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { admin_routes } from "@/routes/routes.const";
+import AdminSidebar from "@/components/AdminSideBar";
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export default function AdminLayout() {
       ) : (
         <div className="flex">
           {/* Sidebar for protected routes */}
+          <AdminSidebar />
           <main className="flex-1">
             <Outlet />
           </main>
