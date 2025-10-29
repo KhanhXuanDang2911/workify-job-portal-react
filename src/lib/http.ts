@@ -1,5 +1,5 @@
 import { authUtils } from "@/lib/auth";
-import { employer_routes, routes } from "@/routes/routes.const";
+import { admin_routes, employer_routes, routes } from "@/routes/routes.const";
 import { authService } from "@/services";
 import axios from "axios";
 
@@ -44,13 +44,9 @@ http.interceptors.response.use(
 
         if (refreshToken) {
           const isEmployerApp = window.location.pathname.startsWith(`${employer_routes.BASE}`);
+          const isAdmin = window.location.pathname.startsWith(`${admin_routes.BASE}`);
 
-          let response;
-          if (isEmployerApp) {
-            response = await authService.refreshTokenEmployer(refreshToken);
-          } else {
-            response = await authService.refreshTokenUser(refreshToken);
-          }
+          const response = isEmployerApp ? await authService.refreshTokenEmployer(refreshToken) : await authService.refreshTokenUser(refreshToken);
 
           const { accessToken, refreshToken: newRefreshToken } = response.data;
 
@@ -68,7 +64,14 @@ http.interceptors.response.use(
 
         authUtils.clearAuth();
         const isEmployerApp = window.location.pathname.startsWith(`${employer_routes.BASE}`);
-        window.location.href = isEmployerApp ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+        const isAdmin = window.location.pathname.startsWith(`${admin_routes.BASE}`);
+        if (isAdmin) {
+          window.location.href = `${admin_routes.BASE}/${admin_routes.SIGN_IN}`;
+        } else if (isEmployerApp) {
+          window.location.href = `${employer_routes.BASE}/${employer_routes.SIGN_IN}`;
+        } else {
+          window.location.href = `/${routes.SIGN_IN}`;
+        }
         return Promise.reject(refreshError);
       }
     }

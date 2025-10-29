@@ -20,6 +20,14 @@ export function authReducer(state: AuthState, action: AuthPayloadAction): AuthSt
         role: ROLE.EMPLOYER,
         isLoading: false,
       };
+    case "SIGN_IN_ADMIN":
+      return {
+        ...state,
+        user: action.payload.user ?? state.user,
+        isAuthenticated: action.payload.isAuthenticated ?? true,
+        role: ROLE.ADMIN,
+        isLoading: false,
+      };
     case "SIGN_OUT":
       return {
         user: null,

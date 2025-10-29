@@ -45,6 +45,7 @@ export const admin_routes = {
   USERS: "users",
   EMPLOYERS: "employers",
   POSTS: "posts",
+  POST_CATEGORIES: "post-categories",
   JOBS: "jobs",
   SETTINGS: "settings",
   FORGOT_PASSWORD: "forgot-password",

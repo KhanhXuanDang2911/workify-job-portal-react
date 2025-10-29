@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,10 +7,22 @@ import { Mail, Lock, Eye, EyeOff, Phone } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminSignInSchema, type AdminSignInFormData } from "@/schemas/admin/admin.signin.schema";
+import { toast } from "react-toastify";
+import type { ApiError } from "@/types";
+import { useMutation } from "@tanstack/react-query";
+import { authUtils } from "@/lib/auth";
+import { authService } from "@/services";
+import { signInAdmin } from "@/context/auth/auth.action";
+import { ROLE } from "@/constants";
+import { useAuth } from "@/context/auth/useAuth";
+import { admin_routes } from "@/routes/routes.const";
 
 export default function AdminSignIn() {
+  const { dispatch } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const {
+    reset,
     register,
     formState: { errors },
     handleSubmit,
@@ -18,8 +30,26 @@ export default function AdminSignIn() {
     resolver: zodResolver(adminSignInSchema),
   });
 
+  const signInMutation = useMutation({
+    mutationFn: authService.signIn,
+    onSuccess: (response) => {
+      authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
+      authUtils.setUser(response.data.data);
+
+      dispatch(signInAdmin({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
+
+      toast.success(`Welcome ${response.data.data.fullName}!`);
+      navigate(`${admin_routes.BASE}/${admin_routes.DASHBOARD}`, { replace: true });
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+    },
+  });
+
   const onSubmit = (data: AdminSignInFormData) => {
     console.log("Admin sign in:", data);
+    signInMutation.mutate(data);
+    reset();
   };
 
   return (
@@ -94,7 +124,11 @@ export default function AdminSignIn() {
             </div>
 
             {/* Sign In Button */}
-            <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full mt-8 transition-all duration-300">
+            <Button
+              type="submit"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full mt-8 transition-all duration-300"
+              disabled={signInMutation.isPending}
+            >
               Login
             </Button>
           </form>

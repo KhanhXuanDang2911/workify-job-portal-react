@@ -1,4 +1,4 @@
-import type { Employer } from "@/types";
+import type { Employer, User } from "@/types";
 
 const ACCESS_TOKEN = "accessToken";
 const REFRESH_TOKEN = "refreshToken";
@@ -21,7 +21,7 @@ export const authUtils = {
     return localStorage.getItem(REFRESH_TOKEN);
   },
 
-  setUser: (user: unknown) => {
+  setUser: (user: User) => {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
 
     window.dispatchEvent(new Event("storage"));

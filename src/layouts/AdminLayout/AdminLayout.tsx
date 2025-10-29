@@ -9,18 +9,18 @@ export default function AdminLayout() {
   const isPublicRoute = adminPublicRoutes.some((route) => location.pathname.includes(route));
 
   return (
-    <div className="min-h-screen">
+    <>
       {isPublicRoute ? (
         <Outlet />
       ) : (
-        <div className="flex">
+        <div className="flex flex-row overflow-hidden">
           {/* Sidebar for protected routes */}
           <AdminSidebar />
-          <main className="flex-1">
+          <main className="flex-1 h-screen overflow-auto">
             <Outlet />
           </main>
         </div>
       )}
-    </div>
+    </>
   );
 }

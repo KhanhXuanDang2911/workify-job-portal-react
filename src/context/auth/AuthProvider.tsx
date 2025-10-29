@@ -7,7 +7,8 @@ import { useReducer, useEffect } from "react";
 import { authUtils } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services";
-import { setLoading, signInEmployer, signInJobSeeker } from "@/context/auth/auth.action";
+import { setLoading, signInAdmin, signInEmployer, signInJobSeeker } from "@/context/auth/auth.action";
+import { ROLE } from "@/constants";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initAuthState);
@@ -18,7 +19,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       const response = await employerService.getEmployerProfile();
       return response.data;
     },
-    enabled: state.isAuthenticated && state.role === "EMPLOYER",
+    enabled: state.isAuthenticated && state.role === ROLE.EMPLOYER,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -35,12 +36,22 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
           })
         );
       } else if (user) {
-        dispatch(
-          signInJobSeeker({
-            isAuthenticated: true,
-            user: user,
-          })
-        );
+        if (user.role === ROLE.JOB_SEEKER) {
+           dispatch(
+             signInJobSeeker({
+               isAuthenticated: true,
+               user: user,
+             })
+           );
+        }else if (user.role === ROLE.ADMIN) {
+          dispatch(
+            signInAdmin({
+              isAuthenticated: true,
+              user: user,
+            })
+          );
+        }
+       
       }
     }
     dispatch(setLoading(false));

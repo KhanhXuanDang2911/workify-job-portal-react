@@ -1,17 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, MoreVertical, Edit, Trash2, Star, Eye } from "lucide-react";
+import { Search, Plus, MoreVertical, Edit, Trash2, Star } from "lucide-react";
 import { postService } from "@/services/post.service";
-import { PostStatusColors, PostStatusLabelEN } from "@/constants/post.constant";
-import { admin_routes } from "@/routes/routes.const";
+import PostCategoryModal from "@/components/PostCategoryModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,45 +21,37 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
 
-export default function AdminPosts() {
-  const navigate = useNavigate();
+export default function PostCategories() {
   const queryClient = useQueryClient();
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(10);
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all"); // Updated default value
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["posts", pageNumber, pageSize, keyword, categoryFilter],
+    queryKey: ["post-categories", pageNumber, pageSize, keyword],
     queryFn: () =>
-      postService.getPosts({
+      postService.getCategories({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
-        categoryId: categoryFilter === "all" ? undefined : Number(categoryFilter),
         sorts: "createdAt:desc",
       }),
   });
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ["post-categories-all"],
-    queryFn: () => postService.getAllCategories(),
-  });
-
   const deleteMutation = useMutation({
-    mutationFn: postService.deletePost,
+    mutationFn: postService.deleteCategory,
     onSuccess: () => {
-      toast.success("Xóa bài viết thành công");
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast.success("Xóa danh mục thành công");
+      queryClient.invalidateQueries({ queryKey: ["post-categories"] });
       setDeleteDialogOpen(false);
       setDeletingId(null);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi xóa bài viết");
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi xóa danh mục");
     },
   });
 
@@ -87,48 +76,33 @@ export default function AdminPosts() {
     }
   };
 
-  const handleEdit = (id: number) => {
-    navigate(`${admin_routes.BASE}/${admin_routes.POSTS}/edit/${id}`, { replace: true });
-  };
-
-  const handleView = (id: number) => {
-    navigate(`${admin_routes.BASE}/${admin_routes.POSTS}/${id}`, { replace: true });
-  };
-
   const handleDelete = (id: number) => {
     setDeletingId(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (deletingId) {
-      deleteMutation.mutate(deletingId);
-    }
+    if (deletingId) deleteMutation.mutate(deletingId);
   };
 
-  const handleAddNew = () => {
-    navigate(`${admin_routes.BASE}/${admin_routes.POSTS}/create`);
-  };
-
-  const posts = data?.data.items || [];
+  const categories = data?.data.items || [];
   const totalPages = data?.data.totalPages || 0;
-  const categories = categoriesData?.data || [];
 
   return (
     <div className="p-6 bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Quản lý bài viết</h1>
-        <p className="text-muted-foreground mt-1">Quản lý tất cả bài viết trên hệ thống</p>
+        <h1 className="text-3xl font-bold text-foreground">Quản lý danh mục bài viết</h1>
+        <p className="text-muted-foreground mt-1">Quản lý danh mục cho các bài viết</p>
       </div>
 
       {/* Search and Actions */}
       <div className="bg-card rounded-lg border shadow-sm p-4 mb-4">
-        <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Tìm kiếm theo tiêu đề, nội dung hoặc tác giả..."
+                placeholder="Tìm kiếm theo tiêu đề hoặc mô tả..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -139,49 +113,23 @@ export default function AdminPosts() {
               Tìm kiếm
             </Button>
           </div>
-          <Button onClick={handleAddNew} className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
-            <Plus className="w-4 h-4 mr-2" />
-            Thêm mới
-          </Button>
-        </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-4">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Lọc theo danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả danh mục</SelectItem> {/* Updated value prop */}
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id.toString()}>
-                  {category.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {(keyword || categoryFilter !== "all") && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setKeyword("");
-                setSearchInput("");
-                setCategoryFilter("all"); // Updated default value
-                setPageNumber(1);
-              }}
-            >
-              Xóa bộ lọc
-            </Button>
-          )}
+          {/* Nút mở modal tạo mới */}
+          <PostCategoryModal
+            trigger={
+              <Button className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all ">
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm mới
+              </Button>
+            }
+          />
         </div>
 
         {selectedIds.length > 0 && (
           <div className="mt-4 flex items-center gap-2">
             <Badge variant="secondary">{selectedIds.length} đã chọn</Badge>
-            <Button variant="outline" size="sm">
-              Xóa đã chọn
+            <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(true)} className="text-red-600 border-red-600 hover:bg-red-600/10">
+              Xóa mục đã chọn
             </Button>
           </div>
         )}
@@ -193,13 +141,12 @@ export default function AdminPosts() {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="w-12">
-                <Checkbox checked={selectedIds.length === posts.length && posts.length > 0} onCheckedChange={handleSelectAll} />
+                <Checkbox checked={selectedIds.length === categories.length && categories.length > 0} onCheckedChange={handleSelectAll} />
               </TableHead>
               <TableHead className="w-12"></TableHead>
               <TableHead>Tiêu đề</TableHead>
-              <TableHead>Danh mục</TableHead>
-              <TableHead>Tác giả</TableHead>
-              <TableHead>Trạng thái</TableHead>
+              <TableHead>Mô tả</TableHead>
+              <TableHead>Slug</TableHead>
               <TableHead>Ngày tạo</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
@@ -207,34 +154,31 @@ export default function AdminPosts() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Đang tải...
                 </TableCell>
               </TableRow>
-            ) : posts.length === 0 ? (
+            ) : categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Không có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (
-              posts.map((post) => (
-                <TableRow key={post.id} className="hover:bg-muted/50">
+              categories.map((category) => (
+                <TableRow key={category.id} className="hover:bg-muted/50">
                   <TableCell>
-                    <Checkbox checked={selectedIds.includes(post.id)} onCheckedChange={(checked) => handleSelectOne(post.id, checked as boolean)} />
+                    <Checkbox checked={selectedIds.includes(category.id)} onCheckedChange={(checked) => handleSelectOne(category.id, checked as boolean)} />
                   </TableCell>
                   <TableCell>
                     <Star className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-yellow-500" />
                   </TableCell>
-                  <TableCell className="font-medium max-w-md truncate">{post.title}</TableCell>
+                  <TableCell className="font-medium">{category.title}</TableCell>
+                  <TableCell className="max-w-md truncate">{category.description}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{post.category.title}</Badge>
+                    <Badge variant="outline">{category.slug}</Badge>
                   </TableCell>
-                  <TableCell>{post.author.fullName}</TableCell>
-                  <TableCell>
-                    <Badge className={PostStatusColors[post.status]}>{PostStatusLabelEN[post.status]}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</TableCell>
+                  <TableCell>{new Date(category.createdAt).toLocaleDateString("vi-VN")}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -243,15 +187,18 @@ export default function AdminPosts() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleView(post.id)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Xem chi tiết
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(post.id)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(post.id)} className="text-red-600">
+                        {/* Nút mở modal chỉnh sửa */}
+                        <PostCategoryModal
+                          trigger={
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="flex items-center">
+                              <Edit className="w-4 h-4 mr-2" />
+                              Chỉnh sửa
+                            </DropdownMenuItem>
+                          }
+                          category={category}
+                        />
+
+                        <DropdownMenuItem onClick={() => handleDelete(category.id)} className="text-red-600">
                           <Trash2 className="w-4 h-4 mr-2" />
                           Xóa
                         </DropdownMenuItem>
@@ -290,11 +237,12 @@ export default function AdminPosts() {
         )}
       </div>
 
+      {/* Dialog xác nhận xóa */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.</AlertDialogDescription>
+            <AlertDialogDescription>Bạn có chắc chắn muốn xóa các danh mục này? Hành động này không thể hoàn tác.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
