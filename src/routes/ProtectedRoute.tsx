@@ -1,6 +1,6 @@
 import type React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { routes } from "@/routes/routes.const";
+import { admin_routes, routes } from "@/routes/routes.const";
 import { employer_routes } from "@/routes/routes.const";
 import { useAuth } from "@/context/auth/useAuth";
 import { ROLE } from "@/constants";
@@ -27,15 +27,29 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   }
 
   if (!isAuthenticated) {
-    const defaultRedirect = location.pathname.startsWith("/employer") ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
+    const isEmployerApp = window.location.pathname.startsWith(`${employer_routes.BASE}`);
+    const isAdmin = window.location.pathname.startsWith(`${admin_routes.BASE}`);
+
+    if (isAdmin) {
+      return <Navigate to={`${admin_routes.BASE}/${admin_routes.SIGN_IN}`} state={{ from: location }} />;
+    } else if (isEmployerApp) {
+      return <Navigate to={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} state={{ from: location }} />;
+    }
+
+    const defaultRedirect = `/${routes.SIGN_IN}`;
 
     return <Navigate to={defaultRedirect} state={{ from: location }} />;
   }
 
   if (requiredRole && role !== requiredRole) {
-    const loginPath = requiredRole === ROLE.EMPLOYER ? `${employer_routes.BASE}/${employer_routes.SIGN_IN}` : `/${routes.SIGN_IN}`;
     console.log(role);
-    return <Navigate to={loginPath} state={{ from: location }} />;
+
+    if (requiredRole === ROLE.EMPLOYER) {
+      return <Navigate to={`${employer_routes.BASE}/${employer_routes.SIGN_IN}`} state={{ from: location }} />;
+    } else if (requiredRole === ROLE.ADMIN) {
+      return <Navigate to={`${admin_routes.BASE}/${admin_routes.SIGN_IN}`} state={{ from: location }} />;
+    }
+    return <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />;
   }
 
   return <>{children}</>;

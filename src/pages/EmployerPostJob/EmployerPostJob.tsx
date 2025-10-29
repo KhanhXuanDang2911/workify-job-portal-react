@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import BaseModal from "@/components/BaseModal";
 import { Plus, Trash2, Loader2, ChevronDownIcon, MapPin } from "lucide-react";
-import { useRef, useCallback, useEffect, useState, useLayoutEffect } from "react";
+import { useRef, useCallback, useState, useLayoutEffect } from "react";
 import type { JobBenefit } from "@/types/benefit.type";
 import { jobBenefitSchema, locationSchema, postJobSchema, type JobBenefitFormData, type LocationFormData, type PostJobFormData } from "@/schemas/job/job.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AgeType, benefitMapVN, CompanySize, CompanySizeLabelVN, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType, SalaryUnit, type SalaryType } from "@/constants";
 import type { AxiosError } from "axios";
-import type { ApiError, Employer, JobRequest, Location, LocationRequest, Province } from "@/types";
+import type { ApiError, Employer, JobRequest, Province } from "@/types";
 import { sampleCompanyInfo, sampleJob, sampleJobDescription, sampleQualifications } from "@/pages/EmployerPostJob/EmployerPostJobMockData";
 import { useAuth } from "@/context/auth/useAuth";
 import { useIndustries } from "@/hooks/industry/useIndustries";
@@ -31,7 +31,6 @@ import z from "zod";
 import { useDistrictsForLocations } from "@/hooks/district/useDistrictsForLocations";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "@/components/Loading";
-import { parseISO } from "date-fns";
 
 // type WorkAreaItem = {
 //   city: string;

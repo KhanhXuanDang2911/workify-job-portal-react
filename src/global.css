@@ -54,15 +54,36 @@ body {
 
 /* Basic TipTap editor styles */
 .ProseMirror {
-  min-height: 200px;
+  min-height: 300px;
   padding: 1rem;
   border-radius: 0.375rem; /* rounded-md */
   border: 1px solid #e5e7eb; /* border-gray-200 */
   background-color: #ffffff; /* White background for light mode */
+    outline: none;
 }
 
 .ProseMirror:focus {
-  outline: none;
+  /* outline: none; */
+  border: 1px solid #4B9D7C;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 1rem 0;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid #68cef8;
 }
 
 /* Optional: Add some basic prose styles for better readability */
@@ -124,13 +145,16 @@ body {
   margin-left: 0;
   margin-right: 0;
   color: #6b7280;
+  font-style: italic;
 }
 
 .prose code {
-  background-color: #2e2b29;
+  background-color: #f3f4f6;
+    color: #1f2937;
   padding: 0.2em 0.4em;
   border-radius: 0.25rem;
   font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .prose pre {
@@ -141,6 +165,21 @@ body {
   overflow-x: auto;
 }
 
+.prose pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.prose a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: #2563eb;
+}
+
 .dark .ProseMirror {
   background-color: #0f172a;
   border-color: #334155;
@@ -148,6 +187,12 @@ body {
 
 .dark .prose {
   color: #d1d5db;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3 {
+  color: #f9fafb;
 }
 
 .dark .prose blockquote {
@@ -160,14 +205,22 @@ body {
   color: #f9fafb;
 }
 
+.dark .prose a {
+  color: #60a5fa;
+}
+
+.dark .prose a:hover {
+  color: #93c5fd;
+}
+
 .is-active {
-  background-color: #e0e7ff;
-  color: #4f46e5;
+background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
 }
 
 .dark .is-active {
-  background-color: #4338ca;
-  color: #e0e7ff;
+  background-color: #4338ca !important;
+    color: #e0e7ff !important;
 }
 
 /* Adding new keyframe animations for enhanced effects */
