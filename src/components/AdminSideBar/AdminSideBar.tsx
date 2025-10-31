@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LucideProps } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authUtils } from "@/lib/auth";
 import { authService } from "@/services";
 import { useAuth } from "@/context/auth/useAuth";
@@ -120,9 +120,10 @@ export default function AdminSidebar() {
   const [userName] = useState("Dung Van");
   const [userEmail] = useState("admin@workify.com");
   const [isCollapsed, setIsCollapsed] = useState(false);
-   const {  dispatch } = useAuth();
+  const { dispatch } = useAuth();
+  const queryClient = useQueryClient();
 
- const signOutMutation = useMutation({
+  const signOutMutation = useMutation({
     mutationFn: () => {
       const accessToken = authUtils.getAccessToken() || "";
       const refreshToken = authUtils.getRefreshToken() || "";
@@ -132,7 +133,7 @@ export default function AdminSidebar() {
       dispatch(signOut());
 
       authUtils.clearAuth();
-
+      queryClient.removeQueries();
       toast.success("Signed out successfully");
     },
   });

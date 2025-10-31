@@ -6,7 +6,7 @@ import NotificationDropdown from "@/components/NotificationDropdown";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { employer_routes } from "@/routes/routes.const";
 import { authUtils } from "@/lib/auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/auth/useAuth";
 import { authService } from "@/services";
 import { signOut } from "@/context/auth/auth.action";
@@ -26,6 +26,7 @@ interface EmployerHeaderProps {
 export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, isCollapsed, onToggleCollapsed, device }: EmployerHeaderProps) {
   const { state, dispatch } = useAuth();
   const employer = state.user as Employer | null;
+  const queryClient = useQueryClient();
 
   const signOutMutation = useMutation({
     mutationFn: () => {
@@ -37,7 +38,7 @@ export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, i
       dispatch(signOut());
 
       authUtils.clearAuth();
-
+      queryClient.removeQueries();
       toast.success("Signed out successfully");
     },
   });
@@ -141,7 +142,7 @@ export default function EmployerHeader({ onMobileMenuClick, mobileSidebarOpen, i
                     <DropdownMenuItem>
                       <Link to={employer_routes.SAVED_TALENTS} className="cursor-pointer flex items-center gap-3">
                         <Settings className="w-4 h-4 mr-2" />
-                       Saved Talents
+                        Saved Talents
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

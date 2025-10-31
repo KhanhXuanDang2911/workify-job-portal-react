@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { ResponsiveContext } from "./context/ResponsiveContext";
 import type { DeviceType, ResponsiveContextProps } from "./context/ResponsiveContext";
 import AuthProvider from "@/context/auth/AuthProvider";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const getDevice = (): DeviceType => {
   const width = window.innerWidth;
@@ -47,6 +48,7 @@ export default function App() {
             theme="light"
           />
           <ScrollToTopButton />
+          <ReactQueryDevtools initialIsOpen={false} />
         </ResponsiveContext>
       </AuthProvider>
     </>

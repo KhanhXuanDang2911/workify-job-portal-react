@@ -10,7 +10,7 @@ import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { authService } from "@/services";
 import { useAuth } from "@/context/auth/useAuth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { signOut } from "@/context/auth/auth.action";
 import type { User as UserType } from "@/types";
 import { getNameInitials } from "@/utils/string";
@@ -24,7 +24,7 @@ export default function Header() {
     blog: false,
     cv: false,
   });
-
+  const queryClient = useQueryClient();
   const { state, dispatch } = useAuth();
 
   const user = state.user as UserType | null;
@@ -39,6 +39,7 @@ export default function Header() {
       dispatch(signOut());
 
       authUtils.clearAuth();
+      queryClient.removeQueries();
       toast.success("Signed out successfully");
     },
   });
