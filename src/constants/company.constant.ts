@@ -14,16 +14,16 @@ export const CompanySize = {
 export type CompanySize = keyof typeof CompanySize;
 
 export const CompanySizeLabelVN: Record<CompanySize, string> = {
-  LESS_THAN_10: "Dưới 10 người",
-  FROM_10_TO_24: "Từ 10–24 người",
-  FROM_25_TO_99: "Từ 25–99 người",
-  FROM_100_TO_499: "Từ 100–499 người",
-  FROM_500_TO_999: "Từ 500–999 người",
-  FROM_1000_TO_4999: "Từ 1.000–4.999 người",
-  FROM_5000_TO_9999: "Từ 5.000–9.999 người",
-  FROM_10000_TO_19999: "Từ 10.000–19.999 người",
-  FROM_20000_TO_49999: "Từ 20.000–49.999 người",
-  MORE_THAN_50000: "Trên 50.000 người",
+  LESS_THAN_10: "Dưới 10 nhân sự",
+  FROM_10_TO_24: "Từ 10–24 nhân sự",
+  FROM_25_TO_99: "Từ 25–99 nhân sự",
+  FROM_100_TO_499: "Từ 100–499 nhân sự",
+  FROM_500_TO_999: "Từ 500–999 nhân sự",
+  FROM_1000_TO_4999: "Từ 1.000–4.999 nhân sự",
+  FROM_5000_TO_9999: "Từ 5.000–9.999 nhân sự",
+  FROM_10000_TO_19999: "Từ 10.000–19.999 nhân sự",
+  FROM_20000_TO_49999: "Từ 20.000–49.999 nhân sự",
+  MORE_THAN_50000: "Trên 50.000 nhân sự",
 };
 
 export const CompanySizeLabelEN: Record<CompanySize, string> = {

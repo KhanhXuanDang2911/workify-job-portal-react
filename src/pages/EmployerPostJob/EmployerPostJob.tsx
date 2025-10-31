@@ -16,10 +16,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { jobService, provinceService } from "@/services";
 import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AgeType, benefitMapVN, CompanySize, CompanySizeLabelVN, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType, SalaryUnit, type SalaryType } from "@/constants";
+import {
+  AgeType,
+  AgeTypeLabelVN,
+  benefitMapVN,
+  CompanySize,
+  CompanySizeLabel,
+  CompanySizeLabelVN,
+  EducationLevel,
+  EducationLevelLabelVN,
+  ExperienceLevel,
+  ExperienceLevelLabelVN,
+  JobGender,
+  JobGenderLabelVN,
+  JobLevel,
+  JobLevelLabelVN,
+  JobType,
+  JobTypeLabelVN,
+  SalaryUnit,
+  type SalaryType,
+} from "@/constants";
 import type { AxiosError } from "axios";
-import type { ApiError, Employer, JobRequest, Province } from "@/types";
-import { sampleCompanyInfo, sampleJob, sampleJobDescription, sampleQualifications } from "@/pages/EmployerPostJob/EmployerPostJobMockData";
+import type { ApiError, District, Employer, JobRequest, Province } from "@/types";
 import { useAuth } from "@/context/auth/useAuth";
 import { useIndustries } from "@/hooks/industry/useIndustries";
 import { useProvinces } from "@/hooks/province/useProvinces";
@@ -31,21 +49,10 @@ import z from "zod";
 import { useDistrictsForLocations } from "@/hooks/district/useDistrictsForLocations";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "@/components/Loading";
+import type { JobInformationProps, JobInformationRef, JobProp } from "@/components/JobInformation/JobInformation";
+import { authUtils } from "@/lib/auth";
 
-// type WorkAreaItem = {
-//   city: string;
-//   district: string;
-// };
-// type WorkAreasType = WorkAreaItem[];
-
-// type WorkOfficesType = {
-//   address: string;
-// }[];
-
-// type LocationsType = {
-//   workAreas: WorkAreasType;
-//   workOffices: WorkOfficesType;
-// };
+type SectionType = "header" | "description" | "benefits" | "requirements" | "jobDetails" | "contact" | "companyInformation";
 
 function EmployerPostJob() {
   const { jobId } = useParams<{ jobId?: string }>();
@@ -109,7 +116,7 @@ function EmployerPostJob() {
         jobType: job.jobType || "",
         gender: job.gender || "",
         jobCode: job.jobCode || "",
-        industryIds: job.industries?.map((ind) => ind.id) || [],
+        industries: job.industries?.map((ind) => ({ id: ind.id, name: ind.name })) || [],
         ageType: job.ageType || "",
         minAge: job.minAge,
         maxAge: job.maxAge,
@@ -123,12 +130,23 @@ function EmployerPostJob() {
           districtName: job.contactLocation?.district?.name || "",
         },
         description: job.description || "",
-        expirationDate: job.expirationDate || "",
+        expirationDate: formatDate(new Date(job.expirationDate)) || "",
       });
 
       console.log("after reset:", mainForm.getValues("companySize"));
+    } else if (!isEditMode && employer) {
+      const baseCompanyInfo = {
+        companyName: employer.companyName || "",
+        companySize: employer.companySize || "",
+        companyWebsite: employer.websiteUrls?.[0] || "",
+        aboutCompany: employer.aboutCompany || "",
+      };
+
+      mainForm.reset({
+        ...baseCompanyInfo,
+      });
     }
-  }, [isEditMode, jobData, mainForm]);
+  }, [isEditMode, jobData, mainForm, employer]);
 
   const createJobMutation = useMutation({
     mutationFn: async (data: JobRequest) => {
@@ -160,16 +178,6 @@ function EmployerPostJob() {
       toast.error(errorMessage);
     },
   });
-
-  // Modal form cho workAreas location
-  // const modalWorkAreasForm = useForm<{ workAreas: WorkAreaItem[] }>({
-  //   defaultValues: { workAreas: [] },
-  // });
-  // const workAreasFieldArray = useFieldArray({
-  //   control: modalWorkAreasForm.control,
-  //   name: "workAreas",
-  // });
-  // const modal_workAreas: WorkAreaItem[] = mainForm.watch("workAreas") || [];
 
   const modalJobLocationsForm = useForm<{
     jobLocations: LocationFormData[];
@@ -256,18 +264,11 @@ function EmployerPostJob() {
 
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const jobInfoRef = useRef<{
-    scrollToDescription: () => void;
-    scrollToBenefits: () => void;
-    scrollToSkills: () => void;
-    scrollToDetails: () => void;
-    scrollToContact: () => void;
-    scrollToCompany: () => void;
-  }>(null);
+  const jobInfoRef = useRef<JobInformationRef>(null);
 
   const onSubmit = async (data: PostJobFormData) => {
     console.log("date: ", data.expirationDate);
-    const jobRequest = {
+    const jobRequest: JobRequest = {
       companyName: data.companyName,
       companySize: data.companySize as CompanySize,
       companyWebsite: data.companyWebsite,
@@ -291,7 +292,7 @@ function EmployerPostJob() {
       jobType: data.jobType as JobType,
       gender: data.gender as JobGender,
       jobCode: data.jobCode,
-      industryIds: data.industryIds,
+      industryIds: data.industries.map((industry) => industry.id),
       ageType: data.ageType as AgeType,
       minAge: data.minAge ?? undefined,
       maxAge: data.maxAge ?? undefined,
@@ -303,7 +304,7 @@ function EmployerPostJob() {
         detailAddress: data.contactLocation.detailAddress,
       },
       description: data.description,
-      expirationDate:data.expirationDate,
+      expirationDate: data.expirationDate,
     };
     console.log("job: ", jobRequest);
 
@@ -363,85 +364,111 @@ function EmployerPostJob() {
     onClose();
   };
 
-  const scrollToPreviewSection = useCallback((section: string) => {
+  const scrollToPreviewSection = useCallback((section: SectionType) => {
     if (!jobInfoRef.current) return;
 
     switch (section) {
+      case "header":
+        jobInfoRef.current.scrollToHeader();
+        break;
       case "description":
         jobInfoRef.current.scrollToDescription();
         break;
       case "benefits":
         jobInfoRef.current.scrollToBenefits();
         break;
-      case "skills":
-        jobInfoRef.current.scrollToSkills();
+      case "requirements":
+        jobInfoRef.current.scrollToRequirements();
         break;
-      case "details":
-        jobInfoRef.current.scrollToDetails();
+      case "jobDetails":
+        jobInfoRef.current.scrollToJobDetails();
         break;
       case "contact":
         jobInfoRef.current.scrollToContact();
         break;
-      case "company":
-        jobInfoRef.current.scrollToCompany();
+      case "companyInformation":
+        jobInfoRef.current.scrollToCompanyInformation();
         break;
     }
   }, []);
 
   const handleFieldFocus = useCallback(
-    (section: string) => {
+    (section: SectionType) => {
       scrollToPreviewSection(section);
     },
     [scrollToPreviewSection]
   );
 
-  const getPreviewData = useCallback((formData: any) => {
-    const job = {
-      ...sampleJob,
-      title: formData.jobTitle || sampleJob.title,
-      company: formData.companyName || sampleJob.company,
-      companySize: formData.companySize || sampleJob.companySize,
-      location: formData.jobLocations?.map((loc: LocationFormData) => `${loc.detailAddress}, ${loc.districtName}, ${loc.provinceName}`).join(" | ") || sampleJob.location,
-      salary:
-        formData.salaryType === "RANGE"
-          ? `${formData.minSalary || ""} - ${formData.maxSalary || ""} ${formData.salaryUnit || "VND"}`
-          : formData.salaryType === "GREATER_THAN"
-          ? `${formData.minSalary || ""} ${formData.salaryUnit || "VND"}+`
-          : formData.salaryType === "NEGOTIABLE"
-          ? "Negotiable"
-          : formData.salaryType === "COMPETITIVE"
-          ? "Competitive"
-          : sampleJob.salary,
-      experience: formData.experienceLevel || sampleJob.experience,
-      level: formData.jobLevel || sampleJob.level,
-      education: formData.educationLevel || sampleJob.education,
-      gender: formData.gender || sampleJob.gender,
-      age: formData.ageType || sampleJob.age,
-      website: formData.companyWebsite || sampleJob.website,
-      workType: formData.jobType || sampleJob.workType,
-      address: formData.contactLocation?.detailAddress
-        ? `${formData.contactLocation.detailAddress}, ${formData.contactLocation.districtName}, ${formData.contactLocation.provinceName}`
-        : sampleJob.address,
+  const getPreviewData = useCallback((formData: PostJobFormData): { job: JobProp; hideActionButtons: boolean } => {
+    const job: JobProp = {
+      //header
+      isNew: true,
+      companyBanner: authUtils.getEmployer()?.backgroundUrl || "",
+      companyLogo: authUtils.getEmployer()?.avatarUrl || "",
+      jobTitle: formData.jobTitle || "Tiêu đề Job",
+      companyName: formData.companyName || "Company Name",
+      jobLocation:
+        formData.jobLocations?.map((location, index) => ({
+          province: {
+            id: location.provinceId,
+            code: "",
+            name: location.provinceName,
+            engName: "",
+          } as Province,
+          district: {
+            id: location.districtId,
+            code: "",
+            name: location.districtName,
+          } as District,
+          detailAddress: location.detailAddress,
+        })) || [],
+      companyWebsite: formData.companyWebsite || "",
+      salary: {
+        salaryType: formData.salaryType,
+        minSalary: formData.minSalary,
+        maxSalary: formData.maxSalary,
+        salaryUnit: formData.salaryUnit,
+      },
+      expirationDate: formData.expirationDate,
+
+      // Description
+      jobDescription: formData.jobDescription,
+
+      // Benefit
+      jobBenefits: formData.jobBenefits,
+
+      // Requirement
+      requirement: formData.requirement,
+
+      // Job details
+      jobType: formData.jobType,
+      jobLevel: formData.jobLevel,
+      educationLevel: formData.educationLevel,
+      experienceLevel: formData.experienceLevel,
+      gender: formData.gender,
+      age: {
+        ageType: formData.ageType as AgeType,
+        minAge: formData.minAge ?? undefined,
+        maxAge: formData.maxAge ?? undefined,
+      },
+      industries: formData.industries,
+
+      // Contact
+      contactPerson: formData.contactPerson || "Contact Person",
+      phoneNumber: formData.phoneNumber || "Phone Number",
+      contactLocation: {
+        province: { id: formData.contactLocation?.provinceId || 0, code: "", name: formData.contactLocation?.provinceName || "", engName: "" } as Province,
+        district: { id: formData.contactLocation?.districtId || 0, code: "", name: formData.contactLocation?.districtName || "" } as District,
+        detailAddress: formData.contactLocation?.detailAddress || "",
+      },
+      description: formData.description,
+
+      // Company Information
+      companySize: formData.companySize || CompanySizeLabel["vi"][CompanySize.FROM_100_TO_499],
+      aboutCompany: formData.aboutCompany || "About Company",
     };
 
-    const jobDescription = {
-      ...sampleJobDescription,
-      description: formData.jobDescription || sampleJobDescription.description,
-      benefits: formData.jobBenefits?.map((benefit: any) => benefit.description).filter(Boolean) || sampleJobDescription.benefits,
-    };
-
-    const qualifications = {
-      ...sampleQualifications,
-      skillsRequired: formData.requirement || sampleQualifications.skillsRequired,
-    };
-
-    const companyInfo = {
-      ...sampleCompanyInfo,
-      name: formData.companyName || sampleCompanyInfo.name,
-      description: formData.aboutCompany || sampleCompanyInfo.description,
-    };
-
-    return { job, jobDescription, qualifications, companyInfo };
+    return { job, hideActionButtons: true };
   }, []);
 
   const previewData = getPreviewData(watchedValues);
@@ -476,9 +503,10 @@ function EmployerPostJob() {
                     </label>
                     <Input
                       {...mainForm.register("companyName")}
+                      // disabled
                       placeholder="Company Name"
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                      onFocus={() => handleFieldFocus("company")}
+                      onFocus={() => handleFieldFocus("companyInformation")}
                     />
                     {mainForm.formState.errors.companyName && <span className="text-xs text-red-500">{mainForm.formState.errors.companyName.message}</span>}
                   </div>
@@ -491,8 +519,13 @@ function EmployerPostJob() {
                       name="companySize"
                       control={mainForm.control}
                       render={({ field }) => (
-                        <Select key={jobId || "new-job"} onValueChange={(val) => field.onChange(val)} value={field.value ? String(field.value) : ""}>
-                          <SelectTrigger className="min-w-[250px]" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("company")}>
+                        <Select
+                          // disabled
+                          key={jobId || "new-job"}
+                          onValueChange={(val) => field.onChange(val)}
+                          value={field.value ? String(field.value) : ""}
+                        >
+                          <SelectTrigger className="min-w-[250px]" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("companyInformation")}>
                             <SelectValue placeholder="Select company size" />
                           </SelectTrigger>
                           <SelectContent className="">
@@ -512,9 +545,10 @@ function EmployerPostJob() {
                     <label className="block mb-1 text-sm font-medium">Company Website</label>
                     <Input
                       {...mainForm.register("companyWebsite")}
+                      // disabled
                       placeholder="Company Website"
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                      onFocus={() => handleFieldFocus("company")}
+                      onFocus={() => handleFieldFocus("header")}
                     />
                     {mainForm.formState.errors.companyWebsite && <span className="text-xs text-red-500">{mainForm.formState.errors.companyWebsite.message}</span>}
                   </div>
@@ -529,10 +563,11 @@ function EmployerPostJob() {
                       render={({ field }) => (
                         <ReactQuill
                           theme="snow"
+                          // readOnly
                           value={field.value}
                           onChange={field.onChange}
                           className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto"
-                          onFocus={() => handleFieldFocus("company")}
+                          onFocus={() => handleFieldFocus("companyInformation")}
                         />
                       )}
                     />
@@ -552,7 +587,7 @@ function EmployerPostJob() {
                       {...mainForm.register("jobTitle")}
                       placeholder="Job title"
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                      onFocus={() => handleFieldFocus("description")}
+                      onFocus={() => handleFieldFocus("header")}
                     />
                     {mainForm.formState.errors.jobTitle && <span className="text-xs text-red-500">{mainForm.formState.errors.jobTitle.message}</span>}
                   </div>
@@ -573,7 +608,7 @@ function EmployerPostJob() {
                               className="w-full flex flex-col items-start justify-start text-left font-normal !h-auto min-h-0 py-2   bg-transparent"
                               onClick={handleOpenModalEditJobLocations}
                               onMouseEnter={handlePrefetchProvinces}
-                              onFocus={() => handleFieldFocus("details")}
+                              onFocus={() => handleFieldFocus("header")}
                             >
                               {main_jobLocations.length > 0 && main_jobLocations[0].detailAddress ? (
                                 main_jobLocations.map((loc: LocationFormData, index: number) => (
@@ -762,9 +797,25 @@ function EmployerPostJob() {
                       render={({ field }) => (
                         <RadioGroup
                           value={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+
+                            if (val === "NEGOTIABLE" || val === "COMPETITIVE") {
+                              mainForm.setValue("minSalary", undefined, { shouldValidate: false });
+                              mainForm.setValue("maxSalary", undefined, { shouldValidate: false });
+                              mainForm.setValue("salaryUnit", undefined, { shouldValidate: false });
+                              mainForm.clearErrors(["minSalary", "maxSalary", "salaryUnit"]);
+                            } else if (val === "RANGE") {
+                              mainForm.setValue("minSalary", undefined);
+                              mainForm.setValue("maxSalary", undefined);
+                              mainForm.setValue("salaryUnit", undefined);
+                            } else if (val === "GREATER_THAN") {
+                              mainForm.setValue("maxSalary", undefined);
+                              mainForm.setValue("salaryUnit", undefined);
+                            }
+                          }}
                           className="flex flex-row justify-between gap-6 pr-5 mt-3 mb-2"
-                          onFocus={() => handleFieldFocus("details")}
+                          onFocus={() => handleFieldFocus("header")}
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="RANGE" id="salary-input" />
@@ -813,7 +864,7 @@ function EmployerPostJob() {
                               name="salaryUnit"
                               control={mainForm.control}
                               render={({ field }) => (
-                                <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value || ""}>
+                                <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value || undefined}>
                                   <SelectTrigger className="rounded-none min-w-36 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
                                     <SelectValue placeholder="Select Unit" />
                                   </SelectTrigger>
@@ -957,7 +1008,7 @@ function EmployerPostJob() {
                           value={field.value}
                           onChange={field.onChange}
                           className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto"
-                          onFocus={() => handleFieldFocus("skills")}
+                          onFocus={() => handleFieldFocus("requirements")}
                         />
                       )}
                     />
@@ -976,7 +1027,7 @@ function EmployerPostJob() {
                             return (
                               <li key={idx} className="flex items-center gap-2 p-1 border ">
                                 <div className="flex items-center self-start gap-1">
-                                  <Icon size={28} strokeWidth={1.8} color="#1967d2" />
+                                  <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
                                   <span className="text-sm font-medium">{benefitMapVN[benefit.type].label}:</span>
                                 </div>
                                 <span className="text-sm">{benefit.description}</span>
@@ -1111,14 +1162,14 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
 
                               <SelectContent>
                                 {Object.entries(EducationLevel).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {EducationLevelLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1142,13 +1193,13 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(ExperienceLevel).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {ExperienceLevelLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1171,13 +1222,13 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobLevel).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {JobLevelLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1200,13 +1251,13 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobType).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {JobTypeLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1230,13 +1281,13 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobGender).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {JobGenderLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1257,7 +1308,6 @@ function EmployerPostJob() {
                           {...mainForm.register("jobCode")}
                           placeholder="Enter job code"
                           className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                          onFocus={() => handleFieldFocus("details")}
                         />
                       </div>
                     </div>
@@ -1271,20 +1321,19 @@ function EmployerPostJob() {
                       </label>
                       <div className="flex-1">
                         <Controller
-                          name="industryIds"
+                          name="industries"
                           control={mainForm.control}
                           render={({ field }) => (
                             <div className="space-y-2">
                               {field.value && field.value.length > 0 && (
                                 <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto mb-2">
-                                  {field.value.map((id) => {
-                                    const industry = industries.find((ind: any) => ind.id === id);
+                                  {field.value.map((industryItem) => {
                                     return (
-                                      <div key={id} className="bg-sky-100 text-[#1967d2] px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                                        {industry?.name || `Industry ${id}`}
+                                      <div key={industryItem.id} className="bg-sky-100 text-[#1967d2] px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                        {industryItem?.name || `Industry ${industryItem.id}`}
                                         <button
                                           type="button"
-                                          onClick={() => field.onChange((field.value ?? []).filter((industryId: number) => industryId !== id))}
+                                          onClick={() => field.onChange((field.value ?? []).filter((industry) => industry.id !== industryItem.id))}
                                           className="text-lg leading-none hover:text-red-500"
                                         >
                                           ×
@@ -1298,13 +1347,13 @@ function EmployerPostJob() {
                                 onValueChange={(val) => {
                                   const id = Number.parseInt(val);
                                   const current = field.value ?? [];
-                                  if (!current.includes(id)) {
-                                    field.onChange([...current, id]);
+                                  if (!current.some((item) => item.id === id)) {
+                                    field.onChange([...current, { id, name: industries?.find((ind) => Number(ind.id) === id)?.name || "" }]);
                                   }
                                 }}
                                 value=""
                               >
-                                <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                                <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                   <SelectValue placeholder="Select industries" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1313,12 +1362,12 @@ function EmployerPostJob() {
                                       Loading...
                                     </SelectItem>
                                   ) : (
-                                    industries.map((industry: any) => (
+                                    industries?.map((industry) => (
                                       <SelectItem
                                         key={industry.id}
                                         value={industry.id.toString()}
                                         className="focus:bg-sky-200 focus:text-[#1967d2]"
-                                        disabled={field.value?.includes(industry.id)}
+                                        disabled={field.value?.some((item) => String(item.id) === industry.id)}
                                       >
                                         {industry.name}
                                       </SelectItem>
@@ -1329,7 +1378,7 @@ function EmployerPostJob() {
                             </div>
                           )}
                         />
-                        {mainForm.formState.errors.industryIds && <span className="text-xs text-red-500">{mainForm.formState.errors.industryIds.message}</span>}
+                        {mainForm.formState.errors.industries && <span className="text-xs text-red-500">{mainForm.formState.errors.industries.message}</span>}
                       </div>
                     </div>
                   </div>
@@ -1346,13 +1395,13 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("details")}>
+                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Select age type" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(AgeType).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                    {key.replace(/_/g, " ")}
+                                    {AgeTypeLabelVN[value]}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1377,7 +1426,7 @@ function EmployerPostJob() {
                             type="number"
                             placeholder="Enter minimum age"
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                            onFocus={() => handleFieldFocus("details")}
+                            onFocus={() => handleFieldFocus("jobDetails")}
                           />
                           {mainForm.formState.errors.minAge && <span className="text-xs text-red-500">{mainForm.formState.errors.minAge.message}</span>}
                         </div>
@@ -1398,7 +1447,7 @@ function EmployerPostJob() {
                             type="number"
                             placeholder="Enter maximum age"
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                            onFocus={() => handleFieldFocus("details")}
+                            onFocus={() => handleFieldFocus("jobDetails")}
                           />
                           {mainForm.formState.errors.maxAge && <span className="text-xs text-red-500">{mainForm.formState.errors.maxAge.message}</span>}
                         </div>
@@ -1636,7 +1685,7 @@ function EmployerPostJob() {
                           return (
                             <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
                               <PopoverTrigger asChild>
-                                <Button variant="outline" id="date" className="w-48 mt-3 justify-between font-normal" onFocus={() => handleFieldFocus("details")}>
+                                <Button variant="outline" id="date" className="w-48 mt-3 justify-between font-normal" onFocus={() => handleFieldFocus("header")}>
                                   {field.value || "Select date"}
                                   <ChevronDownIcon />
                                 </Button>

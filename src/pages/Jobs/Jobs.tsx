@@ -12,7 +12,7 @@ import { Search, ChevronDown, MoreHorizontal, Edit, Eye, CheckCircle, AlertCircl
 import BaseModal from "@/components/BaseModal";
 import Pagination from "@/components/Pagination";
 import { JobStatus, JobStatusLabelEN, RowsPerPageOptions, type RowsPerPage } from "@/constants";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services";
 import type { JobResponse } from "@/types";
 import { getStatusColor } from "@/utils/jobStatus.util";
@@ -21,6 +21,7 @@ import useDebounce from "@/hooks/useDebounce";
 
 export default function Jobs() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedStatuses, setSelectedStatuses] = useState<JobStatus[]>([
@@ -52,7 +53,19 @@ export default function Jobs() {
     queryKey: ["my-jobs", currentPage, rowsPerPage],
     queryFn: () => jobService.getMyJobs(currentPage, rowsPerPage),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
+
+  const handlePrefetchJob = (jobId: number) => {
+    const timeout = setTimeout(() => {
+      queryClient.prefetchQuery({
+        queryKey: ["job", jobId],
+        queryFn: () => jobService.getJobById(jobId),
+        staleTime: 2 * 60 * 1000,
+      });
+    }, 300);
+    return () => clearTimeout(timeout);
+  };
 
   const { data: locationsData } = useQuery({
     queryKey: ["my-current-locations"],
@@ -423,7 +436,12 @@ export default function Jobs() {
             <TableBody>
               {currentJobs.length > 0 ? (
                 currentJobs.map((job: JobResponse) => (
-                  <TableRow key={job.id} className="hover:bg-gray-100 hover:cursor-pointer" onClick={() => navigate(`/employer/jobs/${job.id}`)}>
+                  <TableRow
+                    key={job.id}
+                    onMouseEnter={() => handlePrefetchJob(job.id)}
+                    className="hover:bg-gray-100 hover:cursor-pointer"
+                    onClick={() => navigate(`/employer/jobs/${job.id}`)}
+                  >
                     <TableCell>
                       <Badge className={`${getStatusColor(job.status)} p-2 border-0`}>{JobStatusLabelEN[job.status as keyof typeof JobStatusLabelEN]}</Badge>
                     </TableCell>

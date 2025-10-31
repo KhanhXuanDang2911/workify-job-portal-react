@@ -47,6 +47,11 @@ export const locationSchema = z.object({
   districtName: z.string().optional(),
 });
 
+const industrySchema = z.object({
+  id: z.number().int().positive("Required"),
+  name: z.string(),
+});
+
 export type LocationFormData = z.infer<typeof locationSchema>;
 
 export const jobBenefitSchema = z.object({
@@ -80,7 +85,7 @@ export const postJobSchema = z
       (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
       z.number("Required").nonnegative("Maximum salary must be a non-negative number").optional()
     ),
-    salaryUnit: salaryUnitEnum.optional(),
+    salaryUnit: z.preprocess((val) => (val === "" || val === null ? undefined : val), salaryUnitEnum.optional()),
     jobDescription: z.string().min(1, "Required"),
     requirement: z.string().min(1, "Required"),
     jobBenefits: z.array(jobBenefitSchema).min(1, "At least one benefit is required").max(10, "Maximum 10 benefits allowed"),
@@ -90,8 +95,8 @@ export const postJobSchema = z
     jobType: jobTypeEnum,
     gender: jobGenderEnum,
     jobCode: z.string().optional(),
-    industryIds: z
-      .array(z.number().int().positive())
+    industries: z
+      .array(industrySchema)
       .catch([])
       .refine((val) => val && val.length > 0, { message: "Required" }),
     ageType: ageTypeEnum,
@@ -140,6 +145,10 @@ export const postJobSchema = z
     return data;
   })
   .superRefine((data, ctx) => {
+    if (data.salaryType === "NEGOTIABLE" || data.salaryType === "COMPETITIVE") {
+      return;
+    }
+
     if (data.salaryType === "RANGE") {
       if (data.minSalary === undefined) {
         ctx.addIssue({
