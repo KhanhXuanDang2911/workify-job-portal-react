@@ -4,94 +4,39 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Award } from "lucide-react";
 import EmployerCard from "../EmployerCard";
-
-const employers = [
-  {
-    id: 1,
-    name: "Aeon Delight Vietnam Co., Ltd",
-    logo: "https://static.vecteezy.com/system/resources/previews/047/656/219/non_2x/abstract-logo-design-for-any-corporate-brand-business-company-vector.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 17,
-    location: "Hanoi",
-    description: "Now hiring: [LONG BIEN - HANOI] Customer Security Staff (...",
-    bgColor: "from-yellow-400 to-orange-500",
-    badge: { text: "Top Rated", color: "bg-yellow-500" },
-    featured: true,
-  },
-  {
-    id: 2,
-    name: "Vietnam Concentrix Service Co., Ltd",
-    logo: "https://static.vecteezy.com/system/resources/previews/008/214/517/non_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 174,
-    location: "Ho Chi Minh City",
-    description:
-      "Now hiring: Similac Nutrition Consultant - Order Closing via Phone...",
-    bgColor: "from-blue-400 to-blue-600",
-    badge: { text: "Hiring", color: "bg-green-500" },
-    featured: false,
-  },
-  {
-    id: 3,
-    name: "UNIVERSAL SCIENTIFIC INDUSTRIAL VIETNAM COMPANY...",
-    logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic2.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 10,
-    location: "Hai Phong",
-    description:
-      "Now hiring: Automation Project Manager, Production Plan Specialist",
-    bgColor: "from-blue-500 to-teal-600",
-    badge: { text: "Premium", color: "bg-purple-500" },
-    featured: true,
-  },
-  {
-    id: 4,
-    name: "CHINA CONSTRUCTION COMPANY (SOUTHEAST ASIA)",
-    logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic3.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 5,
-    location: "Binh Duong",
-    description: "Now hiring: Technical Manager, Engineers...",
-    bgColor: "from-blue-600 to-indigo-700",
-    badge: { text: "New", color: "bg-blue-500" },
-    featured: false,
-  },
-  {
-    id: 5,
-    name: "Samsung Electronics Vietnam",
-    logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic4.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 25,
-    location: "Bac Ninh",
-    description: "Now hiring: Software Engineer, QA Specialist",
-    bgColor: "from-gray-600 to-gray-800",
-    badge: { text: "Featured", color: "bg-red-500" },
-    featured: true,
-  },
-  {
-    id: 6,
-    name: "Intel Products Vietnam",
-    logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic5.jpg",
-    coverImage:
-      "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
-    openJobs: 12,
-    location: "Ho Chi Minh City",
-    description: "Now hiring: Hardware Engineer, Manufacturing Technician",
-    bgColor: "from-blue-500 to-blue-700",
-    badge: { text: "Verified", color: "bg-teal-500" },
-    featured: false,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { employerService } from "@/services";
 
 export default function TopEmployers() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
-  const totalSlides = Math.ceil(employers.length / itemsPerSlide);
+  // fetch employers (public: only ACTIVE)
+  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+    queryKey: ["top-employers"],
+    queryFn: () => employerService.searchEmployers({ pageNumber: 1, pageSize: 8 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data?.items) ? apiResponse.data.items : [];
+
+  const mapApiToCard = (item: any) => {
+    const provinceName = item.province?.name || "";
+    const districtName = item.district?.name || "";
+    const location = [provinceName, districtName].filter(Boolean).join(", ");
+    return {
+      id: item.id,
+      name: item.companyName || item.email || "",
+      logo: item.avatarUrl || "/placeholder.svg",
+      coverImage: item.backgroundUrl || "/placeholder.svg",
+      openJobs: item.openJobs ?? 0,
+      location: location,
+      description: item.aboutCompany || "",
+      featured: item.status === "ACTIVE",
+    };
+  };
+
+  const mappedEmployers = itemsFromApi.map(mapApiToCard);
+  const totalSlides = Math.max(1, Math.ceil(mappedEmployers.length / itemsPerSlide));
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -152,25 +97,31 @@ export default function TopEmployers() {
 
           {/* Carousel container */}
           <div className="overflow-x-hidden">
-            <div
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                <div key={slideIndex} className="w-full flex-shrink-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
-                    {employers
-                      .slice(
-                        slideIndex * itemsPerSlide,
-                        (slideIndex + 1) * itemsPerSlide
-                      )
-                      .map((employer) => (
-                        <EmployerCard key={employer.id} employer={employer} />
-                      ))}
+            {isLoading ? (
+              <div className="py-12 text-center">Loading employers...</div>
+            ) : isError ? (
+              <div className="py-12 text-center text-red-600">Failed to load employers</div>
+            ) : (
+              <div
+                className="flex transition-transform duration-700 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                  <div key={slideIndex} className="w-full flex-shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
+                      {mappedEmployers
+                        .slice(
+                          slideIndex * itemsPerSlide,
+                          (slideIndex + 1) * itemsPerSlide
+                        )
+                        .map((employer: any) => (
+                          <EmployerCard key={employer.id} employer={employer} />
+                        ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Pagination dots */}

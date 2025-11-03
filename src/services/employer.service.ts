@@ -85,4 +85,10 @@ export const employerService = {
     const response = await http.patch<ApiResponse<Employer>>("/employers/me/website-urls", data);
     return response.data;
   },
+
+  // Public list/search employers (supports paging and filters)
+  searchEmployers: async (params: Record<string, any> = {}): Promise<ApiResponse<any>> => {
+    const response = await http.get<ApiResponse<any>>("/employers", { params });
+    return response.data;
+  },
 };

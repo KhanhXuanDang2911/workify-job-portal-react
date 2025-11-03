@@ -200,3 +200,78 @@ export default function JobCategories() {
     </section>
   );
 }
+// import React, { useEffect, useState } from "react";
+// import http from "@/lib/http"; // đường dẫn tới file axios bạn đã có
+
+// export default function JobCategories() {
+//   const [categories, setCategories] = useState([]);
+//   const [industries, setIndustries] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         // Gọi 2 API song song
+//         const [categoryRes, industryRes] = await Promise.all([
+//           http.get("/jobs/all"),
+//           http.get("/industries/all"),
+//         ]);
+
+//         console.log("Category Job Data:", categoryRes.data);
+//         console.log("Industry Data:", industryRes.data);
+//         setCategories(categoryRes.data.data || []);
+//         setIndustries(industryRes.data.data || []);
+//       } catch (error) {
+//         console.error("Lỗi khi gọi API:", error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchData();
+//   }, []);
+
+//   if (loading) return <div className="p-4">Đang tải dữ liệu...</div>;
+
+//   return (
+//     <div className="p-6 space-y-6">
+//       <h1 className="text-2xl font-bold">So sánh Category Job và Industry</h1>
+
+//       <div className="grid grid-cols-2 gap-6">
+//         {/* Cột 1: Danh mục công việc */}
+//         <div className="border rounded-2xl p-4 shadow">
+//           <h2 className="text-xl font-semibold mb-3 text-blue-600">Danh mục công việc (Category Job)</h2>
+//           <ul className="space-y-2">
+//             {categories.items.map((cat) => (
+//               <li key={cat.id} className="border-b pb-1">
+//                 <strong>{cat.name}</strong> <br />
+//                 <span className="text-sm text-gray-500">{cat.engName}</span>
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+
+//         {/* Cột 2: Ngành nghề */}
+//         <div className="border rounded-2xl p-4 shadow">
+//           <h2 className="text-xl font-semibold mb-3 text-green-600">Ngành nghề (Industry)</h2>
+//           <ul className="space-y-2">
+//             {industries.map((ind) => (
+//               <li key={ind.id} className="border-b pb-1">
+//                 <strong>{ind.name}</strong> <br />
+//                 <span className="text-sm text-gray-500">{ind.engName}</span>
+//                 <br />
+//                 <span className="text-xs text-gray-400">
+//                   Thuộc danh mục ID: {ind.categoryJobId}
+//                 </span>
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+//       </div>
+
+//       <p className="text-sm text-gray-600 mt-4">
+//         👉 Mỗi <strong>Industry</strong> có trường <code>categoryJobId</code> trỏ tới <strong>Category Job</strong> tương ứng.
+//       </p>
+//     </div>
+//   );
+// }
