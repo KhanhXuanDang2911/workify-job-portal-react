@@ -67,4 +67,10 @@ export const postService = {
     const response = await http.delete<ApiResponse>(`/posts/${id}`);
     return response.data;
   },
+  
+  // Public posts list (only PUBLIC posts)
+  getPublicPosts: async (params: Record<string, any> = {}): Promise<ApiResponse<PageResponse<any>>> => {
+    const response = await http.get<ApiResponse<PageResponse<any>>>('/posts/public', { params });
+    return response.data;
+  },
 };

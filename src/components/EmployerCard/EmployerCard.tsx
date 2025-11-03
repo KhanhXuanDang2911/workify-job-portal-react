@@ -47,9 +47,9 @@ export default function EmployerCard({ employer }: { employer: Employer }) {
             <MapPin className="w-4 h-4 mr-1" />
             {employer.location}
           </div>
-          <div className="text-[#1967d2] font-bold text-sm bg-[#e0eeff] px-3 py-1 rounded-full">
+          {/* <div className="text-[#1967d2] font-bold text-sm bg-[#e0eeff] px-3 py-1 rounded-full">
             {employer.openJobs} jobs
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export default function TopEmployers() {
   // fetch employers (public: only ACTIVE)
   const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
     queryKey: ["top-employers"],
-    queryFn: () => employerService.searchEmployers({ pageNumber: 1, pageSize: 8 }),
+    queryFn: () => employerService.searchEmployers(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -26,11 +26,11 @@ export default function TopEmployers() {
     return {
       id: item.id,
       name: item.companyName || item.email || "",
-      logo: item.avatarUrl || "/placeholder.svg",
-      coverImage: item.backgroundUrl || "/placeholder.svg",
+      logo: item.avatarUrl || "https://cdn-new.topcv.vn/unsafe/135x/https://static.topcv.vn/company_logos/WphKX6IinchU9MgvLKMhq1xedm8Qz4w8_1729069676____4ce6db44df6ec10a196cea547700374d.png",
+      coverImage: item.backgroundUrl || "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6",
       openJobs: item.openJobs ?? 0,
       location: location,
-      description: item.aboutCompany || "",
+      description: item.aboutCompany || item.companyName,
       featured: item.status === "ACTIVE",
     };
   };

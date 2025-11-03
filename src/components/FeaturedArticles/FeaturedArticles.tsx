@@ -4,80 +4,42 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ArticleCard from "../ArticleCard";
+import { useQuery } from "@tanstack/react-query";
+import { postService } from "@/services/post.service";
 
 export default function FeaturedArticles() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const articles = [
-    {
-      title: "How to convince recruiters and get your dream job",
-      author: "Mark Petter",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Career", "Tips"],
-      category: "Career Advice",
-    },
-    {
-      title: "5 things to know about the March 2023 jobs report",
-      author: "David Wish",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Report", "Analysis"],
-      category: "Market Insights",
-    },
-    {
-      title: "Job Board is the most important sector in the world",
-      author: "Mike Doe",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-      tags: ["Industry", "Growth"],
-      category: "Industry News",
-    },
-    {
-      title: "5 things to know about the March 2023 jobs report",
-      author: "David Wish",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Report", "Analysis"],
-      category: "Market Insights",
-    },
-    {
-      title: "How to convince recruiters and get your dream job",
-      author: "Mark Petter",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Career", "Tips"],
-      category: "Career Advice",
-    },
-  ];
+  // Fetch public posts
+  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+    queryKey: ["public-posts"],
+    queryFn: () => postService.getPublicPosts({ pageNumber: 1, pageSize: 6 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data?.items) ? apiResponse.data.items : [];
+
+  const mapPostToArticle = (post: any) => ({
+    title: post.title,
+    author: post.author?.fullName || post.author?.email || "",
+    date: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "",
+    excerpt: post.excerpt || post.contentText || "",
+    image: post.thumbnailUrl || "/placeholder.svg",
+    tags: typeof post.tags === "string" ? post.tags.split("|") : Array.isArray(post.tags) ? post.tags : [],
+    category: post.category?.title || "",
+  });
+
+  const mappedArticles = itemsFromApi.map(mapPostToArticle);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % Math.ceil(articles.length / 3));
+    setCurrentSlide((prev) => (prev + 1) % Math.ceil(mappedArticles.length / 3 || 1));
   };
 
   const prevSlide = () => {
     setCurrentSlide(
-      (prev) =>
-        (prev - 1 + Math.ceil(articles.length / 3)) %
-        Math.ceil(articles.length / 3)
+      (prev) => (prev - 1 + Math.ceil(mappedArticles.length / 3 || 1)) % Math.ceil(mappedArticles.length / 3 || 1)
     );
   };
-
   return (
     <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-25 to-indigo-50 relative overflow-x-hidden">
       <div className="absolute inset-0 opacity-30">
@@ -96,24 +58,28 @@ export default function FeaturedArticles() {
 
         <div className="relative">
           <div className="overflow-x-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {Array.from({ length: Math.ceil(articles.length / 3) }).map(
-                (_, slideIndex) => (
+            {isLoading ? (
+              <div className="py-12 text-center">Loading articles...</div>
+            ) : isError ? (
+              <div className="py-12 text-center text-red-600">Failed to load articles</div>
+            ) : (
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {Array.from({ length: Math.max(1, Math.ceil(mappedArticles.length / 3)) }).map((_, slideIndex) => (
                   <div key={slideIndex} className="w-full flex-shrink-0">
                     <div className="grid md:grid-cols-3 gap-8 pb-2">
-                      {articles
+                      {mappedArticles
                         .slice(slideIndex * 3, slideIndex * 3 + 3)
                         .map((article, index) => (
                           <ArticleCard key={index} article={article} />
                         ))}
                     </div>
                   </div>
-                )
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-center items-center space-x-4 mt-8">
@@ -126,17 +92,15 @@ export default function FeaturedArticles() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <div className="flex space-x-2">
-              {Array.from({ length: Math.ceil(articles.length / 3) }).map(
-                (_, index) => (
-                  <button
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
-                    }`}
-                    onClick={() => setCurrentSlide(index)}
-                  />
-                )
-              )}
+              {Array.from({ length: Math.max(1, Math.ceil(mappedArticles.length / 3)) }).map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
+                  }`}
+                  onClick={() => setCurrentSlide(index)}
+                />
+              ))}
             </div>
             <Button
               variant="outline"
