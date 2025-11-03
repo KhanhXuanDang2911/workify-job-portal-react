@@ -49,7 +49,7 @@ const menuItems: MenuItem[] = [
     id: "industries",
     label: "Industries",
     icon: Factory,
-    href: "/admin/industries",
+    href: "/admin/category-jobs-industries",
   },
   {
     id: "locations",
