@@ -31,7 +31,7 @@ export default function AdminPosts() {
   const [pageSize] = useState(10);
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all"); // Updated default value
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -152,7 +152,7 @@ export default function AdminPosts() {
               <SelectValue placeholder="Lọc theo danh mục" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả danh mục</SelectItem> {/* Updated value prop */}
+              <SelectItem value="all">Tất cả danh mục</SelectItem> 
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id.toString()}>
                   {category.title}
@@ -168,7 +168,7 @@ export default function AdminPosts() {
               onClick={() => {
                 setKeyword("");
                 setSearchInput("");
-                setCategoryFilter("all"); // Updated default value
+                setCategoryFilter("all"); 
                 setPageNumber(1);
               }}
             >
