@@ -35,6 +35,7 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
     register,
     handleSubmit,
     reset,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<CreateIndustryForm>({
@@ -49,7 +50,7 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
     mutationFn: (data: CreateIndustryForm) => industryService.createIndustry(data),
     onSuccess: () => {
       toast.success("Tạo Industry thành công!");
-      queryClient.invalidateQueries({ queryKey: ["industries"] });
+      queryClient.invalidateQueries({ queryKey: ["industries", getValues("categoryJobId")] });
     },
     onError: () => {
       toast.error("Tạo Industry thất bại!");

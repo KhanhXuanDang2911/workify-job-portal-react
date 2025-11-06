@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -19,28 +18,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { industryService } from "@/services/industry.service";
-import type { Industry } from "@/types";
+import type { District} from "@/types";
 import { toast } from "react-toastify";
-import { categoryJobService } from "@/services/categoryJobs.service";
+import { districtService, provinceService } from "@/services";
 
-interface IndustrySheetProps {
-  industry: Industry;
+interface DistrictSheetProps {
+  district: District;
   isOpen: boolean;
   onClose: () => void;
-  categoryJobId: number;
+  provinceId: number;
 }
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
-  engName: z.string().min(1, "Required"),
-  description: z.string().optional(),
-  categoryJobId: z.number(),
+  code: z.string().min(1, "Required"),
+  provinceId: z.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId }: IndustrySheetProps) {
+export default function DistrictSheet({ district, isOpen, onClose, provinceId }: DistrictSheetProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -48,55 +45,56 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: industry.name,
-      engName: industry.engName,
-      description: industry.description || "",
-      categoryJobId,
+      name: district.name,
+      code: district.code,
+      provinceId,
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       form.reset({
-        name: industry.name,
-        engName: industry.engName,
-        description: industry.description || "",
-        categoryJobId,
+        name: district.name,
+        code: district.code,
+        provinceId,
       });
       setIsEditing(false);
     }
-  }, [industry, isOpen, form, categoryJobId]);
+  }, [district, isOpen, form, provinceId]);
 
-  const { data: categoryJobsData, isLoading: isLoadingCategoryJobs } = useQuery({
-    queryKey: ["categoryJobs","all"],
-    queryFn: () => categoryJobService.getAllCategoryJobs(),
-    select: (data) => data.data,
+  const { data: provincesData, isLoading: isLoadingProvinces } = useQuery({
+    queryKey: ["provinces", "all"],
+    queryFn: async () => {
+         const res = await provinceService.getProvinces();
+         return res.data;
+       },
+    staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: FormValues) =>
-      industryService.updateIndustry(industry.id, {
+      districtService.updateDistrict(district.id, {
         name: data.name,
-        engName: data.engName,
-        description: data.description || "",
-         categoryJobId: data.categoryJobId,
+        code: data.code,
+        provinceId: data.provinceId,
       }),
     onSuccess: () => {
-      toast.success("Industry updated successfully");
+      toast.success("District updated successfully");
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["industries",categoryJobId] });
+      queryClient.invalidateQueries({ queryKey: ["districts",provinceId] });
     },
     onError: () => {
-      toast.error("Failed to update industry");
+      toast.error("Failed to update district");
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => industryService.deleteIndustry(industry.id),
+    mutationFn: () => districtService.deleteDistrict(district.id),
     onSuccess: () => {
       toast.success("Xóa thành công");
-      queryClient.invalidateQueries({ queryKey: ["industries"] });
+      queryClient.invalidateQueries({ queryKey: ["districts", provinceId] });
       onClose();
     },
     onError: () => {
@@ -107,12 +105,12 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
   const onSubmit = (data: FormValues) => {
     if (isEditing) {
       updateMutation.mutate(data);
-    } 
+    }
   };
 
   const handleCancel = () => {
     form.reset();
-      setIsEditing(false);
+    setIsEditing(false);
   };
 
   const handleDelete = () => {
@@ -126,7 +124,7 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
         <SheetContent side="right" className="w-full max-w-2xl p-0 overflow-y-auto">
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="flex items-center justify-between">
-              <span> Industry Details</span>
+              <span> District Details</span>
               <div className="flex gap-2">
                 {!isEditing ? (
                   <>
@@ -175,10 +173,10 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
 
                 <FormField
                   control={form.control}
-                  name="engName"
+                  name="code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>English Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <FormLabel>Code {isEditing && <span className="text-red-600">*</span>}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -194,40 +192,20 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
 
                 <FormField
                   control={form.control}
-                  name="description"
+                  name="provinceId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          disabled={!isEditing}
-                          placeholder="Enter description"
-                          rows={6}
-                          className="min-h-[100px] bg-white resize-none focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="categoryJobId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category Job {isEditing && <span className="text-red-600">*</span>}</FormLabel>
-                      <Select disabled={!isEditing || isLoadingCategoryJobs} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                      <FormLabel>Province {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <Select disabled={!isEditing || isLoadingProvinces} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={isLoadingCategoryJobs ? "Loading..." : "Select category job"} />
+                            <SelectValue placeholder={isLoadingProvinces ? "Loading..." : "Select province"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {categoryJobsData?.map((job) => (
-                            <SelectItem key={job.id} value={job.id.toString()} className="focus:bg-green-200">
-                              {job.name}
+                          {provincesData?.map((province) => (
+                            <SelectItem key={province.id} value={province.id.toString()} className="focus:bg-green-200">
+                              {province.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -247,7 +225,7 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the industry "{industry.name}". This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>This will permanently delete the district "{district.name}". This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

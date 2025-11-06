@@ -13,6 +13,7 @@ import CategoryJobs from "@/pages/Admin/CategoryJobs/CategoryJobs";
 import NotFound from "@/pages/NotFound";
 import EmployerManagement from "@/pages/Admin/EmployerManagement/EmployerManagement";
 import EditEmployer from "@/pages/Admin/EmployerManagement/EditEmployer";
+import LocationManagement from "@/pages/Admin/LocationManagement/LocationManagement";
 
 const AdminProtectedRoutes: RouteObject[] = [
   {
@@ -67,6 +68,10 @@ const AdminProtectedRoutes: RouteObject[] = [
       {
         path: `${admin_routes.EMPLOYERS}/:id`,
         element: <EditEmployer />,
+      },
+      {
+        path: admin_routes.LOCATION,
+        element: <LocationManagement />,
       },
       {
         path: "*",
