@@ -1,4 +1,4 @@
-import type { CompanySize } from "@/constants";
+import type { CompanySize, UserStatus } from "@/constants";
 import type { District, Province } from "@/types/location.type";
 
 export interface Employer {
@@ -14,13 +14,13 @@ export interface Employer {
   backgroundUrl: string | null;
   employerSlug: string;
   aboutCompany: string | null;
-  websiteUrls: string | null;
+  websiteUrls: string[] | null;
   facebookUrl: string | null;
   twitterUrl: string | null;
   linkedinUrl: string | null;
   googleUrl: string | null;
   youtubeUrl: string | null;
-  status: string;
+  status: UserStatus;
   province: Province | null;
   district: District | null;
   detailAddress: string;

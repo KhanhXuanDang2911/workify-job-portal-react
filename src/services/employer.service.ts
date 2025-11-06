@@ -1,5 +1,5 @@
 import http from "@/lib/http";
-import type { ApiResponse, Employer } from "@/types";
+import type { ApiResponse, Employer, PageResponse, SearchParams } from "@/types";
 
 export interface EmployerSignUpRequest {
   email: string;
@@ -14,23 +14,23 @@ export interface EmployerSignUpRequest {
 }
 
 export interface EmployerUpdateRequest {
-  companyName?: string
-  companySize?: string
-  contactPerson?: string
-  phoneNumber?: string
-  provinceId?: number
-  districtId?: number
-  detailAddress?: string
-  aboutCompany?: string
+  companyName?: string;
+  companySize?: string;
+  contactPerson?: string;
+  phoneNumber?: string;
+  provinceId?: number;
+  districtId?: number;
+  detailAddress?: string;
+  aboutCompany?: string;
 }
 
 export interface EmployerWebsiteUpdateRequest {
-  websiteUrls?: string[]
-  facebookUrl?: string
-  twitterUrl?: string
-  linkedinUrl?: string
-  googleUrl?: string
-  youtubeUrl?: string
+  websiteUrls?: string[];
+  facebookUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  googleUrl?: string;
+  youtubeUrl?: string;
 }
 
 export const employerService = {
@@ -83,6 +83,38 @@ export const employerService = {
 
   updateEmployerWebsiteUrls: async (data: EmployerWebsiteUpdateRequest): Promise<ApiResponse<Employer>> => {
     const response = await http.patch<ApiResponse<Employer>>("/employers/me/website-urls", data);
+    return response.data;
+  },
+
+  getEmployers: async (params: SearchParams): Promise<ApiResponse<PageResponse<Employer>>> => {
+    const response = await http.get<ApiResponse<PageResponse<Employer>>>("/employers", { params });
+    return response.data;
+  },
+
+  getEmployerById: async (id: number): Promise<ApiResponse<Employer>> => {
+    const response = await http.get<ApiResponse<Employer>>(`/employers/${id}`);
+    return response.data;
+  },
+
+  createEmployer: async (data: FormData): Promise<ApiResponse<Employer>> => {
+    const response = await http.post<ApiResponse<Employer>>("/employers", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+  updateEmployer: async (id: number, data: FormData): Promise<ApiResponse<Employer>> => {
+    const response = await http.put<ApiResponse<Employer>>(`/employers/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  deleteEmployer: async (id: number): Promise<ApiResponse> => {
+    const response = await http.delete<ApiResponse>(`/employers/${id}`);
     return response.data;
   },
 };

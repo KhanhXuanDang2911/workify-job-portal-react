@@ -8,8 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { categoryJobService, type CategoryJobRequest, type CategoryJobResponse } from "@/services/categoryJobs.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-;
+import { toast } from "react-toastify";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -22,6 +31,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
@@ -44,23 +54,23 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
   const updateMutation = useMutation({
     mutationFn: (data: CategoryJobRequest) => categoryJobService.updateCategoryJob(job.id, data),
     onSuccess: () => {
-      toast.success("Cập nhật thành công");
+      toast.success("Update successful");
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["categoryJobs"] });
     },
     onError: () => {
-      toast.error("Cập nhật thất bại");
+      toast.error("Update failed");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => categoryJobService.deleteCategoryJob(job.id),
     onSuccess: () => {
-      toast.success("Xóa thành công");
+      toast.success("Delete successful");
       queryClient.invalidateQueries({ queryKey: ["categoryJobs"] });
     },
     onError: () => {
-      toast.error("Xóa thất bại");
+      toast.error("Delete failed");
     },
   });
 
@@ -128,6 +138,11 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
                   <FormControl>
                     <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
                   </FormControl>
+                  {form.formState.errors.name ? (
+                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.name.message}</p>
+                  ) : (
+                    <p className="text-sm min-h-[15px]"> </p>
+                  )}
                 </FormItem>
               )}
             />
@@ -141,6 +156,11 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
                   <FormControl>
                     <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
                   </FormControl>
+                  {form.formState.errors.engName ? (
+                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.engName.message}</p>
+                  ) : (
+                    <p className="text-sm min-h-[15px]"> </p>
+                  )}
                 </FormItem>
               )}
             />
