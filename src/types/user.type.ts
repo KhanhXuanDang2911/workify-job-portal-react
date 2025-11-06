@@ -1,3 +1,4 @@
+import type { Role, UserStatus } from "@/constants";
 import type { District, Province } from "@/types/location.type";
 
 export interface User {
@@ -8,12 +9,12 @@ export interface User {
   email: string;
   phoneNumber: string | null;
   birthDate: string | null;
-  gender: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | null;
   province: Province | null;
   district: District | null;
   detailAddress: string | null;
   avatarUrl: string | null;
   noPassword: boolean;
-  role: string;
-  status: string;
+  role: Role;
+  status: UserStatus;
 }

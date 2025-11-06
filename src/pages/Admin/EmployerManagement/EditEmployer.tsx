@@ -203,7 +203,7 @@ export default function EditEmployer() {
         {/* Password */}
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Password <span className="text-red-600">*</span>
+            Password <span className="text-gray-400">(Leave blank to keep current password)</span>
           </label>
           <div className="relative">
             <Input type={showPassword ? "text" : "password"} {...form.register("password")} className="flex-1 pr-10 focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />

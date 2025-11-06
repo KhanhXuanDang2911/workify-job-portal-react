@@ -20,18 +20,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
-import { CompanySize, CompanySizeLabelEN, CompanySizeLabelVN, RowsPerPageOptions, UserStatusColors, UserStatusLabelEN, type RowsPerPage } from "@/constants";
+import { RoleColors, RoleLabelEN, RowsPerPageOptions, UserStatusColors, UserStatusLabelEN, type RowsPerPage } from "@/constants";
 import Pagination from "@/components/Pagination";
 import MultiSortButton from "@/components/MultiSortButton";
-import { employerService, provinceService } from "@/services";
-import CreateEmployerModal from "@/pages/Admin/EmployerManagement/CreateEmployerModal";
+import { provinceService, userService } from "@/services";
+import CreateUserModal from "@/pages/Admin/UserManagement/CreateUserModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getNameInitials } from "@/utils";
 
-type SortField = "companyName" | "status" | "companySize" | "email" | "district.name" | "province.name" | "createdAt" | "updatedAt";
+type SortField = "fullName" | "status" | "phoneNumber" | "email" | "birthDate" | "gender" | "role" | "createdAt" | "updatedAt";
 type SortDirection = "asc" | "desc";
 
-export default function EmployerManagement() {
+export default function UserManagement() {
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -43,17 +43,15 @@ export default function EmployerManagement() {
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
-  const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
-  const [companySize, setCompanySize] = useState<CompanySize | undefined>(undefined);
-
-  const [searchProvince, setSearchProvince] = useState("");
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [provincesOptions, setProvincesOptions] = useState<{ id: number; name: string }[]>([]);
-
+  const [searchProvince, setSearchProvince] = useState("");
+    const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
+    
   useEffect(() => {
     if (location.state?.refresh) {
       ClearFilters();
@@ -63,10 +61,10 @@ export default function EmployerManagement() {
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
-  const { data: employersData, isLoading: isLoadingEmployers } = useQuery({
-    queryKey: ["employers", pageNumber, pageSize, keyword, sortsString],
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users", pageNumber, pageSize, keyword, sortsString],
     queryFn: () =>
-      employerService.getEmployers({
+      userService.getUsers({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
@@ -77,15 +75,15 @@ export default function EmployerManagement() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: employerService.deleteEmployer,
+    mutationFn: userService.deleteUser,
     onSuccess: () => {
-      toast.success("Employer deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["employers", pageNumber, pageSize, keyword, sortsString] });
+      toast.success("User deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["users", pageNumber, pageSize, keyword, sortsString] });
       setDeleteDialogOpen(false);
       setDeletingId(null);
     },
     onError: () => {
-      toast.error("An error occurred while deleting the employer");
+      toast.error("An error occurred while deleting the User");
     },
   });
 
@@ -129,23 +127,21 @@ export default function EmployerManagement() {
     setPageNumber(page);
   };
 
-  const employers = employersData?.data.items || [];
-  const totalPages = employersData?.data.totalPages || 0;
-  const totalEmployers = employersData?.data.numberOfElements || 0;
+  const users = usersData?.data.items || [];
+  const totalPages = usersData?.data.totalPages || 0;
+  const totalUsers = usersData?.data.numberOfElements || 0;
 
   const ClearFilters = () => {
     setKeyword("");
     setSearchInput("");
     setPageNumber(1);
     setPageSize(10);
-    setProvinceId(undefined);
-    setCompanySize(undefined);
     setSorts([]);
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(employersData?.data.items.map((item) => item.id) || []);
+      setSelectedIds(usersData?.data.items.map((item) => item.id) || []);
     } else {
       setSelectedIds([]);
     }
@@ -160,11 +156,11 @@ export default function EmployerManagement() {
   };
 
   const handleView = (id: number) => {
-    navigate(`${admin_routes.BASE}/${admin_routes.EMPLOYERS}/${id}`);
+    navigate(`${admin_routes.BASE}/${admin_routes.USERS}/${id}`);
   };
 
   const handleEdit = (id: number) => {
-    navigate(`${admin_routes.BASE}/${admin_routes.EMPLOYERS}/edit/${id}`);
+    navigate(`${admin_routes.BASE}/${admin_routes.USERS}/edit/${id}`);
   };
 
   const handleDelete = (id: number) => {
@@ -181,8 +177,8 @@ export default function EmployerManagement() {
   return (
     <div className="p-6 bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Employer Management</h1>
-        <p className="text-muted-foreground mt-1">Manage all employers in the system</p>
+        <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+        <p className="text-muted-foreground mt-1">Manage all users in the system</p>
       </div>
 
       {/* Search and Actions */}
@@ -249,28 +245,8 @@ export default function EmployerManagement() {
                 </div>
               </SelectContent>
             </Select>
-            <Select value={companySize ?? ""} onValueChange={(value) => setCompanySize(value as CompanySize | undefined)}>
-              <SelectTrigger className="w-64 !text-gray-500">
-                <SelectValue placeholder="Company size" />
-              </SelectTrigger>
-              <SelectContent className="w-64 p-0">
-                <div className="p-4">
-                  <div className="max-h-64 overflow-y-auto">
-                    {Object.entries(CompanySize).map(([key, value]) => (
-                      <SelectItem key={key} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                        {CompanySizeLabelVN[key as CompanySize]}
-                      </SelectItem>
-                    ))}
-                  </div>
-                </div>
-              </SelectContent>
-            </Select>
           </div>
-          <CreateEmployerModal />
-          {/* <Button onClick={handleAddNew} className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
-            <Plus className="w-4 h-4 mr-2" />
-            Add New
-          </Button> */}
+          <CreateUserModal />
         </div>
 
         {/* Filters */}
@@ -303,62 +279,68 @@ export default function EmployerManagement() {
   [&::-webkit-scrollbar-thumb]:rounded-full
   [&::-webkit-scrollbar-thumb]:bg-teal-500"
       >
-        <table className="w-full border-collapse text-sm table-fixed min-w-screen">
+        <table className="min-w-screen w-full border-collapse text-sm table-fixed">
           {/* Table Header */}
           <thead>
             <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
-              <th className="px-4 py-3 w-[20px]">
-                <Checkbox checked={selectedIds.length === employers.length && employers.length > 0} onCheckedChange={handleSelectAll} />
+              <th className="px-3 w-[20px] py-3">
+                <Checkbox checked={selectedIds.length === users.length && users.length > 0} onCheckedChange={handleSelectAll} />
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[170px]">
+              <th className="px-4 py-3 w-[190px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Name</span>
+                  <span>Full Name</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "companyName")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("companyName", newDirection)}
+                    direction={sorts.find((s) => s.field === "fullName")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("fullName", newDirection)}
                   />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[80px]">
+              <th className="px-4 py-3 w-[80px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
                   <span>Status</span>
                   <MultiSortButton direction={sorts.find((s) => s.field === "status")?.direction ?? null} onChange={(newDirection) => handleSortChange("status", newDirection)} />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
-                <div className="flex items-center justify-start gap-2">
-                  <span>Size</span>
-                  <MultiSortButton
-                    direction={sorts.find((s) => s.field === "companySize")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("companySize", newDirection)}
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
+              <th className="px-4 py-3 w-[160px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
                   <span>Email</span>
                   <MultiSortButton direction={sorts.find((s) => s.field === "email")?.direction ?? null} onChange={(newDirection) => handleSortChange("email", newDirection)} />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">
+              <th className="px-4 py-3 w-[80px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>District</span>
+                  <span>Role</span>
+                  <MultiSortButton direction={sorts.find((s) => s.field === "role")?.direction ?? null} onChange={(newDirection) => handleSortChange("role", newDirection)} />
+                </div>
+              </th>
+              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Phone Number</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "district.name")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("district.name", newDirection)}
+                    direction={sorts.find((s) => s.field === "phoneNumber")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("phoneNumber", newDirection)}
                   />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">
+              <th className="px-4 py-3 w-[80px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Province</span>
+                  <span>Gender</span>
+                  <MultiSortButton direction={sorts.find((s) => s.field === "gender")?.direction ?? null} onChange={(newDirection) => handleSortChange("gender", newDirection)} />
+                </div>
+              </th>
+              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Birth Date</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "province.name")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("province.name", newDirection)}
+                    direction={sorts.find((s) => s.field === "birthDate")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("birthDate", newDirection)}
                   />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
+
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">District</th>
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">Province</th>
+              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
                   <span>Created At</span>
                   <MultiSortButton
@@ -367,7 +349,7 @@ export default function EmployerManagement() {
                   />
                 </div>
               </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
+              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
                   <span>Updated At</span>
                   <MultiSortButton
@@ -376,53 +358,60 @@ export default function EmployerManagement() {
                   />
                 </div>
               </th>
-              <th className="px-4 py-3 w-12 text-right"></th>
+              <th className="px-4 py-3 text-right w-[30px]"></th>
             </tr>
           </thead>
 
           {/* Table Body */}
           <tbody>
-            {isLoadingEmployers ? (
+            {isLoadingUsers ? (
               <tr>
                 <td colSpan={8} className="text-center py-10 text-muted-foreground italic">
                   Loading...
                 </td>
               </tr>
-            ) : employers.length === 0 ? (
+            ) : users.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center py-10 text-muted-foreground">
                   <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
-                  <p className="mt-2 text-sm text-gray-500">No employers found</p>
+                  <p className="mt-2 text-sm text-gray-500">No users found</p>
                 </td>
               </tr>
             ) : (
-              employers.map((employer) => (
-                <tr key={employer.id} className="hover:bg-muted/30 border-b last:border-none transition-colors">
-                  <td className="px-4 py-3 w-[20px]">
-                    <Checkbox checked={selectedIds.includes(employer.id)} onCheckedChange={(checked) => handleSelectOne(employer.id, checked as boolean)} />
+              users.map((user) => (
+                <tr key={user.id} className="hover:bg-muted/30 border-b last:border-none transition-colors">
+                  <td className="px-3 py-3 w-[20px]">
+                    <Checkbox checked={selectedIds.includes(user.id)} onCheckedChange={(checked) => handleSelectOne(user.id, checked as boolean)} />
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 w-[170px] truncate">
+                  <td className="px-4 py-3 w-[190px] font-medium  text-gray-900 dark:text-gray-100 truncate">
                     <div className="w-full flex items-center gap-1.5">
                       {/* Avatar */}
                       <Avatar className="w-9 h-9">
-                        <AvatarImage src={employer.avatarUrl || ""} alt={employer.companyName || "user"} />
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">{getNameInitials(employer?.companyName)}</AvatarFallback>
+                        <AvatarImage src={user.avatarUrl || ""} alt={user.fullName || "user"} />
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">{getNameInitials(user?.fullName)}</AvatarFallback>
                       </Avatar>
-                      <p>{employer.companyName}</p>
+                      <p>{user.fullName}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3 w-[80px]">
-                    <Badge variant="outline" className={UserStatusColors[employer.status]}>
-                      {UserStatusLabelEN[employer.status]}
+                    <Badge variant="outline" className={UserStatusColors[user.status]}>
+                      {UserStatusLabelEN[user.status]}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 w-[90px]">{CompanySizeLabelEN[employer.companySize]}</td>
-                  <td className="px-4 py-3 w-[160px] truncate">{employer.email}</td>
-                  <td className="px-4 py-3 w-[100px]">{employer.district?.name}</td>
-                  <td className="px-4 py-3 w-[100px]">{employer.province?.name}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(employer.createdAt).toLocaleDateString("vi-VN")}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(employer.updatedAt).toLocaleDateString("vi-VN")}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 w-[160px] truncate">{user.email}</td>
+                  <td className="px-4 py-3 w-[80px]">
+                    <Badge variant="outline" className={RoleColors[user.role]}>
+                      {RoleLabelEN[user.role]}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 w-[90px]">{user.phoneNumber ? user.phoneNumber : "null"}</td>
+                  <td className="px-4 py-3 w-[80px]">{user.gender ? user.gender : "null"}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(user.birthDate as string).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 w-[100px]">{user.district?.name ? user.district.name : "null"}</td>
+                  <td className="px-4 py-3 w-[100px]">{user.province?.name ? user.province.name : "null"}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(user.createdAt).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(user.updatedAt).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 text-right w-[30px]">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
@@ -430,15 +419,15 @@ export default function EmployerManagement() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => handleView(employer.id)}>
+                        <DropdownMenuItem onClick={() => handleView(user.id)}>
                           <Eye className="w-4 h-4 mr-2 text-blue-500" />
                           View details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(employer.id)}>
+                        <DropdownMenuItem onClick={() => handleEdit(user.id)}>
                           <Edit className="w-4 h-4 mr-2 text-green-500" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(employer.id)} className="text-red-600 focus:text-red-700">
+                        <DropdownMenuItem onClick={() => handleDelete(user.id)} className="text-red-600 focus:text-red-700">
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -451,11 +440,11 @@ export default function EmployerManagement() {
           </tbody>
         </table>
 
-        {totalEmployers > 0 && (
+        {totalUsers > 0 && (
           <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
             {(() => {
               const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
-              if (totalEmployers < minOption) return null;
+              if (totalUsers < minOption) return null;
 
               return (
                 <div className="flex self-start items-center space-x-2 text-sm text-gray-600">

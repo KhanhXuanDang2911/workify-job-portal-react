@@ -1367,7 +1367,7 @@ function EmployerPostJob() {
                                         key={industry.id}
                                         value={industry.id.toString()}
                                         className="focus:bg-sky-200 focus:text-[#1967d2]"
-                                        disabled={field.value?.some((item) => String(item.id) === industry.id)}
+                                        disabled={field.value?.some((item) => item.id === industry.id)}
                                       >
                                         {industry.name}
                                       </SelectItem>

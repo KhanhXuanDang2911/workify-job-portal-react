@@ -14,6 +14,8 @@ import NotFound from "@/pages/NotFound";
 import EmployerManagement from "@/pages/Admin/EmployerManagement/EmployerManagement";
 import EditEmployer from "@/pages/Admin/EmployerManagement/EditEmployer";
 import LocationManagement from "@/pages/Admin/LocationManagement/LocationManagement";
+import UserManagement from "@/pages/Admin/UserManagement/UserManagement";
+import EditUser from "@/pages/Admin/UserManagement/EditUser";
 
 const AdminProtectedRoutes: RouteObject[] = [
   {
@@ -72,6 +74,18 @@ const AdminProtectedRoutes: RouteObject[] = [
       {
         path: admin_routes.LOCATION,
         element: <LocationManagement />,
+      },
+      {
+        path: admin_routes.USERS,
+        element: <UserManagement />,
+      },
+      {
+        path: `${admin_routes.USERS}/:id`,
+        element: <EditUser />,
+      },
+      {
+        path: `${admin_routes.USERS}/edit/:id`,
+        element: <EditUser />,
       },
       {
         path: "*",
