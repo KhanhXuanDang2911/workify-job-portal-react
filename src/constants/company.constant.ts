@@ -43,3 +43,29 @@ export const CompanySizeLabel = {
   vi: CompanySizeLabelVN,
   en: CompanySizeLabelEN,
 } as const;
+
+export const UserStatus = {
+  ACTIVE : "ACTIVE",
+  PENDING: "PENDING",
+  BANNED: "BANNED",
+} as const;
+
+export type UserStatus = keyof typeof UserStatus;
+
+export const UserStatusLabelVN: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: "Hoạt động",
+  [UserStatus.PENDING]: "Chờ duyệt",
+  [UserStatus.BANNED]: "Bị cấm",
+};
+
+export const UserStatusLabelEN: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: "Active",
+  [UserStatus.PENDING]: "Pending",
+  [UserStatus.BANNED]: "Banned",
+};
+
+export const UserStatusColors: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: "bg-green-500 text-white",
+  [UserStatus.PENDING]: "bg-yellow-500 text-white",
+  [UserStatus.BANNED]: "bg-purple-500 text-white",
+};

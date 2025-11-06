@@ -11,6 +11,8 @@ import { admin_routes } from "@/routes/routes.const";
 import type { RouteObject } from "react-router-dom";
 import CategoryJobs from "@/pages/Admin/CategoryJobs/CategoryJobs";
 import NotFound from "@/pages/NotFound";
+import EmployerManagement from "@/pages/Admin/EmployerManagement/EmployerManagement";
+import EditEmployer from "@/pages/Admin/EmployerManagement/EditEmployer";
 
 const AdminProtectedRoutes: RouteObject[] = [
   {
@@ -53,6 +55,18 @@ const AdminProtectedRoutes: RouteObject[] = [
       {
         path: admin_routes.CATEGORY_JOBS_INDUSTRIES,
         element: <CategoryJobs />,
+      },
+      {
+        path: admin_routes.EMPLOYERS,
+        element: <EmployerManagement />,
+      },
+      {
+        path: `${admin_routes.EMPLOYERS}/edit/:id`,
+        element: <EditEmployer />,
+      },
+      {
+        path: `${admin_routes.EMPLOYERS}/:id`,
+        element: <EditEmployer />,
       },
       {
         path: "*",

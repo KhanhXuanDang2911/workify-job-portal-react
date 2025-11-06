@@ -102,14 +102,6 @@ export interface JobResponse {
   };
 }
 
-export interface PageResponse<T> {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  numberOfElements: number;
-  items: T[];
-}
-
 export interface JobsAdvancedSearchParams {
   keyword?: string;
   industryIds?: number[];

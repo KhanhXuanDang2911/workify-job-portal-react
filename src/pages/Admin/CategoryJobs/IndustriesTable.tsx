@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
-import SortButton from "@/components/SortButton/SortButton";
 import IndustrySheet from "@/pages/Admin/CategoryJobs/IndustrySheet";
 import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,27 +24,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import CreateIndustryModal from "@/pages/Admin/CategoryJobs/CreateIndustryModal";
+import { Badge } from "@/components/ui/badge";
+import SortButton from "@/components/SortButton";
 
 type SortField = "name" | "engName" | "createdAt" | "updatedAt";
 type SortDirection = "asc" | "desc";
 
 export default function IndustriesTable({ categoryJobId }: { categoryJobId: number }) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(10);
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState<RowsPerPage>(10);
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   const [selectedIndustry, setSelectedIndustry] = useState<With<Industry, { categoryJobId: number }> | null>(null);
+
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const [deleteIndustryId, setDeleteIndustryId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
 
   const { data: industriesData, isLoading } = useQuery({
-    queryKey: ["industries", categoryJobId, currentPage, rowsPerPage, sortField, sortDirection, searchTerm],
+    queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortField, sortDirection],
     queryFn: async () => {
-      const res = await industryService.getIndustries(currentPage, rowsPerPage, sortField, sortDirection, searchTerm || undefined);
+      const res = await industryService.getIndustries(pageNumber, pageSize, sortField, sortDirection, keyword || undefined);
       return res.data;
     },
     refetchOnWindowFocus: false,
@@ -55,18 +61,24 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
   const deleteMutation = useMutation({
     mutationFn: (id: number) => industryService.deleteIndustry(id),
     onSuccess: () => {
-      toast.success("Xóa thành công");
+      toast.success("Delete successful");
       setDeleteIndustryId(null);
-      queryClient.invalidateQueries({ queryKey: ["industries"] });
+      queryClient.invalidateQueries({ queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortField, sortDirection] });
     },
     onError: () => {
-      toast.error("Xóa thất bại");
+      toast.error("Delete failed");
     },
   });
 
   const industries = industriesData?.items || [];
   const totalPages = industriesData?.totalPages || 0;
   const totalIndustries = industriesData?.numberOfElements || 0;
+
+  const ClearFilters = () => {
+    setKeyword("");
+    setSearchInput("");
+    setPageNumber(1);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -75,12 +87,32 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
       setSortField(field);
       setSortDirection("asc");
     }
-    setCurrentPage(1);
+    setPageNumber(1);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(industries?.map((item) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
   };
 
   const handleSearch = () => {
-    setSearchTerm(searchInput);
-    setCurrentPage(1);
+    setKeyword(searchInput);
+    setPageNumber(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setPageNumber(page);
   };
 
   const handleEdit = (industry: With<Industry, { categoryJobId: number }>) => {
@@ -95,38 +127,62 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div
           className="flex items-center gap-2 px-8 py-2 bg-teal-500 text-white w-fit"
           style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
         >
           <span className="font-semibold">Industries</span>
         </div>
-        <div className="flex-1 flex gap-2">
-          <Input
-            type="text"
-            placeholder="Search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="flex-1 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
-          />
-          <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-900">
-            Tìm kiếm
-          </Button>
-        </div>
+
         <div className="">
           <CreateIndustryModal categoryJobId={categoryJobId} />
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 flex gap-2">
+          <Input
+            type="text"
+            placeholder="Search by name or eng name, created at, updated at..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="flex-1 focus-visible:border-none bg-white focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-900">
+            Search
+          </Button>
+        </div>
+        {keyword && (
+          <Button
+            variant="outline"
+            className="border-[#4B9D7C] hover-border-[#4B9D7C] text-[#4B9D7C] hover:bg-[#4B9D7C]/10 hover:text-[#4B9D7C] transition-all"
+            size="sm"
+            onClick={ClearFilters}
+          >
+            Clear filters
+          </Button>
+        )}
+      </div>
+
+      {selectedIds.length > 0 && (
+        <div className="mt-4 flex items-center gap-2">
+          <Badge variant="secondary">{selectedIds.length} selected</Badge>
+          <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-600/10">
+            Delete selected
+          </Button>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="border border-gray-200 rounded-lg">
-        <table className="w-full overflow-x-hidden">
+      <div className="border border-gray-200 rounded-lg overflow-x-auto">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100 border-b text-sm border-gray-200 overflow-x-hidden">
+            <tr className="bg-gray-100 border-b text-sm border-gray-200 ">
               <th className="px-4 py-3 text-left">
-                <Checkbox />
+                <Checkbox checked={selectedIds.length === industries.length && industries.length > 0} onCheckedChange={handleSelectAll} />
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
@@ -152,20 +208,21 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
                   <SortButton isActive={sortField === "updatedAt"} direction={sortDirection} onClick={() => handleSort("updatedAt")} />
                 </div>
               </th>
-              <th className="px-4 py-3 text-left">Action</th>
+              <th className="px-4 py-3 text-left"></th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr className="border-b border-gray-200 text-[13px] hover:bg-gray-50 cursor-pointer">
-                <td colSpan={5} className="px-4 py-3">
+              <tr>
+                <td colSpan={5} className="text-center py-10 text-muted-foreground italic">
                   Loading...
                 </td>
               </tr>
             ) : industries.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-3">
-                  No industries found
+                <td colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
+                  <p className="mt-2 text-sm text-gray-500">No industries found</p>
                 </td>
               </tr>
             ) : (
@@ -176,7 +233,11 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
                   onClick={() => handleEdit({ ...industry, categoryJobId })}
                 >
                   <td className="px-4 py-3">
-                    <Checkbox />
+                    <Checkbox
+                      onClick={(e) => e.stopPropagation()}
+                      checked={selectedIds.includes(industry.id)}
+                      onCheckedChange={(checked) => handleSelectOne(industry.id, checked as boolean)}
+                    />
                   </td>
                   <td className="px-4 py-3">{industry.name}</td>
                   <td className="px-4 py-3">{industry.engName}</td>
@@ -204,33 +265,41 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
 
       {/* Pagination Controls */}
       {totalIndustries > 0 && (
-        <>
-          <div className="mt-4">
-            <div className="flex items-center gap-2 text-gray-600 text-sm ">
-              <span className="text-sm text-muted-foreground">Show:</span>
-              <Select
-                value={rowsPerPage.toString()}
-                onValueChange={(value) => {
-                  setRowsPerPage(Number(value) as RowsPerPage);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RowsPerPageOptions.map((option) => (
-                    <SelectItem key={option.label} value={option.value.toString()}>
-                      {option.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span>Rows</span>
-            </div>
+        <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
+          {(() => {
+            const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
+            if (totalIndustries < minOption) return null;
+
+            return (
+              <div className="flex items-center self-start space-x-2 text-sm text-gray-600">
+                <span>Shows:</span>
+                <Select
+                  value={pageSize.toString()}
+                  onValueChange={(value) => {
+                    setPageSize(Number(value) as RowsPerPage);
+                    setPageNumber(1);
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RowsPerPageOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span>Rows</span>
+              </div>
+            );
+          })()}
+
+          <div className="w-full sm:w-auto flex justify-center">
+            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </>
+        </div>
       )}
 
       {/* Industry Sheet */}
