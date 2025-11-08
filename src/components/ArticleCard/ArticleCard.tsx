@@ -5,6 +5,7 @@ import { Calendar, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Article = {
+  id?: number;
   title: string;
   author: string;
   date: string;
@@ -13,16 +14,6 @@ type Article = {
   tags: string[];
   category: string;
 };
-
-// Badge màu rõ hơn, có contrast
-const tagColors = [
-  "bg-blue-500 text-white hover:bg-blue-600",
-  "bg-yellow-500 text-white hover:bg-yellow-600",
-  "bg-orange-500 text-white hover:bg-orange-600",
-  "bg-cyan-500 text-white hover:bg-cyan-600",
-  "bg-indigo-500 text-white hover:bg-indigo-600",
-  "bg-gray-500 text-white hover:bg-gray-600",
-];
 
 export default function ArticleCard({ article }: { article: Article }) {
   return (
@@ -59,7 +50,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           </div>
 
           <Link
-            to={`/${routes.ARTICLES_DETAIL}`}
+            to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}
             className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors"
           >
             {article.title}
@@ -69,7 +60,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           </p>
 
           {/* Tags badges */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          {/* <div className="flex flex-wrap gap-2 mb-4">
             {article.tags.map((tag, tagIndex) => {
               const colorClass = tagColors[tagIndex % tagColors.length];
               return (
@@ -81,13 +72,15 @@ export default function ArticleCard({ article }: { article: Article }) {
                 </Badge>
               );
             })}
-          </div>
+          </div> */}
 
           <Button
             variant="link"
             className="p-0 text-blue-600 hover:text-blue-700 font-semibold"
           >
-            <Link to={routes.ARTICLES_DETAIL}>Read More →</Link>
+            <Link to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}>
+              Read More →
+            </Link>
           </Button>
         </div>
       </div>

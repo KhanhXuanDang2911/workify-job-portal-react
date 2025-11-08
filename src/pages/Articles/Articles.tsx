@@ -1,179 +1,148 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import ArticleCard from "@/components/ArticleCard";
 import Pagination from "@/components/Pagination";
+import { useQuery } from "@tanstack/react-query";
+import { postService } from "@/services/post.service";
+import useDebounce from "@/hooks/useDebounce";
+import { routes } from "@/routes/routes.const";
+import type { PostResponse, PostCategory } from "@/types/post.type";
+
+type Article = {
+  id?: number;
+  title: string;
+  author: string;
+  date: string;
+  excerpt: string;
+  image: string;
+  tags: string[];
+  category: string;
+};
 
 export default function Articles() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const articlesPerPage = 6;
-
-  const allArticles = [
-    {
-      title: "How to convince recruiters and get your dream job",
-      author: "Mark Petter",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Career", "Tips"],
-      category: "Career Advice",
-    },
-    {
-      title: "5 things to know about the March 2023 jobs report",
-      author: "David Wish",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Report", "Analysis"],
-      category: "Market Insights",
-    },
-    {
-      title: "Job Board is the most important sector in the world",
-      author: "Mike Doe",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-      tags: ["Industry", "Growth"],
-      category: "Industry News",
-    },
-    {
-      title: "How to convince recruiters and get your dream job",
-      author: "Mark Petter",
-      date: "March 05, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Career", "Tips"],
-      category: "Career Advice",
-    },
-    {
-      title: "Advanced Service Functions by Air Transport",
-      author: "David Wish",
-      date: "April 12, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Transport", "Service"],
-      category: "Information",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      author: "Mike Doe",
-      date: "April 15, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-      tags: ["Warehouse", "Management"],
-      category: "Learn",
-    },
-    {
-      title: "Equipment you can count on. People you can trust.",
-      author: "Mark Petter",
-      date: "April 08, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Equipment", "Trust"],
-      category: "Jobs",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      author: "David Wish",
-      date: "April 20, 2023",
-      excerpt:
-        "New chip traps clusters of migrating tumor cells asperiores, blanditiis odit.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Warehouse", "Goods"],
-      category: "Skill",
-    },
-  ];
-
-  const categories = [
-    { name: "Categories", count: 68 },
-    { name: "Education", count: 12 },
-    { name: "Information", count: 15 },
-    { name: "Jobs", count: 25 },
-    { name: "Learn", count: 36 },
-    { name: "Skill", count: 12 },
-  ];
-
-  const recentArticles = [
-    {
-      title: "Equipment you can count on. People you can trust.",
-      date: "April 08, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-    },
-    {
-      title: "Advanced Service Functions by Air Transport",
-      date: "April 12, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      date: "April 15, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-    },
-    {
-      title: "Equipment you can count on. People you can trust.",
-      date: "April 18, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      date: "April 20, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-    },
-  ];
-
-  const tags = [
-    "General",
-    "Jobs",
-    "Payment",
-    "Application",
-    "Work",
-    "Recruiting",
-    "Employer",
-    "Income",
-    "Tips",
-  ];
-
-  const filteredArticles = allArticles.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.category.toLowerCase().includes(searchTerm.toLowerCase())
+  
+  // Get categoryId from URL params
+  const categoryIdFromUrl = searchParams.get("categoryId");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    categoryIdFromUrl ? Number(categoryIdFromUrl) : null
   );
+  const pageSize = 6;
 
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-  const startIndex = (currentPage - 1) * articlesPerPage;
-  const currentArticles = filteredArticles.slice(
-    startIndex,
-    startIndex + articlesPerPage
-  );
+  const debouncedKeyword = useDebounce(searchTerm, 500);
+
+  // Update selectedCategoryId when URL params change
+  useEffect(() => {
+    const categoryId = searchParams.get("categoryId");
+    if (categoryId) {
+      setSelectedCategoryId(Number(categoryId));
+    } else {
+      setSelectedCategoryId(null);
+    }
+  }, [searchParams]);
+
+  // Reset to page 1 when search or category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedKeyword, selectedCategoryId]);
+
+  // Fetch categories
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["post-categories"],
+    queryFn: () => postService.getAllCategories(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const categories: PostCategory[] = categoriesResponse?.data || [];
+
+  // Fetch latest articles for Recent Articles section
+  const { data: latestPostsResponse } = useQuery({
+    queryKey: ["latest-public-posts"],
+    queryFn: () => postService.getLatestPublicPosts(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch articles from API
+  const { data: apiResponse, isLoading, isError } = useQuery({
+    queryKey: ["public-posts", currentPage, pageSize, debouncedKeyword, selectedCategoryId],
+    queryFn: () =>
+      postService.getPublicPosts({
+        pageNumber: currentPage,
+        pageSize: pageSize,
+        sorts: "createdAt:desc",
+        ...(debouncedKeyword && { keyword: debouncedKeyword }),
+        ...(selectedCategoryId && { categoryId: selectedCategoryId }),
+      }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Map PostResponse to Article format
+  const mapPostToArticle = (post: PostResponse): Article => ({
+    id: post.id,
+    title: post.title,
+    author: post.author?.fullName || post.author?.email || "",
+    date: post.createdAt
+      ? new Date(post.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "",
+    excerpt: post.excerpt || post.contentText || "",
+    image: post.thumbnailUrl || "/placeholder.svg",
+    tags:
+      typeof post.tags === "string"
+        ? post.tags.split("|").filter((tag) => tag.trim())
+        : Array.isArray(post.tags)
+        ? post.tags
+        : [],
+    category: post.category?.title || "",
+  });
+
+  const allArticles: Article[] =
+    Array.isArray(apiResponse?.data?.items)
+      ? apiResponse.data.items.map(mapPostToArticle)
+      : [];
+
+  const totalPages = apiResponse?.data?.totalPages || 0;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const handleCategoryClick = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    // Update URL params
+    if (categoryId) {
+      setSearchParams({ categoryId: categoryId.toString() });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  // Map latest posts to recent articles format
+  const recentArticles =
+    Array.isArray(latestPostsResponse?.data)
+      ? latestPostsResponse.data.map((post: PostResponse) => ({
+          id: post.id,
+          title: post.title,
+          date: post.createdAt
+            ? new Date(post.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "",
+          image: post.thumbnailUrl || "/placeholder.svg",
+        }))
+      : [];
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
@@ -193,7 +162,7 @@ export default function Articles() {
 
       <div className="main-layout relative z-10 py-8">
         {/* Header with back button */}
-        <div className="flex items-center mb-8">
+        {/* <div className="flex items-center mb-8">
           <Button
             variant="outline"
             className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white"
@@ -202,34 +171,66 @@ export default function Articles() {
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Button>
-        </div>
+        </div> */}
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main content */}
           <div className="lg:col-span-3">
             {/* Page title */}
-            <div className="mb-8">
+            {/* <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Articles
               </h1>
               <p className="text-gray-600">
                 Discover the latest insights and tips for your career journey
               </p>
+            </div> */}
+
+            {/* Loading state */}
+            {isLoading && (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading articles...</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {isError && (
+              <div className="text-center py-12">
+                <p className="text-red-600">
+                  Error loading articles. Please try again later.
+              </p>
             </div>
+            )}
 
             {/* Articles grid */}
+            {!isLoading && !isError && (
+              <>
+                {allArticles.length > 0 ? (
+                  <>
             <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {currentArticles.map((article, index) => (
+                      {allArticles.map((article, index) => (
                 <ArticleCard key={index} article={article} />
               ))}
             </div>
 
             {/* Pagination */}
+                    {totalPages > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
             />
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-600">
+                      No articles found. Try adjusting your search or filters.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -240,12 +241,9 @@ export default function Articles() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search articles..."
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 border-gray-200"
                 />
               </div>
@@ -257,15 +255,27 @@ export default function Articles() {
                 Categories
               </h3>
               <div className="space-y-3">
-                {categories.map((category, index) => (
+                <div
+                  className={`text-sm cursor-pointer transition-colors ${
+                    selectedCategoryId === null
+                      ? "text-[#1967d2] font-medium"
+                      : "text-gray-600 hover:text-[#1967d2]"
+                  }`}
+                  onClick={() => handleCategoryClick(null)}
+                >
+                  All Categories
+                </div>
+                {categories.map((category) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between text-sm"
+                    key={category.id}
+                    className={`text-sm cursor-pointer transition-colors ${
+                      selectedCategoryId === category.id
+                        ? "text-[#1967d2] font-medium"
+                        : "text-gray-600 hover:text-[#1967d2]"
+                    }`}
+                    onClick={() => handleCategoryClick(category.id)}
                   >
-                    <span className="text-gray-600 hover:text-[#1967d2] cursor-pointer transition-colors">
-                      {category.name}
-                    </span>
-                    <span className="text-gray-400">{category.count}</span>
+                    {category.title}
                   </div>
                 ))}
               </div>
@@ -277,41 +287,33 @@ export default function Articles() {
                 Recent Article
               </h3>
               <div className="space-y-4">
-                {recentArticles.map((article, index) => (
-                  <div key={index} className="flex gap-3">
-                    <img
-                      src={article.image || "/placeholder.svg"}
-                      alt={article.title}
-                      className="w-16 h-16 object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <p className="text-xs text-[#1967d2] mb-1">
-                        {article.date}
-                      </p>
-                      <h4 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[#1967d2] cursor-pointer transition-colors">
-                        {article.title}
-                      </h4>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                {recentArticles.map((article, index) => {
+                  const linkTo = article.id
+                    ? `/${routes.ARTICLES_DETAIL}/${article.id}`
+                    : "#";
 
-            {/* Tags */}
-            <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
-              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-[#1967d2] hover:text-white transition-colors"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
+                  return (
+                    <Link
+                      key={index}
+                      to={linkTo}
+                      className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                      <img
+                        src={article.image || "/placeholder.svg"}
+                        alt={article.title}
+                        className="w-16 h-16 object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <p className="text-xs text-[#1967d2] mb-1">
+                          {article.date}
+                        </p>
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[#1967d2] transition-colors">
+                          {article.title}
+                        </h4>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -73,4 +73,10 @@ export const postService = {
     const response = await http.get<ApiResponse<PageResponse<any>>>('/posts/public', { params });
     return response.data;
   },
+
+  // Latest public posts
+  getLatestPublicPosts: async (): Promise<ApiResponse<PostResponse[]>> => {
+    const response = await http.get<ApiResponse<PostResponse[]>>('/posts/public/latest');
+    return response.data;
+  },
 };

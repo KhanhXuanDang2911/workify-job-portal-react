@@ -57,7 +57,7 @@ const UserPublicRoutes: RouteObject[] = [
         element: <Articles />,
       },
       {
-        path: routes.ARTICLES_DETAIL,
+        path: `${routes.ARTICLES_DETAIL}/:id`,
         element: <ArticleDetail />,
       },
       {

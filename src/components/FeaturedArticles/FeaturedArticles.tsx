@@ -11,7 +11,7 @@ export default function FeaturedArticles() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Fetch public posts
-  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+  const { data: apiResponse, isLoading, isError } = useQuery({
     queryKey: ["public-posts"],
     queryFn: () => postService.getPublicPosts({ pageNumber: 1, pageSize: 6 }),
     staleTime: 5 * 60 * 1000,
@@ -20,6 +20,7 @@ export default function FeaturedArticles() {
   const itemsFromApi: any[] = Array.isArray(apiResponse?.data?.items) ? apiResponse.data.items : [];
 
   const mapPostToArticle = (post: any) => ({
+    id: post.id,
     title: post.title,
     author: post.author?.fullName || post.author?.email || "",
     date: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "",
