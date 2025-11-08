@@ -1,5 +1,6 @@
 import http from "@/lib/http";
 import type { ApiResponse, Employer, PageResponse, SearchParams } from "@/types";
+import type { With } from "@/types/common";
 
 export interface EmployerSignUpRequest {
   email: string;
@@ -86,7 +87,7 @@ export const employerService = {
     return response.data;
   },
 
-  getEmployers: async (params: SearchParams): Promise<ApiResponse<PageResponse<Employer>>> => {
+  getEmployers: async (params: With<SearchParams,{provinceId?:number}>): Promise<ApiResponse<PageResponse<Employer>>> => {
     const response = await http.get<ApiResponse<PageResponse<Employer>>>("/employers", { params });
     return response.data;
   },

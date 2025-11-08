@@ -23,7 +23,7 @@ import { toast } from "react-toastify";
 import { CompanySize, CompanySizeLabelEN, CompanySizeLabelVN, RowsPerPageOptions, UserStatusColors, UserStatusLabelEN, type RowsPerPage } from "@/constants";
 import Pagination from "@/components/Pagination";
 import MultiSortButton from "@/components/MultiSortButton";
-import { employerService, provinceService } from "@/services";
+import { employerService, industryService, provinceService } from "@/services";
 import CreateEmployerModal from "@/pages/Admin/EmployerManagement/CreateEmployerModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getNameInitials } from "@/utils";
@@ -44,7 +44,7 @@ export default function EmployerManagement() {
   const [searchInput, setSearchInput] = useState("");
   const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
   const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
-  const [companySize, setCompanySize] = useState<CompanySize | undefined>(undefined);
+  // const [companySize, setCompanySize] = useState<CompanySize | undefined>(undefined);
 
   const [searchProvince, setSearchProvince] = useState("");
 
@@ -64,13 +64,14 @@ export default function EmployerManagement() {
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
   const { data: employersData, isLoading: isLoadingEmployers } = useQuery({
-    queryKey: ["employers", pageNumber, pageSize, keyword, sortsString],
+    queryKey: ["employers", pageNumber, pageSize, keyword, sortsString,provinceId],
     queryFn: () =>
       employerService.getEmployers({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
         sorts: sortsString || undefined,
+        provinceId
       }),
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
@@ -139,7 +140,7 @@ export default function EmployerManagement() {
     setPageNumber(1);
     setPageSize(10);
     setProvinceId(undefined);
-    setCompanySize(undefined);
+    // setCompanySize(undefined);
     setSorts([]);
   };
 
@@ -202,9 +203,10 @@ export default function EmployerManagement() {
             <Button onClick={handleSearch} variant="secondary" className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
               Search
             </Button>
+
             <Select value={provinceId ? String(provinceId) : ""} onValueChange={(value) => setProvinceId(Number(value) || undefined)}>
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Province" />
+                <SelectValue placeholder="Select Province" />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
@@ -249,7 +251,8 @@ export default function EmployerManagement() {
                 </div>
               </SelectContent>
             </Select>
-            <Select value={companySize ?? ""} onValueChange={(value) => setCompanySize(value as CompanySize | undefined)}>
+
+            {/* <Select value={companySize ?? ""} onValueChange={(value) => setCompanySize(value as CompanySize | undefined)}>
               <SelectTrigger className="w-64 !text-gray-500">
                 <SelectValue placeholder="Company size" />
               </SelectTrigger>
@@ -264,13 +267,9 @@ export default function EmployerManagement() {
                   </div>
                 </div>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
           <CreateEmployerModal />
-          {/* <Button onClick={handleAddNew} className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
-            <Plus className="w-4 h-4 mr-2" />
-            Add New
-          </Button> */}
         </div>
 
         {/* Filters */}

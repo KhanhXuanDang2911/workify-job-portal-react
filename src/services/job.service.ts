@@ -1,6 +1,7 @@
 import http from "@/lib/http";
-import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province } from "@/types";
+import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, SearchParams } from "@/types";
 import type { JobRequest, JobResponse } from "@/types";
+import type { With } from "@/types/common";
 
 export const jobService = {
   createJob: async (data: JobRequest): Promise<ApiResponse<JobResponse>> => {
@@ -8,13 +9,9 @@ export const jobService = {
     return response.data;
   },
 
-  getMyJobs: async (pageNumber = 1, pageSize = 10, keyword?: string): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+  getMyJobs: async (params: With<SearchParams,{provinceId?:number,industryId?:number}>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
     const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/me", {
-      params: {
-        pageNumber,
-        pageSize,
-        ...(keyword && { keyword }),
-      },
+      params
     });
     return response.data;
   },

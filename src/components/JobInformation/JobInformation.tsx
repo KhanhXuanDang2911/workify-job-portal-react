@@ -335,7 +335,7 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
               return (
                 <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
                   <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
-                  <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
+                  <Icon className="flex-shrink-0" color="#1967d2" strokeWidth={1.8} size={28} />
                   <span className="text-gray-700">{benefit.description}</span>
                 </div>
               );
