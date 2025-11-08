@@ -6,7 +6,6 @@ import ArticleCard from "@/components/ArticleCard";
 import Pagination from "@/components/Pagination";
 import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
-import useDebounce from "@/hooks/useDebounce";
 import { routes } from "@/routes/routes.const";
 import type { PostResponse, PostCategory } from "@/types/post.type";
 
@@ -23,32 +22,59 @@ type Article = {
 
 export default function Articles() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
   
-  // Get categoryId from URL params
+  // Read from URL params on mount
+  const keywordFromUrl = searchParams.get("keyword") || "";
   const categoryIdFromUrl = searchParams.get("categoryId");
+  const pageFromUrl = searchParams.get("page");
+
+  // Applied filters (from URL)
+  const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     categoryIdFromUrl ? Number(categoryIdFromUrl) : null
   );
-  const pageSize = 6;
+  const [currentPage, setCurrentPage] = useState(pageFromUrl ? Number(pageFromUrl) : 1);
+  
+  // Temp search term (before applying)
+  const [tempSearchTerm, setTempSearchTerm] = useState(keywordFromUrl);
+  
+  const pageSize = 4;
 
-  const debouncedKeyword = useDebounce(searchTerm, 500);
-
-  // Update selectedCategoryId when URL params change
+  // Update URL params when applied filters change
   useEffect(() => {
-    const categoryId = searchParams.get("categoryId");
-    if (categoryId) {
-      setSelectedCategoryId(Number(categoryId));
-    } else {
-      setSelectedCategoryId(null);
+    const params = new URLSearchParams();
+    
+    if (appliedKeyword) {
+      params.set("keyword", appliedKeyword);
     }
+    
+    if (selectedCategoryId) {
+      params.set("categoryId", selectedCategoryId.toString());
+    }
+    
+    if (currentPage > 1) {
+      params.set("page", currentPage.toString());
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [appliedKeyword, selectedCategoryId, currentPage, setSearchParams]);
+
+  // Read from URL params when URL changes
+  useEffect(() => {
+    const keywordParam = searchParams.get("keyword") || "";
+    const categoryIdParam = searchParams.get("categoryId");
+    const pageParam = searchParams.get("page");
+
+    setAppliedKeyword(keywordParam);
+    setSelectedCategoryId(categoryIdParam ? Number(categoryIdParam) : null);
+    setCurrentPage(pageParam ? Number(pageParam) : 1);
+    setTempSearchTerm(keywordParam);
   }, [searchParams]);
 
   // Reset to page 1 when search or category changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedKeyword, selectedCategoryId]);
+  }, [appliedKeyword, selectedCategoryId]);
 
   // Fetch categories
   const { data: categoriesResponse } = useQuery({
@@ -68,13 +94,13 @@ export default function Articles() {
 
   // Fetch articles from API
   const { data: apiResponse, isLoading, isError } = useQuery({
-    queryKey: ["public-posts", currentPage, pageSize, debouncedKeyword, selectedCategoryId],
+    queryKey: ["public-posts", currentPage, pageSize, appliedKeyword, selectedCategoryId],
     queryFn: () =>
       postService.getPublicPosts({
         pageNumber: currentPage,
         pageSize: pageSize,
         sorts: "createdAt:desc",
-        ...(debouncedKeyword && { keyword: debouncedKeyword }),
+        ...(appliedKeyword && { keyword: appliedKeyword }),
         ...(selectedCategoryId && { categoryId: selectedCategoryId }),
       }),
     staleTime: 5 * 60 * 1000,
@@ -117,12 +143,12 @@ export default function Articles() {
 
   const handleCategoryClick = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
-    // Update URL params
-    if (categoryId) {
-      setSearchParams({ categoryId: categoryId.toString() });
-    } else {
-      setSearchParams({});
-    }
+    setCurrentPage(1);
+  };
+
+  const handleSearch = () => {
+    setAppliedKeyword(tempSearchTerm);
+    setCurrentPage(1);
   };
 
   // Map latest posts to recent articles format
@@ -242,8 +268,13 @@ export default function Articles() {
                 <Input
                   type="text"
                   placeholder="Search articles..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={tempSearchTerm}
+                  onChange={(e) => setTempSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
                   className="pl-10 border-gray-200"
                 />
               </div>
@@ -298,19 +329,19 @@ export default function Articles() {
                       to={linkTo}
                       className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                     >
-                      <img
-                        src={article.image || "/placeholder.svg"}
-                        alt={article.title}
-                        className="w-16 h-16 object-cover flex-shrink-0"
-                      />
-                      <div className="flex-1">
-                        <p className="text-xs text-[#1967d2] mb-1">
-                          {article.date}
-                        </p>
+                    <img
+                      src={article.image || "/placeholder.svg"}
+                      alt={article.title}
+                      className="w-16 h-16 object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <p className="text-xs text-[#1967d2] mb-1">
+                        {article.date}
+                      </p>
                         <h4 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[#1967d2] transition-colors">
-                          {article.title}
-                        </h4>
-                      </div>
+                        {article.title}
+                      </h4>
+                    </div>
                     </Link>
                   );
                 })}

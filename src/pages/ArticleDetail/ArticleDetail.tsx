@@ -145,21 +145,21 @@ export default function ArticleDetail() {
 
     // Wait for content to be rendered in DOM
     const timer = setTimeout(() => {
-      const parser = new DOMParser();
+    const parser = new DOMParser();
       const doc = parser.parseFromString(processedContent, "text/html");
       const headings = doc.querySelectorAll("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
 
       const items: TOCItem[] = Array.from(headings).map((heading) => {
         const id = heading.id || "";
-        const level = Number.parseInt(heading.tagName.charAt(1));
-        return {
-          id,
-          text: heading.textContent || "",
-          level,
-        };
-      });
+      const level = Number.parseInt(heading.tagName.charAt(1));
+      return {
+        id,
+        text: heading.textContent || "",
+        level,
+      };
+    });
 
-      setTocItems(items);
+    setTocItems(items);
     }, 100);
 
     return () => clearTimeout(timer);
@@ -168,18 +168,18 @@ export default function ArticleDetail() {
   const handleTOCClick = (id: string) => {
     // Prevent default if it's a button click
     const scrollToHeading = () => {
-      const element = document.getElementById(id);
-      if (element) {
+    const element = document.getElementById(id);
+    if (element) {
         // Calculate position with offset
         const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
         const offset = 100; // 100px above the heading
         const targetPosition = elementTop - offset;
 
-        window.scrollTo({
+      window.scrollTo({
           top: Math.max(0, targetPosition),
-          behavior: "smooth",
-        });
-        setActiveSection(id);
+        behavior: "smooth",
+      });
+      setActiveSection(id);
         return true;
       }
       return false;
@@ -390,7 +390,7 @@ export default function ArticleDetail() {
                 dangerouslySetInnerHTML={{ __html: processedContent }}
               />
             </div>
-          </div>
+            </div>
 
           <div className="space-y-6">
             {/* Categories */}
