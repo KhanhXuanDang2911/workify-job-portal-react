@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import BaseModal from "@/components/BaseModal";
 import { Plus, Trash2, Loader2, ChevronDownIcon, MapPin } from "lucide-react";
-import { useRef, useCallback, useState, useLayoutEffect } from "react";
+import { useRef, useCallback, useState, useLayoutEffect, useEffect } from "react";
 import type { JobBenefit } from "@/types/benefit.type";
 import { jobBenefitSchema, locationSchema, postJobSchema, type JobBenefitFormData, type LocationFormData, type PostJobFormData } from "@/schemas/job/job.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,10 +33,10 @@ import {
   JobLevelLabelVN,
   JobType,
   JobTypeLabelVN,
+  SalaryType,
   SalaryUnit,
-  type SalaryType,
 } from "@/constants";
-import type { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import type { ApiError, District, Employer, JobRequest, Province } from "@/types";
 import { useAuth } from "@/context/auth/useAuth";
 import { useIndustries } from "@/hooks/industry/useIndustries";
@@ -51,22 +51,20 @@ import { useNavigate, useParams } from "react-router-dom";
 import Loading from "@/components/Loading";
 import type { JobInformationProps, JobInformationRef, JobProp } from "@/components/JobInformation/JobInformation";
 import { authUtils } from "@/lib/auth";
+import { employer_routes } from "@/routes/routes.const";
 
 type SectionType = "header" | "description" | "benefits" | "requirements" | "jobDetails" | "contact" | "companyInformation";
 
 function EmployerPostJob() {
-  const { jobId } = useParams<{ jobId?: string }>();
-  const navigate = useNavigate();
-  const isEditMode = !!jobId;
-  const queryClient = useQueryClient();
+  const renderCount = useRef(0);
 
-  const mainForm = useForm<PostJobFormData>({
-    resolver: zodResolver(postJobSchema) as Resolver<PostJobFormData>,
-    mode: "onBlur",
-    defaultValues: {
-      jobBenefits: [],
-    },
-  });
+  const { jobId } = useParams<{ jobId?: string }>();
+
+  const navigate = useNavigate();
+
+  const isEditMode = !!jobId;
+
+  const queryClient = useQueryClient();
 
   const { data: industries, isFetching: isFetchingIndustries } = useIndustries();
 
@@ -77,93 +75,95 @@ function EmployerPostJob() {
 
   const { state } = useAuth();
   const employer = state.user as Employer;
+
   const [openDatePicker, setOpenDatePicker] = useState(false);
 
-  const { data: jobData, isLoading: isLoadingJob } = useQuery({
+  const {
+    data: jobData,
+    isLoading: isLoadingJob,
+    error,
+  } = useQuery({
     queryKey: ["job", jobId],
-    queryFn: () => jobService.getJobById(Number(jobId)),
+    queryFn: async () => {
+      const res = await jobService.getJobById(Number(jobId));
+      return res.data;
+    },
     enabled: isEditMode && !!jobId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    retry: false,
   });
 
-  useLayoutEffect(() => {
-    if (isEditMode && jobData?.data) {
-      const job = jobData.data;
-      mainForm.reset({
-        companyName: job.companyName || "",
-        companySize: job.companySize || "",
-        companyWebsite: job.companyWebsite || "",
-        aboutCompany: job.aboutCompany || "",
-        jobTitle: job.jobTitle || "",
-        jobLocations:
-          job.jobLocations?.map((loc) => ({
-            provinceId: loc.province?.id || 0,
-            districtId: loc.district?.id || 0,
-            detailAddress: loc.detailAddress || "",
-            provinceName: loc.province?.name || "",
-            districtName: loc.district?.name || "",
-          })) || [],
-        salaryType: job.salaryType as SalaryType,
-        minSalary: job.minSalary,
-        maxSalary: job.maxSalary,
-        salaryUnit: job.salaryUnit,
-        jobDescription: job.jobDescription || "",
-        requirement: job.requirement || "",
-        jobBenefits: job.jobBenefits || [],
-        educationLevel: job.educationLevel || "",
-        experienceLevel: job.experienceLevel || "",
-        jobLevel: job.jobLevel || "",
-        jobType: job.jobType || "",
-        gender: job.gender || "",
-        jobCode: job.jobCode || "",
-        industries: job.industries?.map((ind) => ({ id: ind.id, name: ind.name })) || [],
-        ageType: job.ageType || "",
-        minAge: job.minAge,
-        maxAge: job.maxAge,
-        contactPerson: job.contactPerson || "",
-        phoneNumber: job.phoneNumber || "",
-        contactLocation: {
-          provinceId: job.contactLocation?.province?.id || 0,
-          districtId: job.contactLocation?.district?.id || 0,
-          detailAddress: job.contactLocation?.detailAddress || "",
-          provinceName: job.contactLocation?.province?.name || "",
-          districtName: job.contactLocation?.district?.name || "",
-        },
-        description: job.description || "",
-        expirationDate: formatDate(new Date(job.expirationDate)) || "",
-      });
+  const mainForm = useForm<PostJobFormData>({
+    resolver: zodResolver(postJobSchema) as Resolver<PostJobFormData>,
+    mode: "onSubmit",
+    defaultValues: {
+      // --- Company Information ---
+      companyName: "",
+      companySize: jobData?.companySize,
+      companyWebsite: "",
+      aboutCompany: "",
 
-      console.log("after reset:", mainForm.getValues("companySize"));
-    } else if (!isEditMode && employer) {
-      const baseCompanyInfo = {
-        companyName: employer.companyName || "",
-        companySize: employer.companySize || "",
-        companyWebsite: employer.websiteUrls?.[0] || "",
-        aboutCompany: employer.aboutCompany || "",
-      };
+      // --- Job Info ---
+      jobTitle: "",
+      jobLocations: [],
+      salaryType: jobData?.salaryType,
+      minSalary: undefined,
+      maxSalary: undefined,
+      salaryUnit: jobData?.salaryUnit,
+      jobDescription: "",
+      requirement: "",
+      jobBenefits: [],
 
-      mainForm.reset({
-        ...baseCompanyInfo,
-      });
+      // --- Job Details ---
+      educationLevel: jobData?.educationLevel,
+      experienceLevel: jobData?.experienceLevel,
+      jobLevel: jobData?.jobLevel,
+      jobType: jobData?.jobType,
+      gender: jobData?.gender,
+      jobCode: "",
+      industries: [],
+      ageType: jobData?.ageType,
+      minAge: undefined,
+      maxAge: undefined,
+
+      // --- Contact ---
+      contactPerson: "",
+      phoneNumber: "",
+      contactLocation: {
+        provinceId: undefined,
+        districtId: undefined,
+        provinceName: "",
+        districtName: "",
+        detailAddress: "",
+      },
+      description: "",
+
+      // --- Other ---
+      expirationDate: "",
+    },
+  });
+
+  useEffect(() => {
+    if (error instanceof AxiosError && error.response?.status === 404) {
+      toast.error("Job not found");
+      navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
     }
-  }, [isEditMode, jobData, mainForm, employer]);
+  }, [error, navigate]);
 
+  // Tạo job
   const createJobMutation = useMutation({
     mutationFn: async (data: JobRequest) => {
       return jobService.createJob(data);
     },
     onSuccess: () => {
       toast.success("Job posted successfully! =))");
-      // mainForm.reset();
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-      // navigate("/employer/jobs")
     },
     onError: (error: AxiosError<ApiError>) => {
-      const errorMessage = error.response?.data?.message || "Failed to post job";
-      toast.error(errorMessage);
+      toast.error("Failed to post job");
     },
   });
-
+  // Cập nhật job
   const updateJobMutation = useMutation({
     mutationFn: async (data: JobRequest) => {
       return jobService.updateJob(Number(jobId), data);
@@ -171,14 +171,14 @@ function EmployerPostJob() {
     onSuccess: () => {
       toast.success("Job updated successfully! =))");
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-      // navigate("/employer/jobs");
+      queryClient.invalidateQueries({ queryKey: ["job", jobId] });
     },
     onError: (error: AxiosError<ApiError>) => {
-      const errorMessage = error.response?.data?.message || "Failed to update job";
-      toast.error(errorMessage);
+      toast.error("Failed to update job");
     },
   });
 
+  // Modal form cho job locations
   const modalJobLocationsForm = useForm<{
     jobLocations: LocationFormData[];
   }>({
@@ -207,18 +207,9 @@ function EmployerPostJob() {
         contactLocation: locationSchema,
       })
     ),
-    defaultValues: {
-      contactLocation: {
-        provinceId: 0,
-        districtId: 0,
-        detailAddress: "",
-        provinceName: "",
-        districtName: "",
-      },
-    },
     mode: "onChange",
   });
-
+  // Modal form cho benefits
   const modalBenefitForm = useForm<{ benefits: JobBenefitFormData[] }>({
     resolver: zodResolver(
       z.object({
@@ -259,6 +250,68 @@ function EmployerPostJob() {
       });
     }
   };
+  //1234
+  useLayoutEffect(() => {
+    if (isEditMode && jobData) {
+      const job = jobData;
+      console.log("RESET FORM with jobData:", jobData);
+      mainForm.reset({
+        companyName: job.companyName,
+        companySize: job.companySize,
+        companyWebsite: job.companyWebsite,
+        aboutCompany: job.aboutCompany,
+        jobTitle: job.jobTitle,
+        jobLocations:
+          job.jobLocations?.map((loc) => ({
+            provinceId: loc.province?.id,
+            districtId: loc.district?.id,
+            detailAddress: loc.detailAddress,
+            provinceName: loc.province?.name,
+            districtName: loc.district?.name,
+          })) || [],
+        salaryType: job.salaryType as SalaryType,
+        minSalary: job.minSalary,
+        maxSalary: job.maxSalary,
+        salaryUnit: job.salaryUnit,
+        jobDescription: job.jobDescription,
+        requirement: job.requirement,
+        jobBenefits: job.jobBenefits || [],
+        educationLevel: job.educationLevel,
+        experienceLevel: job.experienceLevel,
+        jobLevel: job.jobLevel,
+        jobType: job.jobType,
+        gender: job.gender,
+        jobCode: job.jobCode,
+        industries: job.industries?.map((ind) => ({ id: ind.id, name: ind.name })) || [],
+        ageType: job.ageType,
+        minAge: job.minAge,
+        maxAge: job.maxAge,
+        contactPerson: job.contactPerson,
+        phoneNumber: job.phoneNumber,
+        contactLocation: {
+          provinceId: job.contactLocation?.province?.id,
+          districtId: job.contactLocation?.district?.id,
+          provinceName: job.contactLocation?.province?.name,
+          districtName: job.contactLocation?.district?.name,
+          detailAddress: job.contactLocation?.detailAddress,
+        },
+        description: job.description,
+        expirationDate: formatDate(new Date(job.expirationDate)),
+      });
+    }
+  }, [isEditMode, jobData, mainForm]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    if (employer) {
+      console.log("createMODE");
+
+      mainForm.setValue("companyName", employer.companyName);
+      mainForm.setValue("companySize", employer.companySize);
+      mainForm.setValue("companyWebsite", employer.websiteUrls?.[0] || undefined);
+      mainForm.setValue("aboutCompany", employer.aboutCompany || "");
+    }
+  }, [isEditMode, employer, mainForm]);
 
   const watchedValues = mainForm.watch();
 
@@ -292,7 +345,7 @@ function EmployerPostJob() {
       jobType: data.jobType as JobType,
       gender: data.gender as JobGender,
       jobCode: data.jobCode,
-      industryIds: data.industries.map((industry) => industry.id),
+      industryIds: data.industries.map((ind) => ind.id),
       ageType: data.ageType as AgeType,
       minAge: data.minAge ?? undefined,
       maxAge: data.maxAge ?? undefined,
@@ -337,7 +390,7 @@ function EmployerPostJob() {
 
   const handleOpenModalEditContactLocation = () => {
     modalContactLocationForm.reset({
-      contactLocation: (mainForm.getValues("contactLocation") as any) || {},
+      contactLocation: mainForm.getValues("contactLocation") || {},
     });
   };
 
@@ -399,7 +452,7 @@ function EmployerPostJob() {
     [scrollToPreviewSection]
   );
 
-  const getPreviewData = useCallback((formData: PostJobFormData): { job: JobProp; hideActionButtons: boolean } => {
+  const getPreviewData = (formData: PostJobFormData): { job: JobProp; hideActionButtons: boolean } => {
     const job: JobProp = {
       //header
       isNew: true,
@@ -411,13 +464,10 @@ function EmployerPostJob() {
         formData.jobLocations?.map((location, index) => ({
           province: {
             id: location.provinceId,
-            code: "",
             name: location.provinceName,
-            engName: "",
           } as Province,
           district: {
             id: location.districtId,
-            code: "",
             name: location.districtName,
           } as District,
           detailAddress: location.detailAddress,
@@ -464,14 +514,18 @@ function EmployerPostJob() {
       description: formData.description,
 
       // Company Information
-      companySize: formData.companySize || CompanySizeLabel["vi"][CompanySize.FROM_100_TO_499],
+      companySize: formData.companySize,
       aboutCompany: formData.aboutCompany || "About Company",
     };
 
     return { job, hideActionButtons: true };
-  }, []);
+  };
+  // const previewData = getPreviewData(watchedValues);
 
-  const previewData = getPreviewData(watchedValues);
+  // console.log("previewData: ",previewData);
+  console.log("formData: ", mainForm.getValues());
+  renderCount.current += 1;
+  console.log("EmployerPostJob render count:", renderCount.current);
 
   return (
     <main className="relative flex flex-col flex-1 bg-sky-50">
@@ -519,12 +573,7 @@ function EmployerPostJob() {
                       name="companySize"
                       control={mainForm.control}
                       render={({ field }) => (
-                        <Select
-                          // disabled
-                          key={jobId || "new-job"}
-                          onValueChange={(val) => field.onChange(val)}
-                          value={field.value ? String(field.value) : ""}
-                        >
+                        <Select key={field.value} onValueChange={field.onChange} value={field.value ?? ""}>
                           <SelectTrigger className="min-w-[250px]" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("companyInformation")}>
                             <SelectValue placeholder="Select company size" />
                           </SelectTrigger>
@@ -654,19 +703,14 @@ function EmployerPostJob() {
                                   render={({ field, fieldState }) => (
                                     <div className="flex flex-col gap-2">
                                       <Select
-                                        value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                        key={field.value}
+                                        value={field.value && field.value !== 0 ? field.value.toString() : ""}
                                         onValueChange={(val) => {
                                           const provinceId = Number.parseInt(val);
-                                          const selectedProvince = provinces?.find((p: Province) => p.id === provinceId);
 
                                           field.onChange(provinceId);
 
-                                          if (selectedProvince) {
-                                            modalJobLocationsForm.setValue(`jobLocations.${idx}.provinceName`, selectedProvince.name);
-                                          }
-
                                           modalJobLocationsForm.setValue(`jobLocations.${idx}.districtId`, 0);
-                                          modalJobLocationsForm.setValue(`jobLocations.${idx}.districtName`, "");
                                         }}
                                       >
                                         <SelectTrigger className="min-w-[200px] bg-gray-100" arrowStyle="text-[#1967d2] font-bold size-5">
@@ -702,16 +746,12 @@ function EmployerPostJob() {
                                     return (
                                       <div className="flex flex-col gap-2">
                                         <Select
-                                          value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                          key={field.value}
+                                          value={field.value && field.value !== 0 ? field.value.toString() : ""}
                                           onValueChange={(val) => {
                                             const districtId = Number.parseInt(val);
-                                            const selectedDistrict = currentDistricts?.find((d) => d.id === districtId);
 
                                             field.onChange(districtId);
-
-                                            if (selectedDistrict) {
-                                              modalJobLocationsForm.setValue(`jobLocations.${idx}.districtName`, selectedDistrict.name);
-                                            }
                                           }}
                                           disabled={!currentProvinceId || currentProvinceId === 0}
                                         >
@@ -772,8 +812,6 @@ function EmployerPostJob() {
                                   provinceId: 0,
                                   districtId: 0,
                                   detailAddress: "",
-                                  provinceName: "",
-                                  districtName: "",
                                 })
                               }
                               disabled={jobLocationsFieldArray.fields.length >= 5}
@@ -796,11 +834,11 @@ function EmployerPostJob() {
                       control={mainForm.control}
                       render={({ field }) => (
                         <RadioGroup
-                          value={field.value}
+                          value={field.value ?? ""}
                           onValueChange={(val) => {
                             field.onChange(val);
 
-                            if (val === "NEGOTIABLE" || val === "COMPETITIVE") {
+                            if (val === SalaryType.NEGOTIABLE || val === SalaryType.COMPETITIVE) {
                               mainForm.setValue("minSalary", undefined, { shouldValidate: false });
                               mainForm.setValue("maxSalary", undefined, { shouldValidate: false });
                               mainForm.setValue("salaryUnit", undefined, { shouldValidate: false });
@@ -864,7 +902,7 @@ function EmployerPostJob() {
                               name="salaryUnit"
                               control={mainForm.control}
                               render={({ field }) => (
-                                <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value || undefined}>
+                                <Select key={field.value} onValueChange={field.onChange} value={field.value || ""}>
                                   <SelectTrigger className="rounded-none min-w-36 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
                                     <SelectValue placeholder="Select Unit" />
                                   </SelectTrigger>
@@ -912,7 +950,7 @@ function EmployerPostJob() {
                               name="salaryUnit"
                               control={mainForm.control}
                               render={({ field }) => (
-                                <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                                <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                                   <SelectTrigger className="rounded-none min-w-36 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
                                     <SelectValue placeholder="Select Unit" />
                                   </SelectTrigger>
@@ -949,7 +987,7 @@ function EmployerPostJob() {
                             name="salaryUnit"
                             control={mainForm.control}
                             render={({ field }) => (
-                              <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                              <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                                 <SelectTrigger className="rounded-none min-w-40 focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5">
                                   <SelectValue placeholder="Select Unit" />
                                 </SelectTrigger>
@@ -1027,8 +1065,8 @@ function EmployerPostJob() {
                             return (
                               <li key={idx} className="flex items-center gap-2 p-1 border ">
                                 <div className="flex items-center self-start gap-1">
-                                  <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
-                                  <span className="text-sm font-medium">{benefitMapVN[benefit.type].label}:</span>
+                                  <Icon size={22} className="flex-shrink-0" strokeWidth={1.8} color="#1967d2" />
+                                  <span className="text-sm  font-medium">{benefitMapVN[benefit.type].label}:</span>
                                 </div>
                                 <span className="text-sm">{benefit.description}</span>
                               </li>
@@ -1074,7 +1112,7 @@ function EmployerPostJob() {
                                   control={modalBenefitForm.control}
                                   rules={{ required: "Benefit type is required" }}
                                   render={({ field, fieldState }) => (
-                                    <Select key={jobId || "new-job"} value={field.value} onValueChange={field.onChange}>
+                                    <Select key={field.value} value={field.value} onValueChange={field.onChange}>
                                       <SelectTrigger className="min-w-[48px] bg-sky-100 flex items-center justify-center self-start" arrowStyle="text-[#1967d2] font-bold size-5">
                                         {(() => {
                                           const Icon = benefitMapVN[field.value]?.icon;
@@ -1161,7 +1199,7 @@ function EmployerPostJob() {
                           name="educationLevel"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select key={jobId || "new-job"} onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
@@ -1192,7 +1230,7 @@ function EmployerPostJob() {
                           name="experienceLevel"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
@@ -1221,9 +1259,9 @@ function EmployerPostJob() {
                           name="jobLevel"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
-                                <SelectValue placeholder="Please select" />
+                                <SelectValue placeholder="Please  " />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobLevel).map(([key, value]) => (
@@ -1250,7 +1288,7 @@ function EmployerPostJob() {
                           name="jobType"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
@@ -1280,7 +1318,7 @@ function EmployerPostJob() {
                           name="gender"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
@@ -1394,7 +1432,7 @@ function EmployerPostJob() {
                           name="ageType"
                           control={mainForm.control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value ? field.value.toString() : undefined}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
                               <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
                                 <SelectValue placeholder="Select age type" />
                               </SelectTrigger>
@@ -1724,7 +1762,7 @@ function EmployerPostJob() {
             <h2 className="text-xl font-semibold text-center text-gray-900 ">Preview</h2>
           </div>
           <div className="overflow-y-auto job-information-preview max-h-[calc(100vh-330px)] px-2 overflow-x-hidden flex-1">
-            <JobInformation ref={jobInfoRef} {...previewData} />
+            <JobInformation ref={jobInfoRef} {...getPreviewData(watchedValues)} />
           </div>
         </div>
       </div>
@@ -1736,7 +1774,7 @@ function EmployerPostJob() {
           size="lg"
           onClick={() => {
             if (isEditMode) {
-              navigate("/employer/jobs");
+              navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
             }
           }}
         >

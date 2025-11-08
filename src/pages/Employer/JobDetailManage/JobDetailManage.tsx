@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronLeft, MoreHorizontal, Share2, Check } from "lucide-react";
+import {useState } from "react";
+import { ChevronLeft, MoreHorizontal, Share2, Check, type LucideProps } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CandidatesTab from "@/pages/Employer/JobDetailManage/components/CandidatesTab";
@@ -10,11 +10,11 @@ import { employer_routes } from "@/routes/routes.const";
 import { useQuery } from "@tanstack/react-query";
 import { jobService } from "@/services";
 import JobDetailsTab from "@/pages/Employer/JobDetailManage/components/JobDetailsTab";
-import { authUtils } from "@/lib/auth";
-import { AgeType, CompanySize, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType } from "@/constants";
-import type { JobProp } from "@/components/JobInformation/JobInformation";
+import { toast } from "react-toastify";
+import Loading from "@/components/Loading";
 
-const tabs = [
+const tabs: {id: string; label: string; icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>|null}[]
+  = [
   { id: "candidates", label: "CANDIDATES", icon: null },
   { id: "job-details", label: "JOB DETAILS", icon: null },
   { id: "timeline-notes", label: "TIMELINE & NOTES", icon: null },
@@ -27,69 +27,27 @@ export default function JobDetailManage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { jobId } = useParams();
-  console.log("jobId: ", jobId);
+  
   const from = location.state?.from?.pathname + location.state?.from?.search;
 
-  const { data: job } = useQuery({
+  const { data: job,isLoading: isLoadingJob } = useQuery({
     queryKey: ["job", Number(jobId)],
-    queryFn: () => jobService.getJobById(Number(jobId)),
-    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      const res = await jobService.getJobById(Number(jobId));
+      return res.data;
+     },
+    staleTime: 60 * 60 * 1000,
     enabled: !!jobId,
   });
 
-  const jobDetail: JobProp = {
-    // header
-    isNew: true,
-    companyBanner: authUtils.getEmployer()?.backgroundUrl || "",
-    companyLogo: authUtils.getEmployer()?.avatarUrl || "",
-    jobTitle: job?.data.jobTitle || "Tiêu đề Job",
-    companyName: job?.data.companyName || "Company Name",
-    jobLocation: job?.data.jobLocations?.map((location) => ({ province: location.province, district: location.district, detailAddress: location.detailAddress })) || [],
-    companyWebsite: job?.data.companyWebsite || "",
-    salary: {
-      salaryType: job?.data.salaryType || "NEGOTIABLE",
-      minSalary: job?.data.minSalary,
-      maxSalary: job?.data.maxSalary,
-      salaryUnit: job?.data.salaryUnit,
-    },
-    expirationDate: job?.data.expirationDate || "",
+  if (!jobId) {
+    navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
+    toast.error("Job ID is missing.");
+  }
 
-    // Description
-    jobDescription: job?.data.jobDescription || "",
-
-    // Benefit
-    jobBenefits: job?.data.jobBenefits || [],
-
-    // Requirement
-    requirement: job?.data.requirement || "",
-
-    // Job details
-    jobType: job?.data.jobType || JobType.FULL_TIME,
-    jobLevel: job?.data.jobLevel || JobLevel.MANAGER,
-    educationLevel: job?.data.educationLevel || EducationLevel.UNIVERSITY,
-    experienceLevel: job?.data.experienceLevel || ExperienceLevel.MORE_THAN_TEN_YEARS,
-    gender: job?.data.gender || JobGender.ANY,
-    age: {
-      ageType: job?.data.ageType || AgeType.NONE,
-      minAge: job?.data.minAge,
-      maxAge: job?.data.maxAge,
-    },
-    industries: job?.data.industries || [],
-
-    // Contact
-    contactPerson: job?.data.contactPerson || "",
-    phoneNumber: job?.data.phoneNumber || "",
-    contactLocation: job?.data.contactLocation || {
-      province: { id: job?.data.contactLocation?.province.id || 0, code: "", name: job?.data.contactLocation?.province.name || "", engName: "" },
-      district: { id: job?.data.contactLocation?.district.id || 0, code: "", name: job?.data.contactLocation?.district.name || "" },
-      detailAddress: job?.data.contactLocation?.detailAddress || "",
-    },
-    description: job?.data.description || "",
-
-    // Company Information
-    companySize: job?.data.companySize || CompanySize.FROM_100_TO_499,
-    aboutCompany: job?.data.aboutCompany || "",
-  };
+  if (isLoadingJob) {
+    return  <Loading variant="bars" className="mx-auto"/>;
+  }
 
   return (
     <div className="bg-sky-50 min-h-[calc(100vh-64px)] overflow-y-auto flex-1">
@@ -102,11 +60,11 @@ export default function JobDetailManage() {
             </Button>
             <div>
               <h1 className="text-xl font-semibold text-[#1967d2] uppercase flex items-center gap-2">
-                {job?.data.jobTitle}
+                {job?.jobTitle}
                 <MoreHorizontal className="h-5 w-5 text-gray-400 cursor-pointer" />
               </h1>
               <p className="text-sm text-gray-500">
-                {job?.data.status} • {job?.data.jobType}
+                {job?.status} • {job?.jobType}
               </p>
             </div>
           </div>
@@ -144,7 +102,7 @@ export default function JobDetailManage() {
             <CandidatesTab />
           </div>
         )}
-        {activeTab === "job-details" && <JobDetailsTab {...jobDetail} />}
+        {activeTab === "job-details" && <JobDetailsTab />}
         {activeTab === "timeline-notes" && <div>Timeline & Notes Content</div>}
         {activeTab === "hiring-team" && <div>Hiring Team Content</div>}
         {activeTab === "settings" && (

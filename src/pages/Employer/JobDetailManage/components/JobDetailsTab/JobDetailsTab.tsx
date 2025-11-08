@@ -4,14 +4,91 @@ import { Pencil } from "lucide-react";
 import JobInformation from "@/components/JobInformation";
 import { employer_routes } from "@/routes/routes.const";
 import type { JobProp } from "@/components/JobInformation/JobInformation";
+import { useQuery } from "@tanstack/react-query";
+import { jobService } from "@/services";
+import { AgeType, CompanySize, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobType } from "@/constants";
+import { authUtils } from "@/lib/auth";
+import Loading from "@/components/Loading";
 
-export default function JobDetailsTab(job: JobProp) {
+export default function JobDetailsTab() {
   const navigate = useNavigate();
   const { jobId } = useParams();
 
   const handleEditJob = () => {
     navigate(`${employer_routes.BASE}/${employer_routes.JOBS}/${jobId}/edit`);
   };
+
+  const { data: job, isLoading: isLoadingJob } = useQuery({
+    queryKey: ["job", Number(jobId)],
+    queryFn: async () => {
+      const res = await jobService.getJobById(Number(jobId));
+      return res.data;
+    },
+    staleTime: 60 * 60 * 1000,
+    enabled: !!jobId,
+  });
+
+  if (!job) {
+    return null;
+  }
+
+  const jobDetail: JobProp = {
+    // header
+    isNew: true,
+    companyBanner: authUtils.getEmployer()?.backgroundUrl || "",
+    companyLogo: authUtils.getEmployer()?.avatarUrl || "",
+    jobTitle: job?.jobTitle || "Tiêu đề Job",
+    companyName: job?.companyName || "Company Name",
+    jobLocation: job?.jobLocations?.map((location) => ({ province: location.province, district: location.district, detailAddress: location.detailAddress })) || [],
+    companyWebsite: job?.companyWebsite || "",
+    salary: {
+      salaryType: job?.salaryType || "NEGOTIABLE",
+      minSalary: job?.minSalary,
+      maxSalary: job?.maxSalary,
+      salaryUnit: job?.salaryUnit,
+    },
+    expirationDate: job?.expirationDate || "",
+
+    // Description
+    jobDescription: job?.jobDescription || "",
+
+    // Benefit
+    jobBenefits: job?.jobBenefits || [],
+
+    // Requirement
+    requirement: job?.requirement || "",
+
+    // Job details
+    jobType: job?.jobType || JobType.FULL_TIME,
+    jobLevel: job?.jobLevel || JobLevel.MANAGER,
+    educationLevel: job?.educationLevel || EducationLevel.UNIVERSITY,
+    experienceLevel: job?.experienceLevel || ExperienceLevel.MORE_THAN_TEN_YEARS,
+    gender: job?.gender || JobGender.ANY,
+    age: {
+      ageType: job?.ageType || AgeType.NONE,
+      minAge: job?.minAge,
+      maxAge: job?.maxAge,
+    },
+    industries: job?.industries || [],
+
+    // Contact
+    contactPerson: job?.contactPerson || "",
+    phoneNumber: job?.phoneNumber || "",
+    contactLocation: job?.contactLocation || {
+      province: { id: job?.contactLocation?.province.id || 0, code: "", name: job?.contactLocation?.province.name || "", engName: "" },
+      district: { id: job?.contactLocation?.district.id || 0, code: "", name: job?.contactLocation?.district.name || "" },
+      detailAddress: job?.contactLocation?.detailAddress || "",
+    },
+    description: job?.description || "",
+
+    // Company Information
+    companySize: job?.companySize || CompanySize.FROM_100_TO_499,
+    aboutCompany: job?.aboutCompany || "",
+  };
+
+  if (isLoadingJob) {
+    return <Loading className="mx-auto" variant="bars" />;
+  }
 
   return (
     <div className="py-6">
@@ -24,7 +101,7 @@ export default function JobDetailsTab(job: JobProp) {
       </div>
 
       <div className="px-6 mx-auto max-w-4xl">
-        <JobInformation job={job} hideActionButtons={true} />
+        <JobInformation job={jobDetail} hideActionButtons={true} />
       </div>
     </div>
   );

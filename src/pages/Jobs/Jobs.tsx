@@ -1,58 +1,71 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, ChevronDown, MoreHorizontal, Edit, Eye, CheckCircle, AlertCircle, Download, Plus, RotateCcw, MapPin, Briefcase, Folder } from "lucide-react";
-import BaseModal from "@/components/BaseModal";
+import { Search, Edit, Plus, RotateCcw, XIcon, Trash2, LocationEdit } from "lucide-react";
 import Pagination from "@/components/Pagination";
-import { JobStatus, JobStatusLabelEN, RowsPerPageOptions, type RowsPerPage } from "@/constants";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { JobLevelLabelEN, JobStatusColors, JobStatusLabelEN, JobTypeLabelEN, RowsPerPageOptions, SalaryType, SalaryTypeLabelEN, type RowsPerPage } from "@/constants";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services";
-import type { JobResponse } from "@/types";
-import { getStatusColor } from "@/utils/jobStatus.util";
-import { useNavigate } from "react-router-dom";
-import useDebounce from "@/hooks/useDebounce";
+import {useNavigate } from "react-router-dom";
+import { employer_routes } from "@/routes/routes.const";
+import MultiSortButton from "@/components/MultiSortButton";
+import { toast } from "react-toastify";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+type SortField = "jobTitle" | "status" | "expirationDate" | "createdAt" | "updatedAt";
+type SortDirection = "asc" | "desc";
 
 export default function Jobs() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [selectedStatuses, setSelectedStatuses] = useState<JobStatus[]>([
-    JobStatus.APPROVED,
-    JobStatus.PENDING,
-    JobStatus.DRAFT,
-    JobStatus.EXPIRED,
-    JobStatus.REJECTED,
-    JobStatus.CLOSED,
-  ]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(10);
 
-  // Export modal state
-  const [exportStartDate, setExportStartDate] = useState<Date>(new Date("2025-09-20"));
-  const [exportEndDate, setExportEndDate] = useState<Date>(new Date("2025-09-27"));
-  const [exportCategory, setExportCategory] = useState<string>("");
-  const [exportStatus, setExportStatus] = useState<string>("");
-  const [exportLocation, setExportLocation] = useState<string>("Da Nang");
-  const [exportTab, setExportTab] = useState("job-list");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState<RowsPerPage>(10);
+  const [keyword, setKeyword] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
+  const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
+  const [industryId, setIndustryId] = useState<number | undefined>(undefined);
 
-  const {
-    data: jobsData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["my-jobs", currentPage, rowsPerPage],
-    queryFn: () => jobService.getMyJobs(currentPage, rowsPerPage),
-    staleTime: 5 * 60 * 1000,
+  const [searchProvince, setSearchProvince] = useState("");
+  const [searchIndustry, setSearchIndustry] = useState("");
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const [provincesOptions, setProvincesOptions] = useState<{ id: number; name: string }[]>([]);
+  const [industriesOptions, setIndustriesOptions] = useState<{ id: number; name: string }[]>([]);
+
+  const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
+
+  const { data: jobsData, isLoading: isLoadingJobsData } = useQuery({
+    queryKey: ["my-jobs", pageNumber, pageSize, keyword, provinceId, industryId, sortsString],
+    queryFn: async () => {
+      const res = await jobService.getMyJobs({
+        pageNumber,
+        pageSize,
+        keyword: keyword || undefined,
+        sorts: sortsString || undefined,
+        provinceId,
+        industryId,
+      });
+      return res.data;
+    },
+    staleTime: 60 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
 
@@ -60,15 +73,18 @@ export default function Jobs() {
     const timeout = setTimeout(() => {
       queryClient.prefetchQuery({
         queryKey: ["job", jobId],
-        queryFn: () => jobService.getJobById(jobId),
-        staleTime: 2 * 60 * 1000,
+        queryFn: async () => {
+          const res = await jobService.getJobById(jobId);
+          return res.data;
+        },
+        staleTime: 60 * 60 * 1000,
       });
     }, 300);
     return () => clearTimeout(timeout);
   };
 
-  const { data: locationsData } = useQuery({
-    queryKey: ["my-current-locations"],
+  const { data: provincesData } = useQuery({
+    queryKey: ["my-current-provinces"],
     queryFn: async () => {
       const response = await jobService.getMyCurrentLocations();
       return response.data;
@@ -85,94 +101,100 @@ export default function Jobs() {
     staleTime: 30 * 60 * 1000,
   });
 
-  const locationOptions = useMemo(() => {
-    if (locationsData) {
-      return locationsData.map((loc: any) => ({
-        id: loc.id,
-        name: loc.name,
-      }));
-    }
-    return [];
-  }, [locationsData]);
+  const deleteJobsMutation = useMutation({
+    mutationFn: (id: number) => jobService.deleteJob(id),
+    onSuccess: () => {
+      toast.success("Job(s) deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
+    },
+    onError: () => {
+      toast.error("An error occurred while deleting the job");
+    },
+  });
 
-  const categoryOptions = useMemo(() => {
-    if (industriesData) {
-      return industriesData.map((ind: any) => ({
-        id: ind.id,
-        name: ind.name,
-      }));
+  useEffect(() => {
+    if (provincesData && provincesData.length > 0) {
+      setProvincesOptions(provincesData);
     }
-    return [];
+  }, [provincesData]);
+
+  useEffect(() => {
+    if (industriesData && industriesData.length > 0) {
+      setIndustriesOptions(industriesData);
+    }
   }, [industriesData]);
 
-  const statusOptions = Object.entries(JobStatusLabelEN).map(([key, label]) => ({
-    value: key,
-    label,
-  }));
+  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
+    setSorts((prev) => {
+      if (newDirection === null) {
+        return prev.filter((s) => s.field !== field);
+      }
+      const existing = prev.find((s) => s.field === field);
+      if (existing) {
+        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
+      }
+      return [...prev, { field, direction: newDirection }];
+    });
+    setPageNumber(1);
+  }, []);
 
-  const handleStatusChange = (status: JobStatus, checked: boolean) => {
-    if (checked) {
-      setSelectedStatuses([...selectedStatuses, status]);
-    } else {
-      setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
-    }
-    setCurrentPage(1);
+  const handlePageChange = (page: number) => {
+    setPageNumber(page);
   };
 
   const resetFilters = () => {
-    setSelectedStatuses([]);
-    setSelectedCategory("");
-    setSelectedLocation("");
-    setSearchTerm("");
-    setCurrentPage(1);
+    setIndustryId(undefined);
+    setProvinceId(undefined);
+    setKeyword("");
+    setSearchInput("");
+    setPageNumber(1);
+    setPageSize(10);
+    setSorts([]);
   };
 
-  const resetStatusFilter = () => {
-    setSelectedStatuses([]);
-    setCurrentPage(1);
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(jobsData?.items.map((item) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
   };
 
-  // const getProgressTooltip = (progress: number, status: JobStatus) => {
-  //   if (progress === 100) {
-  //     return "Your progress: 100%\nYour job is ready to post";
-  //   } else {
-  //     return `Your progress: ${progress}%\nYour job needs more information`;
-  //   }
-  // };
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
 
-  // const canPostJob = (job: Job) => {
-  //   return job.status === "Draft" && job.progress === 100;
-  // };
+  const handleEditJob = (id: number) => {
+    navigate(`${employer_routes.BASE}/${employer_routes.JOBS}/${id}/edit`);
+  };
 
-  const filteredJobs = useMemo(() => {
-    if (!jobsData?.data?.items) return [];
+  const handleDelete = (id: number) => {
+    setDeletingId(id);
+    setDeleteDialogOpen(true);
+  };
 
-    return jobsData.data.items.filter((job: JobResponse) => {
-      const matchesSearch =
-        debouncedSearchTerm.trim() === "" ||
-        job.jobTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        job.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+  const confirmDelete = () => {
+    if (deletingId) {
+      deleteJobsMutation.mutate(deletingId);
+    }
+  };
 
-      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
-      const matchesCategory = !selectedCategory || job.industries?.some((ind) => ind.id.toString() === selectedCategory);
-      const matchesLocation = !selectedLocation || job.jobLocations?.some((loc) => loc.province.id.toString() === selectedLocation);
-
-      return matchesSearch && matchesStatus && matchesCategory && matchesLocation;
-    });
-  }, [jobsData, debouncedSearchTerm, selectedStatuses, selectedCategory, selectedLocation]);
-
-  const totalJobs = filteredJobs.length;
-  const totalPages = Math.ceil(totalJobs / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentJobs = filteredJobs.slice(startIndex, endIndex);
+  const myJobs = jobsData?.items || [];
+  const totalPages = jobsData?.totalPages || 0;
+  const totalMyJobs = jobsData?.numberOfElements || 0;
 
   return (
     <div className=" bg-sky-50 min-h-[calc(100vh-64px)] overflow-y-auto flex-1">
       {/* Header */}
       <div className="bg-white flex flex-col border-b py-3 px-5 border-gray-200 sm:flex-row sm:items-center justify-between gap-4 mb-5">
-        <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">My Jobs ({totalJobs})</h1>
-        <Button className="bg-[#1967d2] hover:bg-[#1251a3] text-white w-full sm:w-auto">
+        <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">My Jobs ({totalMyJobs})</h1>
+        <Button className="bg-[#1967d2] hover:bg-[#1251a3] text-white w-full sm:w-auto" onClick={() => navigate(`${employer_routes.BASE}/${employer_routes.JOB_ADD}`)}>
           <Plus className="w-4 h-4 mr-2" />
           Post New Jobs
         </Button>
@@ -186,373 +208,340 @@ export default function Jobs() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder="Search jobs"
-              value={searchTerm}
+              value={searchInput}
               onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
+                setSearchInput(e.target.value);
               }}
               className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
             />
           </div>
+          <Button
+            onClick={() => {
+              setKeyword(searchInput);
+              setPageNumber(1);
+            }}
+            variant="secondary"
+            className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all"
+          >
+            Search
+          </Button>
 
           {/* Filter buttons - responsive layout */}
           <div className="flex flex-wrap items-center gap-2 lg:gap-4">
-            {/* Status Filter */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-between min-w-32 bg-transparent">
-                  Status
-                  {selectedStatuses.length > 0 && (
-                    <Badge variant="secondary" className="ml-2 bg-[#1967d2] text-white">
-                      {selectedStatuses.length}
-                    </Badge>
-                  )}
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-0">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-medium">Status</span>
-                    <Button variant="ghost" size="sm" onClick={resetStatusFilter} className="text-red-600 hover:text-red-700 h-auto p-0">
-                      <RotateCcw className="w-4 h-4 mr-1" />
-                      Reset
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    {statusOptions.map((status) => (
-                      <div key={status.value} className="flex items-center space-x-2 hover:bg-sky-200 hover:text-[#1967d2] rounded-xl p-2">
-                        <Checkbox
-                          className=" border-gray-300"
-                          id={status.value}
-                          checked={selectedStatuses.includes(status.value as JobStatus)}
-                          onCheckedChange={(checked) => handleStatusChange(status.value as JobStatus, checked as boolean)}
-                        />
-                        <label htmlFor={status.value} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {status.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Category Filter */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-between min-w-32 bg-transparent">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Category
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0">
+            <Select value={provinceId ? String(provinceId) : ""} onValueChange={(value) => setProvinceId(Number(value) || undefined)}>
+              <SelectTrigger className="!text-gray-500 w-64">
+                <SelectValue placeholder="Select Province" />
+              </SelectTrigger>
+              <SelectContent className="w-64 p-0">
                 <div className="p-4">
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input placeholder="Search" className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
-                  </div>
-                  <div className="space-y-1">
-                    {categoryOptions.map((category) => (
-                      <div
-                        key={category.id}
-                        className="flex items-center space-x-2 p-2 hover:bg-sky-200 hover:text-[#1967d2] rounded-xl  cursor-pointer"
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" color="#1967d2" />
+                    <Input
+                      placeholder="Search"
+                      className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
+                      value={searchProvince}
+                      onChange={(event) => {
+                        setSearchProvince(event.target.value);
+                        if (event.target.value === "") {
+                          setProvincesOptions(provincesData || []);
+                          return;
+                        }
+                        const filtered = provincesData?.filter((option) => option.name.toLowerCase().includes(event.target.value.toLowerCase()));
+                        setProvincesOptions(filtered || []);
+                      }}
+                    />
+                    {searchProvince && (
+                      <XIcon
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                        color="#1967d2"
                         onClick={() => {
-                          setSelectedCategory(selectedCategory === category.id.toString() ? "" : category.id.toString());
-                          setCurrentPage(1);
+                          setSearchProvince("");
+                          setProvincesOptions(provincesData || []);
                         }}
-                      >
-                        <div className={`w-4 h-4 rounded-full border-2 ${selectedCategory === category.id.toString() ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
-                          {selectedCategory === category.id.toString() && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
-                        </div>
-                        <span className="text-sm">{category.name}</span>
-                      </div>
-                    ))}
+                      />
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {provincesOptions.length > 0 ? (
+                      provincesOptions.map((province) => (
+                        <SelectItem key={province.id} value={String(province.id)} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                          {province.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-500">No province found.</div>
+                    )}
                   </div>
                 </div>
-              </PopoverContent>
-            </Popover>
+              </SelectContent>
+            </Select>
 
-            {/* Work Location Filter */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-between min-w-32 bg-transparent">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Work location
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-0">
+            <Select value={industryId ? String(industryId) : ""} onValueChange={(value) => setIndustryId(Number(value) || undefined)}>
+              <SelectTrigger className="!text-gray-500 w-64">
+                <SelectValue placeholder="Select Industry" />
+              </SelectTrigger>
+              <SelectContent className="w-64 p-0">
                 <div className="p-4">
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input placeholder="Search" className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
-                  </div>
-                  <div className="space-y-1">
-                    {locationOptions.map((location) => (
-                      <div
-                        key={location.id}
-                        className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" color="#1967d2" />
+                    <Input
+                      placeholder="Search"
+                      className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
+                      value={searchIndustry}
+                      onChange={(event) => {
+                        setSearchIndustry(event.target.value);
+                        if (event.target.value === "") {
+                          setIndustriesOptions(industriesData || []);
+                          return;
+                        }
+                        const filtered = industriesData?.filter((option) => option.name.toLowerCase().includes(event.target.value.toLowerCase()));
+                        setIndustriesOptions(filtered || []);
+                      }}
+                    />
+                    {searchProvince && (
+                      <XIcon
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                        color="#1967d2"
                         onClick={() => {
-                          setSelectedLocation(selectedLocation === location.id.toString() ? "" : location.id.toString());
-                          setCurrentPage(1);
+                          setSearchIndustry("");
+                          setIndustriesOptions(provincesData || []);
                         }}
-                      >
-                        <div className={`w-4 h-4 rounded-full border-2 ${selectedLocation === location.id.toString() ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
-                          {selectedLocation === location.id.toString() && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
-                        </div>
-                        <span className="text-sm">{location.name}</span>
-                      </div>
-                    ))}
+                      />
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {industriesOptions.length > 0 ? (
+                      industriesOptions.map((industry) => (
+                        <SelectItem key={industry.id} value={String(industry.id)} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                          {industry.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-500">No industry found.</div>
+                    )}
                   </div>
                 </div>
-              </PopoverContent>
-            </Popover>
+              </SelectContent>
+            </Select>
 
             {/* Reset All */}
             <Button variant="outline" onClick={resetFilters} className="text-red-600 hover:text-red-700">
               <RotateCcw className="w-4 h-4 mr-1" />
               Reset
             </Button>
-
-            {/* Export Button */}
-            <BaseModal
-              title="Export My Jobs Report"
-              trigger={
-                <Button variant="outline" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]  bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              }
-              footer={(onClose) => (
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={onClose}
-                    className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]">Export report</Button>
-                </div>
-              )}
-              className="!max-w-2xl"
-            >
-              <div className="space-y-6">
-                <p className="text-sm text-gray-600">All data within the selected will be exported</p>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Posted Date</label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="date"
-                        value={exportStartDate.toISOString().slice(0, 10)}
-                        onChange={(e) => setExportStartDate(new Date(e.target.value))}
-                        className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                      />
-                      <span>-</span>
-                      <Input
-                        type="date"
-                        value={exportEndDate.toISOString().slice(0, 10)}
-                        onChange={(e) => setExportEndDate(new Date(e.target.value))}
-                        className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row gap-4 justify-between">
-                    <div className="flex-1">
-                      <label className="text-sm  font-medium text-gray-700 mb-2 block">Job Category</label>
-                      <Select value={exportCategory} onValueChange={setExportCategory}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryOptions.map((category) => (
-                            <SelectItem key={category.id} value={category.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex-1">
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
-                      <Select value={exportStatus} onValueChange={setExportStatus}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status.value} value={status.value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
-                    <Select value={exportLocation} onValueChange={setExportLocation}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {locationOptions.map((location) => (
-                          <SelectItem key={location.id} value={location.id.toString()} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                            {location.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </BaseModal>
           </div>
         </div>
       </div>
 
-      {/* Jobs Table */}
-      <div className="bg-white  mx-4 shadow-sm ">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[800px]">
-            <TableHeader className="rounded-tl-lg rounded-tr-lg">
-              <TableRow className="bg-[#95b5e1] text-base  hover:bg-[#95b5e1] rounded-tl-lg rounded-tr-lg ">
-                <TableHead className="w-16">Status</TableHead>
-                <TableHead>Job</TableHead>
-                <TableHead className="w-24">Salary</TableHead>
-                <TableHead className="w-24">Location</TableHead>
-                <TableHead className="w-24 hidden md:table-cell">Type</TableHead>
-                <TableHead className="w-24 hidden md:table-cell">Create Date</TableHead>
-                <TableHead className="w-24">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentJobs.length > 0 ? (
-                currentJobs.map((job: JobResponse) => (
-                  <TableRow
-                    key={job.id}
-                    onMouseEnter={() => handlePrefetchJob(job.id)}
-                    className="hover:bg-gray-100 hover:cursor-pointer"
-                    onClick={() => navigate(`/employer/jobs/${job.id}`)}
-                  >
-                    <TableCell>
-                      <Badge className={`${getStatusColor(job.status)} p-2 border-0`}>{JobStatusLabelEN[job.status as keyof typeof JobStatusLabelEN]}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-medium text-gray-900 truncate max-w-xs">{job.jobTitle}</h3>
-                        </div>
-                        <div className="text-sm text-gray-500">{job.companyName}</div>
-                        <div className="text-xs text-gray-400">
-                          {new Date(job.createdAt).toLocaleDateString("vi-VN")} - {new Date(job.expirationDate).toLocaleDateString("vi-VN")}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {job.salaryType === "RANGE" ? `${job.minSalary?.toLocaleString()} - ${job.maxSalary?.toLocaleString()} ${job.salaryUnit}` : job.salaryType}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{job.jobLocations?.[0]?.province?.name || "N/A"}</div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <span className="text-sm text-gray-600">{job.jobType}</span>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <span className="text-sm text-gray-500">{new Date(job.createdAt).toLocaleDateString("vi-VN")}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-700 hidden sm:flex"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/employer/jobs/${job.id}/edit`);
-                          }}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Sửa
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              className="sm:hidden"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/employer/jobs/${job.id}/edit`);
-                              }}
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Sao chép</DropdownMenuItem>
-                            <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Đóng</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600 focus:bg-sky-200">Xóa</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <p className="text-gray-500">Không tìm thấy công việc nào</p>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+      {/* Table */}
+      <div
+        className="bg-card rounded-lg border mx-4 shadow-sm overflow-x-auto [&::-webkit-scrollbar]:w-1
+  [&::-webkit-scrollbar-track]:rounded-full
+  [&::-webkit-scrollbar-track]:bg-teal-100
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-teal-500"
+      >
+        <table className="min-w-screen w-full border-collapse text-sm table-fixed">
+          {/* Table Header */}
+          <thead>
+            <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
+              <th className="px-3 w-[20px] py-3">
+                <Checkbox checked={selectedIds.length === myJobs.length && myJobs.length > 0} onCheckedChange={handleSelectAll} />
+              </th>
+              <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs truncate">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Job Title</span>
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "jobTitle")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("jobTitle", newDirection)}
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Status</span>
+                  <MultiSortButton direction={sorts.find((s) => s.field === "status")?.direction ?? null} onChange={(newDirection) => handleSortChange("status", newDirection)} />
+                </div>
+              </th>
+              <th className="px-4 py-3 w-[240px] font-semibold uppercase tracking-wide text-xs">Location</th>
+              <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Expiration Date</span>
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "expirationDate")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("expirationDate", newDirection)}
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">Type</th>
+              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">Level</th>
+              <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">Salary</th>
+              <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Created At</span>
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[130px]">
+                <div className="flex items-center justify-start gap-2">
+                  <span>Updated At</span>
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">Contact Person</th>
+              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">Phone Number</th>
+              <th className="px-4 py-3 text-right w-[120px]"></th>
+            </tr>
+          </thead>
 
-        {/* Pagination */}
-        {totalJobs > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-3 md:px-6 py-4 border-t gap-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span>Shows:</span>
-              <Select
-                value={rowsPerPage.toString()}
-                onValueChange={(value) => {
-                  setRowsPerPage(Number(value) as RowsPerPage);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RowsPerPageOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value.toString()}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span>Rows</span>
-            </div>
+          {/* Table Body */}
+          <tbody>
+            {isLoadingJobsData ? (
+              <tr>
+                <td colSpan={8} className="text-center py-10 text-muted-foreground italic">
+                  Loading...
+                </td>
+              </tr>
+            ) : myJobs.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-10 text-muted-foreground">
+                  <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
+                  <p className="mt-2 text-sm text-gray-500">No jobs found</p>
+                </td>
+              </tr>
+            ) : (
+              myJobs.map((job) => (
+                <tr
+                  key={job.id}
+                  className="hover:bg-muted/30 border-b last:border-none transition-colors"
+                  onClick={() => navigate(`${employer_routes.BASE}/${employer_routes.JOBS}/${job.id}`)}
+                  onMouseEnter={() => handlePrefetchJob(job.id)}
+                >
+                  <td className="px-3 py-3 w-[20px]">
+                    <Checkbox
+                      checked={selectedIds.includes(job.id)}
+                      onCheckedChange={(checked) => handleSelectOne(job.id, checked as boolean)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  <td className="px-4 py-3 w-[280px] font-medium  text-gray-900 dark:text-gray-100 truncate">{job.jobTitle}</td>
+                  <td className="px-4 py-3 w-[100px]">
+                    <Badge variant="outline" className={JobStatusColors[job.status]}>
+                      {JobStatusLabelEN[job.status]}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 w-[240px]  truncate">
+                    <ul>
+                      {job.jobLocations.map((location) => (
+                        <li key={location.id} className="flex items-center gap-1">
+                          <LocationEdit size={12} className="flex-shrink-0" strokeWidth={1.8} color="#1967d2" />
+                          {location.district.name}, {location.province.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">{new Date(job.expirationDate as string).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 w-[90px]">{JobTypeLabelEN[job.jobType]}</td>
+                  <td className="px-4 py-3 w-[100px]">{JobLevelLabelEN[job.jobLevel]}</td>
+                  <td className="px-4 py-3 w-[150px]">
+                    {job.salaryType === SalaryType.RANGE && `${job.minSalary}-${job.maxSalary} ${job.salaryUnit}`}
+                    {job.salaryType === SalaryType.GREATER_THAN && `> ${job.minSalary} ${job.salaryUnit}`}
+                    {job.salaryType === SalaryType.NEGOTIABLE && SalaryTypeLabelEN[SalaryType.NEGOTIABLE]}
+                    {job.salaryType === SalaryType.COMPETITIVE && SalaryTypeLabelEN[SalaryType.COMPETITIVE]}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">{new Date(job.createdAt as string).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 w-[130px]">{new Date(job.updatedAt as string).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 w-[160px]">{job.contactPerson}</td>
+                  <td className="px-4 py-3 w-[160px]">{job.phoneNumber}</td>
+                  <td className="px-4 py-3 text-right w-[120px]">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditJob(job.id);
+                        }}
+                        onMouseEnter={() => handlePrefetchJob(job.id)}
+                        className="bg-green-500"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(job.id);
+                        }}
+                        onMouseEnter={() => handlePrefetchJob(job.id)}
+                        className="bg-red-500"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {totalMyJobs > 0 && (
+          <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
+            {(() => {
+              const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
+              if (totalMyJobs < minOption) return null;
+
+              return (
+                <div className="flex self-start items-center space-x-2 text-sm text-gray-600">
+                  <span>Shows:</span>
+                  <Select
+                    value={pageSize.toString()}
+                    onValueChange={(value) => {
+                      setPageSize(Number(value) as RowsPerPage);
+                      setPageNumber(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RowsPerPageOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span>Rows</span>
+                </div>
+              );
+            })()}
 
             <div className="w-full sm:w-auto flex justify-center">
-              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           </div>
         )}
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete confirmation</AlertDialogTitle>
+            <AlertDialogDescription> Are you sure you want to delete this job? This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
