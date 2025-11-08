@@ -91,4 +91,10 @@ export const employerService = {
     const response = await http.get<ApiResponse<any>>("/employers", { params });
     return response.data;
   },
+
+  // Get employer by id (public)
+  getEmployerById: async (id: number): Promise<ApiResponse<Employer>> => {
+    const response = await http.get<ApiResponse<Employer>>(`/employers/${id}`);
+    return response.data;
+  },
 };

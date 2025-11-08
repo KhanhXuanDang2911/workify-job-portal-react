@@ -1,4 +1,6 @@
 import { MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { routes } from "@/routes/routes.const";
 
 type Employer = {
   id: number;
@@ -36,9 +38,12 @@ export default function EmployerCard({ employer }: { employer: Employer }) {
       </div>
 
       <div className="p-6 pt-10 pb-6">
-        <h3 className="font-semibold text-gray-900 text-base lg:text-lg mb-2 tracking-tight line-clamp-2 group-hover:text-[#1967d2] transition-colors duration-300">
+        <Link
+          to={`/${routes.EMPLOYER_DETAIL}/${employer.id}`}
+          className="font-semibold text-gray-900 text-base lg:text-lg mb-2 tracking-tight line-clamp-2 group-hover:text-[#1967d2] transition-colors duration-300 block no-underline"
+        >
           {employer.name}
-        </h3>
+        </Link>
         <p className="text-sm text-gray-600 mb-4 line-clamp-2 italic">
           {employer.description}
         </p>

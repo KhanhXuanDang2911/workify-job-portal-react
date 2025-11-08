@@ -69,4 +69,9 @@ export const jobService = {
     const response = await http.get<ApiResponse<Province[]>>("/jobs/me/locations/current");
     return response.data;
   },
+
+  getTopAttractiveJobs: async (): Promise<ApiResponse<JobResponse[]>> => {
+    const response = await http.get<ApiResponse<JobResponse[]>>("/jobs/top-attractive");
+    return response.data;
+  },
 };

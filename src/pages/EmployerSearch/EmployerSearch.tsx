@@ -206,29 +206,58 @@ const EmployerSearch = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-16 left-16 w-40 h-40 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-full blur-2xl opacity-50 animate-breathe"></div>
         <div className="absolute top-32 right-24 w-28 h-28 bg-gradient-to-r from-cyan-200 to-blue-200 rounded-full blur-xl opacity-60 animate-float-gentle"></div>
         <div className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-r from-teal-200 to-green-200 rounded-full blur-2xl opacity-45 animate-float-gentle-delayed"></div>
         <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-gradient-to-r from-indigo-200 to-purple-200 rounded-full blur-xl opacity-40 animate-breathe"></div>
         <div className="absolute bottom-24 right-16 w-44 h-44 bg-gradient-to-r from-pink-200 to-rose-200 rounded-full blur-3xl opacity-30 animate-float-gentle"></div>
-      </div>
+      </div> */}
 
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-white via-emerald-50 to-teal-50 border-b relative overflow-hidden backdrop-blur-sm">
-        {/* Enhanced Decorative background elements */}
+      {/* <div className="bg-gradient-to-r from-white via-emerald-50 to-teal-50 border-b relative overflow-hidden backdrop-blur-sm">
         <div className="absolute top-0 right-0 w-96 h-32 bg-gradient-to-l from-teal-200 via-emerald-100 to-transparent opacity-70"></div>
         <div className="absolute top-0 left-0 w-64 h-24 bg-gradient-to-r from-cyan-100 to-transparent opacity-50"></div>
-
-        {/* Floating decorative elements */}
         <div className="absolute top-8 left-1/3 w-5 h-5 bg-emerald-400 rounded-full opacity-60 animate-float-gentle"></div>
         <div className="absolute top-14 right-1/4 w-3 h-3 bg-teal-400 rounded-full opacity-50 animate-float-gentle-delayed"></div>
-
         <div className="container mx-auto px-4 py-8 relative z-10">
           <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-4">
             Find Top Employers
           </h1>
-          
+        </div>
+      </div> */}
+      <div
+        className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(#00000080, #00000080), url('/work1.jpg')",
+          fontFamily: "'Poppins', sans-serif",
+        }}
+      >
+        <div className="text-center px-4">
+          <h1 
+            className="text-white drop-shadow-lg"
+            style={{
+              marginBottom: 0,
+              fontWeight: 500,
+              lineHeight: '60px',
+              fontSize: '40px',
+            }}
+          >
+            Tìm việc làm nhanh 24h mới nhất trên toàn quốc
+          </h1>
+          <p 
+            className="text-white mt-4"
+            style={{
+              color: '#fff',
+              fontSize: '18px',
+              lineHeight: '28px',
+              fontWeight: 400,
+              opacity: 0.95,
+            }}
+          >
+            Tiếp cận 60.000+ tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam
+          </p>
         </div>
       </div>
 
@@ -308,7 +337,7 @@ const EmployerSearch = () => {
                       value={tempCompanySize}
                       onValueChange={setTempCompanySize}
                     >
-                      <div className="space-y-2">
+                    <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="all" id="size-all" />
                           <Label
@@ -323,16 +352,16 @@ const EmployerSearch = () => {
                             <RadioGroupItem
                               value={value}
                               id={`size-${key}`}
-                            />
-                            <Label
+                          />
+                          <Label
                               htmlFor={`size-${key}`}
-                              className="text-sm text-gray-700 cursor-pointer"
-                            >
+                            className="text-sm text-gray-700 cursor-pointer"
+                          >
                               {CompanySizeLabelVN[key as CompanySize]}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                     </RadioGroup>
                   </div>
 
@@ -375,7 +404,7 @@ const EmployerSearch = () => {
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-700">Sort By</span>
-                      <Select 
+                      <Select
                         value={sortField} 
                         onValueChange={(value) => {
                           setSortField(value);

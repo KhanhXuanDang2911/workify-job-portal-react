@@ -41,7 +41,7 @@ const UserPublicRoutes: RouteObject[] = [
         element: <JobSearch />,
       },
       {
-        path: routes.JOB_DETAIL,
+        path: `${routes.JOB_DETAIL}/:id`,
         element: <JobDetail />,
       },
       {
@@ -49,7 +49,7 @@ const UserPublicRoutes: RouteObject[] = [
         element: <EmployerSearch />,
       },
       {
-        path: routes.EMPLOYER_DETAIL,
+        path: `${routes.EMPLOYER_DETAIL}/:id`,
         element: <EmployerDetail />,
       },
       {

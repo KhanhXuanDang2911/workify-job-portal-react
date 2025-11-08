@@ -120,7 +120,7 @@ export default function Header() {
             <Link to={routes.EMPLOYER_SEARCH} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
               Companies
             </Link>
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
                 Pages <ChevronDown className="ml-1 w-4 h-4" />
               </DropdownMenuTrigger>
@@ -144,7 +144,7 @@ export default function Header() {
                   ))}
                 </div>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </nav>
 
           <div className="hidden lg:flex items-center space-x-3">
@@ -343,7 +343,7 @@ export default function Header() {
               </Link>
 
               {/* Pages - mobile dropdown */}
-              <div>
+              {/* <div>
                 <button
                   onClick={() =>
                     setMobileSections((prev) => ({
@@ -379,7 +379,7 @@ export default function Header() {
                     </Link>
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {state.isAuthenticated && state.role === ROLE.JOB_SEEKER && (
                 <div className="border-t border-gray-200 pt-3 mt-3">

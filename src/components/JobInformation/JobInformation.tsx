@@ -197,14 +197,21 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                   <p className="text-lg font-medium text-gray-800">{job.companyName}</p>
                 </div>
                 <div className="flex flex-col text-gray-600 mb-2">
-                  {job.jobLocation.map((location, index) => (
-                    <div className="flex gap-1" key={index}>
+                  {job.jobLocation && Array.isArray(job.jobLocation) && job.jobLocation.length > 0 ? (
+                    job.jobLocation.map((location, index) => (
+                      <div className="flex gap-1" key={index}>
+                        <MapPin className="w-4 h-4" />
+                        <span>
+                          {location.detailAddress}, {location.province?.name || ""}, {location.district?.name || ""}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex gap-1">
                       <MapPin className="w-4 h-4" />
-                      <span>
-                        {location.detailAddress}, {location.province.name}, {location.district.name}
-                      </span>
+                      <span>Chưa cập nhật địa chỉ</span>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="flex items-center text-blue-600 text-sm">
                   <Globe className="w-4 h-4 mr-2" />
@@ -330,16 +337,22 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
             <h3 className="text-xl font-bold text-green-600">Phúc lợi</h3>
           </div>
           <div className="space-y-4">
-            {job.jobBenefits?.map((benefit, index) => {
-              const Icon = benefitMapVN[benefit.type].icon;
-              return (
-                <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
-                  <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
-                  <span className="text-gray-700">{benefit.description}</span>
-                </div>
-              );
-            })}
+            {job.jobBenefits && Array.isArray(job.jobBenefits) && job.jobBenefits.length > 0 ? (
+              job.jobBenefits.map((benefit, index) => {
+                const benefitInfo = benefitMapVN[benefit.type];
+                if (!benefitInfo) return null;
+                const Icon = benefitInfo.icon;
+                return (
+                  <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
+                    <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
+                    <span className="text-gray-700">{benefit.description}</span>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-600">Chưa cập nhật phúc lợi</p>
+            )}
           </div>
         </div>
 
@@ -444,12 +457,16 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                   <Grid3X3 className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Ngành nghề</p>
-                    {job.industries?.map((industry, index) => (
-                      <span key={industry.id} className="font-semibold text-gray-900">
-                        {industry.name}
-                        {index < job.industries.length - 1 && ", "}
-                      </span>
-                    ))}
+                    {job.industries && Array.isArray(job.industries) && job.industries.length > 0 ? (
+                      job.industries.map((industry, index) => (
+                        <span key={industry.id} className="font-semibold text-gray-900">
+                          {industry.name}
+                          {index < job.industries.length - 1 && ", "}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="font-semibold text-gray-900">Chưa cập nhật</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -476,7 +493,13 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                 <MapPin className="w-5 h-5 text-indigo-600 mt-0.5" />
                 <p className="text-gray-700">
                   <strong>Địa chỉ:</strong>
-                  {job.contactLocation.detailAddress}, {job.contactLocation.province.name}, {job.contactLocation.district.name}
+                  {job.contactLocation ? (
+                    <>
+                      {job.contactLocation.detailAddress || ""}, {job.contactLocation.province?.name || ""}, {job.contactLocation.district?.name || ""}
+                    </>
+                  ) : (
+                    "Chưa cập nhật"
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3 mb-4">
