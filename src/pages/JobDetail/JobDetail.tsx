@@ -242,7 +242,7 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 relative overflow-hidden">
-      <div className="container mx-auto px-4 py-8 relative z-10">
+      <div className="main-layout relative z-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Job Information */}
           <div className="lg:col-span-2">

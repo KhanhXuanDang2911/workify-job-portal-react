@@ -191,7 +191,7 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{job.jobTitle}</h1>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{job.jobTitle}</h1>
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-blue-600" />
                   <p className="text-lg font-medium text-gray-800">{job.companyName}</p>
