@@ -225,12 +225,26 @@ const JobDetail = () => {
   const queryClient = useQueryClient();
   const jobId = jobResponse?.data?.id;
 
-  // Check if job is saved
+  // Check if job is saved - use placeholderData from saved-jobs cache to avoid flash
   const { data: isSavedResponse } = useQuery({
     queryKey: ["saved-job", jobId],
     queryFn: () => jobService.checkSavedJob(jobId!),
     enabled: !!jobId,
     retry: false,
+    placeholderData: () => {
+      // Check if job exists in saved-jobs cache
+      const savedJobsQueries = queryClient.getQueriesData({ queryKey: ["saved-jobs"] });
+      for (const [, data] of savedJobsQueries) {
+        const savedJobsData = data as any;
+        if (savedJobsData?.data?.items) {
+          const isInSavedList = savedJobsData.data.items.some((job: any) => job.id === jobId);
+          if (isInSavedList) {
+            return { status: 200, message: "", data: true };
+          }
+        }
+      }
+      return undefined;
+    },
   });
 
   const isSaved = isSavedResponse?.data ?? false;
