@@ -701,7 +701,7 @@ const JobSearch = () => {
 
 
       {/* Search + Filters + Content */}
-            <div className="container mx-auto px-4 py-8 pt-20 relative z-10">
+            <div className="main-layout relative z-10 pt-20 pb-8">
         {/* Search Bar */}
         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border border-white/20 p-4 mb-8 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 opacity-50"></div>

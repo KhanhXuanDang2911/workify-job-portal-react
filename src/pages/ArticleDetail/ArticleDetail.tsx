@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,11 @@ import SuggestedJobs from "../../components/SuggestedJob";
 import Loading from "@/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
+import { jobService } from "@/services/job.service";
 import { routes } from "@/routes/routes.const";
 import type { PostResponse, PostCategory } from "@/types/post.type";
+import type { JobResponse } from "@/types/job.type";
+import { JobTypeLabelVN } from "@/constants/job.constant";
 
 interface TOCItem {
   id: string;
@@ -86,40 +89,53 @@ export default function ArticleDetail() {
         }))
       : [];
 
-  const suggestedJobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "Tech Solutions Inc",
-      salary: "$5,000",
-      type: "Full-time",
-      typeColor: "bg-green-500",
-    },
-    {
-      id: 2,
-      title: "UX/UI Designer",
-      company: "Creative Agency",
-      salary: "$4,200",
-      type: "Remote",
-      typeColor: "bg-blue-500",
-    },
-    {
-      id: 3,
-      title: "Product Manager",
-      company: "StartUp Co",
-      salary: "$6,000",
-      type: "Hybrid",
-      typeColor: "bg-purple-500",
-    },
-    {
-      id: 4,
-      title: "Data Analyst",
-      company: "Analytics Pro",
-      salary: "$3,800",
-      type: "Part-time",
-      typeColor: "bg-orange-500",
-    },
-  ];
+  // Helper functions for job mapping
+  const formatSalary = (job: JobResponse): string => {
+    try {
+      if (job.salaryType === "RANGE") {
+        const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
+        const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
+        return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
+      }
+      if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
+        return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+      }
+      if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
+      if (job.minSalary != null) return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+      return "Thỏa thuận";
+    } catch (e) {
+      return "Thỏa thuận";
+    }
+  };
+
+  const mapTypeColor = (jobType?: string): string => {
+    if (!jobType) return "bg-gray-400";
+    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+    if (jobType.includes("PART")) return "bg-orange-500";
+    if (jobType.includes("CONTRACT")) return "bg-purple-500";
+    return "bg-blue-500";
+  };
+
+  // Fetch top attractive jobs for suggestions
+  const { data: topAttractiveResponse, isLoading: isLoadingJobs, isError: isErrorJobs, error: errorJobs } = useQuery({
+    queryKey: ["top-attractive-jobs", 4],
+    queryFn: () => jobService.getTopAttractiveJobs(4),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const suggestedJobs = useMemo(() => {
+    if (!topAttractiveResponse?.data) return [];
+    return topAttractiveResponse.data.map((job) => {
+      return {
+        id: job.id,
+        title: job.jobTitle || "",
+        company: job.companyName || job.author?.companyName || "",
+        salary: formatSalary(job),
+        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        typeColor: mapTypeColor(job.jobType),
+      };
+    });
+  }, [topAttractiveResponse]);
 
   // Parse tags from string
   const tags =
@@ -470,16 +486,34 @@ export default function ArticleDetail() {
                 </div>
               )}
             </div>
-            <TagsSidebar tags={tags} />
 
+            {/* Tags - only show if there are tags */}
+            {tags.length > 0 && <TagsSidebar tags={tags} />}
+
+            {/* Suggested Jobs */}
             <div>
-              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Việc Làm Hấp Dẫn
-              </h3>
-              <SuggestedJobs
-                jobs={suggestedJobs}
-                onViewAll={() => navigate("/job-search")}
-              />
+              {isLoadingJobs ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorJobs ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorJobs as any)?.message || "Không thể tải danh sách công việc"}
+                  </p>
+                </div>
+              ) : suggestedJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm">
+                    Không có công việc nào
+                  </p>
+                </div>
+              ) : (
+                <SuggestedJobs
+                  jobs={suggestedJobs}
+                  onViewAll={() => navigate(`/${routes.JOB_SEARCH}`)}
+                />
+              )}
             </div>
           </div>
         </div>

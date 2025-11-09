@@ -39,7 +39,7 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Suggested Jobs</h3>
+            <h3 className="font-semibold text-gray-900">Việc Làm Hấp Dẫn</h3>
           </div>
 
           <div className="space-y-3">
