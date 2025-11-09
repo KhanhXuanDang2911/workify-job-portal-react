@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,9 +11,9 @@ import {
   Clock,
   User,
 } from "lucide-react";
-import RecentArticlesSidebar from "../../components/RecentArticlesSidebar";
 import TagsSidebar from "../../components/TagsSidebar";
 import SuggestedJobs from "../../components/SuggestedJob";
+import Loading from "@/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
 import { routes } from "@/routes/routes.const";
@@ -54,9 +54,9 @@ export default function ArticleDetail() {
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
   // Fetch latest articles for Recent Articles section
-  const { data: latestPostsResponse } = useQuery({
-    queryKey: ["latest-public-posts"],
-    queryFn: () => postService.getLatestPublicPosts(),
+  const { data: latestPostsResponse, isLoading: isLoadingRecent, isError: isErrorRecent, error: errorRecent } = useQuery({
+    queryKey: ["latest-public-posts", 6],
+    queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -225,7 +225,7 @@ export default function ArticleDetail() {
   if (isLoadingArticle) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <p className="text-gray-600">Loading article...</p>
+        <Loading variant="spinner" size="lg" />
       </div>
     );
   }
@@ -236,16 +236,16 @@ export default function ArticleDetail() {
         <div className="text-center">
           <p className="text-red-600 mb-4">
             {isErrorArticle
-              ? "Error loading article. Please try again later."
-              : "Article not found."}
+              ? "Không thể tải bài viết. Vui lòng thử lại sau."
+              : "Không tìm thấy bài viết."}
           </p>
           <Button
             variant="outline"
-            onClick={() => navigate("/articles")}
+            onClick={() => navigate(`/${routes.ARTICLES}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Articles
+            Quay lại danh sách bài viết
           </Button>
         </div>
       </div>
@@ -398,7 +398,7 @@ export default function ArticleDetail() {
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
                 Categories
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                 <div
                   className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
                   onClick={() => handleCategoryClick(null)}
@@ -417,7 +417,59 @@ export default function ArticleDetail() {
               </div>
             </div>
 
-            <RecentArticlesSidebar articles={recentArticles} />
+            {/* Recent Articles */}
+            <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
+                Recent Article
+              </h3>
+              {isLoadingRecent ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorRecent ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorRecent as any)?.message || "Không thể tải bài viết"}
+                  </p>
+                </div>
+              ) : recentArticles.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm">
+                    Không có bài viết nào
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentArticles.map((article, index) => {
+                    const linkTo = article.id
+                      ? `/${routes.ARTICLES_DETAIL}/${article.id}`
+                      : "#";
+
+                    return (
+                      <Link
+                        key={index}
+                        to={linkTo}
+                        className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        <img
+                          src={article.image || "/placeholder.svg"}
+                          alt={article.title}
+                          className="w-16 h-16 object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-[#1967d2] mb-1">
+                            {article.date}
+                          </p>
+                          <h4 className="text-sm font-medium text-gray-900 hover:text-[#1967d2] transition-colors h-10 overflow-hidden line-clamp-2">
+                            {article.title}
+                          </h4>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <TagsSidebar tags={tags} />
 
             <div>

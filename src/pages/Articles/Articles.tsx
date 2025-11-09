@@ -243,7 +243,7 @@ export default function Articles() {
         </div>
       </div>
 
-      <div className="main-layout relative z-10 py-8">
+      <div className="main-layout relative z-10 pt-20 pb-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main content */}
           <div className="lg:col-span-3">
