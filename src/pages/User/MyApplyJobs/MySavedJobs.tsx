@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building2, Eye } from "lucide-react";
+import { MapPin, Building2, Eye, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
 import SuggestedJobs from "@/components/SuggestedJob";
@@ -101,6 +101,11 @@ export default function MyApplyJobs() {
   const endIndex = startIndex + itemsPerPage;
   const currentJobs = jobs.slice(startIndex, endIndex);
 
+  const handleDeleteJob = (jobId: number) => {
+    // TODO: Implement delete functionality when API is integrated
+    console.log("Delete job:", jobId);
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -158,7 +163,7 @@ export default function MyApplyJobs() {
                 </div>
               ) : (
                 <>
-                  <TableView jobs={currentJobs} />
+                  <TableView jobs={currentJobs} onDelete={handleDeleteJob} />
                   {totalPages > 1 && (
                     <div className="mt-8">
                       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
@@ -175,16 +180,15 @@ export default function MyApplyJobs() {
 }
 
 // Table View Component
-function TableView({ jobs }: { jobs: Job[] }) {
+function TableView({ jobs, onDelete }: { jobs: Job[]; onDelete: (id: number) => void }) {
   return (
     <div className="space-y-4">
       {/* Table Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg">
+      <div className="grid grid-cols-[5fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg shadow-lg">
         <div>JOBS</div>
         <div>LOCATION</div>
         <div>EXPIRE</div>
-        <div>APPLIED</div>
-        <div>ACTION</div>
+        <div className="text-right">ACTION</div>
       </div>
 
       {/* Table Rows */}
@@ -192,47 +196,50 @@ function TableView({ jobs }: { jobs: Job[] }) {
         {jobs.map((job) => (
           <div
             key={job.id}
-            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white border border-gray-200 rounded-lg hover:shadow-md hover:bg-blue-50 transition-shadow"
+            className="grid grid-cols-[5fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 h-24"
           >
             {/* Job Info */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                 <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{job.title}</h3>
-                  <Badge variant="secondary" className={cn("text-xs", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-semibold text-gray-900 truncate">{job.title}</h3>
+                  <Badge variant="secondary" className={cn("text-xs shrink-0", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
                     {job.type}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                  <Building2 className="w-3 h-3" />
-                  <span>{job.company}</span>
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Building2 className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{job.company}</span>
                 </div>
               </div>
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span>{job.location}</span>
+            <div className="flex items-center gap-1 text-sm text-gray-600 min-w-0">
+              <MapPin className="w-4 h-4 shrink-0" />
+              <span className="truncate">{job.location}</span>
             </div>
 
             {/* Expire Date */}
-            <div className="text-sm text-gray-600">{job.expireDate}</div>
-
-            {/* Applied Date */}
-            <div className="text-sm text-gray-600">{job.savedDate}</div>
+            <div className="text-sm text-gray-600 truncate">{job.expireDate}</div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-end">
               <Link
                 to={`/${routes.JOB_DETAIL}/${job.id}`}
-                className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors bg-white"
+                className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors bg-white shrink-0"
               >
                 <Eye className="w-4 h-4" />
               </Link>
+              <button
+                onClick={() => onDelete(job.id)}
+                className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors bg-white shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}
