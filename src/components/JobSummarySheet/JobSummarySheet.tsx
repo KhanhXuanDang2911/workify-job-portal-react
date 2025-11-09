@@ -22,6 +22,7 @@ interface Job {
   };
   image: string;
   companyWebsite?: string;
+  backgroundUrl?: string;
 }
 
 interface JobSummarySheetProps {
@@ -39,7 +40,7 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
       <SheetContent className="w-full px-4 sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="space-y-4">
           <div className="relative w-full h-48 rounded-lg overflow-hidden">
-            <img src={job.image || "/placeholder.svg"} alt="Office" className="w-full h-full object-cover" />
+            <img src={job.backgroundUrl || "/placeholder.svg"} alt="Office" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
           <div className="space-y-3">

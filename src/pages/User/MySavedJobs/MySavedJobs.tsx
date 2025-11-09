@@ -150,6 +150,7 @@ export default function MySavedJobs() {
         },
         image: job.author?.backgroundUrl || "",
         companyWebsite: job.companyWebsite || "",
+        backgroundUrl: job.author?.backgroundUrl || "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
       };
     });
   }, [savedJobsResponse]);
@@ -174,8 +175,10 @@ export default function MySavedJobs() {
   // Toggle save/unsave mutation
   const toggleSaveMutation = useMutation({
     mutationFn: (jobId: number) => jobService.toggleSavedJob(jobId),
-    onSuccess: () => {
+    onSuccess: (_, jobId) => {
+      // Invalidate both saved-jobs list and saved-job status for this specific job
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       toast.success("Đã bỏ lưu việc làm");
       // Close sheet if viewing deleted job
       if (selectedJob) {

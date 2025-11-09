@@ -145,7 +145,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
   const toggleSaveMutation = useMutation({
     mutationFn: () => jobService.toggleSavedJob(jobId!),
     onSuccess: () => {
+      // Invalidate both saved-job status and saved-jobs list
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
+      queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       toast.success(isSaved ? "Đã bỏ lưu việc làm" : "Đã lưu việc làm");
     },
     onError: (error: any) => {
