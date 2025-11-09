@@ -104,4 +104,15 @@ export const jobService = {
     const response = await http.post<ApiResponse>(`/saved-jobs/toggle/${jobId}`);
     return response.data;
   },
+
+  // Get saved jobs with pagination
+  getSavedJobs: async (pageNumber = 1, pageSize = 10): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/saved-jobs", {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    return response.data;
+  },
 };

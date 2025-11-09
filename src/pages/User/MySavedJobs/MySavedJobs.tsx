@@ -1,18 +1,16 @@
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Grid3x3, List, MapPin, Building2, Trash2, Eye } from "lucide-react";
+import { MapPin, Building2, Trash2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import JobSummarySheet from "@/components/JobSummarySheet";
 import Pagination from "@/components/Pagination";
 import SuggestedJobs from "@/components/SuggestedJob";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
 import type { JobResponse } from "@/types/job.type";
 import { JobTypeLabelVN } from "@/constants";
-import { mockSavedJobs } from "@/pages/User/MySavedJobs/MySavedJobsMockData";
-
-type ViewMode = "table" | "grid";
+import { toast } from "react-toastify";
+import Loading from "@/components/Loading";
 
 interface Job {
   id: number;
@@ -33,6 +31,7 @@ interface Job {
     rights: string[];
   };
   image: string;
+  companyWebsite?: string;
 }
 
 // Format salary
@@ -63,20 +62,97 @@ const mapTypeColor = (jobType?: string): string => {
   return "bg-blue-500";
 };
 
+// Format date
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch (e) {
+    return "";
+  }
+};
+
+// Relative time
+const relativePosted = (dateString?: string): string => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hôm nay";
+    if (diffDays === 1) return "Hôm qua";
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
+    return `${Math.floor(diffDays / 365)} năm trước`;
+  } catch (e) {
+    return "";
+  }
+};
+
 export default function MySavedJobs() {
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
-  const [jobs, setJobs] = useState<Job[]>(mockSavedJobs);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
+  const queryClient = useQueryClient();
+
+  // Fetch saved jobs
+  const {
+    data: savedJobsResponse,
+    isLoading: isLoadingSavedJobs,
+    isError: isErrorSavedJobs,
+  } = useQuery({
+    queryKey: ["saved-jobs", currentPage, itemsPerPage],
+    queryFn: () => jobService.getSavedJobs(currentPage, itemsPerPage),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
   // Fetch top attractive jobs for suggestions
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 5],
-    queryFn: () => jobService.getTopAttractiveJobs(5),
+    queryKey: ["top-attractive-jobs", 7],
+    queryFn: () => jobService.getTopAttractiveJobs(7),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Map saved jobs from API to Job interface
+  const jobs = useMemo(() => {
+    if (!savedJobsResponse?.data?.items) return [];
+    return savedJobsResponse.data.items.map((job: JobResponse) => {
+      const firstLocation = job.jobLocations?.[0];
+      const locationString = firstLocation
+        ? `${firstLocation.detailAddress || ""}, ${firstLocation.district?.name || ""}, ${firstLocation.province?.name || ""}`.replace(/^,\s*|,\s*$/g, "").trim()
+        : "Chưa cập nhật địa chỉ";
+
+      return {
+        id: job.id,
+        title: job.jobTitle || "",
+        company: job.companyName || job.author?.companyName || "",
+        location: locationString,
+        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType || "",
+        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        expireDate: job.expirationDate ? formatDate(job.expirationDate) : "",
+        savedDate: job.createdAt ? relativePosted(job.createdAt) : "",
+        salary: formatSalary(job),
+        posted: job.createdAt ? relativePosted(job.createdAt) : "",
+        applications: (job as any).numberOfApplications?.toString() || "0",
+        description: job.jobDescription || "",
+        requirements: job.requirement ? [job.requirement] : [],
+        benefits: {
+          offer: job.jobBenefits?.map((b) => b.description || "") || [],
+          rights: [],
+        },
+        image: job.author?.backgroundUrl || "",
+        companyWebsite: job.companyWebsite || "",
+      };
+    });
+  }, [savedJobsResponse]);
 
   // Map suggested jobs
   const suggestedJobs = useMemo(() => {
@@ -92,21 +168,33 @@ export default function MySavedJobs() {
     }));
   }, [topAttractiveResponse]);
 
-  const totalPages = Math.ceil(jobs.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentJobs = jobs.slice(startIndex, endIndex);
+  const totalPages = savedJobsResponse?.data?.totalPages || 0;
+  const currentJobs = jobs;
+
+  // Toggle save/unsave mutation
+  const toggleSaveMutation = useMutation({
+    mutationFn: (jobId: number) => jobService.toggleSavedJob(jobId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
+      toast.success("Đã bỏ lưu việc làm");
+      // Close sheet if viewing deleted job
+      if (selectedJob) {
+        setIsSheetOpen(false);
+        setSelectedJob(null);
+      }
+      // Adjust page if needed
+      if (currentPage > 1 && currentJobs.length === 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      toast.error(errorMessage);
+    },
+  });
 
   const handleDeleteJob = (jobId: number) => {
-    setJobs(jobs.filter((job) => job.id !== jobId));
-    if (selectedJob?.id === jobId) {
-      setIsSheetOpen(false);
-      setSelectedJob(null);
-    }
-    const newTotalPages = Math.ceil((jobs.length - 1) / itemsPerPage);
-    if (currentPage > newTotalPages && newTotalPages > 0) {
-      setCurrentPage(newTotalPages);
-    }
+    toggleSaveMutation.mutate(jobId);
   };
 
   const handleViewJob = (job: Job) => {
@@ -164,43 +252,20 @@ export default function MySavedJobs() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <div className="max-w-7xl mx-auto p-5">
-              {/* View Toggle */}
-              <div className="flex gap-0 mb-6 w-fit">
-                <Button
-                  onClick={() => setViewMode("table")}
-                  className={cn(
-                    "!px-14 gap-2 rounded-none transition-all duration-300",
-                    viewMode === "table" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
-                  )}
-                  style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
-                >
-                  <List className="w-4 h-4" />
-                  Table View
-                </Button>
-                <Button
-                  onClick={() => setViewMode("grid")}
-                  className={cn(
-                    "rounded-none transition-all flex items-center justify-center gap-2 duration-300 !px-14",
-                    viewMode === "grid" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
-                  )}
-                  style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
-                >
-                  <Grid3x3 className="w-4 h-4" />
-                  <span>Grid View</span>
-                </Button>
-              </div>
-
+            <div className="max-w-7xl mx-auto px-5">
               {/* Content */}
-              {viewMode === "table" ? (
-                <>
-                  <TableView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
-                  {totalPages > 1 && (
-                    <div className="mt-8">
-                      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                    </div>
-                  )}
-                </>
+              {isLoadingSavedJobs ? (
+                <div className="flex justify-center items-center py-20">
+                  <Loading />
+                </div>
+              ) : isErrorSavedJobs ? (
+                <div className="text-center py-20">
+                  <p className="text-gray-600">Có lỗi xảy ra khi tải danh sách việc làm đã lưu</p>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-gray-600">Bạn chưa lưu việc làm nào</p>
+                </div>
               ) : (
                 <>
                   <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
@@ -219,79 +284,6 @@ export default function MySavedJobs() {
         </div>
       </div>
     </>
-  );
-}
-
-// Table View Component
-function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) => void; onDelete: (id: number) => void }) {
-  return (
-    <div className="space-y-4">
-      {/* Table Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg">
-        <div>JOBS</div>
-        <div>LOCATION</div>
-        <div>EXPIRE</div>
-        <div>SAVED</div>
-        <div>ACTION</div>
-      </div>
-
-      {/* Table Rows */}
-      <div className="space-y-3">
-        {jobs.map((job) => (
-          <div
-            key={job.id}
-            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer"
-          >
-            {/* Job Info */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{job.title}</h3>
-                  <Badge variant="secondary" className={cn("text-xs", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
-                    {job.type}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                  <Building2 className="w-3 h-3" />
-                  <span>{job.company}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span>{job.location}</span>
-            </div>
-
-            {/* Expire Date */}
-            <div className="text-sm text-gray-600">{job.expireDate}</div>
-
-            {/* Saved Date */}
-            <div className="text-sm text-gray-600">{job.savedDate}</div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onView(job)}
-                className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDelete(job.id)}
-                className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -333,13 +325,13 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
-            <MapPin className="w-4 h-4" />
+          <div className="flex items-start gap-1 text-sm text-gray-500 mb-4">
+            <MapPin className="w-8 h-8" />
             <span>{job.location}</span>
           </div>
 
           {/* Company */}
-          <div className="flex items-center gap-1 text-sm text-gray-600 mb-4">
+          <div className="flex items-center gap-1 text-sm text-gray-600">
             <Building2 className="w-4 h-4" />
             <span>{job.company}</span>
           </div>
