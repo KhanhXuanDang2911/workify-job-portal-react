@@ -378,14 +378,17 @@ const JobDetail = () => {
                   </div>
 
                   <div className="mt-6 pt-4 border-t space-y-3">
-                    <JobApplicationModal
-                      jobTitle={jobData.jobTitle}
-                      companyName={jobData.companyName}
-                    >
-                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300">
-                        Nộp đơn ngay
-                      </Button>
-                    </JobApplicationModal>
+                    {jobId && (
+                      <JobApplicationModal
+                        jobId={jobId}
+                        jobTitle={jobData.jobTitle}
+                        companyName={jobData.companyName}
+                      >
+                        <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300">
+                          Nộp đơn ngay
+                        </Button>
+                      </JobApplicationModal>
+                    )}
                     <Button
                       variant="outline"
                       onClick={handleToggleSave}
