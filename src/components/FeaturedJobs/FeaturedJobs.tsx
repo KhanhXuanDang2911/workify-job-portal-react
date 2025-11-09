@@ -82,6 +82,7 @@ export default function FeaturedJobs() {
       typeColor: mapTypeColor(item.jobType ?? item.jobLevel),
       posted: relativePosted(item.createdAt),
       logo: item.author?.avatarUrl || item.companyLogo || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      companyWebsite: item.companyWebsite,
     };
   };
 

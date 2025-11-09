@@ -15,6 +15,7 @@ type Job = {
   typeColor: string;
   posted: string;
   logo: string;
+  companyWebsite?: string;
 };
 
 export default function JobCard({ job }: { job: Job }) {
@@ -56,9 +57,16 @@ export default function JobCard({ job }: { job: Job }) {
             <span className="line-clamp-1">{job.location}</span>
           </div>
 
-          <p className="text-blue-600 text-xs hover:underline cursor-pointer mb-3">
-            https://thewebmax.com
-          </p>
+          {job.companyWebsite && (
+            <a
+              href={job.companyWebsite}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 text-xs hover:underline cursor-pointer mb-3 block"
+            >
+              {job.companyWebsite}
+            </a>
+          )}
 
           <div className="flex items-center justify-end space-x-4">
             <div className="text-right">

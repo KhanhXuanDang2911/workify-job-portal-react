@@ -1,9 +1,11 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendingUp } from "lucide-react";
+import { routes } from "@/routes/routes.const";
 
 interface SuggestedJob {
   id: number;
@@ -12,6 +14,7 @@ interface SuggestedJob {
   salary: string;
   type: string;
   typeColor: string;
+  logo?: string;
 }
 
 interface SuggestedJobsProps {
@@ -29,10 +32,6 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
       .slice(0, 2);
   };
 
-  const getAvatarUrl = (id: number) => {
-    return `https://i.pravatar.cc/40?img=${id}`;
-  };
-
   return (
     <div className="space-y-6">
       <Card className="bg-white shadow-sm border border-gray-100 p-6 h-fit">
@@ -44,16 +43,17 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
 
           <div className="space-y-3">
             {jobs.map((job) => (
-              <div
+              <Link
                 key={job.id}
-                className="p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                to={`/${routes.JOB_DETAIL}/${job.id}`}
+                className="block p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar + Badge */}
                   <div className="flex flex-col items-center flex-shrink-0">
                     <Avatar className="w-12 h-12">
                       <AvatarImage
-                        src={getAvatarUrl(job.id)}
+                        src={job.logo}
                         alt={job.company}
                       />
                       <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
@@ -80,7 +80,7 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 

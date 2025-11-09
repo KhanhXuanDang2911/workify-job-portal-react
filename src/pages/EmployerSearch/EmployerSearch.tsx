@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Search, Trash2 } from "lucide-react";
 import EmployerCard from "@/components/EmployerCard";
 import Pagination from "@/components/Pagination";
+import Loading from "@/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services";
 import { provinceService } from "@/services/location.service";
@@ -157,8 +158,8 @@ const EmployerSearch = () => {
     const location = [provinceName, districtName].filter(Boolean).join(", ");
 
     // Fallback images from public URLs
-    const defaultAvatar = "https://cdn-new.topcv.vn/unsafe/135x/https://static.topcv.vn/company_logos/WphKX6IinchU9MgvLKMhq1xedm8Qz4w8_1729069676____4ce6db44df6ec10a196cea547700374d.png";
-    const defaultBackground = "https://blob-careerlinkvn.careerlink.vn/company_banners/12ffdf76af19636f1c6d1eb90132dbb6";
+    const defaultAvatar = "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg";
+    const defaultBackground = "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg";
 
     return {
       id: employer.id,
@@ -395,11 +396,11 @@ const EmployerSearch = () => {
               <div className="relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium">
-                      {isLoading
-                        ? "Loading..."
-                        : `Showing ${numberOfElements} employers found`}
-                    </span>
+                    {!isLoading && (
+                      <span className="font-medium">
+                        Hiển thị {numberOfElements} nhà tuyển dụng
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
@@ -451,14 +452,14 @@ const EmployerSearch = () => {
 
             {/* Loading state */}
             {isLoading && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading employers...</p>
+              <div className="flex items-center justify-center py-12">
+                <Loading variant="spinner" size="lg" />
               </div>
             )}
 
             {/* Error state */}
             {isError && (() => {
-              let errorMessage = "Please try again later.";
+              let errorMessage = "Không thể tải danh sách nhà tuyển dụng. Vui lòng thử lại sau.";
               let fieldErrors: Array<{ fieldName: string; message: string }> = [];
 
               if (
@@ -484,7 +485,7 @@ const EmployerSearch = () => {
               return (
                 <div className="text-center py-12">
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
-                    <p className="text-red-800 font-medium mb-2">Error loading employers</p>
+                    <p className="text-red-800 font-medium mb-2">Lỗi khi tải danh sách nhà tuyển dụng</p>
                     <p className="text-red-600 text-sm">{errorMessage}</p>
                     {fieldErrors.length > 0 && (
                       <div className="mt-2 text-left">
@@ -507,17 +508,17 @@ const EmployerSearch = () => {
               <>
                 {mappedEmployers.length > 0 ? (
                   <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {mappedEmployers.map((employer) => (
-                <EmployerCard key={employer.id} employer={employer} />
-              ))}
-            </div>
+                        <EmployerCard key={employer.id} employer={employer} />
+                      ))}
+                    </div>
 
-            {/* Pagination */}
+                    {/* Pagination */}
                     {totalPages > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
                         onPageChange={handlePageChange}
                       />
                     )}
@@ -525,7 +526,7 @@ const EmployerSearch = () => {
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-600">
-                      No employers found. Try adjusting your search or filters.
+                      Không có nhà tuyển dụng nào
                     </p>
                   </div>
                 )}

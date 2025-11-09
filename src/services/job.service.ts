@@ -81,4 +81,15 @@ export const jobService = {
     const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
     return response.data;
   },
+
+  // Get jobs by employer id (public)
+  getJobsByEmployerId: async (employerId: number, pageNumber = 1, pageSize = 10): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>(`/jobs/openings/${employerId}`, {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    return response.data;
+  },
 };

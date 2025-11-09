@@ -158,6 +158,28 @@ export default function EmployerDetail() {
         <div className="absolute top-0 left-0 w-64 h-24 bg-gradient-to-r from-purple-100 to-transparent opacity-50"></div>
 
         <div className="container mx-auto px-4 py-6 relative z-10">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+            <Home className="w-4 h-4" />
+            <span className="hover:text-blue-600 cursor-pointer transition-colors">
+              Home
+            </span>
+            <span>→</span>
+            <span className="hover:text-blue-600 cursor-pointer transition-colors">
+              Employers
+            </span>
+            <span>→</span>
+            <span className="text-blue-600 font-medium">Employer Details</span>
+          </div>
+
+          {/* Back Button */}
+          <Button
+            variant="outline"
+            className="mb-4 border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Back to Employers
+          </Button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Company Image and Info */}

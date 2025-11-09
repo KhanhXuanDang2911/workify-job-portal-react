@@ -48,7 +48,7 @@ export default function ArticleDetail() {
   const articleData: PostResponse | undefined = articleResponse?.data;
 
   // Fetch categories
-  const { data: categoriesResponse } = useQuery({
+  const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isErrorCategories, error: errorCategories } = useQuery({
     queryKey: ["post-categories"],
     queryFn: () => postService.getAllCategories(),
     staleTime: 10 * 60 * 1000,
@@ -133,6 +133,7 @@ export default function ArticleDetail() {
         salary: formatSalary(job),
         type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
         typeColor: mapTypeColor(job.jobType),
+        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
       };
     });
   }, [topAttractiveResponse]);
@@ -414,23 +415,35 @@ export default function ArticleDetail() {
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
                 Categories
               </h3>
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                <div
-                  className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
-                  onClick={() => handleCategoryClick(null)}
-                >
-                  All Categories
+              {isLoadingCategories ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
                 </div>
-                {categories.map((category) => (
+              ) : isErrorCategories ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorCategories as any)?.message || "Không thể tải danh mục"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                   <div
-                    key={category.id}
                     className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
-                    onClick={() => handleCategoryClick(category.id)}
+                    onClick={() => handleCategoryClick(null)}
                   >
-                    {category.title}
+                    All Categories
                   </div>
-                ))}
-              </div>
+                  {categories.map((category) => (
+                    <div
+                      key={category.id}
+                      className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
+                      onClick={() => handleCategoryClick(category.id)}
+                    >
+                      {category.title}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Recent Articles */}

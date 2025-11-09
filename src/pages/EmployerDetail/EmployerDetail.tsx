@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,10 +15,17 @@ import {
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services/employer.service";
-import { CompanySizeLabelVN } from "@/constants/company.constant";
+import { jobService } from "@/services/job.service";
+import { CompanySizeLabelVN, JobTypeLabelVN } from "@/constants";
+import Loading from "@/components/Loading";
+import JobCard from "@/components/JobCard";
+import Pagination from "@/components/Pagination";
+import type { JobResponse } from "@/types/job.type";
 
 export default function EmployerDetail() {
   const { id } = useParams<{ id: string }>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 3;
 
   // Fetch employer data
   const {
@@ -33,6 +41,20 @@ export default function EmployerDetail() {
   });
 
   const employer = employerResponse?.data;
+
+  // Fetch jobs by employer id
+  const {
+    data: jobsResponse,
+    isLoading: isLoadingJobs,
+  } = useQuery({
+    queryKey: ["employer-jobs", id, currentPage, jobsPerPage],
+    queryFn: () => jobService.getJobsByEmployerId(Number(id), currentPage, jobsPerPage),
+    enabled: !!id && !isNaN(Number(id)) && !!employer,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const totalJobs = jobsResponse?.data?.numberOfElements || 0;
+  const totalPages = jobsResponse?.data?.totalPages || 0;
 
   // Build full address
   const buildFullAddress = () => {
@@ -73,28 +95,132 @@ export default function EmployerDetail() {
     }
   };
 
+  // Sort and map jobs
+  const sortedJobs = useMemo(() => {
+    const jobsList = jobsResponse?.data?.items || [];
+
+    // Format salary from JobResponse
+    const formatSalary = (job: JobResponse): string => {
+      try {
+        if (job.salaryType === "RANGE") {
+          const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
+          const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
+          return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
+        }
+        if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
+          return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+        }
+        if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
+        if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
+        return "Thỏa thuận";
+      } catch (e) {
+        return "Thỏa thuận";
+      }
+    };
+
+    // Map type to color
+    const mapTypeColor = (jobType?: string): string => {
+      if (!jobType) return "bg-gray-400";
+      if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+      if (jobType.includes("PART")) return "bg-orange-500";
+      if (jobType.includes("CONTRACT")) return "bg-purple-500";
+      return "bg-blue-500";
+    };
+
+    // Get relative posted time
+    const relativePosted = (dateString: string): string => {
+      try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return "Hôm nay";
+        if (diffDays === 1) return "1 ngày trước";
+        if (diffDays < 7) return `${diffDays} ngày trước`;
+        if (diffDays < 30) {
+          const weeks = Math.floor(diffDays / 7);
+          return `${weeks} ${weeks === 1 ? "tuần" : "tuần"} trước`;
+        }
+        if (diffDays < 365) {
+          const months = Math.floor(diffDays / 30);
+          return `${months} ${months === 1 ? "tháng" : "tháng"} trước`;
+        }
+        const years = Math.floor(diffDays / 365);
+        return `${years} ${years === 1 ? "năm" : "năm"} trước`;
+      } catch (e) {
+        return "";
+      }
+    };
+
+    // Transform JobResponse to JobCard format
+    const mapJobToCard = (job: JobResponse) => {
+      const firstLocation = Array.isArray(job.jobLocations) && job.jobLocations.length > 0 ? job.jobLocations[0] : null;
+      const locationParts: string[] = [];
+      if (firstLocation) {
+        if (firstLocation.province?.name) locationParts.push(firstLocation.province.name);
+        if (firstLocation.district?.name) locationParts.push(firstLocation.district.name);
+        if (firstLocation.detailAddress) locationParts.push(firstLocation.detailAddress);
+      }
+
+      return {
+        id: job.id,
+        title: job.jobTitle || "",
+        company: job.companyName || job.author?.companyName || "",
+        location: locationParts.join(", ") || "",
+        salary: formatSalary(job),
+        period: job.salaryUnit ?? "",
+        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        typeColor: mapTypeColor(job.jobType),
+        posted: relativePosted(job.createdAt),
+        logo: job.author?.avatarUrl || employer?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        companyWebsite: job.companyWebsite,
+      };
+    };
+
+    const mapped = jobsList.map(mapJobToCard);
+    return mapped.sort((a, b) => {
+      const jobA = jobsList.find(j => j.id === a.id);
+      const jobB = jobsList.find(j => j.id === b.id);
+      if (!jobA || !jobB) return 0;
+      
+      // Sort by updatedAt (most recent first)
+      return new Date(jobB.updatedAt).getTime() - new Date(jobA.updatedAt).getTime();
+    });
+  }, [jobsResponse?.data?.items, employer]);
+
   // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Đang tải thông tin nhà tuyển dụng...</p>
-        </div>
+        <Loading variant="spinner" size="lg" />
       </div>
     );
   }
 
   // Error state
   if (isError || !employer) {
+    let errorMessage = "Không thể tải thông tin nhà tuyển dụng. Vui lòng thử lại sau.";
+    
+    if (error && typeof error === "object" && "response" in error) {
+      const errorResponse = error.response as { data?: { message?: string } };
+      if (errorResponse?.data?.message) {
+        errorMessage = errorResponse.data.message;
+      }
+    } else if (!employer && !isError) {
+      errorMessage = "Không tìm thấy nhà tuyển dụng.";
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">
-            {error
-              ? "Không thể tải thông tin nhà tuyển dụng. Vui lòng thử lại sau."
-              : "Không tìm thấy nhà tuyển dụng."}
-          </p>
-          <Button onClick={() => window.history.back()}>Quay lại</Button>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <p className="text-red-800 font-medium mb-2">Lỗi khi tải thông tin nhà tuyển dụng</p>
+            <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
+            <Button onClick={() => window.history.back()} variant="outline">
+              Quay lại
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -125,35 +251,31 @@ export default function EmployerDetail() {
                 <img
                   src={
                     employer.backgroundUrl ||
-                    "https://thewebmax.org/react/jobzilla/assets/images/employer-bg.jpg"
+                    "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg"
                   }
                   alt={`${employer.companyName} background`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.src =
-                      "https://thewebmax.org/react/jobzilla/assets/images/employer-bg.jpg";
+                      "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg";
                   }}
                 />
 
                 {/* Company logo positioned at bottom left */}
                 <div className="absolute bottom-6 left-6">
                   <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center shadow-lg border overflow-hidden">
-                    {employer.avatarUrl ? (
-                      <img
-                        src={employer.avatarUrl}
-                        alt={employer.companyName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic1.jpg";
-                        }}
-                      />
-                    ) : (
                     <img
-                      src="https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic1.jpg"
-                        alt={employer.companyName}
+                      src={
+                        employer.avatarUrl ||
+                        "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg"
+                      }
+                      alt={employer.companyName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg";
+                      }}
                     />
-                    )}
                   </div>
                 </div>
               </div>
@@ -349,6 +471,62 @@ export default function EmployerDetail() {
               </Card>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Available Jobs Section */}
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Available Jobs */}
+            <Card className="bg-white/90 backdrop-blur-sm shadow-lg border border-white/30 p-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-pink-50/30 opacity-60"></div>
+              <div className="relative z-10">
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-[#1967d2]">
+                    Available Jobs
+                  </h2>
+                </div>
+
+                {isLoadingJobs ? (
+                  <div className="py-12 flex items-center justify-center">
+                    <Loading variant="spinner" size="lg" />
+                  </div>
+                ) : sortedJobs.length === 0 ? (
+                  <div className="py-12 text-center text-gray-600">
+                    Không có công việc nào
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      {sortedJobs.map((job) => (
+                        <JobCard key={job.id} job={job} />
+                      ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="mt-6 pt-4 border-t">
+                        <div className="text-sm text-gray-600 mb-4">
+                          Showing {((currentPage - 1) * jobsPerPage) + 1}-
+                          {Math.min(currentPage * jobsPerPage, totalJobs)}{" "}
+                          of {totalJobs} jobs
+                        </div>
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Empty space to maintain layout consistency */}
+          <div className="lg:col-span-1"></div>
         </div>
       </div>
     </div>

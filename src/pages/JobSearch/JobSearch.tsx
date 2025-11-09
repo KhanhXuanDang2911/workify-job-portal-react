@@ -167,6 +167,7 @@ const mapJobToCard = (job: JobResponse) => {
         typeColor: mapTypeColor(job.jobType),
         posted: relativePosted(job.createdAt),
         logo: job.author?.avatarUrl || "https://www.vj-tech.jp/_nuxt/img/logo-vj.c7683b6.png",
+        companyWebsite: job.companyWebsite,
     };
 };
 
@@ -493,8 +494,8 @@ const JobSearch = () => {
 
     // Fetch top attractive jobs for suggestions
     const { data: topAttractiveResponse } = useQuery({
-        queryKey: ["top-attractive-jobs"],
-        queryFn: () => jobService.getTopAttractiveJobs(),
+        queryKey: ["top-attractive-jobs", 8],
+        queryFn: () => jobService.getTopAttractiveJobs(8),
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
@@ -515,6 +516,7 @@ const JobSearch = () => {
                 salary: formatSalary(job),
                 type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
                 typeColor: mapTypeColor(job.jobType),
+                logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
             };
         });
     }, [topAttractiveResponse]);
