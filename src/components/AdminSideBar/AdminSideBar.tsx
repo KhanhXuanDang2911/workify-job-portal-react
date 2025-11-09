@@ -3,7 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen } from "lucide-react";
+import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen, BriefcaseBusiness } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LucideProps } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,10 +29,16 @@ const menuItems: MenuItem[] = [
     href: `${admin_routes.BASE}/${admin_routes.DASHBOARD}`,
   },
   {
+    id: "jobs",
+    label: "Jobs",
+    icon: BriefcaseBusiness,
+    href: `${admin_routes.BASE}/${admin_routes.JOBS}`,
+  },
+  {
     id: "posts",
     label: "Posts",
     icon: BookHeart,
-    href:`${admin_routes.BASE}/${admin_routes.POSTS}`,
+    href: `${admin_routes.BASE}/${admin_routes.POSTS}`,
   },
   {
     id: "post-categories",

@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import AdminSignIn from "@/pages/Admin/AdminSignIn";
 import AdminLayout from "@/layouts/AdminLayout";
 import { admin_routes } from "../routes.const";
+import GuestRoute from "@/routes/GuestRoute";
 
 const AdminPublicRoutes: RouteObject[] = [
   {
@@ -10,7 +11,11 @@ const AdminPublicRoutes: RouteObject[] = [
     children: [
       {
         path: admin_routes.SIGN_IN,
-        element: <AdminSignIn />,
+        element: (
+          <GuestRoute>
+            <AdminSignIn />
+          </GuestRoute>
+        ),
       },
     ],
   },

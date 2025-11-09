@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,7 @@ import { toast } from "react-toastify";
 import { RoleColors, RoleLabelEN, RowsPerPageOptions, UserStatusColors, UserStatusLabelEN, type RowsPerPage } from "@/constants";
 import Pagination from "@/components/Pagination";
 import MultiSortButton from "@/components/MultiSortButton";
-import { provinceService, userService } from "@/services";
+import { userService } from "@/services";
 import CreateUserModal from "@/pages/Admin/UserManagement/CreateUserModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getNameInitials } from "@/utils";
@@ -33,8 +33,6 @@ type SortDirection = "asc" | "desc";
 
 export default function UserManagement() {
   const navigate = useNavigate();
-
-  const location = useLocation();
 
   const queryClient = useQueryClient();
 
@@ -47,17 +45,6 @@ export default function UserManagement() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  const [provincesOptions, setProvincesOptions] = useState<{ id: number; name: string }[]>([]);
-  const [searchProvince, setSearchProvince] = useState("");
-    const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
-    
-  useEffect(() => {
-    if (location.state?.refresh) {
-      ClearFilters();
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
@@ -86,22 +73,6 @@ export default function UserManagement() {
       toast.error("An error occurred while deleting the User");
     },
   });
-
-  const { data: provinces } = useQuery({
-    queryKey: ["provinces"],
-    queryFn: async () => {
-      const res = await provinceService.getProvinces();
-      return res.data;
-    },
-    select: (data) => data?.map((province: { id: number; name: string }) => ({ id: province.id, name: province.name })),
-    staleTime: 60 * 60 * 1000,
-  });
-
-  useEffect(() => {
-    if (provinces && provinces.length > 0) {
-      setProvincesOptions(provinces);
-    }
-  }, [provinces]);
 
   const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
     setSorts((prev) => {
@@ -198,53 +169,6 @@ export default function UserManagement() {
             <Button onClick={handleSearch} variant="secondary" className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
               Search
             </Button>
-            <Select value={provinceId ? String(provinceId) : ""} onValueChange={(value) => setProvinceId(Number(value) || undefined)}>
-              <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Province" />
-              </SelectTrigger>
-              <SelectContent className="w-64 p-0">
-                <div className="p-4">
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" color="#1967d2" />
-                    <Input
-                      placeholder="Search"
-                      className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
-                      value={searchProvince}
-                      onChange={(event) => {
-                        setSearchProvince(event.target.value);
-                        if (event.target.value === "") {
-                          setProvincesOptions(provinces || []);
-                          return;
-                        }
-                        const filtered = provinces?.filter((option) => option.name.toLowerCase().includes(event.target.value.toLowerCase()));
-                        setProvincesOptions(filtered || []);
-                      }}
-                    />
-                    {searchProvince && (
-                      <XIcon
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-                        color="#1967d2"
-                        onClick={() => {
-                          setSearchProvince("");
-                          setProvincesOptions(provinces || []);
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {provincesOptions.length > 0 ? (
-                      provincesOptions.map((province) => (
-                        <SelectItem key={province.id} value={String(province.id)} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                          {province.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-500">No province found.</div>
-                    )}
-                  </div>
-                </div>
-              </SelectContent>
-            </Select>
           </div>
           <CreateUserModal />
         </div>

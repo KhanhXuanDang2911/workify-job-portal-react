@@ -14,6 +14,8 @@ import { routes } from "../routes.const";
 import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
 import CreatePassword from "@/pages/CreatePassword";
+import GuestRoute from "@/routes/GuestRoute";
+import LinkedInAuthenticate from "@/pages/LinkedInAuthenticate";
 
 const UserPublicRoutes: RouteObject[] = [
   {
@@ -26,11 +28,19 @@ const UserPublicRoutes: RouteObject[] = [
       },
       {
         path: routes.SIGN_UP,
-        element: <SignUp />,
+        element: (
+          <GuestRoute>
+            <SignUp />
+          </GuestRoute>
+        ),
       },
       {
         path: routes.SIGN_IN,
-        element: <SignIn />,
+        element: (
+          <GuestRoute>
+            <SignIn />
+          </GuestRoute>
+        ),
       },
       {
         path: routes.VERIFY_EMAIL,
@@ -71,6 +81,10 @@ const UserPublicRoutes: RouteObject[] = [
       {
         path: routes.CREATE_PASSWORD,
         element: <CreatePassword />,
+      },
+      {
+        path: routes.LINKEDIN_AUTHENTICATE,
+        element: <LinkedInAuthenticate />,
       },
     ],
   },

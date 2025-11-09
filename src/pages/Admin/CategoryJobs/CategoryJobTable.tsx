@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import CreateCategoryJobModal from "@/pages/Admin/CategoryJobs/CreateCategoryJobModal";
 import { Badge } from "@/components/ui/badge";
-import SortButton from "@/components/SortButton";
+import MultiSortButton from "@/components/MultiSortButton";
 
 interface CategoryJobTableProps {
   onSelectJob: (job: CategoryJobResponse) => void;
@@ -23,20 +23,21 @@ type SortDirection = "asc" | "desc";
 export default function CategoryJobTable({ onSelectJob, selectedCategoryJob }: CategoryJobTableProps) {
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState<RowsPerPage>(10);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
+
   const { data: jobCategoriesData, isLoading: isLoadingJobCategoriesData } = useQuery({
-    queryKey: ["categoryJobs", pageNumber, pageSize, keyword, sortField, sortDirection],
+    queryKey: ["categoryJobs", pageNumber, pageSize, keyword, sortsString],
     queryFn: async () => {
       const res = await categoryJobService.getCategoryJobs({
         pageNumber,
         pageSize,
-        sorts: `${sortField}:${sortDirection}`,
+        sorts: sortsString || undefined,
         keyword: keyword || undefined,
       });
       return res.data;
@@ -45,6 +46,21 @@ export default function CategoryJobTable({ onSelectJob, selectedCategoryJob }: C
     placeholderData: (previousData) => previousData,
   });
 
+  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
+    setSorts((prev) => {
+      if (newDirection === null) {
+        return prev.filter((s) => s.field !== field);
+      }
+      const existing = prev.find((s) => s.field === field);
+      if (existing) {
+        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
+      }
+      return [...prev, { field, direction: newDirection }];
+    });
+
+    setPageNumber(1);
+  }, []);
+
   const jobCategories = jobCategoriesData?.items || [];
   const totalPages = jobCategoriesData?.totalPages || 0;
   const totalCategories = jobCategoriesData?.numberOfElements || 0;
@@ -52,16 +68,6 @@ export default function CategoryJobTable({ onSelectJob, selectedCategoryJob }: C
   const ClearFilters = () => {
     setKeyword("");
     setSearchInput("");
-    setPageNumber(1);
-  };
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
     setPageNumber(1);
   };
 
@@ -152,7 +158,7 @@ export default function CategoryJobTable({ onSelectJob, selectedCategoryJob }: C
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span className="">Name</span>
-                  <SortButton isActive={sortField === "name"} direction={sortDirection} onClick={() => handleSort("name")} />
+                  <MultiSortButton direction={sorts.find((s) => s.field === "name")?.direction ?? null} onChange={(newDirection) => handleSortChange("name", newDirection)} />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
@@ -163,13 +169,19 @@ export default function CategoryJobTable({ onSelectJob, selectedCategoryJob }: C
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Created At</span>
-                  <SortButton isActive={sortField === "createdAt"} direction={sortDirection} onClick={() => handleSort("createdAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Update At</span>
-                  <SortButton isActive={sortField === "updatedAt"} direction={sortDirection} onClick={() => handleSort("updatedAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                  />
                 </div>
               </th>
             </tr>

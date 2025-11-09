@@ -192,13 +192,13 @@ export const JobStatusLabelEN: Record<JobStatus, string> = {
   [JobStatus.EXPIRED]: "Expired",
 };
 
-export const JobStatusColors : Record<JobStatus, string> = {
-  [JobStatus.DRAFT]: "border-gray-500 text-gray-500",
-  [JobStatus.PENDING]: "border-yellow-500 text-yellow-500",
-  [JobStatus.APPROVED]: "border-green-500 text-green-500",
-  [JobStatus.REJECTED]: "border-red-500 text-red-500",
-  [JobStatus.CLOSED]: "border-blue-500 text-blue-500",
-  [JobStatus.EXPIRED]: "border-muted text-muted-foreground",
+export const JobStatusColors: Record<JobStatus, string> = {
+  [JobStatus.DRAFT]: "bg-gray-500 text-white",
+  [JobStatus.PENDING]: "bg-yellow-500 text-white",
+  [JobStatus.APPROVED]: "bg-green-500 text-white",
+  [JobStatus.REJECTED]: "bg-red-500 text-white",
+  [JobStatus.CLOSED]: "bg-blue-500 text-white",
+  [JobStatus.EXPIRED]: "bg-purple-500 text-white",
 };
 
 export const BenefitType = {

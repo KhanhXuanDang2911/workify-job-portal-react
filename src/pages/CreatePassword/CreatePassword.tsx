@@ -14,6 +14,9 @@ import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { cn } from "@/lib/utils";
+import { signInJobSeeker } from "@/context/auth/auth.action";
+import { ROLE } from "@/constants";
+import { useAuth } from "@/context/auth/useAuth";
 
 interface PasswordRequirement {
   label: string;
@@ -34,6 +37,8 @@ export default function CreatePassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
+
+   const { dispatch } = useAuth();
 
   useEffect(() => {
     if (!token) {
@@ -56,11 +61,14 @@ export default function CreatePassword() {
     onSuccess: (response) => {
       authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
       authUtils.setUser(response.data.data);
-      toast.success("Tạo mật khẩu thành công!");
+
+      dispatch(signInJobSeeker({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
+      
+      toast.success(`Welcome ${response.data.data.fullName}!`);
       navigate("/", { replace: true });
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Tạo mật khẩu thất bại. Vui lòng thử lại.");
+      toast.error("Tạo mật khẩu thất bại. Vui lòng thử lại.");
     },
   });
 

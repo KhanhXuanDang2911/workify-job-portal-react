@@ -1,8 +1,9 @@
 import http from "@/lib/http";
 import type { ApiResponse, PageResponse, SearchParams, User } from "@/types";
+import type { With } from "@/types/common";
 
 export const userService = {
-  getUsers: async (params: SearchParams): Promise<ApiResponse<PageResponse<User>>> => {
+  getUsers: async (params: With<SearchParams, { provinceId?: number }>): Promise<ApiResponse<PageResponse<User>>> => {
     const response = await http.get<ApiResponse<PageResponse<User>>>("/users", { params });
     return response.data;
   },
