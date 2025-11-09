@@ -75,8 +75,10 @@ export const postService = {
   },
 
   // Latest public posts
-  getLatestPublicPosts: async (): Promise<ApiResponse<PostResponse[]>> => {
-    const response = await http.get<ApiResponse<PostResponse[]>>('/posts/public/latest');
+  getLatestPublicPosts: async (limit?: number): Promise<ApiResponse<PostResponse[]>> => {
+    const response = await http.get<ApiResponse<PostResponse[]>>('/posts/public/latest', {
+      ...(limit && { params: { limit } }),
+    });
     return response.data;
   },
 

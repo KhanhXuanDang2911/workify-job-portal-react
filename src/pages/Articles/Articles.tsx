@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import ArticleCard from "@/components/ArticleCard";
 import Pagination from "@/components/Pagination";
+import Loading from "@/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
 import { routes } from "@/routes/routes.const";
@@ -22,7 +23,7 @@ type Article = {
 
 export default function Articles() {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // Read from URL params on mount
   const keywordFromUrl = searchParams.get("keyword") || "";
   const categoryIdFromUrl = searchParams.get("categoryId");
@@ -34,24 +35,24 @@ export default function Articles() {
     categoryIdFromUrl ? Number(categoryIdFromUrl) : null
   );
   const [currentPage, setCurrentPage] = useState(pageFromUrl ? Number(pageFromUrl) : 1);
-  
+
   // Temp search term (before applying)
   const [tempSearchTerm, setTempSearchTerm] = useState(keywordFromUrl);
-  
+
   const pageSize = 4;
 
   // Update URL params when applied filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (appliedKeyword) {
       params.set("keyword", appliedKeyword);
     }
-    
+
     if (selectedCategoryId) {
       params.set("categoryId", selectedCategoryId.toString());
     }
-    
+
     if (currentPage > 1) {
       params.set("page", currentPage.toString());
     }
@@ -86,9 +87,9 @@ export default function Articles() {
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
   // Fetch latest articles for Recent Articles section
-  const { data: latestPostsResponse } = useQuery({
-    queryKey: ["latest-public-posts"],
-    queryFn: () => postService.getLatestPublicPosts(),
+  const { data: latestPostsResponse, isLoading: isLoadingRecent, isError: isErrorRecent, error: errorRecent } = useQuery({
+    queryKey: ["latest-public-posts", 6],
+    queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -113,10 +114,10 @@ export default function Articles() {
     author: post.author?.fullName || post.author?.email || "",
     date: post.createdAt
       ? new Date(post.createdAt).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
       : "",
     excerpt: post.excerpt || post.contentText || "",
     image: post.thumbnailUrl || "/placeholder.svg",
@@ -124,8 +125,8 @@ export default function Articles() {
       typeof post.tags === "string"
         ? post.tags.split("|").filter((tag) => tag.trim())
         : Array.isArray(post.tags)
-        ? post.tags
-        : [],
+          ? post.tags
+          : [],
     category: post.category?.title || "",
   });
 
@@ -155,17 +156,17 @@ export default function Articles() {
   const recentArticles =
     Array.isArray(latestPostsResponse?.data)
       ? latestPostsResponse.data.map((post: PostResponse) => ({
-          id: post.id,
-          title: post.title,
-          date: post.createdAt
-            ? new Date(post.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            : "",
-          image: post.thumbnailUrl || "/placeholder.svg",
-        }))
+        id: post.id,
+        title: post.title,
+        date: post.createdAt
+          ? new Date(post.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+          : "",
+        image: post.thumbnailUrl || "/placeholder.svg",
+      }))
       : [];
 
 
@@ -216,7 +217,7 @@ export default function Articles() {
         }}
       >
         <div className="text-center px-4">
-          <h1 
+          <h1
             className="text-white drop-shadow-lg"
             style={{
               marginBottom: 0,
@@ -227,7 +228,7 @@ export default function Articles() {
           >
             Tìm việc làm nhanh 24h mới nhất trên toàn quốc
           </h1>
-          <p 
+          <p
             className="text-white mt-4"
             style={{
               color: '#fff',
@@ -249,8 +250,8 @@ export default function Articles() {
 
             {/* Loading state */}
             {isLoading && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading articles...</p>
+              <div className="flex items-center justify-center py-12">
+                <Loading variant="spinner" size="lg" />
               </div>
             )}
 
@@ -258,9 +259,9 @@ export default function Articles() {
             {isError && (
               <div className="text-center py-12">
                 <p className="text-red-600">
-                  Error loading articles. Please try again later.
-              </p>
-            </div>
+                  Không thể tải danh sách bài viết. Vui lòng thử lại sau.
+                </p>
+              </div>
             )}
 
             {/* Articles grid */}
@@ -268,25 +269,25 @@ export default function Articles() {
               <>
                 {allArticles.length > 0 ? (
                   <>
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    <div className="grid md:grid-cols-2 gap-6 mb-8">
                       {allArticles.map((article, index) => (
-                <ArticleCard key={index} article={article} />
-              ))}
-            </div>
+                        <ArticleCard key={index} article={article} />
+                      ))}
+                    </div>
 
-            {/* Pagination */}
+                    {/* Pagination */}
                     {totalPages > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                      />
                     )}
                   </>
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-600">
-                      No articles found. Try adjusting your search or filters.
+                      Không có bài viết nào
                     </p>
                   </div>
                 )}
@@ -320,13 +321,12 @@ export default function Articles() {
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
                 Categories
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                 <div
-                  className={`text-sm cursor-pointer transition-colors ${
-                    selectedCategoryId === null
+                  className={`text-sm cursor-pointer transition-colors ${selectedCategoryId === null
                       ? "text-[#1967d2] font-medium"
                       : "text-gray-600 hover:text-[#1967d2]"
-                  }`}
+                    }`}
                   onClick={() => handleCategoryClick(null)}
                 >
                   All Categories
@@ -334,11 +334,10 @@ export default function Articles() {
                 {categories.map((category) => (
                   <div
                     key={category.id}
-                    className={`text-sm cursor-pointer transition-colors ${
-                      selectedCategoryId === category.id
+                    className={`text-sm cursor-pointer transition-colors ${selectedCategoryId === category.id
                         ? "text-[#1967d2] font-medium"
                         : "text-gray-600 hover:text-[#1967d2]"
-                    }`}
+                      }`}
                     onClick={() => handleCategoryClick(category.id)}
                   >
                     {category.title}
@@ -352,35 +351,53 @@ export default function Articles() {
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
                 Recent Article
               </h3>
-              <div className="space-y-4">
-                {recentArticles.map((article, index) => {
-                  const linkTo = article.id
-                    ? `/${routes.ARTICLES_DETAIL}/${article.id}`
-                    : "#";
+              {isLoadingRecent ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorRecent ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorRecent as any)?.message || "Không thể tải bài viết"}
+                  </p>
+                </div>
+              ) : recentArticles.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm">
+                    Không có bài viết nào
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentArticles.map((article, index) => {
+                    const linkTo = article.id
+                      ? `/${routes.ARTICLES_DETAIL}/${article.id}`
+                      : "#";
 
-                  return (
-                    <Link
-                      key={index}
-                      to={linkTo}
-                      className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                    >
-                    <img
-                      src={article.image || "/placeholder.svg"}
-                      alt={article.title}
-                      className="w-16 h-16 object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <p className="text-xs text-[#1967d2] mb-1">
-                        {article.date}
-                      </p>
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[#1967d2] transition-colors">
-                        {article.title}
-                      </h4>
-                    </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                    return (
+                      <Link
+                        key={index}
+                        to={linkTo}
+                        className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        <img
+                          src={article.image || "/placeholder.svg"}
+                          alt={article.title}
+                          className="w-16 h-16 object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-[#1967d2] mb-1">
+                            {article.date}
+                          </p>
+                          <h4 className="text-sm font-medium text-gray-900 hover:text-[#1967d2] transition-colors h-10 overflow-hidden line-clamp-2">
+                            {article.title}
+                          </h4>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

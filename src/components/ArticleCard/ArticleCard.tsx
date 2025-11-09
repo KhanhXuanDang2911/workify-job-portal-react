@@ -55,7 +55,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           >
             {article.title}
           </Link>
-          <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+          <p className= "h-30 overflow-hidden text-gray-600 mb-4 text-sm leading-relaxed">
             {article.excerpt}
           </p>
 
