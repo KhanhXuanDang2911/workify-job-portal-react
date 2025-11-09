@@ -81,7 +81,7 @@ export default function FeaturedJobs() {
       type: item.jobType ?? item.jobLevel ?? "",
       typeColor: mapTypeColor(item.jobType ?? item.jobLevel),
       posted: relativePosted(item.createdAt),
-      logo: item.author?.avatarUrl || item.companyLogo || "https://www.vj-tech.jp/_nuxt/img/logo-vj.c7683b6.png",
+      logo: item.author?.avatarUrl || item.companyLogo || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
     };
   };
 
@@ -116,7 +116,7 @@ export default function FeaturedJobs() {
 
       <div className="main-layout relative z-10">
         <div className="text-center mb-12">
-          <p className="text-[#1967d2] font-semibold mb-3 text-lg">All Jobs Post</p>
+          <p className="text-[#1967d2] font-semibold mb-3 text-lg">Top Attractive Jobs</p>
           <h2 className="text-3xl font-bold text-gray-900">
             Find Your Career You Deserve it
           </h2>

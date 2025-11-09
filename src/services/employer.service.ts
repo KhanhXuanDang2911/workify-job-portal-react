@@ -97,4 +97,12 @@ export const employerService = {
     const response = await http.get<ApiResponse<Employer>>(`/employers/${id}`);
     return response.data;
   },
+
+  // Get top hiring employers (public)
+  getTopHiringEmployers: async (limit = 10): Promise<ApiResponse<Employer[]>> => {
+    const response = await http.get<ApiResponse<Employer[]>>("/employers/top-hiring", {
+      params: { limit },
+    });
+    return response.data;
+  },
 };
