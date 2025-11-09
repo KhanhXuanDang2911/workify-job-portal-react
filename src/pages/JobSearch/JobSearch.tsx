@@ -711,7 +711,7 @@ const JobSearch = () => {
             <div className="flex-1 relative">
                                 <div className="relative">
               <Input
-                placeholder="Job title or position"
+                placeholder="Job title or company name"
                                         value={tempKeyword}
                                         onChange={(e) => setTempKeyword(e.target.value)}
                                         onKeyDown={(e) => {
