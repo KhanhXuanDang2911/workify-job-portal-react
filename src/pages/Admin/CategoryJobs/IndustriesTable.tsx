@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import CreateIndustryModal from "@/pages/Admin/CategoryJobs/CreateIndustryModal";
 import { Badge } from "@/components/ui/badge";
-import SortButton from "@/components/SortButton";
+import MultiSortButton from "@/components/MultiSortButton";
 
 type SortField = "name" | "engName" | "createdAt" | "updatedAt";
 type SortDirection = "asc" | "desc";
@@ -33,8 +33,7 @@ type SortDirection = "asc" | "desc";
 export default function IndustriesTable({ categoryJobId }: { categoryJobId: number }) {
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState<RowsPerPage>(10);
 
@@ -48,10 +47,17 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
 
   const queryClient = useQueryClient();
 
+  const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
   const { data: industriesData, isLoading } = useQuery({
-    queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortField, sortDirection],
+    queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortsString, categoryJobId],
     queryFn: async () => {
-      const res = await industryService.getIndustries(pageNumber, pageSize, sortField, sortDirection, keyword || undefined);
+      const res = await industryService.getIndustries({
+        pageNumber,
+        pageSize,
+        keyword: keyword || undefined,
+        sorts: sortsString || undefined,
+        categoryJobId,
+      });
       return res.data;
     },
     refetchOnWindowFocus: false,
@@ -63,12 +69,27 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
     onSuccess: () => {
       toast.success("Delete successful");
       setDeleteIndustryId(null);
-      queryClient.invalidateQueries({ queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortField, sortDirection] });
+      queryClient.invalidateQueries({ queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortsString] });
     },
     onError: () => {
       toast.error("Delete failed");
     },
   });
+
+  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
+    setSorts((prev) => {
+      if (newDirection === null) {
+        return prev.filter((s) => s.field !== field);
+      }
+      const existing = prev.find((s) => s.field === field);
+      if (existing) {
+        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
+      }
+      return [...prev, { field, direction: newDirection }];
+    });
+
+    setPageNumber(1);
+  }, []);
 
   const industries = industriesData?.items || [];
   const totalPages = industriesData?.totalPages || 0;
@@ -77,16 +98,6 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
   const ClearFilters = () => {
     setKeyword("");
     setSearchInput("");
-    setPageNumber(1);
-  };
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
     setPageNumber(1);
   };
 
@@ -187,25 +198,31 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Name</span>
-                  <SortButton isActive={sortField === "name"} direction={sortDirection} onClick={() => handleSort("name")} />
+                  <MultiSortButton direction={sorts.find((s) => s.field === "name")?.direction ?? null} onChange={(newDirection) => handleSortChange("name", newDirection)} />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Eng Name</span>
-                  <SortButton isActive={sortField === "engName"} direction={sortDirection} onClick={() => handleSort("engName")} />
+                  <MultiSortButton direction={sorts.find((s) => s.field === "engName")?.direction ?? null} onChange={(newDirection) => handleSortChange("engName", newDirection)} />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Created At</span>
-                  <SortButton isActive={sortField === "createdAt"} direction={sortDirection} onClick={() => handleSort("createdAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Updated At</span>
-                  <SortButton isActive={sortField === "updatedAt"} direction={sortDirection} onClick={() => handleSort("updatedAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 text-left"></th>

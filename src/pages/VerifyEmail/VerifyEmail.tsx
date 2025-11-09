@@ -72,7 +72,7 @@ export default function VerifyEmail() {
 
   if (verifyMutation.isError) {
     const errorData = (verifyMutation.error as any)?.response?.data;
-    const errorMessage = errorData?.message || "Đã có lỗi xảy ra khi xác thực email";
+    const errorMessage =  "Đã có lỗi xảy ra khi xác thực email";
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

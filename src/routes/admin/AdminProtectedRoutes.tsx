@@ -16,6 +16,8 @@ import EditEmployer from "@/pages/Admin/EmployerManagement/EditEmployer";
 import LocationManagement from "@/pages/Admin/LocationManagement/LocationManagement";
 import UserManagement from "@/pages/Admin/UserManagement/UserManagement";
 import EditUser from "@/pages/Admin/UserManagement/EditUser";
+import JobManagement from "@/pages/Admin/JobManagement/JobManagement";
+import JobDetailsManagement from "@/pages/Admin/JobManagement/JobDetailsManagement";
 
 const AdminProtectedRoutes: RouteObject[] = [
   {
@@ -86,6 +88,14 @@ const AdminProtectedRoutes: RouteObject[] = [
       {
         path: `${admin_routes.USERS}/edit/:id`,
         element: <EditUser />,
+      },
+      {
+        path: admin_routes.JOBS,
+        element: <JobManagement />,
+      },
+      {
+        path: `${admin_routes.JOBS}/:id`,
+        element: <JobDetailsManagement />,
       },
       {
         path: "*",

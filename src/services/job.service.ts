@@ -1,3 +1,4 @@
+import type { JobStatus } from "@/constants";
 import http from "@/lib/http";
 import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, SearchParams } from "@/types";
 import type { JobRequest, JobResponse } from "@/types";
@@ -9,9 +10,9 @@ export const jobService = {
     return response.data;
   },
 
-  getMyJobs: async (params: With<SearchParams,{provinceId?:number,industryId?:number}>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+  getMyJobs: async (params: With<SearchParams, { provinceId?: number; industryId?: number }>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
     const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/me", {
-      params
+      params,
     });
     return response.data;
   },
@@ -64,6 +65,18 @@ export const jobService = {
 
   getMyCurrentLocations: async (): Promise<ApiResponse<Province[]>> => {
     const response = await http.get<ApiResponse<Province[]>>("/jobs/me/locations/current");
+    return response.data;
+  },
+
+  getAllJobs: async (params?: With<SearchParams, { provinceId?: number; industryId?: number }>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/all", {
+      params,
+    });
+    return response.data;
+  },
+
+  updateJobStatus: async (id: number, status: JobStatus): Promise<ApiResponse> => {
+    const response = await http.patch<ApiResponse>(`/jobs/status/${id}?status=${status}`);
     return response.data;
   },
 };

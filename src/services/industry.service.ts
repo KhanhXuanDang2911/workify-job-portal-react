@@ -1,5 +1,6 @@
-import type { ApiResponse, Industry, PageResponse } from "@/types";
+import type { ApiResponse, Industry, PageResponse, SearchParams } from "@/types";
 import { http } from "@/lib/http";
+import type { With } from "@/types/common";
 
 export interface IndustryRequest {
   name: string;
@@ -14,14 +15,9 @@ export const industryService = {
     return response.data;
   },
 
-  getIndustries: async (pageNumber = 1, pageSize = 10, sortField?: string, sortDirecton?: "asc" | "desc", keyword?: string): Promise<ApiResponse<PageResponse<Industry>>> => {
+  getIndustries: async (params:With<SearchParams,{categoryJobId:number}>): Promise<ApiResponse<PageResponse<Industry>>> => {
     const response = await http.get<ApiResponse<PageResponse<Industry>>>("/industries", {
-      params: {
-        pageNumber,
-        pageSize,
-        sort: `${sortField}:${sortDirecton}`,
-        ...(keyword && { keyword }),
-      },
+      params
     });
     return response.data;
   },

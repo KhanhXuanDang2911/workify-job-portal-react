@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +22,7 @@ import { toast } from "react-toastify";
 import { RowsPerPageOptions, type RowsPerPage } from "@/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Pagination from "@/components/Pagination";
-import SortButton from "@/components/SortButton";
-
+import MultiSortButton from "@/components/MultiSortButton";
 
 type SortField = "title" | "createdAt" | "updatedAt";
 type SortDirection = "asc" | "desc";
@@ -35,21 +34,22 @@ export default function PostCategories() {
   const [pageSize, setPageSize] = useState<RowsPerPage>(10);
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
+
   const { data: postCategoriesData, isLoading: isLoadingPostCategoriesData } = useQuery({
-    queryKey: ["post-categories", pageNumber, pageSize, keyword, sortField, sortDirection],
+    queryKey: ["post-categories", pageNumber, pageSize, keyword, sortsString],
     queryFn: () =>
       postService.getCategories({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
-        sorts: `${sortField}:${sortDirection}`,
+        sorts: sortsString || undefined,
       }),
   });
 
@@ -57,7 +57,7 @@ export default function PostCategories() {
     mutationFn: postService.deleteCategory,
     onSuccess: () => {
       toast.success("Post Category deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["post-categories", pageNumber, pageSize, keyword, sortField, sortDirection] });
+      queryClient.invalidateQueries({ queryKey: ["post-categories", pageNumber, pageSize, keyword, sortsString] });
       setDeleteDialogOpen(false);
       setDeletingId(null);
     },
@@ -66,15 +66,20 @@ export default function PostCategories() {
     },
   });
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
+  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
+    setSorts((prev) => {
+      if (newDirection === null) {
+        return prev.filter((s) => s.field !== field);
+      }
+      const existing = prev.find((s) => s.field === field);
+      if (existing) {
+        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
+      }
+      return [...prev, { field, direction: newDirection }];
+    });
+
     setPageNumber(1);
-  };
+  }, []);
 
   const handleSearch = () => {
     setKeyword(searchInput);
@@ -174,13 +179,19 @@ export default function PostCategories() {
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center gap-2 justify-start">
                   <span>Created At</span>
-                  <SortButton isActive={sortField === "createdAt"} direction={sortDirection} onClick={() => handleSort("createdAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
                   <span>Updated At</span>
-                  <SortButton isActive={sortField === "updatedAt"} direction={sortDirection} onClick={() => handleSort("updatedAt")} />
+                  <MultiSortButton
+                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
+                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 w-12 text-right"></th>

@@ -664,6 +664,7 @@ function EmployerPostJob() {
                                   <div className="max-w-[500px] flex items-center gap-2 mt-2" key={index}>
                                     <MapPin className="self-start text-[#1967d2]" />
                                     <p className="text-sm break-words whitespace-normal leading-relaxed">
+                                      <>{console.log("district:", loc.districtName)}</>
                                       {loc.detailAddress}, {loc.districtName}, {loc.provinceName}
                                     </p>
                                   </div>
@@ -707,9 +708,11 @@ function EmployerPostJob() {
                                         value={field.value && field.value !== 0 ? field.value.toString() : ""}
                                         onValueChange={(val) => {
                                           const provinceId = Number.parseInt(val);
-
+                                          const selectedProvince = provinces?.find((p: Province) => p.id === provinceId);
                                           field.onChange(provinceId);
-
+                                          if (selectedProvince) {
+                                            modalJobLocationsForm.setValue(`jobLocations.${idx}.provinceName`, selectedProvince.name);
+                                          }
                                           modalJobLocationsForm.setValue(`jobLocations.${idx}.districtId`, 0);
                                         }}
                                       >
@@ -750,8 +753,12 @@ function EmployerPostJob() {
                                           value={field.value && field.value !== 0 ? field.value.toString() : ""}
                                           onValueChange={(val) => {
                                             const districtId = Number.parseInt(val);
+                                            const selectedDistrict = currentDistricts?.find((d) => d.id === districtId);
 
                                             field.onChange(districtId);
+                                            if (selectedDistrict) {
+                                              modalJobLocationsForm.setValue(`jobLocations.${idx}.districtName`, selectedDistrict.name);
+                                            }
                                           }}
                                           disabled={!currentProvinceId || currentProvinceId === 0}
                                         >
@@ -1200,11 +1207,17 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onBlur={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
 
-                              <SelectContent>
+                              <SelectContent onFocus={() => handleFieldFocus("jobDetails")}>
                                 {Object.entries(EducationLevel).map(([key, value]) => (
                                   <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
                                     {EducationLevelLabelVN[value]}
@@ -1231,7 +1244,12 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1260,7 +1278,12 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Please  " />
                               </SelectTrigger>
                               <SelectContent>
@@ -1289,7 +1312,12 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1319,7 +1347,12 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Please select" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1345,6 +1378,7 @@ function EmployerPostJob() {
                         <Input
                           {...mainForm.register("jobCode")}
                           placeholder="Enter job code"
+                          onFocus={() => handleFieldFocus("jobDetails")}
                           className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                         />
                       </div>
@@ -1391,7 +1425,12 @@ function EmployerPostJob() {
                                 }}
                                 value=""
                               >
-                                <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                                <SelectTrigger
+                                  className="w-full focus-visible:ring-0"
+                                  arrowStyle="text-[#1967d2] font-bold size-5"
+                                  onFocus={() => handleFieldFocus("jobDetails")}
+                                  onMouseEnter={() => handleFieldFocus("jobDetails")}
+                                >
                                   <SelectValue placeholder="Select industries" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1433,7 +1472,12 @@ function EmployerPostJob() {
                           control={mainForm.control}
                           render={({ field }) => (
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ? field.value.toString() : ""}>
-                              <SelectTrigger className="w-full focus-visible:ring-0" arrowStyle="text-[#1967d2] font-bold size-5" onFocus={() => handleFieldFocus("jobDetails")}>
+                              <SelectTrigger
+                                className="w-full focus-visible:ring-0"
+                                arrowStyle="text-[#1967d2] font-bold size-5"
+                                onFocus={() => handleFieldFocus("jobDetails")}
+                                onMouseEnter={() => handleFieldFocus("jobDetails")}
+                              >
                                 <SelectValue placeholder="Select age type" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1462,9 +1506,9 @@ function EmployerPostJob() {
                           <Input
                             {...mainForm.register("minAge", { valueAsNumber: true })}
                             type="number"
-                            placeholder="Enter minimum age"
+                              placeholder="Enter minimum age"
+                              onFocus={() => handleFieldFocus("jobDetails")}
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                            onFocus={() => handleFieldFocus("jobDetails")}
                           />
                           {mainForm.formState.errors.minAge && <span className="text-xs text-red-500">{mainForm.formState.errors.minAge.message}</span>}
                         </div>
@@ -1483,9 +1527,9 @@ function EmployerPostJob() {
                           <Input
                             {...mainForm.register("maxAge", { valueAsNumber: true })}
                             type="number"
-                            placeholder="Enter maximum age"
+                              placeholder="Enter maximum age"
+                              onFocus={() => handleFieldFocus("jobDetails")}
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                            onFocus={() => handleFieldFocus("jobDetails")}
                           />
                           {mainForm.formState.errors.maxAge && <span className="text-xs text-red-500">{mainForm.formState.errors.maxAge.message}</span>}
                         </div>
