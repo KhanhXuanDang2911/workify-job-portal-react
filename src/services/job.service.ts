@@ -1,5 +1,5 @@
 import http from "@/lib/http";
-import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province } from "@/types";
+import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, CategoryJobResponse } from "@/types";
 import type { JobRequest, JobResponse } from "@/types";
 
 export const jobService = {
@@ -70,8 +70,15 @@ export const jobService = {
     return response.data;
   },
 
-  getTopAttractiveJobs: async (): Promise<ApiResponse<JobResponse[]>> => {
-    const response = await http.get<ApiResponse<JobResponse[]>>("/jobs/top-attractive");
+  getTopAttractiveJobs: async (limit = 10): Promise<ApiResponse<JobResponse[]>> => {
+    const response = await http.get<ApiResponse<JobResponse[]>>("/jobs/top-attractive", {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  getCategoriesWithJobCount: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
+    const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
     return response.data;
   },
 };

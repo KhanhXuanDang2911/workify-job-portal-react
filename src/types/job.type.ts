@@ -126,3 +126,21 @@ export interface JobsAdvancedSearchParams {
   pageNumber?: number;
   pageSize?: number;
 }
+
+export interface PopularIndustryResponse {
+  id: number;
+  name: string;
+  engName: string;
+  description: string | null;
+  jobCount: number;
+}
+
+export interface CategoryJobResponse {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  engName: string;
+  description: string | null;
+  industries: PopularIndustryResponse[];
+}

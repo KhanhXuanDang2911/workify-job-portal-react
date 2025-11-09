@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import JobCard from "../JobCard";
+import Loading from "../Loading";
 import { useQuery } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
+import { routes } from "@/routes/routes.const";
 
 export default function FeaturedJobs() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
 
-  // useQuery to fetch featured jobs (advanced endpoint without query)
+  // useQuery to fetch top attractive jobs with limit = 8
   const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
-    queryKey: ["featured-jobs"],
-    queryFn: () => jobService.searchJobsAdvanced({ pageNumber: 1, pageSize: 10 }),
+    queryKey: ["top-attractive-jobs", 8],
+    queryFn: () => jobService.getTopAttractiveJobs(8),
     staleTime: 5 * 60 * 1000,
   });
 
-  const itemsFromApi: any[] = Array.isArray(apiResponse?.data?.items) ? apiResponse.data.items : [];
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
 
   const formatSalary = (item: any) => {
     try {
@@ -93,6 +96,13 @@ export default function FeaturedJobs() {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
+  // Reset slide to 0 when jobs change
+  useEffect(() => {
+    if (mappedJobs.length > 0) {
+      setCurrentSlide(0);
+    }
+  }, [mappedJobs.length]);
+
   return (
     <section className="py-16 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 relative overflow-x-hidden">
       <div className="absolute inset-0 opacity-40">
@@ -106,7 +116,7 @@ export default function FeaturedJobs() {
 
       <div className="main-layout relative z-10">
         <div className="text-center mb-12">
-          <p className="text-blue-600 font-medium mb-2">All Jobs Post</p>
+          <p className="text-[#1967d2] font-semibold mb-3 text-lg">All Jobs Post</p>
           <h2 className="text-3xl font-bold text-gray-900">
             Find Your Career You Deserve it
           </h2>
@@ -114,67 +124,81 @@ export default function FeaturedJobs() {
 
         <div className="relative">
           {isLoading ? (
-            <div className="py-12 text-center">Loading featured jobs...</div>
-          ) : isError ? (
-            <div className="py-12 text-center text-red-600">{(queryError as any)?.message || "Failed to load jobs"}</div>
-          ) : (
-            <div className="overflow-x-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                  <div key={slideIndex} className="w-full flex-shrink-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-2">
-                      {mappedJobs
-                        .slice(
-                          slideIndex * itemsPerSlide,
-                          slideIndex * itemsPerSlide + itemsPerSlide
-                        )
-                        .map((job) => (
-                          <JobCard key={job.id} job={job} />
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="py-12 flex items-center justify-center">
+              <Loading variant="spinner" size="lg" />
             </div>
+          ) : isError ? (
+            <div className="py-12 text-center text-red-600">
+              {(queryError as any)?.message || "Không thể tải danh sách công việc"}
+            </div>
+          ) : mappedJobs.length === 0 ? (
+            <div className="py-12 text-center text-gray-600">
+              Không có công việc nào
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-hidden">
+                <div
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                    <div key={slideIndex} className="w-full flex-shrink-0">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-2">
+                        {mappedJobs
+                          .slice(
+                            slideIndex * itemsPerSlide,
+                            slideIndex * itemsPerSlide + itemsPerSlide
+                          )
+                          .map((job) => (
+                            <JobCard key={job.id} job={job} />
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {totalSlides > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevSlide}
+                    className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="flex space-x-2">
+                    {Array.from({ length: totalSlides }).map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
+                        }`}
+                        onClick={() => setCurrentSlide(index)}
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={nextSlide}
+                    className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
 
-          <div className="flex justify-center items-center space-x-4 mt-8">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevSlide}
-              className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex space-x-2">
-              {Array.from({ length: totalSlides }).map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
-                  }`}
-                  onClick={() => setCurrentSlide(index)}
-                />
-              ))}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextSlide}
-              className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-
           <div className="text-center mt-8">
-            <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3">
-              View All Jobs
-            </Button>
+            <Link to={`/${routes.JOB_SEARCH}`}>
+              <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3">
+                View All Jobs
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

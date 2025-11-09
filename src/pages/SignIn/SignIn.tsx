@@ -144,7 +144,7 @@ export default function SignIn() {
       <div className="flex">
         {/* Left Side - Enhanced Branding */}
         <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden bg-gradient-to-br from-primary-color to-primary-color/80">
-          c{/* Animated floating elements */}
+          {/* Animated floating elements */}
           <div className="absolute top-8 right-16 w-20 h-20 bg-second-color/30 rounded-full blur-xl animate-bounce" style={{ animationDelay: "0s", animationDuration: "3s" }} />
           <div className="absolute top-32 right-32 w-16 h-16 bg-white/20 rounded-full blur-lg animate-bounce" style={{ animationDelay: "1s", animationDuration: "4s" }} />
           <div className="absolute bottom-20 left-16 w-24 h-24 bg-second-color/20 rounded-full blur-2xl animate-bounce" style={{ animationDelay: "2s", animationDuration: "5s" }} />
