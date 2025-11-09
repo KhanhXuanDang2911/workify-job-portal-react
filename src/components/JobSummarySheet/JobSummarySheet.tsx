@@ -1,6 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, DollarSign, Clock, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { routes } from "@/routes/routes.const";
 
 interface Job {
   id: number;
@@ -157,9 +159,11 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
         </div>
 
         <SheetFooter className="flex-row gap-3">
-          <Button className="flex-1 bg-[#1967d2] hover:bg-[#1557b0] text-white" onClick={() => onOpenChange(false)}>
-            View Detail
-          </Button>
+          <Link to={`/${routes.JOB_DETAIL}/${job.id}`} className="flex-1" onClick={() => onOpenChange(false)}>
+            <Button className="w-full bg-[#1967d2] hover:bg-[#1557b0] text-white">
+              View Detail
+            </Button>
+          </Link>
           <Button variant="destructive" className="flex-1 bg-red-500 hover:bg-red-600" onClick={() => onDelete(job.id)}>
             Delete
           </Button>

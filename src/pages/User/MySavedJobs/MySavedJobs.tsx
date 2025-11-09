@@ -11,6 +11,8 @@ import type { JobResponse } from "@/types/job.type";
 import { JobTypeLabelVN } from "@/constants";
 import { toast } from "react-toastify";
 import Loading from "@/components/Loading";
+import { Link } from "react-router-dom";
+import { routes } from "@/routes/routes.const";
 
 interface Job {
   id: number;
@@ -99,7 +101,7 @@ const relativePosted = (dateString?: string): string => {
 export default function MySavedJobs() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const queryClient = useQueryClient();
 
@@ -182,9 +184,9 @@ export default function MySavedJobs() {
       toast.success("Đã bỏ lưu việc làm");
       // Close sheet if viewing deleted job
       if (selectedJob) {
-        setIsSheetOpen(false);
-        setSelectedJob(null);
-      }
+    setIsSheetOpen(false);
+    setSelectedJob(null);
+  }
       // Adjust page if needed
       if (currentPage > 1 && currentJobs.length === 1) {
         setCurrentPage(currentPage - 1);
@@ -198,21 +200,21 @@ export default function MySavedJobs() {
 
   const handleDeleteJob = (jobId: number) => {
     toggleSaveMutation.mutate(jobId);
-  };
+};
 
-  const handleViewJob = (job: Job) => {
-    setSelectedJob(job);
-    setIsSheetOpen(true);
-  };
+const handleViewJob = (job: Job) => {
+  setSelectedJob(job);
+  setIsSheetOpen(true);
+};
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+const handlePageChange = (page: number) => {
+  setCurrentPage(page);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 
   return (
     <>
-      <div
+    <div
         className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
         style={{
           backgroundImage:
@@ -221,7 +223,7 @@ export default function MySavedJobs() {
         }}
       >
         <div className="text-center px-4">
-          <h1
+          <h1 
             className="text-white drop-shadow-lg"
             style={{
               marginBottom: 0,
@@ -232,7 +234,7 @@ export default function MySavedJobs() {
           >
             Tìm việc làm nhanh 24h mới nhất trên toàn quốc
           </h1>
-          <p
+          <p 
             className="text-white mt-4"
             style={{
               color: '#fff',
@@ -251,10 +253,10 @@ export default function MySavedJobs() {
           {/* Left Sidebar - Suggested Jobs */}
           <div className="w-96 flex-shrink-0">
             <SuggestedJobs jobs={suggestedJobs} />
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1">
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1">
             <div className="max-w-7xl mx-auto px-5">
               {/* Content */}
               {isLoadingSavedJobs ? (
@@ -264,28 +266,28 @@ export default function MySavedJobs() {
               ) : isErrorSavedJobs ? (
                 <div className="text-center py-20">
                   <p className="text-gray-600">Có lỗi xảy ra khi tải danh sách việc làm đã lưu</p>
-                </div>
+          </div>
               ) : jobs.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-gray-600">Bạn chưa lưu việc làm nào</p>
                 </div>
-              ) : (
-                <>
-                  <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
-                  {totalPages > 1 && (
-                    <div className="mt-8">
-                      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                    </div>
-                  )}
-                </>
+          ) : (
+            <>
+              <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                </div>
               )}
-            </div>
-          </div>
-          {/* Job Summary Sheet */}
-          <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
-
+            </>
+          )}
         </div>
       </div>
+      {/* Job Summary Sheet */}
+      <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
+
+        </div>
+    </div>
     </>
   );
 }
@@ -295,21 +297,33 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <div key={job.id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer relative p-6">
+        <Link
+          key={job.id}
+          to={`/${routes.JOB_DETAIL}/${job.id}`}
+          className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer relative p-6 block"
+        >
           {/* Action Buttons */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             <button
-              onClick={() => onView(job)}
-              className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onView(job);
+              }}
+              className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors bg-white"
             >
               <Eye className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => onDelete(job.id)}
-              className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete(job.id);
+              }}
+              className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors bg-white"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
           </div>
 
           {/* Job Logo */}
@@ -338,7 +352,7 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
             <Building2 className="w-4 h-4" />
             <span>{job.company}</span>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
