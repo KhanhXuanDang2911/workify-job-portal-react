@@ -7,6 +7,7 @@ import { routes } from "../routes.const";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import CVBuilder from "@/pages/CVBuilder";
 import { ROLE } from "@/constants";
+import MyApplyJobs from "@/pages/User/MyApplyJobs";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -41,7 +42,7 @@ const UserProtectedRoutes: RouteObject[] = [
         path: routes.MY_APPLIED_JOBS,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
-            <MySavedJobs />
+            <MyApplyJobs />
           </ProtectedRoute>
         ),
       },
