@@ -1,12 +1,15 @@
-import { useState } from "react";
-import UserSideBar from "@/components/UserSideBar";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Grid3x3, List, MapPin, Building2, Trash2 } from "lucide-react";
+import { Grid3x3, List, MapPin, Building2, Trash2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import JobSummarySheet from "@/components/JobSummarySheet";
 import Pagination from "@/components/Pagination";
+import SuggestedJobs from "@/components/SuggestedJob";
+import { useQuery } from "@tanstack/react-query";
+import { jobService } from "@/services/job.service";
+import type { JobResponse } from "@/types/job.type";
+import { JobTypeLabelVN } from "@/constants";
 import { mockSavedJobs } from "@/pages/User/MySavedJobs/MySavedJobsMockData";
 
 type ViewMode = "table" | "grid";
@@ -32,114 +35,190 @@ interface Job {
   image: string;
 }
 
+// Format salary
+const formatSalary = (job: JobResponse): string => {
+  try {
+    if (job.salaryType === "RANGE") {
+      const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
+      const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
+      return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
+    }
+    if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
+      return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+    }
+    if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
+    if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
+    return "Thỏa thuận";
+  } catch (e) {
+    return "Thỏa thuận";
+  }
+};
+
+// Map type to color
+const mapTypeColor = (jobType?: string): string => {
+  if (!jobType) return "bg-gray-400";
+  if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+  if (jobType.includes("PART")) return "bg-orange-500";
+  if (jobType.includes("CONTRACT")) return "bg-purple-500";
+  return "bg-blue-500";
+};
+
 export default function MySavedJobs() {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [jobs, setJobs] = useState<Job[]>(mockSavedJobs);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-   const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-   const totalPages = Math.ceil(jobs.length / itemsPerPage);
-   const startIndex = (currentPage - 1) * itemsPerPage;
-   const endIndex = startIndex + itemsPerPage;
-   const currentJobs = jobs.slice(startIndex, endIndex);
+  // Fetch top attractive jobs for suggestions
+  const { data: topAttractiveResponse } = useQuery({
+    queryKey: ["top-attractive-jobs", 5],
+    queryFn: () => jobService.getTopAttractiveJobs(5),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-const handleDeleteJob = (jobId: number) => {
-  setJobs(jobs.filter((job) => job.id !== jobId));
-  if (selectedJob?.id === jobId) {
-    setIsSheetOpen(false);
-    setSelectedJob(null);
-  }
-  const newTotalPages = Math.ceil((jobs.length - 1) / itemsPerPage);
-  if (currentPage > newTotalPages && newTotalPages > 0) {
-    setCurrentPage(newTotalPages);
-  }
-};
+  // Map suggested jobs
+  const suggestedJobs = useMemo(() => {
+    if (!topAttractiveResponse?.data) return [];
+    return topAttractiveResponse.data.map((job) => ({
+      id: job.id,
+      title: job.jobTitle || "",
+      company: job.companyName || job.author?.companyName || "",
+      salary: formatSalary(job),
+      type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+      typeColor: mapTypeColor(job.jobType),
+      logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+    }));
+  }, [topAttractiveResponse]);
 
-const handleViewJob = (job: Job) => {
-  setSelectedJob(job);
-  setIsSheetOpen(true);
-};
+  const totalPages = Math.ceil(jobs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = jobs.slice(startIndex, endIndex);
 
-const handlePageChange = (page: number) => {
-  setCurrentPage(page);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  const handleDeleteJob = (jobId: number) => {
+    setJobs(jobs.filter((job) => job.id !== jobId));
+    if (selectedJob?.id === jobId) {
+      setIsSheetOpen(false);
+      setSelectedJob(null);
+    }
+    const newTotalPages = Math.ceil((jobs.length - 1) / itemsPerPage);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    }
+  };
+
+  const handleViewJob = (job: Job) => {
+    setSelectedJob(job);
+    setIsSheetOpen(true);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="flex" style={{ background: "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)" }}>
-      {/* Sidebar */}
-      <div className="ml-5 my-4 w-64 flex-shrink-0 h-screen">
-        <UserSideBar />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1">
-        <div className="max-w-7xl mx-auto p-5">
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-5">
-            <h1 className="text-xl font-bold text-gray-800">My Saved Jobs</h1>
-          </div>
-          {/* View Toggle */}
-          <div className="flex gap-0 mb-6 w-fit">
-            <Button
-              onClick={() => setViewMode("table")}
-              className={cn(
-                "!px-14 gap-2 rounded-none transition-all duration-300",
-                viewMode === "table" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
-              )}
-              style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
-            >
-              <List className="w-4 h-4" />
-              Table View
-            </Button>
-            <Button
-              onClick={() => setViewMode("grid")}
-              className={cn(
-                "rounded-none transition-all flex items-center justify-center gap-2 duration-300 !px-14",
-                viewMode === "grid" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
-              )}
-              style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
-            >
-              <Grid3x3 className="w-4 h-4" />
-              <span>Grid View</span>
-            </Button>
-          </div>
-
-          {/* Content */}
-          {isLoading ? (
-            viewMode === "table" ? (
-              <TableViewSkeleton />
-            ) : (
-              <GridViewSkeleton />
-            )
-          ) : viewMode === "table" ? (
-            <>
-              <TableView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                </div>
-              )}
-            </>
-          )}
+    <>
+      <div
+        className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(#00000080, #00000080), url('/work1.jpg')",
+          fontFamily: "'Poppins', sans-serif",
+        }}
+      >
+        <div className="text-center px-4">
+          <h1
+            className="text-white drop-shadow-lg"
+            style={{
+              marginBottom: 0,
+              fontWeight: 500,
+              lineHeight: '60px',
+              fontSize: '40px',
+            }}
+          >
+            Tìm việc làm nhanh 24h mới nhất trên toàn quốc
+          </h1>
+          <p
+            className="text-white mt-4"
+            style={{
+              color: '#fff',
+              fontSize: '18px',
+              lineHeight: '28px',
+              fontWeight: 400,
+              opacity: 0.95,
+            }}
+          >
+            Tiếp cận 60.000+ tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam
+          </p>
         </div>
       </div>
+      <div style={{ background: "linear-gradient(90deg, #fafcfb 0%, #f5faf7 30%, #f0f7f5 60%, #f0f7fc 100%)" }}>
+      <div className="flex main-layout relative z-10 pt-20 pb-8" >
+          {/* Left Sidebar - Suggested Jobs */}
+          <div className="w-96 flex-shrink-0">
+            <SuggestedJobs jobs={suggestedJobs} />
+          </div>
 
-      {/* Job Summary Sheet */}
-      <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
-    </div>
+          {/* Main Content */}
+          <div className="flex-1">
+            <div className="max-w-7xl mx-auto p-5">
+              {/* View Toggle */}
+              <div className="flex gap-0 mb-6 w-fit">
+                <Button
+                  onClick={() => setViewMode("table")}
+                  className={cn(
+                    "!px-14 gap-2 rounded-none transition-all duration-300",
+                    viewMode === "table" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
+                  )}
+                  style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+                >
+                  <List className="w-4 h-4" />
+                  Table View
+                </Button>
+                <Button
+                  onClick={() => setViewMode("grid")}
+                  className={cn(
+                    "rounded-none transition-all flex items-center justify-center gap-2 duration-300 !px-14",
+                    viewMode === "grid" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
+                  )}
+                  style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
+                >
+                  <Grid3x3 className="w-4 h-4" />
+                  <span>Grid View</span>
+                </Button>
+              </div>
+
+              {/* Content */}
+              {viewMode === "table" ? (
+                <>
+                  <TableView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          {/* Job Summary Sheet */}
+          <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
+
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -161,7 +240,7 @@ function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job)
         {jobs.map((job) => (
           <div
             key={job.id}
-            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white border border-gray-200 rounded-lg hover:shadow-md hover:bg-blue-50 transition-shadow"
+            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer"
           >
             {/* Job Info */}
             <div className="flex items-center gap-4">
@@ -196,12 +275,18 @@ function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job)
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b0] text-white" onClick={() => onView(job)}>
-                View
-              </Button>
-              <Button size="sm" variant="outline" className="border-red-300 text-red-500 hover:bg-red-50 hover:text-red-500 bg-transparent" onClick={() => onDelete(job.id)}>
-                <Trash2 className="w-4 h-4 " />
-              </Button>
+              <button
+                onClick={() => onView(job)}
+                className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDelete(job.id)}
+                className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}
@@ -215,17 +300,25 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <div key={job.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow relative hover:bg-blue-50">
-          {/* Delete Button */}
-          <button
-            onClick={() => onDelete(job.id)}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+        <div key={job.id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer relative p-6">
+          {/* Action Buttons */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <button
+              onClick={() => onView(job)}
+              className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(job.id)}
+              className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
 
           {/* Job Logo */}
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-pink-500 mb-4">
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 mb-4">
             <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
           </div>
 
@@ -250,64 +343,9 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
             <Building2 className="w-4 h-4" />
             <span>{job.company}</span>
           </div>
-
-          {/* View Button */}
-          <Button className="w-full bg-transparent border border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white transition-colors" onClick={() => onView(job)}>
-            View
-          </Button>
         </div>
       ))}
     </div>
   );
 }
 
-// Skeleton Components
-function TableViewSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg">
-        <div>JOBS</div>
-        <div>LOCATION</div>
-        <div>EXPIRE</div>
-        <div>SAVED</div>
-        <div>ACTION</div>
-      </div>
-      <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-4">
-              <Skeleton className="w-12 h-12 rounded-lg" />
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            </div>
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-24" />
-            <div className="flex gap-2">
-              <Skeleton className="h-8 w-16" />
-              <Skeleton className="h-8 w-8" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function GridViewSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="bg-white border border-gray-200 rounded-lg p-6">
-          <Skeleton className="w-16 h-16 rounded-lg mb-4" />
-          <Skeleton className="h-6 w-3/4 mb-2" />
-          <Skeleton className="h-4 w-1/2 mb-4" />
-          <Skeleton className="h-4 w-2/3 mb-4" />
-          <Skeleton className="h-9 w-full" />
-        </div>
-      ))}
-    </div>
-  );
-}

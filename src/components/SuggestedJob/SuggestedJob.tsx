@@ -94,7 +94,7 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
         </div>
       </Card>
 
-      {/* Quick Tips */}
+      {/* Quick Tips
       <Card className="bg-white shadow-sm border border-gray-100 p-6">
         <div className="space-y-4">
           <h3 className="font-semibold text-gray-900">Job Search Tips</h3>
@@ -113,7 +113,7 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
             </div>
           </div>
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 };
