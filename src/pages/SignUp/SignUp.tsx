@@ -168,7 +168,6 @@ export default function SignUp() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 text-gray-500">or</span>
-                <span className="px-2 bg-transparent text-gray-500">or</span>
               </div>
             </div>
 

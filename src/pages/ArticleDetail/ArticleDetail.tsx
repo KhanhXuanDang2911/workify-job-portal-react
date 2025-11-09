@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,11 +11,16 @@ import {
   Clock,
   User,
 } from "lucide-react";
-import CategoriesSidebar from "../../components/CategoriesSidebar";
-import RecentArticlesSidebar from "../../components/RecentArticlesSidebar";
 import TagsSidebar from "../../components/TagsSidebar";
 import SuggestedJobs from "../../components/SuggestedJob";
-import ArticleCard from "../../components/ArticleCard";
+import Loading from "@/components/Loading";
+import { useQuery } from "@tanstack/react-query";
+import { postService } from "@/services/post.service";
+import { jobService } from "@/services/job.service";
+import { routes } from "@/routes/routes.const";
+import type { PostResponse, PostCategory } from "@/types/post.type";
+import type { JobResponse } from "@/types/job.type";
+import { JobTypeLabelVN } from "@/constants/job.constant";
 
 interface TOCItem {
   id: string;
@@ -23,219 +29,145 @@ interface TOCItem {
 }
 
 export default function ArticleDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
   const [activeSection, setActiveSection] = useState<string>("");
 
-  // Sample article data with HTML content including images
-  const article = {
-    title: "5 things to know about the March 2023 jobs report",
-    author: "David Wish",
-    date: "March 05, 2023",
-    readTime: "5 min read",
-    tags: ["Report", "Analysis", "Jobs", "Market"],
-    category: "Market Insights",
-    content: `
-      <h1>Life Coach là gì?</h1>
-      <p>Life Coach là một chuyên gia hỗ trợ cá nhân phát triển bản thân, đạt được mục tiêu và cải thiện chất lượng cuộc sống. Họ không đưa ra lời khuyên trực tiếp mà giúp khách hàng tự khám phá và tìm ra giải pháp phù hợp.</p>
-      
-      <img src="https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg" alt="Life Coach consultation" />
-      
-      <h2>Nghề Life Coach: Nguồn gốc và sự phát triển</h2>
-      <p>Nghề Life Coach xuất hiện từ những năm 1980 tại Mỹ và nhanh chóng lan rộng ra toàn thế giới. Ngành này phát triển mạnh mẽ nhờ nhu cầu ngày càng tăng về phát triển cá nhân và cải thiện chất lượng cuộc sống.</p>
-      
-      <h2>Vai trò và lợi ích của Life Coach</h2>
-      <p>Life Coach đóng vai trò như một người đồng hành, giúp khách hàng:</p>
-      <ul>
-        <li>Xác định mục tiêu rõ ràng</li>
-        <li>Phát triển kế hoạch hành động</li>
-        <li>Vượt qua các rào cản tâm lý</li>
-        <li>Tăng cường động lực và tự tin</li>
-      </ul>
-      
-      <img src="https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg" alt="Professional coaching session" />
-      
-      <h2>Quy trình Life Coaching và khi nào nên tìm Life Coach</h2>
-      <p>Quy trình Life Coaching thường bao gồm các bước: đánh giá hiện trạng, xác định mục tiêu, lập kế hoạch, thực hiện và theo dõi tiến độ. Bạn nên tìm Life Coach khi cảm thấy bế tắc trong cuộc sống hoặc muốn đạt được những mục tiêu lớn.</p>
-      
-      <h2>Phân loại Life Coach theo lĩnh vực chuyên môn</h2>
-      <p>Life Coach có thể chuyên về nhiều lĩnh vực khác nhau như:</p>
-      <ul>
-        <li>Career Coach - Phát triển sự nghiệp</li>
-        <li>Relationship Coach - Cải thiện mối quan hệ</li>
-        <li>Health Coach - Sức khỏe và lối sống</li>
-        <li>Business Coach - Phát triển kinh doanh</li>
-      </ul>
-      
-      <img src="https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg" alt="Business coaching meeting" />
-      
-      <h2>Kỹ năng và chứng chỉ cần có của một Life Coach</h2>
-      <p>Một Life Coach chuyên nghiệp cần có các kỹ năng: lắng nghe tích cực, đặt câu hỏi hiệu quả, giao tiếp xuất sắc, và khả năng tạo động lực. Các chứng chỉ từ ICF (International Coach Federation) được đánh giá cao trong ngành.</p>
-      
-      <h2>Nghề Life Coach: Cơ hội và thách thức</h2>
-      <p>Nghề Life Coach mang lại nhiều cơ hội phát triển và thu nhập hấp dẫn, tuy nhiên cũng đối mặt với thách thức về việc xây dựng uy tín và tìm kiếm khách hàng trong thị trường cạnh tranh.</p>
-      
-      <h2>Câu hỏi thường gặp về Life Coach</h2>
-      <p>Một số câu hỏi phổ biến về Life Coach bao gồm: chi phí dịch vụ, thời gian cần thiết để thấy kết quả, và sự khác biệt giữa Life Coach và tâm lý trị liệu.</p>
-    `,
+  // Fetch article by ID
+  const {
+    data: articleResponse,
+    isLoading: isLoadingArticle,
+    isError: isErrorArticle,
+  } = useQuery({
+    queryKey: ["post", id],
+    queryFn: () => postService.getPostById(Number(id)),
+    enabled: !!id,
+  });
+
+  const articleData: PostResponse | undefined = articleResponse?.data;
+
+  // Fetch categories
+  const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isErrorCategories, error: errorCategories } = useQuery({
+    queryKey: ["post-categories"],
+    queryFn: () => postService.getAllCategories(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const categories: PostCategory[] = categoriesResponse?.data || [];
+
+  // Fetch latest articles for Recent Articles section
+  const { data: latestPostsResponse, isLoading: isLoadingRecent, isError: isErrorRecent, error: errorRecent } = useQuery({
+    queryKey: ["latest-public-posts", 6],
+    queryFn: () => postService.getLatestPublicPosts(6),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const handleCategoryClick = (categoryId: number | null) => {
+    // Navigate to articles page with category filter
+    if (categoryId) {
+      navigate(`/${routes.ARTICLES}?categoryId=${categoryId}`);
+    } else {
+      navigate(`/${routes.ARTICLES}`);
+    }
   };
 
-  // Sample data for sidebars
-  const categories = [
-    { name: "Categories", count: 68 },
-    { name: "Education", count: 12 },
-    { name: "Information", count: 15 },
-    { name: "Jobs", count: 25 },
-    { name: "Learn", count: 36 },
-    { name: "Skill", count: 12 },
-  ];
+  // Map latest posts to recent articles format
+  const recentArticles =
+    Array.isArray(latestPostsResponse?.data)
+      ? latestPostsResponse.data.map((post: PostResponse) => ({
+          id: post.id,
+          title: post.title,
+          date: post.createdAt
+            ? new Date(post.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "",
+          image: post.thumbnailUrl || "/placeholder.svg",
+        }))
+      : [];
 
-  const recentArticles = [
-    {
-      title: "Equipment you can count on. People you can trust.",
-      date: "April 08, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-    },
-    {
-      title: "Advanced Service Functions by Air Transport",
-      date: "April 12, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      date: "April 15, 2023",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-    },
-  ];
+  // Helper functions for job mapping
+  const formatSalary = (job: JobResponse): string => {
+    try {
+      if (job.salaryType === "RANGE") {
+        const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
+        const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
+        return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
+      }
+      if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
+        return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+      }
+      if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
+      if (job.minSalary != null) return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+      return "Thỏa thuận";
+    } catch (e) {
+      return "Thỏa thuận";
+    }
+  };
 
-  const tags = [
-    "General",
-    "Jobs",
-    "Payment",
-    "Application",
-    "Work",
-    "Recruiting",
-    "Employer",
-    "Income",
-    "Tips",
-  ];
+  const mapTypeColor = (jobType?: string): string => {
+    if (!jobType) return "bg-gray-400";
+    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+    if (jobType.includes("PART")) return "bg-orange-500";
+    if (jobType.includes("CONTRACT")) return "bg-purple-500";
+    return "bg-blue-500";
+  };
 
-  const suggestedJobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "Tech Solutions Inc",
-      salary: "$5,000",
-      type: "Full-time",
-      typeColor: "bg-green-500",
-    },
-    {
-      id: 2,
-      title: "UX/UI Designer",
-      company: "Creative Agency",
-      salary: "$4,200",
-      type: "Remote",
-      typeColor: "bg-blue-500",
-    },
-    {
-      id: 3,
-      title: "Product Manager",
-      company: "StartUp Co",
-      salary: "$6,000",
-      type: "Hybrid",
-      typeColor: "bg-purple-500",
-    },
-    {
-      id: 4,
-      title: "Data Analyst",
-      company: "Analytics Pro",
-      salary: "$3,800",
-      type: "Part-time",
-      typeColor: "bg-orange-500",
-    },
-  ];
+  // Fetch top attractive jobs for suggestions
+  const { data: topAttractiveResponse, isLoading: isLoadingJobs, isError: isErrorJobs, error: errorJobs } = useQuery({
+    queryKey: ["top-attractive-jobs", 4],
+    queryFn: () => jobService.getTopAttractiveJobs(4),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const authorArticles = [
-    {
-      title: "How to convince recruiters and get your dream job",
-      author: "David Wish",
-      date: "February 28, 2023",
-      excerpt:
-        "Learn the essential strategies to stand out in the competitive job market.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Career", "Tips"],
-      category: "Career Advice",
-    },
-    {
-      title: "Advanced Service Functions by Air Transport",
-      author: "David Wish",
-      date: "February 15, 2023",
-      excerpt:
-        "Exploring the latest innovations in air transport service delivery.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-      tags: ["Transport", "Innovation"],
-      category: "Industry News",
-    },
-    {
-      title: "The Future of Remote Work in 2023",
-      author: "David Wish",
-      date: "January 20, 2023",
-      excerpt:
-        "Analyzing trends and predictions for remote work opportunities.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Remote", "Future"],
-      category: "Market Insights",
-    },
-  ];
+  const suggestedJobs = useMemo(() => {
+    if (!topAttractiveResponse?.data) return [];
+    return topAttractiveResponse.data.map((job) => {
+      return {
+        id: job.id,
+        title: job.jobTitle || "",
+        company: job.companyName || job.author?.companyName || "",
+        salary: formatSalary(job),
+        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        typeColor: mapTypeColor(job.jobType),
+        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      };
+    });
+  }, [topAttractiveResponse]);
 
-  const relatedArticles = [
-    {
-      title: "Job Board is the most important sector in the world",
-      author: "Mike Doe",
-      date: "March 10, 2023",
-      excerpt:
-        "Understanding the critical role of job boards in modern recruitment.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg1.jpg",
-      tags: ["Industry", "Growth"],
-      category: "Industry News",
-    },
-    {
-      title: "Equipment you can count on. People you can trust.",
-      author: "Mark Petter",
-      date: "March 08, 2023",
-      excerpt: "Building reliable partnerships in the business world.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg2.jpg",
-      tags: ["Business", "Trust"],
-      category: "Business",
-    },
-    {
-      title: "Proper arrangement for keeping the goods in the warehouse",
-      author: "Sarah Johnson",
-      date: "March 01, 2023",
-      excerpt:
-        "Best practices for efficient warehouse management and organization.",
-      image:
-        "https://thewebmax.org/react/jobzilla/assets/images/blog/latest/bg3.jpg",
-      tags: ["Warehouse", "Management"],
-      category: "Operations",
-    },
-  ];
+  // Parse tags from string
+  const tags =
+    articleData?.tags && typeof articleData.tags === "string"
+      ? articleData.tags.split("|").filter((tag) => tag.trim())
+      : [];
 
-  // Generate table of contents from HTML content
+  // Process HTML content to add IDs to headings and generate TOC
+  const processedContent = articleData?.content
+    ? (() => {
+        let headingIndex = 0;
+        return articleData.content.replace(/(<h[1-6])>/g, (_match, tag) => {
+          const id = `heading-${headingIndex}`;
+          headingIndex++;
+          return `${tag} id="${id}">`;
+        });
+      })()
+    : "";
+
+  // Generate table of contents from processed HTML content
   useEffect(() => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(article.content, "text/html");
-    const headings = doc.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    if (!processedContent) return;
 
-    const items: TOCItem[] = Array.from(headings).map((heading, index) => {
-      const id = `heading-${index}`;
+    // Wait for content to be rendered in DOM
+    const timer = setTimeout(() => {
+    const parser = new DOMParser();
+      const doc = parser.parseFromString(processedContent, "text/html");
+      const headings = doc.querySelectorAll("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
+
+      const items: TOCItem[] = Array.from(headings).map((heading) => {
+        const id = heading.id || "";
       const level = Number.parseInt(heading.tagName.charAt(1));
       return {
         id,
@@ -245,20 +177,40 @@ export default function ArticleDetail() {
     });
 
     setTocItems(items);
-  }, [article.content]);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [processedContent]);
 
   const handleTOCClick = (id: string) => {
+    // Prevent default if it's a button click
+    const scrollToHeading = () => {
     const element = document.getElementById(id);
     if (element) {
-      const elementPosition =
-        element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - 100; // 100px above the heading
+        // Calculate position with offset
+        const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
+        const offset = 100; // 100px above the heading
+        const targetPosition = elementTop - offset;
 
       window.scrollTo({
-        top: offsetPosition,
+          top: Math.max(0, targetPosition),
         behavior: "smooth",
       });
       setActiveSection(id);
+        return true;
+      }
+      return false;
+    };
+
+    // Try immediately first
+    if (!scrollToHeading()) {
+      // If element not found, wait for DOM to update
+      setTimeout(() => {
+        if (!scrollToHeading()) {
+          // Last retry after longer delay
+          setTimeout(scrollToHeading, 300);
+        }
+      }, 100);
     }
   };
 
@@ -268,16 +220,54 @@ export default function ArticleDetail() {
     // You could add a toast notification here
   };
 
-  // Process HTML content to add IDs to headings
-  const processedContent = article.content.replace(
-    /<(h[1-6])>/g,
-    (match, tag, offset) => {
-      const index = (
-        article.content.substring(0, offset).match(/<h[1-6]>/g) || []
-      ).length;
-      return `<${tag} id="heading-${index}">`;
-    }
-  );
+  // Format article data
+  const article = articleData
+    ? {
+        title: articleData.title,
+        author: articleData.author?.fullName || articleData.author?.email || "",
+        date: articleData.createdAt
+          ? new Date(articleData.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "",
+        readTime: `${articleData.readingTimeMinutes || 0} min read`,
+        tags: tags,
+        category: articleData.category?.title || "",
+        content: articleData.content || "",
+      }
+    : null;
+
+  if (isLoadingArticle) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <Loading variant="spinner" size="lg" />
+      </div>
+    );
+  }
+
+  if (isErrorArticle || !articleData || !article) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">
+            {isErrorArticle
+              ? "Không thể tải bài viết. Vui lòng thử lại sau."
+              : "Không tìm thấy bài viết."}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/${routes.ARTICLES}`)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại danh sách bài viết
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
@@ -297,21 +287,21 @@ export default function ArticleDetail() {
 
       <div className="main-layout relative z-10 py-8">
         {/* Header with back button */}
-        <div className="flex items-center mb-8">
+        {/* <div className="flex items-center mb-8">
           <Button
             variant="outline"
             className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white"
-            onClick={() => window.history.back()}
+            onClick={() => navigate("/articles")}
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Articles
           </Button>
-        </div>
+        </div> */}
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main content */}
           <div className="lg:col-span-3">
-            {/* Article header - removed hero image */}
+            {/* Article header */}
             <div className="bg-white/80 backdrop-blur-sm p-8 shadow-lg border border-gray-100 mb-8">
               <div className="flex items-center gap-4 mb-4">
                 <Badge className="bg-[#1967d2] text-white">
@@ -417,43 +407,126 @@ export default function ArticleDetail() {
                 dangerouslySetInnerHTML={{ __html: processedContent }}
               />
             </div>
-
-            <div className="bg-white/80 backdrop-blur-sm p-8 shadow-lg border border-gray-100 mb-8">
-              <h2 className="text-2xl font-bold text-[#1967d2] mb-6">
-                Bài Viết Mới Nhất Của Tác Giả
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {authorArticles.map((article, index) => (
-                  <ArticleCard key={index} article={article} />
-                ))}
-              </div>
             </div>
-
-            <div className="bg-white/80 backdrop-blur-sm p-8 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-[#1967d2] mb-6">
-                Có Thể Bạn Quan Tâm
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedArticles.map((article, index) => (
-                  <ArticleCard key={index} article={article} />
-                ))}
-              </div>
-            </div>
-          </div>
 
           <div className="space-y-6">
-            <CategoriesSidebar categories={categories} />
-            <RecentArticlesSidebar articles={recentArticles} />
-            <TagsSidebar tags={tags} />
-
-            <div>
+            {/* Categories */}
+            <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Việc Làm Hấp Dẫn
+                Categories
               </h3>
-              <SuggestedJobs
-                jobs={suggestedJobs}
-                onViewAll={() => (window.location.href = "/job-search")}
-              />
+              {isLoadingCategories ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorCategories ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorCategories as any)?.message || "Không thể tải danh mục"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                  <div
+                    className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
+                    onClick={() => handleCategoryClick(null)}
+                  >
+                    All Categories
+                  </div>
+                  {categories.map((category) => (
+                    <div
+                      key={category.id}
+                      className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
+                      onClick={() => handleCategoryClick(category.id)}
+                    >
+                      {category.title}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recent Articles */}
+            <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
+                Recent Article
+              </h3>
+              {isLoadingRecent ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorRecent ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorRecent as any)?.message || "Không thể tải bài viết"}
+                  </p>
+                </div>
+              ) : recentArticles.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm">
+                    Không có bài viết nào
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentArticles.map((article, index) => {
+                    const linkTo = article.id
+                      ? `/${routes.ARTICLES_DETAIL}/${article.id}`
+                      : "#";
+
+                    return (
+                      <Link
+                        key={index}
+                        to={linkTo}
+                        className="flex gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        <img
+                          src={article.image || "/placeholder.svg"}
+                          alt={article.title}
+                          className="w-16 h-16 object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-[#1967d2] mb-1">
+                            {article.date}
+                          </p>
+                          <h4 className="text-sm font-medium text-gray-900 hover:text-[#1967d2] transition-colors h-10 overflow-hidden line-clamp-2">
+                            {article.title}
+                          </h4>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Tags - only show if there are tags */}
+            {tags.length > 0 && <TagsSidebar tags={tags} />}
+
+            {/* Suggested Jobs */}
+            <div>
+              {isLoadingJobs ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loading variant="spinner" size="md" />
+                </div>
+              ) : isErrorJobs ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 text-sm">
+                    {(errorJobs as any)?.message || "Không thể tải danh sách công việc"}
+                  </p>
+                </div>
+              ) : suggestedJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm">
+                    Không có công việc nào
+                  </p>
+                </div>
+              ) : (
+                <SuggestedJobs
+                  jobs={suggestedJobs}
+                  onViewAll={() => navigate(`/${routes.JOB_SEARCH}`)}
+                />
+              )}
             </div>
           </div>
         </div>

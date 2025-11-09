@@ -1,5 +1,6 @@
 import { ToastContainer } from "react-toastify";
 import GlobalLoading from "./components/GlobalLoading";
+import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import AppRoutes from "./routes/AppRoutes";
 import "flowbite";
@@ -32,6 +33,7 @@ export default function App() {
     <>
       <AuthProvider>
         <ResponsiveContext value={responsive}>
+          <ScrollToTop />
           <GlobalLoading />
           <AppRoutes />
           <ToastContainer

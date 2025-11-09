@@ -103,8 +103,6 @@ export default function SignIn() {
     <div className="main-layout">
       <div className="flex">
         <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden bg-gradient-to-br from-primary-color to-primary-color/80">
- 
-       
           <div className="relative z-10 flex flex-col justify-center px-8 py-12 text-white">
             <div className="space-y-6">
               <div className="space-y-3">

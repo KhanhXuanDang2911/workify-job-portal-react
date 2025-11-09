@@ -1,5 +1,8 @@
 import type React from "react";
 import { useRef, useImperativeHandle } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { jobService } from "@/services/job.service";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -103,6 +106,7 @@ export interface JobProp {
 
 export interface JobInformationProps {
   job: JobProp;
+  jobId?: number;
   hideActionButtons: boolean;
   ref?: React.Ref<JobInformationRef>;
 }
@@ -117,7 +121,7 @@ export interface JobInformationRef {
   scrollToCompanyInformation: () => void;
 }
 
-function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
+function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
@@ -125,6 +129,54 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
   const jobDetailsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
   const companyInformationRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+
+  // Check if job is saved - use placeholderData from saved-jobs cache to avoid flash
+  const { data: isSavedResponse } = useQuery({
+    queryKey: ["saved-job", jobId],
+    queryFn: () => jobService.checkSavedJob(jobId!),
+    enabled: !!jobId,
+    retry: false,
+    placeholderData: () => {
+      // Check if job exists in saved-jobs cache
+      const savedJobsQueries = queryClient.getQueriesData({ queryKey: ["saved-jobs"] });
+      for (const [, data] of savedJobsQueries) {
+        const savedJobsData = data as any;
+        if (savedJobsData?.data?.items) {
+          const isInSavedList = savedJobsData.data.items.some((job: any) => job.id === jobId);
+          if (isInSavedList) {
+            return { status: 200, message: "", data: true };
+          }
+        }
+      }
+      return undefined;
+    },
+  });
+
+  const isSaved = isSavedResponse?.data ?? false;
+
+  // Toggle save/unsave mutation
+  const toggleSaveMutation = useMutation({
+    mutationFn: () => jobService.toggleSavedJob(jobId!),
+    onSuccess: () => {
+      // Invalidate both saved-job status and saved-jobs list
+      queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
+      queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
+      toast.success(isSaved ? "Đã bỏ lưu việc làm" : "Đã lưu việc làm");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!jobId) {
+      toast.error("Không tìm thấy ID công việc");
+      return;
+    }
+    toggleSaveMutation.mutate();
+  };
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (!ref.current) return;
@@ -166,10 +218,7 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
       {/* Company Cover Image */}
       <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 overflow-hidden">
         <img
-          src={
-            job.companyBanner ||
-            "https://plus.unsplash.com/premium_photo-1701853893878-c42e95905f5d?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          }
+          src={job.companyBanner}
           alt={`${job.companyName} cover`}
           className="w-full h-full object-cover"
         />
@@ -184,27 +233,34 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* Company Logo */}
           <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white -mt-10 relative z-10">
-            <img src={job.companyLogo || "https://i.pinimg.com/1200x/d2/67/d1/d267d14c49154ed19fa84a43465c87a9.jpg"} alt={job.companyName} className="w-16 h-16 object-contain" />
+            <img src={job.companyLogo} alt={job.companyName} className="w-16 h-16 object-contain" />
           </div>
 
           {/* Job Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{job.jobTitle}</h1>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{job.jobTitle}</h1>
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-blue-600" />
                   <p className="text-lg font-medium text-gray-800">{job.companyName}</p>
                 </div>
                 <div className="flex flex-col text-gray-600 mb-2">
-                  {job.jobLocation.map((location, index) => (
-                    <div className="flex gap-1" key={index}>
+                  {job.jobLocation && Array.isArray(job.jobLocation) && job.jobLocation.length > 0 ? (
+                    job.jobLocation.map((location, index) => (
+                      <div className="flex gap-1" key={index}>
+                        <MapPin className="w-4 h-4" />
+                        <span>
+                          {location.detailAddress}, {location.province?.name || ""}, {location.district?.name || ""}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex gap-1">
                       <MapPin className="w-4 h-4" />
-                      <span>
-                        {location.detailAddress}, {location.province.name}, {location.district.name}
-                      </span>
+                      <span>Chưa cập nhật địa chỉ</span>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="flex items-center text-blue-600 text-sm">
                   <Globe className="w-4 h-4 mr-2" />
@@ -218,9 +274,18 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
-                <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Lưu
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleToggleSave}
+                  disabled={!jobId || toggleSaveMutation.isPending}
+                  className={cn(
+                    "border-red-300 hover:bg-red-50 bg-transparent",
+                    isSaved ? "text-red-600 bg-red-50" : "text-red-600"
+                  )}
+                >
+                  <Heart className={cn("w-4 h-4 mr-2", isSaved && "fill-current")} />
+                  {isSaved ? "Đã lưu" : "Lưu"}
                 </Button>
                 <JobApplicationModal jobTitle={job.jobTitle} companyName={job.companyName}>
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>
@@ -330,16 +395,22 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
             <h3 className="text-xl font-bold text-green-600">Phúc lợi</h3>
           </div>
           <div className="space-y-4">
-            {job.jobBenefits?.map((benefit, index) => {
-              const Icon = benefitMapVN[benefit.type].icon;
-              return (
-                <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
-                  <Icon className="flex-shrink-0" color="#1967d2" strokeWidth={1.8} size={28} />
-                  <span className="text-gray-700">{benefit.description}</span>
-                </div>
-              );
-            })}
+            {job.jobBenefits && Array.isArray(job.jobBenefits) && job.jobBenefits.length > 0 ? (
+              job.jobBenefits.map((benefit, index) => {
+                const benefitInfo = benefitMapVN[benefit.type];
+                if (!benefitInfo) return null;
+                const Icon = benefitInfo.icon;
+                return (
+                  <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
+                    <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
+                    <span className="text-gray-700">{benefit.description}</span>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-600">Chưa cập nhật phúc lợi</p>
+            )}
           </div>
         </div>
 
@@ -444,12 +515,16 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                   <Grid3X3 className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Ngành nghề</p>
-                    {job.industries?.map((industry, index) => (
-                      <span key={industry.id} className="font-semibold text-gray-900">
-                        {industry.name}
-                        {index < job.industries.length - 1 && ", "}
-                      </span>
-                    ))}
+                    {job.industries && Array.isArray(job.industries) && job.industries.length > 0 ? (
+                      job.industries.map((industry, index) => (
+                        <span key={industry.id} className="font-semibold text-gray-900">
+                          {industry.name}
+                          {index < job.industries.length - 1 && ", "}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="font-semibold text-gray-900">Chưa cập nhật</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -476,7 +551,13 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                 <MapPin className="w-5 h-5 text-indigo-600 mt-0.5" />
                 <p className="text-gray-700">
                   <strong>Địa chỉ:</strong>
-                  {job.contactLocation.detailAddress}, {job.contactLocation.province.name}, {job.contactLocation.district.name}
+                  {job.contactLocation ? (
+                    <>
+                      {job.contactLocation.detailAddress || ""}, {job.contactLocation.province?.name || ""}, {job.contactLocation.district?.name || ""}
+                    </>
+                  ) : (
+                    "Chưa cập nhật"
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3 mb-4">

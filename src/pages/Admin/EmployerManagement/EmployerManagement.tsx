@@ -66,7 +66,7 @@ export default function EmployerManagement() {
   const { data: employersData, isLoading: isLoadingEmployers } = useQuery({
     queryKey: ["employers", pageNumber, pageSize, keyword, sortsString,provinceId],
     queryFn: () =>
-      employerService.getEmployers({
+      employerService.getEmployersWithSearchParam({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,

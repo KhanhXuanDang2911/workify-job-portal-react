@@ -5,3 +5,4 @@ export * from "./location.type";
 export * from "./job.type";
 export * from "./industry.type";
 export * from "./post.type";
+export * from "./application.type";

@@ -67,4 +67,26 @@ export const postService = {
     const response = await http.delete<ApiResponse>(`/posts/${id}`);
     return response.data;
   },
+  
+  // Public posts list (only PUBLIC posts)
+  getPublicPosts: async (params: Record<string, any> = {}): Promise<ApiResponse<PageResponse<any>>> => {
+    const response = await http.get<ApiResponse<PageResponse<any>>>('/posts/public', { params });
+    return response.data;
+  },
+
+  // Latest public posts
+  getLatestPublicPosts: async (limit?: number): Promise<ApiResponse<PostResponse[]>> => {
+    const response = await http.get<ApiResponse<PostResponse[]>>('/posts/public/latest', {
+      ...(limit && { params: { limit } }),
+    });
+    return response.data;
+  },
+
+  // Latest posts
+  getLatestPosts: async (limit = 8): Promise<ApiResponse<PostResponse[]>> => {
+    const response = await http.get<ApiResponse<PostResponse[]>>('/posts/public/latest', {
+      params: { limit },
+    });
+    return response.data;
+  },
 };

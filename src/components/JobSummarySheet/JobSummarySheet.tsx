@@ -1,6 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, DollarSign, Clock, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { routes } from "@/routes/routes.const";
 
 interface Job {
   id: number;
@@ -21,6 +23,8 @@ interface Job {
     rights: string[];
   };
   image: string;
+  companyWebsite?: string;
+  backgroundUrl?: string;
 }
 
 interface JobSummarySheetProps {
@@ -38,7 +42,7 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
       <SheetContent className="w-full px-4 sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="space-y-4">
           <div className="relative w-full h-48 rounded-lg overflow-hidden">
-            <img src={job.image || "/placeholder.svg"} alt="Office" className="w-full h-full object-cover" />
+            <img src={job.backgroundUrl || "/placeholder.svg"} alt="Office" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
           <div className="space-y-3">
@@ -57,9 +61,16 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
                     <MapPin className="w-4 h-4 text-[#1967d2]" />
                     <span>{job.location}</span>
                   </div>
-                  <a href="#" className="text-sm text-[#1967d2] hover:underline mt-1 inline-block">
-                    www.techinnovation.com
-                  </a>
+                  {job.companyWebsite && (
+                    <a 
+                      href={job.companyWebsite.startsWith('http') ? job.companyWebsite : `https://${job.companyWebsite}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#1967d2] hover:underline mt-1 inline-block"
+                    >
+                      {job.companyWebsite}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -89,8 +100,8 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
                   <Users className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Hết hạn trong</div>
-                  <div className="text-sm font-semibold text-red-600">{job.applications}</div>
+                  <div className="text-xs text-gray-500">Hết hạn</div>
+                  <div className="text-sm font-semibold text-red-600">{job.expireDate || "Chưa cập nhật"}</div>
                 </div>
               </div>
             </div>
@@ -130,37 +141,29 @@ export default function JobSummarySheet({ job, isOpen, onOpenChange, onDelete }:
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Phúc lợi</h3>
             </div>
-            <div className="grid grid-cols-2 gap-6 pl-10">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">What We Offer</h4>
-                <ul className="space-y-2">
-                  {job.benefits.offer.map((benefit, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                      <span className="text-green-600 mt-1">●</span>
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Quyền lợi</h4>
-                <ul className="space-y-2">
-                  {job.benefits.rights.map((right, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                      <span className="text-green-600 mt-1">●</span>
-                      <span>{right}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="pl-10">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Quyền lợi</h4>
+              <ul className="space-y-2">
+                {[...job.benefits.offer, ...job.benefits.rights].filter(Boolean).map((benefit, index) => (
+                  <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                    <span className="text-green-600 mt-1">●</span>
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+                {[...job.benefits.offer, ...job.benefits.rights].filter(Boolean).length === 0 && (
+                  <li className="text-sm text-gray-500">Chưa cập nhật phúc lợi</li>
+                )}
+              </ul>
             </div>
           </div>
         </div>
 
         <SheetFooter className="flex-row gap-3">
-          <Button className="flex-1 bg-[#1967d2] hover:bg-[#1557b0] text-white" onClick={() => onOpenChange(false)}>
-            View Detail
-          </Button>
+          <Link to={`/${routes.JOB_DETAIL}/${job.id}`} className="flex-1" onClick={() => onOpenChange(false)}>
+            <Button className="w-full bg-[#1967d2] hover:bg-[#1557b0] text-white">
+              View Detail
+            </Button>
+          </Link>
           <Button variant="destructive" className="flex-1 bg-red-500 hover:bg-red-600" onClick={() => onDelete(job.id)}>
             Delete
           </Button>

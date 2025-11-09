@@ -1,6 +1,8 @@
 import type { JobStatus } from "@/constants";
 import http from "@/lib/http";
-import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, SearchParams } from "@/types";
+
+import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, CategoryJobResponse, SearchParams } from "@/types";
+
 import type { JobRequest, JobResponse } from "@/types";
 import type { With } from "@/types/common";
 
@@ -68,6 +70,13 @@ export const jobService = {
     return response.data;
   },
 
+  getTopAttractiveJobs: async (limit = 10): Promise<ApiResponse<JobResponse[]>> => {
+    const response = await http.get<ApiResponse<JobResponse[]>>("/jobs/top-attractive", {
+      params: { limit },
+    });
+    return response.data;
+  },
+  
   getAllJobs: async (params?: With<SearchParams, { provinceId?: number; industryId?: number }>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
     const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/all", {
       params,
@@ -75,6 +84,44 @@ export const jobService = {
     return response.data;
   },
 
+  getCategoriesWithJobCount: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
+    const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
+    return response.data;
+  },
+
+  // Get jobs by employer id (public)
+  getJobsByEmployerId: async (employerId: number, pageNumber = 1, pageSize = 10): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>(`/jobs/openings/${employerId}`, {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    return response.data;
+  },
+
+  // Check if job is saved
+  checkSavedJob: async (jobId: number): Promise<ApiResponse<boolean>> => {
+    const response = await http.get<ApiResponse<boolean>>(`/saved-jobs/check/${jobId}`);
+    return response.data;
+  },
+
+  // Toggle save/unsave job
+  toggleSavedJob: async (jobId: number): Promise<ApiResponse> => {
+    const response = await http.post<ApiResponse>(`/saved-jobs/toggle/${jobId}`);
+    return response.data;
+  },
+
+  // Get saved jobs with pagination
+  getSavedJobs: async (pageNumber = 1, pageSize = 10): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/saved-jobs", {
+      params: {
+        pageNumber,
+        pageSize,
+      },
+    });
+    return response.data;
+  },
   updateJobStatus: async (id: number, status: JobStatus): Promise<ApiResponse> => {
     const response = await http.patch<ApiResponse>(`/jobs/status/${id}?status=${status}`);
     return response.data;

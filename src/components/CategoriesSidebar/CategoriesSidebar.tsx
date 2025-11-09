@@ -19,7 +19,7 @@ export default function CategoriesSidebar({
         {categories.map((category, index) => (
           <div
             key={index}
-            className="flex items-center justify-between text-sm"
+            className="text-sm"
           >
             <span
               className="text-gray-600 hover:text-[#1967d2] cursor-pointer transition-colors"
@@ -27,7 +27,6 @@ export default function CategoriesSidebar({
             >
               {category.name}
             </span>
-            <span className="text-gray-400">{category.count}</span>
           </div>
         ))}
       </div>

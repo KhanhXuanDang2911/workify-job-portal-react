@@ -87,7 +87,16 @@ export const employerService = {
     return response.data;
   },
 
-  getEmployers: async (params: With<SearchParams,{provinceId?:number}>): Promise<ApiResponse<PageResponse<Employer>>> => {
+
+  // Public list/search employers (supports paging and filters)
+  searchEmployers: async (params: Record<string, any> = {}): Promise<ApiResponse<any>> => {
+    const response = await http.get<ApiResponse<any>>("/employers", { params });
+    return response.data;
+  },
+
+  // Get employer by id (public)
+
+  getEmployersWithSearchParam: async (params: With<SearchParams,{provinceId?:number}>): Promise<ApiResponse<PageResponse<Employer>>> => {
     const response = await http.get<ApiResponse<PageResponse<Employer>>>("/employers", { params });
     return response.data;
   },
@@ -97,6 +106,13 @@ export const employerService = {
     return response.data;
   },
 
+  // Get top hiring employers (public)
+  getTopHiringEmployers: async (limit = 10): Promise<ApiResponse<Employer[]>> => {
+    const response = await http.get<ApiResponse<Employer[]>>("/employers/top-hiring", {
+      params: { limit },
+    });
+    return response.data;
+  },
   createEmployer: async (data: FormData): Promise<ApiResponse<Employer>> => {
     const response = await http.post<ApiResponse<Employer>>("/employers", data, {
       headers: {

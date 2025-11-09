@@ -3,7 +3,9 @@ import { admin_routes, employer_routes, routes } from "@/routes/routes.const";
 import { authService } from "@/services";
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const BASE_URL = "http://localhost:8080/workify/api/v1"
 
 export const http = axios.create({
   baseURL: BASE_URL,
@@ -18,6 +20,10 @@ http.interceptors.request.use(
     const accessToken = authUtils.getAccessToken();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    // Don't set Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     console.log("Request:", config);
     return config;
