@@ -351,7 +351,7 @@ const JobSearch = () => {
         setSearchParams(params, { replace: true });
     }, [appliedKeyword, appliedFilters, sort, sortOrder, currentPage, setSearchParams]);
 
-    // Read from URL params when URL changes
+    // Read from URL params when URL changes (only on mount or external navigation)
     useEffect(() => {
         const keywordParam = searchParams.get("keyword") || "";
         const provinceIdParams = searchParams.getAll("provinceId");
@@ -359,13 +359,18 @@ const JobSearch = () => {
         const sortParam = searchParams.get("sort") || "createdAt";
         const sortOrderParam = (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
         const pageParam = searchParams.get("page");
+        const pageFromUrl = pageParam ? Number(pageParam) : 1;
 
         setAppliedKeyword(keywordParam);
         setSort(
             (sortParam === "updatedAt" || sortParam === "expirationDate" ? sortParam : "createdAt") as "createdAt" | "updatedAt" | "expirationDate"
         );
         setSortOrder(sortOrderParam);
-        setCurrentPage(pageParam ? Number(pageParam) : 1);
+        
+        // Only update currentPage if it's different from URL to avoid loop
+        if (pageFromUrl !== currentPage) {
+            setCurrentPage(pageFromUrl);
+        }
 
         // Update temp values
         setTempKeyword(keywordParam);
@@ -379,11 +384,22 @@ const JobSearch = () => {
             provinceId: provinceIdParams,
             industry: industryIdParams,
         }));
-    }, [searchParams]);
+    }, [searchParams]); // Remove currentPage from dependency to avoid loop
 
-    // Reset to page 1 when applied filters change
+    // Reset to page 1 when applied filters change (but not when reading from URL)
+    const prevFiltersRef = useRef({ appliedKeyword, appliedFilters, sort, sortOrder });
     useEffect(() => {
-        setCurrentPage(1);
+        const filtersChanged = 
+            prevFiltersRef.current.appliedKeyword !== appliedKeyword ||
+            JSON.stringify(prevFiltersRef.current.appliedFilters.provinceId) !== JSON.stringify(appliedFilters.provinceId) ||
+            JSON.stringify(prevFiltersRef.current.appliedFilters.industry) !== JSON.stringify(appliedFilters.industry) ||
+            prevFiltersRef.current.sort !== sort ||
+            prevFiltersRef.current.sortOrder !== sortOrder;
+
+        if (filtersChanged) {
+            setCurrentPage(1);
+            prevFiltersRef.current = { appliedKeyword, appliedFilters, sort, sortOrder };
+        }
     }, [appliedKeyword, appliedFilters, sort, sortOrder]);
 
     // Load industries and provinces
