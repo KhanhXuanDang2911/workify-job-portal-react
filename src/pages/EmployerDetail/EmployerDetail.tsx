@@ -242,7 +242,7 @@ export default function EmployerDetail() {
         <div className="absolute top-0 right-0 w-96 h-32 bg-gradient-to-l from-cyan-200 via-blue-100 to-transparent opacity-70"></div>
         <div className="absolute top-0 left-0 w-64 h-24 bg-gradient-to-r from-purple-100 to-transparent opacity-50"></div>
 
-        <div className="container mx-auto px-4 py-6 relative z-10">
+        <div className="main-layout relative z-10 py-8">
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Company Image and Info */}
@@ -475,7 +475,7 @@ export default function EmployerDetail() {
       </div>
 
       {/* Available Jobs Section */}
-      <div className="container mx-auto px-4 py-8 relative z-10">
+      <div className="main-layout relative z-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Left Column */}
           <div className="lg:col-span-2 space-y-8">
