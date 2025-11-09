@@ -2,26 +2,22 @@ import { PostStatus } from "@/constants/post.constant";
 import { z } from "zod";
 
 export const postCategorySchema = z.object({
-  title: z.string().min(1, "Tiêu đề là bắt buộc").max(255, "Tiêu đề không được vượt quá 255 ký tự"),
-  description: z.string().min(1, "Mô tả là bắt buộc").max(1000, "Mô tả không được vượt quá 1000 ký tự"),
+  title: z.string().min(1, "Required").max(255, "Title must not exceed 255 characters"),
+  description: z.string().min(1, "Required").max(1000, "Description must not exceed 1000 characters"),
 });
 
 export type PostCategoryFormData = z.infer<typeof postCategorySchema>;
 
+const statusTypeEnum = z.enum(Object.keys(PostStatus) as [keyof typeof PostStatus], {
+  message: "Required",
+});
+
 export const postSchema = z.object({
-  title: z.string().min(1, "Tiêu đề là bắt buộc").max(500, "Tiêu đề không được vượt quá 500 ký tự"),
-  excerpt: z.string().min(1, "Tóm tắt là bắt buộc").max(1000, "Tóm tắt không được vượt quá 1000 ký tự"),
-  content: z.string().min(1, "Nội dung là bắt buộc"),
-  category: z.object({
-    id: z.number({ error: "Danh mục là bắt buộc" }).int().positive("Danh mục không hợp lệ"),
-    title: z.string().min(1, "Danh mục là bắt buộc"),
-  }),
-  // tags: z.array(z.string()).optional(),
-  status: z.nativeEnum(PostStatus, { message: "Trạng thái là bắt buộc" }),
-  thumbnail: z.preprocess((val) => {
-    if (val instanceof FileList) return val[0];
-    return val;
-  }, z.instanceof(File, { message: "Banner là bắt buộc" })),
+  title: z.string().min(1, "Required").max(500, "Title must not exceed 500 characters"),
+  excerpt: z.string().min(1, "Required").max(1000, "Excerpt must not exceed 1000 characters"),
+  content: z.string().min(1, "Required"),
+  categoryId: z.number({ error: "Required" }).int().positive("Invalid category"),
+  status: statusTypeEnum,
 });
 
 export type PostFormData = z.infer<typeof postSchema>;

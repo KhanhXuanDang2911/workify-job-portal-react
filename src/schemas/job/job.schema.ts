@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PHONE_REGEX } from "@/constants/regex.constant";
+import { DATE_REGEX, PHONE_REGEX } from "@/constants/regex.constant";
 import { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, CompanySize, BenefitType } from "@/constants";
 
 const salaryTypeEnum = z.enum(Object.keys(SalaryType) as [keyof typeof SalaryType], {
@@ -49,8 +49,10 @@ export const locationSchema = z.object({
 
 const industrySchema = z.object({
   id: z.number().int().positive("Required"),
-  name: z.string(),
+  name: z.string().min(1, "Required"),
 });
+
+
 
 export type LocationFormData = z.infer<typeof locationSchema>;
 
@@ -88,7 +90,7 @@ export const postJobSchema = z
     salaryUnit: z.preprocess((val) => (val === "" || val === null ? undefined : val), salaryUnitEnum.optional()),
     jobDescription: z.string().min(1, "Required"),
     requirement: z.string().min(1, "Required"),
-    jobBenefits: z.array(jobBenefitSchema).min(1, "At least one benefit is required").max(10, "Maximum 10 benefits allowed"),
+    jobBenefits: z.array(jobBenefitSchema).min(1, "At least one benefit is required").max(15, "Maximum 15 benefits allowed"),
     educationLevel: educationLevelEnum,
     experienceLevel: experienceLevelEnum,
     jobLevel: jobLevelEnum,
@@ -118,7 +120,15 @@ export const postJobSchema = z
       .string({
         error: "Required",
       })
-      .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Expiration date must be in dd/MM/yyyy format")
+      .regex(DATE_REGEX, "Expiration date must be in dd/MM/yyyy format")
+      .refine(
+        (val) => {
+          const [day, month, year] = val.split("/").map(Number);
+          const date = new Date(year, month - 1, day);
+          return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+        },
+        { message: "Ngày không hợp lệ" }
+      )
       .refine((val) => {
         const [day, month, year] = val.split("/").map(Number);
         const expiration = new Date(year, month - 1, day);
@@ -128,7 +138,7 @@ export const postJobSchema = z
       }, "Expiration date must be after today"),
   })
   .transform((data) => {
-    if (data.salaryType === "NEGOTIABLE" || data.salaryType === "COMPETITIVE") {
+    if (data.salaryType === SalaryType.NEGOTIABLE || data.salaryType === SalaryType.COMPETITIVE) {
       return {
         ...data,
         minSalary: undefined,
@@ -136,7 +146,7 @@ export const postJobSchema = z
         salaryUnit: undefined,
       };
     }
-    if (data.salaryType === "GREATER_THAN") {
+    if (data.salaryType === SalaryType.GREATER_THAN) {
       return {
         ...data,
         maxSalary: undefined,
@@ -145,11 +155,11 @@ export const postJobSchema = z
     return data;
   })
   .superRefine((data, ctx) => {
-    if (data.salaryType === "NEGOTIABLE" || data.salaryType === "COMPETITIVE") {
+    if (data.salaryType === SalaryType.NEGOTIABLE || data.salaryType === SalaryType.COMPETITIVE) {
       return;
     }
 
-    if (data.salaryType === "RANGE") {
+    if (data.salaryType === SalaryType.RANGE) {
       if (data.minSalary === undefined) {
         ctx.addIssue({
           code: "custom",
@@ -191,7 +201,7 @@ export const postJobSchema = z
       }
     }
 
-    if (data.salaryType === "GREATER_THAN") {
+    if (data.salaryType === SalaryType.GREATER_THAN) {
       if (data.minSalary === undefined) {
         ctx.addIssue({
           code: "custom",
@@ -208,7 +218,7 @@ export const postJobSchema = z
       }
     }
 
-    if (data.ageType === "ABOVE" && data.minAge === undefined) {
+    if (data.ageType === AgeType.ABOVE && data.minAge === undefined) {
       ctx.addIssue({
         code: "custom",
         message: "Required",
@@ -216,7 +226,7 @@ export const postJobSchema = z
       });
     }
 
-    if (data.ageType === "BELOW" && data.maxAge === undefined) {
+    if (data.ageType === AgeType.BELOW && data.maxAge === undefined) {
       ctx.addIssue({
         code: "custom",
         message: "Required",
@@ -224,7 +234,7 @@ export const postJobSchema = z
       });
     }
 
-    if (data.ageType === "INPUT") {
+    if (data.ageType === AgeType.INPUT) {
       if (data.minAge === undefined) {
         ctx.addIssue({
           code: "custom",

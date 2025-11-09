@@ -1,8 +1,8 @@
 export interface Industry {
-  id: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id: number;
   name: string;
   engName: string;
-  description: string | null;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }

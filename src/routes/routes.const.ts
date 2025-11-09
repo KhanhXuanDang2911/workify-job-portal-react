@@ -18,6 +18,7 @@ export const routes = {
   RESET_PASSWORD: "reset-password",
   CREATE_PASSWORD: "create-password",
   CREATE_CV: "cv-builder",
+  LINKEDIN_AUTHENTICATE: "linkedin/authenticate",
 };
 
 export const employer_routes = {
@@ -52,5 +53,5 @@ export const admin_routes = {
   RESET_PASSWORD: "reset-password",
   VERIFY_EMAIL: "verify-email",
   LOCATION: "location",
-  INDUSTRIES: "industries",
+  CATEGORY_JOBS_INDUSTRIES: "category-jobs-industries",
 };

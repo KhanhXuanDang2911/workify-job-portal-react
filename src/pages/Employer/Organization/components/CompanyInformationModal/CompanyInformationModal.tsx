@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CompanySize, CompanySizeLabelVN } from "@/constants";
-import Loading from "@/components/Loading";
+import ReactQuill from "react-quill-new";
 
 export default function CompanyInformationModal() {
   const [districts, setDistricts] = useState<District[]>([]);
@@ -25,6 +25,7 @@ export default function CompanyInformationModal() {
       const response = await employerService.getEmployerProfile();
       return response.data;
     },
+    staleTime: 60 * 60 * 1000,
   });
 
   const { data: provinces } = useQuery({
@@ -33,6 +34,7 @@ export default function CompanyInformationModal() {
       const response = await provinceService.getProvinces();
       return response.data;
     },
+    staleTime: 60 * 60 * 1000,
   });
 
   const {
@@ -48,6 +50,7 @@ export default function CompanyInformationModal() {
     defaultValues: {
       companyName: "",
       companySize: "",
+      aboutCompany: "",
       contactPerson: "",
       phoneNumber: "",
       provinceId: 0,
@@ -81,10 +84,11 @@ export default function CompanyInformationModal() {
         reset({
           companyName: employerData.companyName || "",
           companySize: employerData.companySize || "",
+          aboutCompany: employerData.aboutCompany || "",
           contactPerson: employerData.contactPerson || "",
           phoneNumber: employerData.phoneNumber || "",
-          provinceId: employerData.province?.id || 0,
-          districtId: 0,
+          provinceId: employerData.province?.id || 1,
+          districtId: 1,
           detailAddress: employerData.detailAddress || "",
         });
 
@@ -103,6 +107,7 @@ export default function CompanyInformationModal() {
       employerService.updateEmployerProfile({
         companyName: data.companyName,
         companySize: data.companySize,
+        aboutCompany: data.aboutCompany,
         contactPerson: data.contactPerson,
         phoneNumber: data.phoneNumber,
         provinceId: data.provinceId,
@@ -133,11 +138,6 @@ export default function CompanyInformationModal() {
 
   return (
     <>
-      {isLoadingProfile && (
-        <div className="absolute top-1/2 left-1/2">
-          <Loading />
-        </div>
-      )}
       <BaseModal
         title="Company information"
         trigger={
@@ -202,6 +202,25 @@ export default function CompanyInformationModal() {
               )}
             />
             {errors.companySize && <p className="text-sm text-red-500">{errors.companySize.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="company-profile" className="mb-2 block">
+              About Company <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              name="aboutCompany"
+              control={control}
+              render={({ field }) => (
+                <ReactQuill
+                  theme="snow"
+                  // readOnly
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto"
+                />
+              )}
+            />
+            {errors.aboutCompany && <span className="text-xs text-red-500">{errors.aboutCompany.message}</span>}
           </div>
 
           <div className="space-y-2">

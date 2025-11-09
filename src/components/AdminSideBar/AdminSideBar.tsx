@@ -3,7 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen } from "lucide-react";
+import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen, BriefcaseBusiness } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LucideProps } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { authService } from "@/services";
 import { useAuth } from "@/context/auth/useAuth";
 import { signOut } from "@/context/auth/auth.action";
 import { toast } from "react-toastify";
+import { admin_routes } from "@/routes/routes.const";
 
 interface MenuItem {
   id: string;
@@ -25,43 +26,49 @@ const menuItems: MenuItem[] = [
     id: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    href: "/admin/dashboard",
+    href: `${admin_routes.BASE}/${admin_routes.DASHBOARD}`,
+  },
+  {
+    id: "jobs",
+    label: "Jobs",
+    icon: BriefcaseBusiness,
+    href: `${admin_routes.BASE}/${admin_routes.JOBS}`,
   },
   {
     id: "posts",
     label: "Posts",
     icon: BookHeart,
-    href: "/admin/posts",
+    href: `${admin_routes.BASE}/${admin_routes.POSTS}`,
   },
   {
     id: "post-categories",
     label: "Post Categories",
     icon: FolderOpen,
-    href: "/admin/post-categories",
+    href: `${admin_routes.BASE}/${admin_routes.POST_CATEGORIES}`,
   },
   {
     id: "companies",
     label: "Companies",
     icon: Building,
-    href: "/admin/companies",
+    href: `${admin_routes.BASE}/${admin_routes.EMPLOYERS}`,
   },
   {
     id: "industries",
     label: "Industries",
     icon: Factory,
-    href: "/admin/industries",
+    href: `${admin_routes.BASE}/${admin_routes.CATEGORY_JOBS_INDUSTRIES}`,
   },
   {
     id: "locations",
     label: "Locations",
     icon: MapPinPen,
-    href: "/admin/locations",
+    href: `${admin_routes.BASE}/${admin_routes.LOCATION}`,
   },
   {
     id: "users",
     label: "Users",
     icon: Users,
-    href: "/admin/users",
+    href: `${admin_routes.BASE}/${admin_routes.USERS}`,
   },
 ];
 

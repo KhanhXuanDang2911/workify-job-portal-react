@@ -16,4 +16,17 @@ export interface ApiError {
   }>;
 }
 
+export interface PageResponse<T> {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  numberOfElements: number;
+  items: T[];
+}
 
+export interface SearchParams {
+  pageNumber?: number;
+  pageSize?: number;
+  sorts?: string;
+  keyword?: string;
+}

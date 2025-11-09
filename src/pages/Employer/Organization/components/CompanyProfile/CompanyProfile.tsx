@@ -2,30 +2,33 @@ import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Users, Pencil, Plus, Loader2 } from "lucide-react";
+import { Camera, MapPin, Users, Pencil, Plus, Loader2, Link } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CompanyBannerModal from "@/pages/Employer/Organization/components/CompanyBannerModal";
 import CompanyInformationModal from "@/pages/Employer/Organization/components/CompanyInformationModal";
 import CompanyLocationModal from "@/pages/Employer/Organization/components/CompanyLocationModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AboutCompanyModal from "@/pages/Employer/Organization/components/AboutCompanyModal";
-import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { employerService } from "@/services";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { CompanySizeLabelVN } from "@/constants";
 import Loading from "@/components/Loading";
+import { employer_routes } from "@/routes/routes.const";
+import EditWebsiteUrlsModal from "@/pages/Employer/Organization/components/CompanyProfile/EditWebsiteUrlsModal";
 
 const defaultBanner = "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
 const defaultAvatar = "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
 
 export default function CompanyProfile() {
+  const navigate = useNavigate();
+
   const [bannerImage, setBannerImage] = useState<string>(defaultBanner);
   const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
   const [showAvatarHover, setShowAvatarHover] = useState(false);
   const [showEditCoverMenu, setShowEditCoverMenu] = useState(false);
   const [sortBy, setSortBy] = useState<string>("Date Updated");
-  const [aboutCompany, setAboutCompany] = useState("");
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const { data: employerData, isLoading: isLoadingProfile } = useQuery({
@@ -51,7 +54,6 @@ export default function CompanyProfile() {
     if (employerData) {
       setAvatarImage(employerData.avatarUrl || defaultAvatar);
       setBannerImage(employerData.backgroundUrl || defaultBanner);
-      setAboutCompany(employerData.aboutCompany || "");
     }
   }, [employerData]);
 
@@ -153,10 +155,10 @@ export default function CompanyProfile() {
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#1967d2]">About company</h3>
-                <AboutCompanyModal currentAbout={aboutCompany} onSave={setAboutCompany} />
+                <AboutCompanyModal />
               </div>
-              {aboutCompany !== "" ? (
-                <div className="text-gray-600 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: aboutCompany }} />
+              {employerData && employerData.aboutCompany !== "" ? (
+                <div className="text-gray-600 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: employerData.aboutCompany || "" }} />
               ) : (
                 <p className="text-gray-600">No description available.</p>
               )}
@@ -166,12 +168,10 @@ export default function CompanyProfile() {
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#1967d2]">Current hiring position</h3>
-                <NavLink to="/employer/jobs/add">
-                  <Button className="bg-[#1967d2] hover:bg-[#1557b0] py-5" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Post a new Job
-                  </Button>
-                </NavLink>
+                <Button className="bg-[#1967d2] hover:bg-[#1557b0] py-5" size="sm" onClick={() => navigate(`${employer_routes.BASE}/${employer_routes.JOB_ADD}`)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Post a new Job
+                </Button>
               </div>
               <div className="mb-4 flex justify-between items-center">
                 <span className="text-gray-600 space-x-2">
@@ -250,41 +250,82 @@ export default function CompanyProfile() {
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-[#1967d2]">Website</h3>
-                <Button variant="ghost" size="icon">
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <EditWebsiteUrlsModal />
+              </div>
+              <div className="space-y-2">
+                {employerData?.websiteUrls && employerData.websiteUrls.length > 0 && (
+                  <>
+                    {employerData.websiteUrls.map((url, index) => (
+                      <div key={index} className="text-sm flex items-center gap-1 text-gray-600">
+                        <Link size={18} />{" "}
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                          {url}
+                        </a>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
 
             {/* Follow */}
             <div className="border rounded-lg p-6">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">Follow</h3>
-              <div className="flex gap-3">
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                  <span className="text-blue-600">f</span>
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                  <span className="text-blue-500">in</span>
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                  <span className="text-red-500">yt</span>
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                  <span className="text-blue-400">tw</span>
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                  <span className="text-orange-500">ig</span>
-                </Button>
-              </div>
-            </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <span className="text-blue-600">f</span>
+                  </Button>
+                  <a href={employerData?.facebookUrl ? employerData.facebookUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    {employerData?.facebookUrl ? employerData.facebookUrl : "empty"}
+                  </a>
+                </div>
 
-            {/* Company Photos */}
-            <div className="border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#1967d2]">Company photos</h3>
-                <Button variant="ghost" size="icon">
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <span className="text-blue-500">in</span>
+                  </Button>
+                  <a href={employerData?.linkedinUrl ? employerData.linkedinUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    {employerData?.linkedinUrl ? employerData.linkedinUrl : "empty"}
+                  </a>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <span className="text-red-500">yt</span>
+                  </Button>
+                  <a href={employerData?.youtubeUrl ? employerData.youtubeUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    {employerData?.youtubeUrl ? employerData.youtubeUrl : "empty"}
+                  </a>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <span className="text-blue-400">tw</span>
+                  </Button>
+                  <a href={employerData?.twitterUrl ? employerData.twitterUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    {employerData?.twitterUrl ? employerData.twitterUrl : "empty"}
+                  </a>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <span className="text-orange-500">g</span>
+                  </Button>
+                  <a href={employerData?.googleUrl ? employerData.googleUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    {employerData?.googleUrl ? employerData.googleUrl : "empty"}
+                  </a>
+                </div>
+              </div>
+
+              {/* Company Photos */}
+              <div className="border rounded-lg p-6 mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[#1967d2]">Company photos</h3>
+                  <Button variant="ghost" size="icon">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

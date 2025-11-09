@@ -7,6 +7,7 @@ import { employer_routes } from "../routes.const";
 import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
 import VerifyEmail from "@/pages/VerifyEmail";
+import GuestRoute from "@/routes/GuestRoute";
 
 const EmployerPublicRoutes: RouteObject[] = [
   {
@@ -19,11 +20,19 @@ const EmployerPublicRoutes: RouteObject[] = [
       },
       {
         path: employer_routes.SIGN_UP,
-        element: <EmployerSignUp />,
+        element: (
+          <GuestRoute>
+            <EmployerSignUp />
+          </GuestRoute>
+        ),
       },
       {
         path: employer_routes.SIGN_IN,
-        element: <EmployerSignIn />,
+        element: (
+          <GuestRoute>
+            <EmployerSignIn />
+          </GuestRoute>
+        ),
       },
       {
         path: employer_routes.FORGOT_PASSWORD,
@@ -36,7 +45,7 @@ const EmployerPublicRoutes: RouteObject[] = [
       {
         path: employer_routes.VERIFY_EMAIL,
         element: <VerifyEmail />,
-      }
+      },
     ],
   },
 ];

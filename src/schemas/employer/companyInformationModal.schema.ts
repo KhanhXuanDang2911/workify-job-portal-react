@@ -9,6 +9,7 @@ export const companyInformationModalSchema = z.object({
   provinceId: z.number().min(1, "Tỉnh/Thành phố là bắt buộc"),
   districtId: z.number().min(1, "Quận/Huyện là bắt buộc"),
   detailAddress: z.string().min(1, "Địa chỉ chi tiết là bắt buộc").min(5, "Địa chỉ phải có ít nhất 5 ký tự").max(255, "Địa chỉ không được vượt quá 255 ký tự"),
+  aboutCompany: z.string().min(1, "Giới thiệu về công ty là bắt buộc")
 });
 
 export type CompanyInformationModalFormData = z.infer<typeof companyInformationModalSchema>;

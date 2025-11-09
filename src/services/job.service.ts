@@ -1,6 +1,10 @@
+import type { JobStatus } from "@/constants";
 import http from "@/lib/http";
-import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, CategoryJobResponse } from "@/types";
+
+import type { ApiResponse, Industry, JobsAdvancedSearchParams, PageResponse, Province, CategoryJobResponse, SearchParams } from "@/types";
+
 import type { JobRequest, JobResponse } from "@/types";
+import type { With } from "@/types/common";
 
 export const jobService = {
   createJob: async (data: JobRequest): Promise<ApiResponse<JobResponse>> => {
@@ -8,13 +12,9 @@ export const jobService = {
     return response.data;
   },
 
-  getMyJobs: async (pageNumber = 1, pageSize = 10, keyword?: string): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+  getMyJobs: async (params: With<SearchParams, { provinceId?: number; industryId?: number }>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
     const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/me", {
-      params: {
-        pageNumber,
-        pageSize,
-        ...(keyword && { keyword }),
-      },
+      params,
     });
     return response.data;
   },
@@ -76,6 +76,13 @@ export const jobService = {
     });
     return response.data;
   },
+  
+  getAllJobs: async (params?: With<SearchParams, { provinceId?: number; industryId?: number }>): Promise<ApiResponse<PageResponse<JobResponse>>> => {
+    const response = await http.get<ApiResponse<PageResponse<JobResponse>>>("/jobs/all", {
+      params,
+    });
+    return response.data;
+  },
 
   getCategoriesWithJobCount: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
     const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
@@ -113,6 +120,10 @@ export const jobService = {
         pageSize,
       },
     });
+    return response.data;
+  },
+  updateJobStatus: async (id: number, status: JobStatus): Promise<ApiResponse> => {
+    const response = await http.patch<ApiResponse>(`/jobs/status/${id}?status=${status}`);
     return response.data;
   },
 };

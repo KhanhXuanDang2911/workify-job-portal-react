@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,6 @@ import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services";
 import { authUtils } from "@/lib/auth";
 import { toast } from "react-toastify";
-import type { ApiError } from "@/types";
 import { routes } from "@/routes/routes.const";
 import { useGoogleLogin } from "@react-oauth/google";
 import { signInJobSeeker } from "@/context/auth/auth.action";
@@ -45,8 +44,8 @@ export default function SignIn() {
       toast.success(`Welcome ${response.data.data.fullName}!`);
       navigate("/", { replace: true });
     },
-    onError: (error: ApiError) => {
-      toast.error(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+    onError: () => {
+      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
     },
   });
 
@@ -66,30 +65,8 @@ export default function SignIn() {
         navigate(`/${routes.CREATE_PASSWORD}?token=${response.data.createPasswordToken}`);
       }
     },
-    onError: (error: ApiError) => {
-      toast.error(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
-    },
-  });
-
-  const linkedInLoginMutation = useMutation({
-    mutationFn: authService.linkedInLogin,
-    onSuccess: (response) => {
-      if (response.data.accessToken && response.data.refreshToken && response.data.data) {
-        authUtils.setTokens(response.data.accessToken, response.data.refreshToken);
-        authUtils.setUser(response.data.data);
-
-        dispatch(signInJobSeeker({ isAuthenticated: true, user: response.data.data, role: ROLE.JOB_SEEKER }));
-
-        toast.success(`Welcome ${response.data.data.fullName}!`);
-        navigate("/", { replace: true });
-      } else if (response.data.createPasswordToken) {
-        toast.info("Vui lòng tạo mật khẩu để hoàn tất đăng ký");
-        navigate(`/${routes.CREATE_PASSWORD}?token=${response.data.createPasswordToken}`, { replace: true });
-      }
-    },
-    onError: (error: ApiError) => {
-      toast.error(error.message || "Đăng nhập LinkedIn thất bại. Vui lòng thử lại.");
-      navigate(`/${routes.SIGN_IN}`, { replace: true });
+    onError: () => {
+      toast.error("Đăng nhập Google thất bại. Vui lòng thử lại.");
     },
   });
 
@@ -105,25 +82,9 @@ export default function SignIn() {
     flow: "auth-code",
   });
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const state = params.get("state");
-    //redirect URI là: http://localhost:5173/?code=AQTaD3kcdttkZ2yVZkBb7fCTP2QDQw75O-jNnaItA6zDgFTb2kSuxTOTOu1TttbUFn_IeKJyDtIuvj54wsgT33JQMBi6oh2v53Nc1oTe0_PUPVJTd1i6ti4k3L_lE85SrjjsV76hBMzXdrV4GgUFt3Ezq3g7JXil4ndHdV6dX5OgJU0VLcVjmSNLiuGjAq5P-8_gxQ7taOFgtCyjcGA&state=0975fad2-b229-4c21-8533-62f55f1225c6
-    //không phải http://localhost:5173/sign-in nên ở đây .....
-    if (code) {
-      console.log("authorization code:", code);
-      console.log("state:", state);
-
-      linkedInLoginMutation.mutate(code);
-
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [linkedInLoginMutation]);
-
   const handleLinkedInLogin = useCallback(() => {
     const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
-    const redirectUri = encodeURIComponent(import.meta.env.VITE_REDIRECT_URI); //VITE_REDIRECT_URI=http://localhost:5173
+    const redirectUri = encodeURIComponent(import.meta.env.VITE_REDIRECT_URI); 
     const scope = encodeURIComponent("openid profile email");
     const state = crypto.randomUUID();
 
@@ -139,21 +100,9 @@ export default function SignIn() {
   };
 
   return (
-    // remove full-screen forcing here so MainLayout controls page height
     <div className="main-layout">
       <div className="flex">
-        {/* Left Side - Enhanced Branding */}
         <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden bg-gradient-to-br from-primary-color to-primary-color/80">
-          {/* Animated floating elements */}
-          <div className="absolute top-8 right-16 w-20 h-20 bg-second-color/30 rounded-full blur-xl animate-bounce" style={{ animationDelay: "0s", animationDuration: "3s" }} />
-          <div className="absolute top-32 right-32 w-16 h-16 bg-white/20 rounded-full blur-lg animate-bounce" style={{ animationDelay: "1s", animationDuration: "4s" }} />
-          <div className="absolute bottom-20 left-16 w-24 h-24 bg-second-color/20 rounded-full blur-2xl animate-bounce" style={{ animationDelay: "2s", animationDuration: "5s" }} />
-          {/* Geometric patterns */}
-          <div className="absolute top-0 left-0 w-full h-full opacity-10">
-            <div className="absolute top-16 left-8 w-12 h-12 border-2 border-white rotate-45 animate-spin" style={{ animationDuration: "20s" }} />
-            <div className="absolute top-48 left-24 w-8 h-8 border-2 border-second-color rotate-12 animate-pulse" />
-            <div className="absolute bottom-32 left-12 w-16 h-16 border-2 border-white rotate-45 animate-spin" style={{ animationDuration: "15s" }} />
-          </div>
           <div className="relative z-10 flex flex-col justify-center px-8 py-12 text-white">
             <div className="space-y-6">
               <div className="space-y-3">
@@ -239,7 +188,7 @@ export default function SignIn() {
             </div>
 
             {/* Login Form */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+            <Card className="border-1 transition-all duration-300">
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div className="space-y-2">

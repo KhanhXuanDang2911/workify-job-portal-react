@@ -1,9 +1,14 @@
 import http from "@/lib/http";
-import type { ApiResponse, District, Province } from "@/types";
+import type { ApiResponse, District, PageResponse, Province, SearchParams } from "@/types";
 
 export const provinceService = {
   getProvinces: async (): Promise<ApiResponse<Province[]>> => {
     const response = await http.get<ApiResponse<Province[]>>("/provinces");
+    return response.data;
+  },
+
+  getProvincesWithFilters: async (params: SearchParams): Promise<ApiResponse<PageResponse<Province>>> => {
+    const response = await http.get<ApiResponse<PageResponse<Province>>>("/provinces", { params });
     return response.data;
   },
 

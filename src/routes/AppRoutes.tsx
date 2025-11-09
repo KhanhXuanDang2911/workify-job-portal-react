@@ -15,7 +15,6 @@ export default function AppRoutes() {
     ...EmployerProtectedRoutes,
     ...AdminPublicRoutes,
     ...AdminProtectedRoutes,
-
     {
       path: "*",
       element: <NotFound />,

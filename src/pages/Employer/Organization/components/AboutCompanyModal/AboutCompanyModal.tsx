@@ -1,28 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import BaseModal from "@/components/BaseModal/BaseModal";
 import { Loader2, Pencil } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { employerService } from "@/services";
 import { toast } from "react-toastify";
+import type { CompanyInformationModalFormData } from "@/schemas/employer/companyInformationModal.schema";
 
-interface AboutCompanyModalProps {
-  currentAbout?: string;
-  onSave?: (about: string) => void;
-}
-
-function AboutCompanyModal({ currentAbout = "", onSave }: AboutCompanyModalProps) {
-  const [aboutContent, setAboutContent] = useState(currentAbout);
+function AboutCompanyModal() {
+  const [aboutContent, setAboutContent] = useState("");
   const queryClient = useQueryClient();
 
+  const { data: employerData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["employerProfile"],
+    queryFn: async () => {
+      const response = await employerService.getEmployerProfile();
+      return response.data;
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (employerData) {
+      setAboutContent(employerData.aboutCompany || "");
+    }
+  }, [employerData]);
+
   const updateAboutMutation = useMutation({
-    mutationFn: (data: { aboutCompany: string }) => employerService.updateEmployerProfile(data),
-    onSuccess: (response) => {
-      const updatedAbout = response.data?.aboutCompany || "";
-      onSave?.(updatedAbout);
+    mutationFn: (data: CompanyInformationModalFormData) => employerService.updateEmployerProfile(data),
+    onSuccess: () => {
       toast.success("About company updated successfully");
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
     },
@@ -33,18 +42,28 @@ function AboutCompanyModal({ currentAbout = "", onSave }: AboutCompanyModalProps
 
   const handleSave = (onClose: () => void) => {
     const cleanContent = aboutContent !== "<p><br></p>" ? aboutContent : "";
-    updateAboutMutation.mutate(
-      { aboutCompany: cleanContent },
-      {
-        onSuccess: () => {
-          onClose();
+    if (employerData) {
+      updateAboutMutation.mutate(
+        {
+          companyName: employerData.companyName,
+          companySize: employerData.companySize,
+          contactPerson: employerData.contactPerson,
+          phoneNumber: employerData.phoneNumber,
+          provinceId: employerData.province?.id || 1,
+          districtId: employerData.district?.id || 1,
+          detailAddress: employerData.detailAddress,
+          aboutCompany: cleanContent,
         },
-      }
-    );
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    }
   };
 
   const handleCancel = (onClose: () => void) => {
-    setAboutContent(currentAbout);
     onClose();
   };
 
@@ -67,7 +86,7 @@ function AboutCompanyModal({ currentAbout = "", onSave }: AboutCompanyModalProps
           >
             Cancel
           </Button>
-          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleSave(onClose)} disabled={updateAboutMutation.isPending}>
+          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleSave(onClose)} disabled={updateAboutMutation.isPending || isLoadingProfile}>
             {updateAboutMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
