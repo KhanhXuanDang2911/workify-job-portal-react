@@ -116,6 +116,7 @@ const JobDetail = () => {
       salary: formatSalary(job),
       type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
       typeColor: mapTypeColor(job.jobType),
+      logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
     }));
   }, [topAttractiveResponse]);
 

@@ -84,13 +84,13 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
             ))}
           </div>
 
-          <Button
+          {/* <Button
             variant="outline"
             className="w-full text-sm"
             onClick={onViewAll}
           >
             View All Suggestions
-          </Button>
+          </Button> */}
         </div>
       </Card>
 
