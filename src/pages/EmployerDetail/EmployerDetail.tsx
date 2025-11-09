@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -26,6 +26,7 @@ export default function EmployerDetail() {
   const { id } = useParams<{ id: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
+  const availableJobsRef = useRef<HTMLDivElement>(null);
 
   // Fetch employer data
   const {
@@ -55,6 +56,23 @@ export default function EmployerDetail() {
 
   const totalJobs = jobsResponse?.data?.numberOfElements || 0;
   const totalPages = jobsResponse?.data?.totalPages || 0;
+
+  // Scroll to Available Jobs section when page changes
+  useEffect(() => {
+    if (currentPage > 1 && availableJobsRef.current) {
+      availableJobsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentPage]);
+
+  // Handle page change with scroll
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (availableJobsRef.current) {
+      setTimeout(() => {
+        availableJobsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  };
 
   // Build full address
   const buildFullAddress = () => {
@@ -475,7 +493,7 @@ export default function EmployerDetail() {
       </div>
 
       {/* Available Jobs Section */}
-      <div className="main-layout relative z-10 py-8">
+      <div ref={availableJobsRef} className="main-layout relative z-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Left Column */}
           <div className="lg:col-span-2 space-y-8">
@@ -515,7 +533,7 @@ export default function EmployerDetail() {
                         <Pagination
                           currentPage={currentPage}
                           totalPages={totalPages}
-                          onPageChange={setCurrentPage}
+                          onPageChange={handlePageChange}
                         />
                       </div>
                     )}
