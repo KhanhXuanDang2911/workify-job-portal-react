@@ -1,5 +1,8 @@
 import type React from "react";
 import { useRef, useImperativeHandle } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { jobService } from "@/services/job.service";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -103,6 +106,7 @@ export interface JobProp {
 
 export interface JobInformationProps {
   job: JobProp;
+  jobId?: number;
   hideActionButtons: boolean;
   ref?: React.Ref<JobInformationRef>;
 }
@@ -117,7 +121,7 @@ export interface JobInformationRef {
   scrollToCompanyInformation: () => void;
 }
 
-function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
+function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
@@ -125,6 +129,38 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
   const jobDetailsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
   const companyInformationRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+
+  // Check if job is saved
+  const { data: isSavedResponse } = useQuery({
+    queryKey: ["saved-job", jobId],
+    queryFn: () => jobService.checkSavedJob(jobId!),
+    enabled: !!jobId,
+    retry: false,
+  });
+
+  const isSaved = isSavedResponse?.data ?? false;
+
+  // Toggle save/unsave mutation
+  const toggleSaveMutation = useMutation({
+    mutationFn: () => jobService.toggleSavedJob(jobId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
+      toast.success(isSaved ? "Đã bỏ lưu việc làm" : "Đã lưu việc làm");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!jobId) {
+      toast.error("Không tìm thấy ID công việc");
+      return;
+    }
+    toggleSaveMutation.mutate();
+  };
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (!ref.current) return;
@@ -166,10 +202,7 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
       {/* Company Cover Image */}
       <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 overflow-hidden">
         <img
-          src={
-            job.companyBanner ||
-            "https://plus.unsplash.com/premium_photo-1701853893878-c42e95905f5d?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          }
+          src={job.companyBanner}
           alt={`${job.companyName} cover`}
           className="w-full h-full object-cover"
         />
@@ -184,7 +217,7 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* Company Logo */}
           <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white -mt-10 relative z-10">
-            <img src={job.companyLogo || "https://i.pinimg.com/1200x/d2/67/d1/d267d14c49154ed19fa84a43465c87a9.jpg"} alt={job.companyName} className="w-16 h-16 object-contain" />
+            <img src={job.companyLogo} alt={job.companyName} className="w-16 h-16 object-contain" />
           </div>
 
           {/* Job Info */}
@@ -225,9 +258,18 @@ function JobInformation({ job, hideActionButtons, ref }: JobInformationProps) {
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
-                <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 bg-transparent">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Lưu
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleToggleSave}
+                  disabled={!jobId || toggleSaveMutation.isPending}
+                  className={cn(
+                    "border-red-300 hover:bg-red-50 bg-transparent",
+                    isSaved ? "text-red-600 bg-red-50" : "text-red-600"
+                  )}
+                >
+                  <Heart className={cn("w-4 h-4 mr-2", isSaved && "fill-current")} />
+                  {isSaved ? "Đã lưu" : "Lưu"}
                 </Button>
                 <JobApplicationModal jobTitle={job.jobTitle} companyName={job.companyName}>
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>

@@ -92,4 +92,16 @@ export const jobService = {
     });
     return response.data;
   },
+
+  // Check if job is saved
+  checkSavedJob: async (jobId: number): Promise<ApiResponse<boolean>> => {
+    const response = await http.get<ApiResponse<boolean>>(`/saved-jobs/check/${jobId}`);
+    return response.data;
+  },
+
+  // Toggle save/unsave job
+  toggleSavedJob: async (jobId: number): Promise<ApiResponse> => {
+    const response = await http.post<ApiResponse>(`/saved-jobs/toggle/${jobId}`);
+    return response.data;
+  },
 };

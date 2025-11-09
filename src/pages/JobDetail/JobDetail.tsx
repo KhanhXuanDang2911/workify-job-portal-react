@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -9,6 +10,7 @@ import {
   Briefcase,
   Users,
   MapPin,
+  Heart,
 } from "lucide-react";
 import SuggestedJobs from "@/components/SuggestedJob";
 import JobInformation from "@/components/JobInformation";
@@ -129,8 +131,8 @@ const JobDetail = () => {
 
     return {
       isNew,
-      companyBanner: job.author?.backgroundUrl || "",
-      companyLogo: job.author?.avatarUrl || "",
+      companyBanner: job.author?.backgroundUrl || "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
+      companyLogo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
       jobTitle: job.jobTitle || "",
       companyName: job.companyName || job.author?.companyName || "",
       jobLocation: job.jobLocations || [],
@@ -219,6 +221,40 @@ const JobDetail = () => {
     return CompanySizeLabel["vi"][jobResponse.data.companySize as keyof typeof CompanySizeLabel["vi"]] || jobResponse.data.companySize;
   }, [jobResponse]);
 
+  const queryClient = useQueryClient();
+  const jobId = jobResponse?.data?.id;
+
+  // Check if job is saved
+  const { data: isSavedResponse } = useQuery({
+    queryKey: ["saved-job", jobId],
+    queryFn: () => jobService.checkSavedJob(jobId!),
+    enabled: !!jobId,
+    retry: false,
+  });
+
+  const isSaved = isSavedResponse?.data ?? false;
+
+  // Toggle save/unsave mutation
+  const toggleSaveMutation = useMutation({
+    mutationFn: () => jobService.toggleSavedJob(jobId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
+      toast.success(isSaved ? "Đã bỏ lưu việc làm" : "Đã lưu việc làm");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!jobId) {
+      toast.error("Không tìm thấy ID công việc");
+      return;
+    }
+    toggleSaveMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -246,7 +282,7 @@ const JobDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Job Information */}
           <div className="lg:col-span-2">
-            <JobInformation job={jobData} hideActionButtons={false} />
+            <JobInformation job={jobData} jobId={jobResponse?.data?.id} hideActionButtons={false} />
           </div>
 
           {/* Sidebar */}
@@ -335,9 +371,14 @@ const JobDetail = () => {
                     </JobApplicationModal>
                     <Button
                       variant="outline"
-                      className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
+                      onClick={handleToggleSave}
+                      disabled={!jobId || toggleSaveMutation.isPending}
+                      className={`w-full border-red-200 hover:bg-red-50 bg-transparent ${
+                        isSaved ? "text-red-600 bg-red-50" : "text-red-600"
+                      }`}
                     >
-                      Lưu việc làm
+                      <Heart className={`w-4 h-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
+                      {isSaved ? "Đã lưu" : "Lưu việc làm"}
                     </Button>
                   </div>
                 </div>
