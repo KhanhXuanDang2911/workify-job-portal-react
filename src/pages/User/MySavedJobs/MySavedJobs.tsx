@@ -1,10 +1,8 @@
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building2, Trash2, Eye } from "lucide-react";
+import { Heart, Send, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import JobSummarySheet from "@/components/JobSummarySheet";
 import Pagination from "@/components/Pagination";
-import SuggestedJobs from "@/components/SuggestedJob";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
 import type { JobResponse } from "@/types/job.type";
@@ -13,6 +11,7 @@ import { toast } from "react-toastify";
 import Loading from "@/components/Loading";
 import { Link } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
+import JobApplicationModal from "@/components/JobApplicationModal/JobApplicationModal";
 
 interface Job {
   id: number;
@@ -22,6 +21,7 @@ interface Job {
   type: string;
   logo: string;
   expireDate: string;
+  expirationDate?: string; // Raw expiration date for calculation
   savedDate: string;
   salary: string;
   posted: string;
@@ -79,6 +79,20 @@ const formatDate = (dateString?: string): string => {
   }
 };
 
+// Calculate days until expiration
+const getDaysUntilExpiration = (expirationDate?: string): number | null => {
+  if (!expirationDate) return null;
+  try {
+    const expDate = new Date(expirationDate);
+    const now = new Date();
+    const diffMs = expDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 ? diffDays : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 // Relative time
 const relativePosted = (dateString?: string): string => {
   if (!dateString) return "";
@@ -99,9 +113,7 @@ const relativePosted = (dateString?: string): string => {
 };
 
 export default function MySavedJobs() {
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-   const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const queryClient = useQueryClient();
 
@@ -116,12 +128,6 @@ export default function MySavedJobs() {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  // Fetch top attractive jobs for suggestions
-  const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 7],
-    queryFn: () => jobService.getTopAttractiveJobs(7),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
 
   // Map saved jobs from API to Job interface
   const jobs = useMemo(() => {
@@ -140,6 +146,7 @@ export default function MySavedJobs() {
         type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType || "",
         logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
         expireDate: job.expirationDate ? formatDate(job.expirationDate) : "",
+        expirationDate: job.expirationDate || "", // Raw expiration date for calculation
         savedDate: job.createdAt ? relativePosted(job.createdAt) : "",
         salary: formatSalary(job),
         posted: job.createdAt ? relativePosted(job.createdAt) : "",
@@ -157,19 +164,6 @@ export default function MySavedJobs() {
     });
   }, [savedJobsResponse]);
 
-  // Map suggested jobs
-  const suggestedJobs = useMemo(() => {
-    if (!topAttractiveResponse?.data) return [];
-    return topAttractiveResponse.data.map((job) => ({
-      id: job.id,
-      title: job.jobTitle || "",
-      company: job.companyName || job.author?.companyName || "",
-      salary: formatSalary(job),
-      type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
-      typeColor: mapTypeColor(job.jobType),
-      logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
-    }));
-  }, [topAttractiveResponse]);
 
   const totalPages = savedJobsResponse?.data?.totalPages || 0;
   const currentJobs = jobs;
@@ -182,11 +176,6 @@ export default function MySavedJobs() {
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       toast.success("Đã bỏ lưu việc làm");
-      // Close sheet if viewing deleted job
-      if (selectedJob) {
-    setIsSheetOpen(false);
-    setSelectedJob(null);
-  }
       // Adjust page if needed
       if (currentPage > 1 && currentJobs.length === 1) {
         setCurrentPage(currentPage - 1);
@@ -198,14 +187,11 @@ export default function MySavedJobs() {
     },
   });
 
-  const handleDeleteJob = (jobId: number) => {
+  const handleUnsaveJob = (jobId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     toggleSaveMutation.mutate(jobId);
-};
-
-const handleViewJob = (job: Job) => {
-  setSelectedJob(job);
-  setIsSheetOpen(true);
-};
+  };
 
 const handlePageChange = (page: number) => {
   setCurrentPage(page);
@@ -214,146 +200,129 @@ const handlePageChange = (page: number) => {
 
   return (
     <>
-    <div
-        className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(#00000080, #00000080), url('/work1.jpg')",
-          fontFamily: "'Poppins', sans-serif",
-        }}
-      >
-        <div className="text-center px-4">
-          <h1 
-            className="text-white drop-shadow-lg"
-            style={{
-              marginBottom: 0,
-              fontWeight: 500,
-              lineHeight: '60px',
-              fontSize: '40px',
-            }}
-          >
-            Tìm việc làm nhanh 24h mới nhất trên toàn quốc
+      <div className="w-full bg-white border-b border-gray-200 py-8">
+        <div className="max-w-7xl mx-auto px-5">
+          <h1 className="text-3xl font-bold text-[#0A2E5C] mb-1">
+            Công việc đã lưu ({savedJobsResponse?.data?.numberOfElements || 0})
           </h1>
-          <p 
-            className="text-white mt-4"
-            style={{
-              color: '#fff',
-              fontSize: '18px',
-              lineHeight: '28px',
-              fontWeight: 400,
-              opacity: 0.95,
-            }}
-          >
-            Tiếp cận 60.000+ tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam
-          </p>
+          <p className="text-gray-500 text-sm">Hôm nay</p>
         </div>
       </div>
-      <div style={{ background: "linear-gradient(90deg, #fafcfb 0%, #f5faf7 30%, #f0f7f5 60%, #f0f7fc 100%)" }}>
-      <div className="flex main-layout relative z-10 pt-20 pb-8" >
-          {/* Left Sidebar - Suggested Jobs */}
-          <div className="w-96 flex-shrink-0">
-            <SuggestedJobs jobs={suggestedJobs} />
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1">
-            <div className="max-w-7xl mx-auto px-5">
-              {/* Content */}
-              {isLoadingSavedJobs ? (
-                <div className="flex justify-center items-center py-20">
-                  <Loading />
-                </div>
-              ) : isErrorSavedJobs ? (
-                <div className="text-center py-20">
-                  <p className="text-gray-600">Có lỗi xảy ra khi tải danh sách việc làm đã lưu</p>
+      <div className="bg-gray-50 min-h-screen">
+        <div className="main-layout relative z-10 pt-8 pb-8">
+          <div className="max-w-7xl mx-auto px-5">
+            {/* Content */}
+            {isLoadingSavedJobs ? (
+              <div className="flex justify-center items-center py-20">
+                <Loading />
+              </div>
+            ) : isErrorSavedJobs ? (
+              <div className="text-center py-20">
+                <p className="text-gray-600">Có lỗi xảy ra khi tải danh sách việc làm đã lưu</p>
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-gray-600">Bạn chưa lưu việc làm nào</p>
+              </div>
+            ) : (
+              <>
+                <ListView jobs={currentJobs} onUnsave={handleUnsaveJob} />
+                {totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
-              ) : jobs.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-gray-600">Bạn chưa lưu việc làm nào</p>
-                </div>
-          ) : (
-            <>
-              <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
-      {/* Job Summary Sheet */}
-      <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
-
-        </div>
-    </div>
     </>
   );
 }
 
-// Grid View Component
-function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) => void; onDelete: (id: number) => void }) {
+// List View Component - Design similar to image
+function ListView({
+  jobs,
+  onUnsave,
+}: {
+  jobs: Job[];
+  onUnsave: (jobId: number, e: React.MouseEvent) => void;
+}) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {jobs.map((job) => (
-        <Link
-          key={job.id}
-          to={`/${routes.JOB_DETAIL}/${job.id}`}
-          className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer relative p-6 block"
-        >
-          {/* Action Buttons */}
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onView(job);
-              }}
-              className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors bg-white"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-          <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDelete(job.id);
-              }}
-              className="w-8 h-8 rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors bg-white"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          </div>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      {jobs.map((job, index) => {
+        const daysUntilExpiration = getDaysUntilExpiration(job.expirationDate);
 
-          {/* Job Logo */}
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 mb-4">
-            <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
-          </div>
-
-          {/* Job Title */}
-          <div className="mb-2">
-            <h3 className="font-bold text-gray-900 text-lg mb-1">{job.title}</h3>
-            {job.type && (
-              <Badge variant="secondary" className={cn("text-xs", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
-                {job.type}
-              </Badge>
+        return (
+          <div
+            key={job.id}
+            className={cn(
+              "flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors",
+              index !== jobs.length - 1 && "border-b border-gray-200"
             )}
-          </div>
+          >
+            {/* Heart Icon (Saved) */}
+            <button
+              onClick={(e) => onUnsave(job.id, e)}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#0A2E5C] hover:opacity-80 transition-opacity"
+              title="Bỏ lưu"
+            >
+              <Heart className="w-6 h-6 fill-[#0A2E5C]" />
+            </button>
 
-          {/* Location */}
-          <div className="flex items-start gap-1 text-sm text-gray-500 mb-4">
-            <MapPin className="w-8 h-8" />
-            <span>{job.location}</span>
-          </div>
+            {/* Company Logo */}
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+              <img
+                src={job.logo || "/placeholder.svg"}
+                alt={job.company}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-          {/* Company */}
-          <div className="flex items-center gap-1 text-sm text-gray-600">
-            <Building2 className="w-4 h-4" />
-            <span>{job.company}</span>
+            {/* Job Info */}
+            <div className="flex-1 min-w-0">
+              <Link
+                to={`/${routes.JOB_DETAIL}/${job.id}`}
+                className="block hover:opacity-80 transition-opacity"
+              >
+                <h3 className="font-bold text-[#0A2E5C] text-lg mb-1 truncate">
+                  {job.title}
+                </h3>
+                <p className="text-gray-500 text-sm truncate">{job.company}</p>
+              </Link>
+            </div>
+
+            {/* Expiration Date */}
+            <div className="flex-shrink-0 text-right">
+              {daysUntilExpiration !== null && daysUntilExpiration >= 0 ? (
+                <p className="text-green-600 font-medium text-sm">
+                  Hết hạn: {daysUntilExpiration} ngày tới
+                </p>
+              ) : (
+                <p className="text-gray-400 text-sm">Đã hết hạn</p>
+              )}
+            </div>
+
+            {/* Apply Button */}
+            <div className="flex-shrink-0">
+              <JobApplicationModal
+                jobId={job.id}
+                jobTitle={job.title}
+                companyName={job.company}
+              >
+                <button className="w-10 h-10 rounded-full bg-[#0A2E5C] hover:bg-[#082040] text-white flex items-center justify-center transition-colors shadow-md hover:shadow-lg">
+                  <Send className="w-5 h-5" />
+                </button>
+              </JobApplicationModal>
+            </div>
           </div>
-        </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

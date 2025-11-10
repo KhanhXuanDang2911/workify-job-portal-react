@@ -1,6 +1,3 @@
-import type { ApiResponse } from "./api.types";
-import type { JobResponse } from "./job.type";
-
 export enum ApplicationStatus {
   UNREAD = "UNREAD",
   VIEWED = "VIEWED",
@@ -46,4 +43,3 @@ export interface ApplicationResponse {
     };
   };
 }
-

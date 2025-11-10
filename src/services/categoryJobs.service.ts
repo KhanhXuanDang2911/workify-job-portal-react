@@ -1,4 +1,5 @@
-import http from "@/lib/http";
+import publicHttp from "@/lib/publicHttp";
+import userHttp from "@/lib/userHttp";
 import type { ApiResponse, PageResponse } from "@/types";
 
 export interface CategoryJobRequest {
@@ -42,38 +43,41 @@ interface Industry {
 }
 
 export const categoryJobService = {
+  // GET endpoints are public
   getAllCategoryJobs: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
-    const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/all");
+    const response = await publicHttp.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/all");
     return response.data;
   },
 
   getCategoryJobs: async (params: CategoryJobsSearchParams): Promise<ApiResponse<PageResponse<CategoryJobResponse>>> => {
-    const response = await http.get<ApiResponse<PageResponse<CategoryJobResponse>>>("/categories-job", { params });
+    const response = await publicHttp.get<ApiResponse<PageResponse<CategoryJobResponse>>>("/categories-job", { params });
     return response.data;
   },
 
   getCategoryJobById: async (id: number): Promise<ApiResponse<CategoryJobResponse>> => {
-    const response = await http.get<ApiResponse<CategoryJobResponse>>(`/categories-job/${id}`);
+    const response = await publicHttp.get<ApiResponse<CategoryJobResponse>>(`/categories-job/${id}`);
     return response.data;
   },
 
+  // POST/PUT/DELETE endpoints require ADMIN authentication
   createCategoryJob: async (data: CategoryJobRequest): Promise<ApiResponse<CategoryJobResponse>> => {
-    const response = await http.post<ApiResponse<CategoryJobResponse>>("/categories-job", data);
+    const response = await userHttp.post<ApiResponse<CategoryJobResponse>>("/categories-job", data);
     return response.data;
   },
 
   updateCategoryJob: async (id: number, data: CategoryJobRequest): Promise<ApiResponse<CategoryJobResponse>> => {
-    const response = await http.put<ApiResponse<CategoryJobResponse>>(`/categories-job/${id}`, data);
+    const response = await userHttp.put<ApiResponse<CategoryJobResponse>>(`/categories-job/${id}`, data);
     return response.data;
   },
 
   deleteCategoryJob: async (id: number): Promise<ApiResponse> => {
-    const response = await http.delete<ApiResponse>(`/categories-job/${id}`);
+    const response = await userHttp.delete<ApiResponse>(`/categories-job/${id}`);
     return response.data;
   },
 
+  // GET endpoint is public
   getIndustriesWithJobCount: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
-    const response = await http.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
+    const response = await publicHttp.get<ApiResponse<CategoryJobResponse[]>>("/categories-job/industries/job-count");
     return response.data;
   },
 };

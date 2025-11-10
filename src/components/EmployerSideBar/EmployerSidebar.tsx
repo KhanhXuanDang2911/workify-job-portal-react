@@ -2,18 +2,24 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Home, Briefcase, Users, Search, Eye, Bookmark, FileText, ChevronDown, ChevronRight, MessageSquare, HelpCircle, Building, Settings, User } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  Users,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  MessageSquare,
+  HelpCircle,
+  Building,
+  Settings,
+  User,
+} from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
-import { useAuth } from "@/context/auth/useAuth";
 
 const menuItems = [
-  {
-    id: "home",
-    label: "My Workify",
-    icon: Home,
-    href: `/employer/home`,
-  },
   {
     id: "jobs",
     label: "Jobs",
@@ -36,29 +42,7 @@ const menuItems = [
     id: "candidates",
     label: "My Candidates",
     icon: Users,
-    expandable: true,
-    children: [
-      {
-        label: "Search Talents",
-        href: `/employer/search-talents`,
-        icon: Search,
-      },
-      {
-        label: "Viewed Talents",
-        href: `/employer/viewed-talents`,
-        icon: Eye,
-      },
-      {
-        label: "Saved Talents",
-        href: `/employer/saved-talents`,
-        icon: Bookmark,
-      },
-      {
-        label: "Received Applications",
-        href: `/employer/applications`,
-        icon: FileText,
-      },
-    ],
+    href: `/employer/applications`,
   },
   {
     id: "blog",
@@ -68,12 +52,12 @@ const menuItems = [
     children: [
       {
         label: "Hiring Advice",
-        href: `/hiring-advice`,
+        href: `/articles`,
         icon: HelpCircle,
       },
       {
         label: "Tips for Employers",
-        href: `/employer/blog/tips`,
+        href: `/articles`,
         icon: MessageSquare,
       },
     ],
@@ -82,7 +66,7 @@ const menuItems = [
     id: "help",
     label: "Get helps",
     icon: HelpCircle,
-    href: `/employer/help`,
+    href: `#`,
   },
   {
     id: "organization",
@@ -111,11 +95,18 @@ export default function EmployerSidebar({
   setIsCollapsed: (v: boolean) => void;
   device?: string;
 }) {
-  const [expandedSections, setExpandedSections] = useState<string[]>(["jobs", "candidates"]);
+  const [expandedSections, setExpandedSections] = useState<string[]>([
+    "jobs",
+    "candidates",
+  ]);
   const location = useLocation();
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]));
+    setExpandedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
+    );
   };
 
   useEffect(() => {
@@ -126,15 +117,47 @@ export default function EmployerSidebar({
   return (
     <>
       {/* Backdrop for mobile */}
-      {mobileOpen && <div className="backdrop fixed inset-0 bg-gray-900 opacity-50 z-40 xl:hidden transition-colors" onClick={onClose} aria-label="Close sidebar" />}
+      {mobileOpen && (
+        <div
+          className="backdrop fixed inset-0 bg-gray-900 opacity-50 z-40 xl:hidden transition-colors"
+          onClick={onClose}
+          aria-label="Close sidebar"
+        />
+      )}
       <div
         className={cn(
           "flex flex-col h-screen bg-white border-r border-gray-200 transition-all duration-300 z-45  overflow-y-auto",
           isCollapsed ? "w-16" : "w-64",
-          mobileOpen ? "fixed top-16 left-0 xl:static shadow-lg W-64" : "hidden xl:flex"
+          mobileOpen
+            ? "fixed top-16 left-0 xl:static shadow-lg W-64"
+            : "hidden xl:flex"
         )}
         style={mobileOpen ? { height: "100vh" } : {}}
       >
+        {/* Collapse Toggle Button - Desktop only */}
+        {device === "desktop" && (
+          <div className="p-2 border-b border-gray-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full p-2 bg-white/50 hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+              onClick={() => setIsCollapsed((v) => !v)}
+              aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+            >
+              {isCollapsed ? (
+                <ChevronRight
+                  className="w-5 h-5 text-gray-600"
+                  strokeWidth={2}
+                />
+              ) : (
+                <ChevronLeft
+                  className="w-5 h-5 text-gray-600"
+                  strokeWidth={2}
+                />
+              )}
+            </Button>
+          </div>
+        )}
         {/* Navigation */}
         <nav className="overflow-y-auto p-2 ">
           <ul className="space-y-1">
@@ -144,15 +167,24 @@ export default function EmployerSidebar({
                   <div>
                     <Button
                       variant="ghost"
-                      className={cn("w-full flex justify-between text-left font-normal", isCollapsed ? "px-2" : "px-3")}
+                      className={cn(
+                        "w-full flex justify-between text-left font-normal",
+                        isCollapsed ? "px-2" : "px-3"
+                      )}
                       onClick={() => toggleSection(item.id)}
                     >
                       {!isCollapsed && (
                         <>
-                          <span className="ml-3 font-semibold">{item.label}</span>
+                          <span className="ml-3 font-semibold">
+                            {item.label}
+                          </span>
                         </>
                       )}
-                      {expandedSections.includes(item.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {expandedSections.includes(item.id) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </Button>
                     {expandedSections.includes(item.id) && item.children && (
                       <ul className=" mt-1 space-y-1">
@@ -162,9 +194,17 @@ export default function EmployerSidebar({
                               {!isCollapsed ? (
                                 <Button
                                   variant="ghost"
-                                  className={cn("w-full justify-start text-left font-normal text-[15px]", location.pathname === child.href && "bg-blue-50 text-blue-600")}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal text-[15px]",
+                                    location.pathname === child.href &&
+                                      "bg-blue-50 text-blue-600"
+                                  )}
                                 >
-                                  <child.icon className="size-5 shrink-0" strokeWidth={2} color="#1967d2" />
+                                  <child.icon
+                                    className="size-5 shrink-0"
+                                    strokeWidth={2}
+                                    color="#1967d2"
+                                  />
                                   <span className="ml-3">{child.label}</span>
                                 </Button>
                               ) : (
@@ -172,12 +212,24 @@ export default function EmployerSidebar({
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
-                                      className={cn("w-full justify-start text-left font-normal text-[15px]", location.pathname === child.href && "bg-blue-50 text-blue-600")}
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal text-[15px]",
+                                        location.pathname === child.href &&
+                                          "bg-blue-50 text-blue-600"
+                                      )}
                                     >
-                                      <child.icon className="size-5 shrink-0" strokeWidth={2} color="#1967d2" />
+                                      <child.icon
+                                        className="size-5 shrink-0"
+                                        strokeWidth={2}
+                                        color="#1967d2"
+                                      />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent side="right" sideOffset={10} className="bg-[#1967d2] text-white">
+                                  <TooltipContent
+                                    side="right"
+                                    sideOffset={10}
+                                    className="bg-[#1967d2] text-white"
+                                  >
                                     {child.label}
                                     <TooltipArrow className="fill-[#1967d2]" />
                                   </TooltipContent>
@@ -194,19 +246,38 @@ export default function EmployerSidebar({
                     {!isCollapsed ? (
                       <Button
                         variant="ghost"
-                        className={cn("w-full justify-start text-left font-normal", isCollapsed ? "px-2" : "px-3", location.pathname === item.href && "bg-blue-50 text-blue-600")}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          isCollapsed ? "px-2" : "px-3",
+                          location.pathname === item.href &&
+                            "bg-blue-50 text-blue-600"
+                        )}
                       >
-                        <item.icon className="size-5 shrink-0" strokeWidth={2} color="#1967d2" />
-                        {!isCollapsed && <span className="ml-3">{item.label}</span>}
+                        <item.icon
+                          className="size-5 shrink-0"
+                          strokeWidth={2}
+                          color="#1967d2"
+                        />
+                        {!isCollapsed && (
+                          <span className="ml-3">{item.label}</span>
+                        )}
                       </Button>
                     ) : (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            className={cn("w-full justify-start text-left font-normal text-[15px]", location.pathname === item.href && "bg-blue-50 text-blue-600")}
+                            className={cn(
+                              "w-full justify-start text-left font-normal text-[15px]",
+                              location.pathname === item.href &&
+                                "bg-blue-50 text-blue-600"
+                            )}
                           >
-                            <item.icon className="size-5 shrink-0" strokeWidth={2} color="#1967d2" />
+                            <item.icon
+                              className="size-5 shrink-0"
+                              strokeWidth={2}
+                              color="#1967d2"
+                            />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
@@ -229,8 +300,12 @@ export default function EmployerSidebar({
                 <User className="h-4 w-4 text-gray-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Employer Name</p>
-                <p className="text-xs text-gray-500 truncate">employer.2025@gmail.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  Employer Name
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  employer.2025@gmail.com
+                </p>
               </div>
             </div>
           </div>

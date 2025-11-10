@@ -1,7 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { routes } from "@/routes/routes.const";
-import { Calendar, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Article = {
@@ -13,77 +11,65 @@ type Article = {
   image: string;
   tags: string[];
   category: string;
+  readingTime?: string;
+};
+
+// Generate random avatar based on author name
+const getAvatarUrl = (name: string) => {
+  const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return `https://i.pravatar.cc/150?img=${(seed % 70) + 1}`;
 };
 
 export default function ArticleCard({ article }: { article: Article }) {
+  const readingTime = article.readingTime || `${Math.floor(Math.random() * 4) + 6} mins to read`;
+  
   return (
-    <div className="relative bg-white shadow-md hover:shadow-xl transition-all duration-500 group border border-gray-100 overflow-hidden rounded-2xl hover:-translate-y-1">
-      {/* nhạt, pastel border glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-yellow-100 to-orange-100 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500"></div>
-
-      <div className="relative z-10">
-        {/* Image + Category */}
-        <div className="relative overflow-hidden rounded-t-2xl">
+    <Link
+      to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}
+      className="block group"
+    >
+      <div className="bg-white rounded-3xl overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-xl shadow-sm">
+        {/* Image */}
+        <div className="relative overflow-hidden">
           <img
             src={article.image || "/placeholder.svg"}
             alt={article.title}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          <Badge className="absolute top-3 left-3 bg-blue-500 text-white shadow-md font-medium">
-            {article.category}
-          </Badge>
         </div>
 
         {/* Content */}
         <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-              <Calendar className="w-3 h-3" />
-              <span>{article.date}</span>
-            </div>
-            <div className="flex items-center space-x-1 text-sm text-gray-500">
-              <User className="w-3 h-3" />
-              <span className="text-blue-600 font-medium">
-                By {article.author}
-              </span>
-            </div>
-          </div>
+          {/* Category Badge */}
+          <Badge className="bg-blue-100/80 text-[#4a6cf7] hover:bg-blue-100 font-medium border-0 mb-4">
+            {article.category || 'News'}
+          </Badge>
 
-          <Link
-            to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}
-            className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors"
-          >
+          {/* Title */}
+          <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4 line-clamp-2 group-hover:text-[#4a6cf7] transition-colors duration-300 leading-tight">
             {article.title}
-          </Link>
-          <p className= "h-30 overflow-hidden text-gray-600 mb-4 text-sm leading-relaxed">
+          </h3>
+
+          {/* Excerpt */}
+          <p className="text-base text-[#66789c] mb-6 line-clamp-3 leading-relaxed">
             {article.excerpt}
           </p>
 
-          {/* Tags badges */}
-          {/* <div className="flex flex-wrap gap-2 mb-4">
-            {article.tags.map((tag, tagIndex) => {
-              const colorClass = tagColors[tagIndex % tagColors.length];
-              return (
-                <Badge
-                  key={tagIndex}
-                  className={`text-xs font-medium px-3 py-1 rounded-full shadow-sm transition-colors cursor-pointer ${colorClass}`}
-                >
-                  #{tag}
-                </Badge>
-              );
-            })}
-          </div> */}
-
-          <Button
-            variant="link"
-            className="p-0 text-blue-600 hover:text-blue-700 font-semibold"
-          >
-            <Link to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}>
-              Read More →
-            </Link>
-          </Button>
+          {/* Author Info */}
+          <div className="flex items-center gap-3">
+            <img
+              src={getAvatarUrl(article.author)}
+              alt={article.author}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#1e3a5f]">{article.author}</p>
+              <p className="text-xs text-[#66789c]">{article.date}</p>
+            </div>
+            <span className="text-xs text-[#66789c]">{readingTime}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

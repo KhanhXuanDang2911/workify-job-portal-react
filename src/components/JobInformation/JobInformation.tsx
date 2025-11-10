@@ -1,11 +1,20 @@
 import type React from "react";
-import { useRef, useImperativeHandle } from "react";
+import { useRef, useImperativeHandle, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useUserAuth } from "@/context/user-auth";
+import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
+import { routes } from "@/routes/routes.const";
 import {
   MapPin,
   Heart,
@@ -26,6 +35,9 @@ import {
   Layers,
   User,
   Grid3X3,
+  Facebook,
+  Linkedin,
+  Copy,
 } from "lucide-react";
 import JobApplicationModal from "../JobApplicationModal";
 import type { District, Province } from "@/types";
@@ -130,12 +142,15 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
   const contactRef = useRef<HTMLDivElement>(null);
   const companyInformationRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const { state: authState } = useUserAuth();
+  const isAuthenticated = authState.isAuthenticated;
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Check if job is saved - use placeholderData from saved-jobs cache to avoid flash
   const { data: isSavedResponse } = useQuery({
     queryKey: ["saved-job", jobId],
     queryFn: () => jobService.checkSavedJob(jobId!),
-    enabled: !!jobId,
+    enabled: !!jobId && isAuthenticated, // Only check when authenticated
     retry: false,
     placeholderData: () => {
       // Check if job exists in saved-jobs cache
@@ -175,7 +190,74 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
       toast.error("Không tìm thấy ID công việc");
       return;
     }
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
     toggleSaveMutation.mutate();
+  };
+
+  // Share functions
+  const getJobUrl = () => {
+    if (!jobId) return window.location.href;
+    return `${window.location.origin}/${routes.JOB_DETAIL}/${jobId}`;
+  };
+
+  const getShareTitle = () => {
+    return `${job.jobTitle} tại ${job.companyName}`;
+  };
+
+  const getShareDescription = () => {
+    // Strip HTML tags from job description for share text
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = job.jobDescription || "";
+    const textContent = tempDiv.textContent || tempDiv.innerText || "";
+    // Limit to 200 characters for share
+    return textContent.length > 200 ? textContent.substring(0, 200) + "..." : textContent;
+  };
+
+  const handleShareFacebook = () => {
+    const url = getJobUrl();
+    const title = getShareTitle();
+    const description = getShareDescription();
+    
+    // Facebook doesn't support pre-filling text via URL parameters
+    // It only uses Open Graph meta tags from the page
+    // We'll share the URL and copy the text to clipboard for user to paste
+    const shareText = `${title}\n\n${description}\n\n${url}`;
+    
+    // Copy text to clipboard
+    navigator.clipboard.writeText(shareText).then(() => {
+      toast.success("Đã sao chép nội dung! Mở Facebook và paste vào.");
+    }).catch(() => {
+      // Fallback: just open share dialog
+      toast.info("Mở Facebook share...");
+    });
+    
+    // Open Facebook share dialog
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = getJobUrl();
+    const title = getShareTitle();
+    const summary = getShareDescription();
+    
+    // LinkedIn shareArticle with mini=true supports title and summary parameters
+    // Format: title, summary, source are all required for pre-filling
+    const shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}&source=${encodeURIComponent(window.location.origin)}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
+  const handleCopyLink = async () => {
+    const url = getJobUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Đã sao chép link!");
+    } catch (err) {
+      toast.error("Không thể sao chép link");
+    }
   };
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -216,7 +298,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
   return (
     <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
       {/* Company Cover Image */}
-      <div className="relative h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 overflow-hidden">
+      <div className="relative h-48 bg-gradient-to-r from-[#1967d2] to-[#1557b8] overflow-hidden">
         <img
           src={job.companyBanner}
           alt={`${job.companyName} cover`}
@@ -240,9 +322,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">{job.jobTitle}</h1>
+                <h1 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">{job.jobTitle}</h1>
                 <div className="flex items-center gap-2 mb-3">
-                  <Building2 className="w-5 h-5 text-blue-600" />
+                  <Building2 className="w-5 h-5 text-[#1967d2]" />
                   <p className="text-lg font-medium text-gray-800">{job.companyName}</p>
                 </div>
                 <div className="flex flex-col text-gray-600 mb-2">
@@ -262,7 +344,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                     </div>
                   )}
                 </div>
-                <div className="flex items-center text-blue-600 text-sm">
+                <div className="flex items-center text-[#1967d2] text-sm">
                   <Globe className="w-4 h-4 mr-2" />
                   <span className="hover:underline cursor-pointer">{job.companyWebsite}</span>
                 </div>
@@ -270,10 +352,28 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
 
               {/* Action Buttons */}
               <div className={cn("flex items-center gap-3", hideActionButtons && "hidden")}>
-                <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handleShareFacebook} className="cursor-pointer">
+                      <Facebook className="w-4 h-4 mr-2 text-[#1967d2]" />
+                      Share on Facebook
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleShareLinkedIn} className="cursor-pointer">
+                      <Linkedin className="w-4 h-4 mr-2 text-[#1967d2]" />
+                      Share on LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                      <Copy className="w-4 h-4 mr-2 text-gray-600" />
+                      Copy Link
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -288,7 +388,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                   {isSaved ? "Đã lưu" : "Lưu"}
                 </Button>
                 <JobApplicationModal jobTitle={job.jobTitle} companyName={job.companyName}>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>
+                  <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>
                 </JobApplicationModal>
               </div>
             </div>
@@ -335,37 +435,37 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div className="flex gap-6 overflow-x-auto">
           <button
             onClick={() => scrollToSection(descriptionRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Mô tả
           </button>
           <button
             onClick={() => scrollToSection(benefitsRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Quyền lợi
           </button>
           <button
             onClick={() => scrollToSection(requirementsRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Kỹ năng yêu cầu
           </button>
           <button
             onClick={() => scrollToSection(jobDetailsRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Chi tiết công việc
           </button>
           <button
             onClick={() => scrollToSection(contactRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Liên hệ
           </button>
           <button
             onClick={() => scrollToSection(companyInformationRef)}
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-blue-600 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
             Về công ty
           </button>
@@ -377,8 +477,8 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         {/* Job Description Section */}
         <div ref={descriptionRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
-            <Target className="w-6 h-6 text-blue-600" />
-            <h3 className="text-xl font-bold text-blue-600">Mô tả công việc</h3>
+            <Target className="w-6 h-6 text-[#1967d2]" />
+            <h3 className="text-xl font-semibold text-[#1967d2]">Mô tả công việc</h3>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-lg p-6 border border-blue-100">
@@ -392,7 +492,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={benefitsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Gift className="w-6 h-6 text-green-600" />
-            <h3 className="text-xl font-bold text-green-600">Phúc lợi</h3>
+            <h3 className="text-xl font-semibold text-green-600">Phúc lợi</h3>
           </div>
           <div className="space-y-4">
             {job.jobBenefits && Array.isArray(job.jobBenefits) && job.jobBenefits.length > 0 ? (
@@ -420,7 +520,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={requirementsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <GraduationCap className="w-6 h-6 text-orange-600" />
-            <h3 className="text-xl font-bold text-orange-600">Kỹ năng yêu cầu</h3>
+            <h3 className="text-xl font-semibold text-orange-600">Kỹ năng yêu cầu</h3>
           </div>
           <div className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 rounded-lg p-6 border border-orange-100">
             <div
@@ -438,7 +538,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={jobDetailsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <UserCheck className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-purple-600">Chi tiết công việc</h3>
+            <h3 className="text-xl font-semibold text-purple-600">Chi tiết công việc</h3>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50/50 to-indigo-50/50 rounded-lg p-6 border border-purple-100">
@@ -537,18 +637,18 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         {/* Contact Section */}
         <div ref={contactRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
-            <Phone className="w-6 h-6 text-indigo-600" />
-            <h3 className="text-xl font-bold text-indigo-600">Thông tin liên hệ</h3>
+            <Phone className="w-6 h-6 text-[#1967d2]" />
+            <h3 className="text-xl font-semibold text-[#1967d2]">Thông tin liên hệ</h3>
           </div>
 
           <div className="space-y-6">
-            <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
+            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
               <div className="flex items-center gap-3 mb-4">
-                <Mail className="w-5 h-5 text-indigo-600" />
-                <h4 className="font-semibold text-gray-900">Tên liên hệ: {job.contactPerson}</h4>
+                <Mail className="w-5 h-5 text-[#1967d2]" />
+                <h4 className="font-medium text-gray-900">Tên liên hệ: {job.contactPerson}</h4>
               </div>
               <div className="flex items-start gap-3 mb-4">
-                <MapPin className="w-5 h-5 text-indigo-600 mt-0.5" />
+                <MapPin className="w-5 h-5 text-[#1967d2] mt-0.5" />
                 <p className="text-gray-700">
                   <strong>Địa chỉ:</strong>
                   {job.contactLocation ? (
@@ -561,8 +661,8 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                 </p>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <Mail className="w-5 h-5 text-indigo-600" />
-                <h4 className="font-semibold text-gray-900">Số điện thoại: {job.phoneNumber}</h4>
+                <Mail className="w-5 h-5 text-[#1967d2]" />
+                <h4 className="font-medium text-gray-900">Số điện thoại: {job.phoneNumber}</h4>
               </div>
               <div className="space-y-3">
                 <div
@@ -589,7 +689,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={companyInformationRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-6 h-6 text-emerald-600" />
-            <h3 className="text-xl font-bold text-emerald-600">Về công ty</h3>
+            <h3 className="text-xl font-semibold text-emerald-600">Về công ty</h3>
           </div>
 
           <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/50 rounded-lg p-6 border border-emerald-100">
@@ -607,6 +707,14 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
           </div>
         </div>
       </div>
+
+      <LoginRequiredModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        title="Yêu cầu đăng nhập"
+        description="Vui lòng đăng nhập để lưu việc làm và quản lý danh sách việc làm yêu thích của bạn."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 }

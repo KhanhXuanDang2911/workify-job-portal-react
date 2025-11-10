@@ -5,128 +5,83 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Star, MoreHorizontal, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Pagination from "@/components/Pagination";
 import CandidateSheet from "@/components/CandidateSheet";
+import type { ApplicationResponse } from "@/types";
+import { ApplicationStatus } from "@/types";
 
-interface Candidate {
-  id: string;
-  name: string;
-  avatar: string;
-  email: string;
-  rating: number;
-  stage: string;
-  stageProgress: number[];
-  appliedDate: string;
-  owner: {
-    name: string;
-    avatar: string;
-  } | null;
+interface TableViewProps {
+  applications: ApplicationResponse[];
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+  statusFilter?: string;
+  onStatusFilterChange?: (status: string | undefined) => void;
+  receivedWithin?: number;
+  onReceivedWithinChange?: (days: number | undefined) => void;
 }
 
-const mockCandidates: Candidate[] = [
-  {
-    id: "1",
-    name: "Nguyen Xuan Son",
-    avatar: "",
-    email: "darlene@example.com",
-    rating: 0,
-    stage: "Screening",
-    stageProgress: [1, 1, 0, 0, 0, 0],
-    appliedDate: "01 March, 2021",
-    owner: { name: "Bao Tuan", avatar: "" },
-  },
-  {
-    id: "2",
-    name: "Minh Quan",
-    avatar: "",
-    email: "cody@example.com",
-    rating: 4.5,
-    stage: "Interview",
-    stageProgress: [1, 1, 1, 1, 0, 0],
-    appliedDate: "15 March, 2021",
-    owner: { name: "Albert Flores", avatar: "" },
-  },
-  {
-    id: "3",
-    name: "Hoang Vo",
-    avatar: "",
-    email: "jenny@example.com",
-    rating: 5.0,
-    stage: "Test",
-    stageProgress: [1, 1, 1, 1, 1, 0],
-    appliedDate: "20 March, 2021",
-    owner: { name: "Annette Black", avatar: "" },
-  },
-  {
-    id: "4",
-    name: "Dang Xuan Khanh",
-    avatar: "https://i.pinimg.com/474x/8f/85/4e/8f854e4b78ecc4c356b0ae6f940e796d.jpg",
-    email: "ahmad@example.com",
-    rating: 0,
-    stage: "New Applied",
-    stageProgress: [1, 0, 0, 0, 0, 0],
-    appliedDate: "28 February, 2021",
-    owner: null,
-  },
-  {
-    id: "5",
-    name: "Tran Van Tung",
-    avatar: "https://i.pinimg.com/474x/6f/12/07/6f120710820e1b04e88a0255baa18f7f.jpg",
-    email: "brooklyn@example.com",
-    rating: 0,
-    stage: "New Applied",
-    stageProgress: [1, 0, 0, 0, 0, 0],
-    appliedDate: "30 February, 2021",
-    owner: null,
-  },
-  {
-    id: "6",
-    name: "Dung Van",
-    avatar: "https://i.pinimg.com/474x/37/ac/bc/37acbc2aa095fe2ef333828fc24dfb17.jpg",
-    email: "bessie@example.com",
-    rating: 3.0,
-    stage: "Design Challenge",
-    stageProgress: [1, 1, 1, 0, 0, 0],
-    appliedDate: "28 August, 2021",
-    owner: { name: "Dianne Russell", avatar: "https://i.pinimg.com/474x/6f/12/07/6f120710820e1b04e88a0255baa18f7f.jpg" },
-  },
-  {
-    id: "7",
-    name: "Ly Thanh",
-    avatar: "",
-    email: "marvin@example.com",
-    rating: 2.0,
-    stage: "Screening",
-    stageProgress: [1, 1, 0, 0, 0, 0],
-    appliedDate: "30 August, 2021",
-    owner: { name: "Jerome Bell", avatar: "" },
-  },
-];
-
-const stageColors: Record<string, string> = {
-  "New Applied": "bg-green-500",
-  Screening: "bg-teal-600",
-  "Design Challenge": "bg-orange-500",
-  Interview: "bg-purple-500",
-  Test: "bg-cyan-500",
-  Hired: "bg-yellow-500",
+// Map ApplicationStatus to stage name and progress
+const getStageInfo = (status: ApplicationStatus): { name: string; progress: number[]; color: string } => {
+  const stageMap: Record<ApplicationStatus, { name: string; progress: number[]; color: string }> = {
+    [ApplicationStatus.UNREAD]: { name: "New Applied", progress: [1, 0, 0, 0, 0, 0], color: "bg-green-500" },
+    [ApplicationStatus.VIEWED]: { name: "Viewed", progress: [1, 1, 0, 0, 0, 0], color: "bg-blue-500" },
+    [ApplicationStatus.EMAILED]: { name: "Emailed", progress: [1, 1, 1, 0, 0, 0], color: "bg-purple-500" },
+    [ApplicationStatus.SCREENING]: { name: "Screening", progress: [1, 1, 0, 0, 0, 0], color: "bg-teal-600" },
+    [ApplicationStatus.SCREENING_PENDING]: { name: "Screening Pending", progress: [1, 1, 1, 0, 0, 0], color: "bg-orange-500" },
+    [ApplicationStatus.INTERVIEW_SCHEDULING]: { name: "Interview Scheduling", progress: [1, 1, 1, 1, 0, 0], color: "bg-purple-500" },
+    [ApplicationStatus.INTERVIEWED_PENDING]: { name: "Interviewed Pending", progress: [1, 1, 1, 1, 1, 0], color: "bg-cyan-500" },
+    [ApplicationStatus.OFFERED]: { name: "Offered", progress: [1, 1, 1, 1, 1, 1], color: "bg-yellow-500" },
+    [ApplicationStatus.REJECTED]: { name: "Rejected", progress: [1, 0, 0, 0, 0, 0], color: "bg-red-500" },
+  };
+  return stageMap[status] || { name: status, progress: [1, 0, 0, 0, 0, 0], color: "bg-gray-500" };
 };
 
-export default function TableView() {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(6);
+// Format relative time
+const relativePosted = (dateString?: string): string => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hôm nay";
+    if (diffDays === 1) return "Hôm qua";
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
+    return `${Math.floor(diffDays / 365)} năm trước`;
+  } catch (e) {
+    return "";
+  }
+};
 
-  const totalPages = Math.max(1, Math.ceil(mockCandidates.length / pageSize));
+export default function TableView({
+  applications,
+  currentPage,
+  pageSize,
+  totalPages,
+  onPageChange,
+  onPageSizeChange,
+  statusFilter,
+  onStatusFilterChange,
+  receivedWithin,
+  onReceivedWithinChange,
+}: TableViewProps) {
+  const handleStatusFilterChange = (value: string) => {
+    if (onStatusFilterChange) {
+      onStatusFilterChange(value === "all" ? undefined : value);
+    }
+  };
 
-  const paginatedCandidates = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return mockCandidates.slice(start, start + pageSize);
-  }, [currentPage, pageSize]);
-
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(1);
-  }, [pageSize, totalPages, currentPage]);
+  const handleReceivedWithinChange = (value: string) => {
+    if (onReceivedWithinChange) {
+      onReceivedWithinChange(value === "all" ? undefined : Number(value));
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
@@ -134,165 +89,171 @@ export default function TableView() {
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Search members" className="pl-9 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
+            <Input placeholder="Search candidates" className="pl-9 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
           </div>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Role
-              </SelectItem>
-              <SelectItem value="admin" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Admin
-              </SelectItem>
-              <SelectItem value="member" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Member
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[140px]">
+          <Select value={statusFilter || "all"} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Status
+                Tất cả trạng thái
               </SelectItem>
-              <SelectItem value="active" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Active
+              <SelectItem value={ApplicationStatus.UNREAD} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Chưa đọc
               </SelectItem>
-              <SelectItem value="inactive" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                Inactive
+              <SelectItem value={ApplicationStatus.VIEWED} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Đã xem
+              </SelectItem>
+              <SelectItem value={ApplicationStatus.SCREENING} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Đang sàng lọc
+              </SelectItem>
+              <SelectItem value={ApplicationStatus.INTERVIEW_SCHEDULING} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Lên lịch phỏng vấn
+              </SelectItem>
+              <SelectItem value={ApplicationStatus.OFFERED} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Đã đề xuất
+              </SelectItem>
+              <SelectItem value={ApplicationStatus.REJECTED} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Đã từ chối
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={receivedWithin ? String(receivedWithin) : "all"} onValueChange={handleReceivedWithinChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Received Within" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Tất cả thời gian
+              </SelectItem>
+              <SelectItem value="7" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                7 ngày qua
+              </SelectItem>
+              <SelectItem value="30" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                30 ngày qua
+              </SelectItem>
+              <SelectItem value="90" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                90 ngày qua
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <Table className="">
-        <TableHeader className="">
-          <TableRow className="bg-[#1967d2] hover:bg-[#1967d2] ">
-            <TableHead className="w-[300px] ">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-[#1967d2] hover:bg-[#1967d2]">
+            <TableHead className="w-[300px]">
               <div className="flex items-center gap-2 py-4 text-white">
                 Candidate Name
-                <ChevronDown className="h-4 w-4 " />
+                <ChevronDown className="h-4 w-4" />
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-2 text-white">
                 Rating
-                <ChevronDown className="h-4 w-4 " />
+                <ChevronDown className="h-4 w-4" />
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-2 text-white">
                 Stages
-                <ChevronDown className="h-4 w-4 " />
+                <ChevronDown className="h-4 w-4" />
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-2 text-white">
                 Applied date
-                <ChevronDown className="h-4 w-4 " />
+                <ChevronDown className="h-4 w-4" />
               </div>
             </TableHead>
             <TableHead>
               <div className="flex items-center gap-2 text-white">
-                Owner
-                <ChevronDown className="h-4 w-4 " />
+                Email
+                <ChevronDown className="h-4 w-4" />
               </div>
             </TableHead>
             <TableHead className="w-[80px] text-white">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockCandidates.map((candidate) => (
-            <CandidateSheet candidate={candidate} key={candidate.id}>
-              <TableRow key={candidate.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {candidate.avatar ? (
-                      <img src={candidate.avatar || "/placeholder.svg"} alt={candidate.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center">
-                        <span className="text-purple-600 font-medium">{candidate.name.charAt(0)}</span>
-                      </div>
-                    )}
-
-                    <span className="text-sm text-gray-900">{candidate.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={cn("h-4 w-4", i < Math.floor(candidate.rating) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200")} />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">{candidate.rating.toFixed(1)}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-900">{candidate.stage}</span>
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {candidate.stageProgress.map((status, i) => (
-                        <div key={i} className={cn("h-1.5 w-6 rounded-full", status === 1 ? stageColors[candidate.stage] || "bg-gray-300" : "bg-gray-200")} />
-                      ))}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-gray-600">{candidate.appliedDate}</span>
-                </TableCell>
-                <TableCell>
-                  {candidate.owner ? (
-                    <div className="flex items-center gap-2">
-                      {candidate.owner.avatar ? (
-                        <img src={candidate.owner.avatar || "/placeholder.svg"} alt={candidate.owner.name} className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
+          {applications.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                Không có ứng viên nào
+              </TableCell>
+            </TableRow>
+          ) : (
+            applications.map((application) => {
+              const stageInfo = getStageInfo(application.status);
+              return (
+                <CandidateSheet key={application.id} candidate={application}>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center">
-                          <span className="text-purple-600 font-medium">{candidate.owner.name.charAt(0)}</span>
+                          <span className="text-purple-600 font-medium">{application.fullName.charAt(0)}</span>
                         </div>
-                      )}
-
-                      <span className="text-sm text-gray-900">{candidate.owner.name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Add Tags</DropdownMenuItem>
-                      <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Add Owner</DropdownMenuItem>
-                      <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Email Candidate</DropdownMenuItem>
-                      <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Edit Candidate</DropdownMenuItem>
-                      <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2] text-red-600">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            </CandidateSheet>
-          ))}
+                        <span className="text-sm text-gray-900">{application.fullName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={cn("h-4 w-4", "fill-gray-200 text-gray-200")} />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600">0.0</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-900">{stageInfo.name}</span>
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {stageInfo.progress.map((status, i) => (
+                            <div key={i} className={cn("h-1.5 w-6 rounded-full", status === 1 ? stageInfo.color : "bg-gray-200")} />
+                          ))}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-gray-600">{relativePosted(application.createdAt)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-gray-600">{application.email}</span>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Xem chi tiết</DropdownMenuItem>
+                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Gửi email</DropdownMenuItem>
+                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Tải CV</DropdownMenuItem>
+                          <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2] text-red-600">Từ chối</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                </CandidateSheet>
+              );
+            })
+          )}
         </TableBody>
       </Table>
 
       <div className="p-4 border-t border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">View</span>
-          <Select defaultValue="6">
+          <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
             <SelectTrigger className="w-[70px] h-8">
               <SelectValue />
             </SelectTrigger>
@@ -300,27 +261,21 @@ export default function TableView() {
               <SelectItem value="6" className="focus:bg-sky-200 focus:text-[#1967d2]">
                 6
               </SelectItem>
-              <SelectItem value="12" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                12
+              <SelectItem value="10" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                10
               </SelectItem>
-              <SelectItem value="24" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                24
+              <SelectItem value="20" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                20
               </SelectItem>
             </SelectContent>
           </Select>
           <span className="text-sm text-gray-600">Candidates per page</span>
         </div>
-        <div className="flex items-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(p) => {
-              if (p < 1) return;
-              if (p > totalPages) return;
-              setCurrentPage(p);
-            }}
-          />
-        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+          </div>
+        )}
       </div>
     </div>
   );

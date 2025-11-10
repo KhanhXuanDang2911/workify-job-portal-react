@@ -1,198 +1,188 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
+import { routes, employer_routes } from "@/routes/routes.const";
+import { Facebook, Twitter, Linkedin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white">
-      {/* Newsletter Section */}
-      <div className="bg-gray-800 py-8">
-        <div className="main-layout">
-          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">
-                Join our email subscription now to get updates on new jobs and
-                notifications.
-              </h3>
-            </div>
-            <div className="flex space-x-2 w-full md:w-auto">
-              <Input
-                placeholder="Enter Your Email"
-                className="bg-white text-gray-900 md:w-80"
-              />
-              <Button>Subscribe Now</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Footer */}
-      <div className="py-12">
-        <div className="main-layout">
-          <div className="grid md:grid-cols-5 gap-8">
-            {/* Company Info */}
-            <div className="md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">J</span>
-                </div>
-                <span className="text-xl font-bold">Jobzilla</span>
+    <footer className="bg-white border-t border-gray-200">
+      <div className="main-layout py-12">
+        {/* Main Content - 6 Columns */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
+          {/* Column 1: Company Info & Social Media */}
+          <div className="space-y-4">
+            <Link to={routes.BASE} className="flex items-center space-x-2">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img src="/logo.png" alt="logo" className="w-full h-full object-contain" />
               </div>
-              <p className="text-gray-400 mb-4">
-                Many desktop publishing packages and web page editors now.
-              </p>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <span className="font-semibold">Address :</span> 65 Sunset CA
-                  90026, USA
-                </p>
-                <p>
-                  <span className="font-semibold">Email :</span> example@max.com
-                </p>
-                <p>
-                  <span className="font-semibold">Call :</span> 555-555-1234
-                </p>
-              </div>
-            </div>
-
-            {/* For Candidate */}
-            <div>
-              <h4 className="font-semibold mb-4 text-blue-400">
-                For Candidate
-              </h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    User Dashboard
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Candidates
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Blog List
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Blog single
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* For Employers */}
-            <div>
-              <h4 className="font-semibold mb-4 text-blue-400">
-                For Employers
-              </h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Blog Grid
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Contact
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Jobs Listing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Jobs details
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Helpful Resources */}
-            <div>
-              <h4 className="font-semibold mb-4 text-blue-400">
-                Helpful Resources
-              </h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    FAQs
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Profile
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    404 Page
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Pricing
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-semibold mb-4 text-blue-400">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Home
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    About us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Jobs
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Employer
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Footer */}
-      <div className="border-t border-gray-800 py-6">
-        <div className="main-layout">
-          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-            <p className="text-sm text-gray-400">
-              Copyright © 2023 by thewebmax All Rights Reserved.
+              <span className="text-lg font-bold text-[#0A2E5C]">
+                Workify
+              </span>
+            </Link>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Workify is the heart of the design community and the best resource to discover and connect with designers and jobs worldwide.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white">
+            <div className="flex space-x-3">
+              <a href="#" className="w-10 h-10 rounded-full bg-[#0A2E5C] flex items-center justify-center text-white hover:bg-[#082040] transition-colors">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a href="#" className="w-10 h-10 rounded-full bg-[#0A2E5C] flex items-center justify-center text-white hover:bg-[#082040] transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Youtube className="w-5 h-5" />
+              <a href="#" className="w-10 h-10 rounded-full bg-[#0A2E5C] flex items-center justify-center text-white hover:bg-[#082040] transition-colors">
+                <Linkedin className="w-5 h-5" />
               </a>
             </div>
+          </div>
+
+          {/* Column 2: Resources */}
+          <div>
+            <h4 className="font-bold text-[#0A2E5C] mb-4 text-sm">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  About us
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Our Team
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Products
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Contact
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Community */}
+          <div>
+            <h4 className="font-bold text-[#0A2E5C] mb-4 text-sm">Community</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Feature
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Credit
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  FAQ
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Quick links */}
+          <div>
+            <h4 className="font-bold text-[#0A2E5C] mb-4 text-sm">Quick links</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  iOS
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Android
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Microsoft
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Desktop
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 5: More */}
+          <div>
+            <h4 className="font-bold text-[#0A2E5C] mb-4 text-sm">More</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Help
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  Terms
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-sm text-gray-500 hover:text-[#0A2E5C] transition-colors">
+                  FAQ
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 6: Download App */}
+          <div>
+            <h4 className="font-bold text-[#0A2E5C] mb-4 text-sm">Download App</h4>
+            <p className="text-sm text-gray-500 leading-relaxed mb-4">
+              Download our Apps and get extra 15% Discount on your first Order...!
+            </p>
+            <div className="flex flex-col gap-2">
+              <a href="#" className="flex items-center justify-center gap-2 bg-[#0A2E5C] text-white px-4 py-2 rounded-lg hover:bg-[#082040] transition-colors text-xs font-medium">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.21-.5-3.3 0-1.44.66-2.2.61-3.08-.4C4.79 15.25 3.8 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                </svg>
+                Download on the App Store
+              </a>
+              <a href="#" className="flex items-center justify-center gap-2 bg-[#0A2E5C] text-white px-4 py-2 rounded-lg hover:bg-[#082040] transition-colors text-xs font-medium">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                </svg>
+                GET IT ON Google Play
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Separator Line */}
+        <div className="border-t border-gray-300 my-8"></div>
+
+        {/* Bottom Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+          <p className="text-sm text-gray-500">
+            Copyright © {new Date().getFullYear()}. Workify all right reserved
+          </p>
+          <div className="flex space-x-6 text-sm">
+            <a href="#" className="text-gray-500 hover:text-[#0A2E5C] transition-colors">
+              Privacy Policy
+            </a>
+            <a href="#" className="text-gray-500 hover:text-[#0A2E5C] transition-colors">
+              Terms & Conditions
+            </a>
+            <a href="#" className="text-gray-500 hover:text-[#0A2E5C] transition-colors">
+              Security
+            </a>
           </div>
         </div>
       </div>

@@ -3,13 +3,12 @@ import EmployerLayout from "@/layouts/EmployerLayout/EmployerLayout";
 import Candidates from "@/pages/Candidates";
 import EmployerPostJob from "@/pages/EmployerPostJob";
 import Jobs from "@/pages/Jobs";
-import SearchTalents from "@/pages/Employer/SearchTalents";
 import Organization from "@/pages/Employer/Organization";
-import JobDetailManage from "@/pages/Employer/JobDetailManage";
 import Settings from "@/pages/Employer/Settings";
 import { employer_routes } from "../routes.const";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROLE } from "@/constants";
+import Notifications from "@/pages/Notifications";
 
 const EmployerProtectedRoutes: RouteObject[] = [
   {
@@ -49,22 +48,6 @@ const EmployerProtectedRoutes: RouteObject[] = [
         ),
       },
       {
-        path: `${employer_routes.JOBS}/:jobId`,
-        element: (
-          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
-            <JobDetailManage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: employer_routes.SEARCH_TALENTS,
-        element: (
-          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
-            <SearchTalents />
-          </ProtectedRoute>
-        ),
-      },
-      {
         path: employer_routes.ORGANIZATION,
         element: (
           <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
@@ -77,6 +60,14 @@ const EmployerProtectedRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
             <Settings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: employer_routes.NOTIFICATIONS,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.EMPLOYER}>
+            <Notifications />
           </ProtectedRoute>
         ),
       },

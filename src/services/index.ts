@@ -7,3 +7,4 @@ export * from "./job.service";
 export * from "./industry.service";
 export * from "./post.service";
 export * from "./application.service";
+export * from "./notification.service";

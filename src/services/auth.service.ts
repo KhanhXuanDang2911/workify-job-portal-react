@@ -1,19 +1,51 @@
-import axiosInstance from "@/lib/http";
-import type { ApiResponse, User } from "@/types";
+import publicHttp from "@/lib/publicHttp";
+import userHttp from "@/lib/userHttp";
+import employerHttp from "@/lib/employerHttp";
+import type { ApiResponse, User, Employer } from "@/types";
 
 export const authService = {
-  signUp: async (data: { fullName: string; email: string; password: string }): Promise<ApiResponse> => {
-    const response = await axiosInstance.post<ApiResponse>("/users/sign-up", data);
+  // User Sign Up
+  signUp: async (data: {
+    fullName: string;
+    email: string;
+    password: string;
+  }): Promise<ApiResponse> => {
+    const response = await publicHttp.post<ApiResponse>("/users/sign-up", data);
     return response.data;
   },
 
-  signIn: async (data: { email: string; password: string }): Promise<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>>("/auth/users/sign-in", data);
+  // User Sign In
+  signIn: async (data: {
+    email: string;
+    password: string;
+  }): Promise<
+    ApiResponse<{ accessToken: string; refreshToken: string; data: User }>
+  > => {
+    const response = await publicHttp.post<
+      ApiResponse<{ accessToken: string; refreshToken: string; data: User }>
+    >("/auth/users/sign-in", data);
     return response.data;
   },
 
-  signOut: async (accessToken: string, refreshToken: string): Promise<ApiResponse<null>> => {
-    const response = await axiosInstance.post<ApiResponse<null>>(
+  // Employer Sign In
+  signInEmployer: async (data: {
+    email: string;
+    password: string;
+  }): Promise<
+    ApiResponse<{ accessToken: string; refreshToken: string; data: Employer }>
+  > => {
+    const response = await publicHttp.post<
+      ApiResponse<{ accessToken: string; refreshToken: string; data: Employer }>
+    >("/auth/employers/sign-in", data);
+    return response.data;
+  },
+
+  // Sign Out (User/Admin)
+  signOut: async (
+    accessToken: string,
+    refreshToken: string
+  ): Promise<ApiResponse<null>> => {
+    const response = await publicHttp.post<ApiResponse<null>>(
       "/auth/sign-out",
       {},
       {
@@ -26,8 +58,30 @@ export const authService = {
     return response.data;
   },
 
-  verifyEmail: async (token: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
-    const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(
+  // Sign Out Employer
+  signOutEmployer: async (
+    accessToken: string,
+    refreshToken: string
+  ): Promise<ApiResponse<null>> => {
+    const response = await publicHttp.post<ApiResponse<null>>(
+      "/auth/sign-out",
+      {},
+      {
+        headers: {
+          "X-Token": accessToken,
+          "Y-Token": refreshToken,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  // Verify Email
+  verifyEmail: async (
+    token: string,
+    role: "users" | "employers"
+  ): Promise<ApiResponse<{ message: string }>> => {
+    const response = await publicHttp.patch<ApiResponse<{ message: string }>>(
       `/auth/${role}/verify-email`,
       {},
       {
@@ -39,18 +93,47 @@ export const authService = {
     return response.data;
   },
 
-  changePassword: async (data: { currentPassword: string; newPassword: string }, role: "users" | "employers"|"admins"): Promise<ApiResponse<{ message: string }>> => {
-    const response = await axiosInstance.patch<ApiResponse<{ message: string }>>(`/${role}/me/password`, data);
+  // Change Password (requires authentication)
+  changePassword: async (
+    data: { currentPassword: string; newPassword: string },
+    role: "users" | "employers" | "admins"
+  ): Promise<ApiResponse<{ message: string }>> => {
+    let httpClient;
+    if (role === "users") {
+      httpClient = userHttp;
+    } else if (role === "employers") {
+      httpClient = employerHttp;
+    } else {
+      // For admins, we'll use userHttp (or create adminHttp if needed)
+      httpClient = userHttp;
+    }
+
+    const response = await httpClient.patch<ApiResponse<{ message: string }>>(
+      `/${role}/me/password`,
+      data
+    );
     return response.data;
   },
 
-  forgotPassword: async (email: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ message: string }>>(`/auth/${role}/forgot-password`, { email });
+  // Forgot Password
+  forgotPassword: async (
+    email: string,
+    role: "users" | "employers"
+  ): Promise<ApiResponse<{ message: string }>> => {
+    const response = await publicHttp.post<ApiResponse<{ message: string }>>(
+      `/auth/${role}/forgot-password`,
+      { email }
+    );
     return response.data;
   },
 
-  resetPassword: async (token: string, newPassword: string, role: "users" | "employers"): Promise<ApiResponse<{ message: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ message: string }>>(
+  // Reset Password
+  resetPassword: async (
+    token: string,
+    newPassword: string,
+    role: "users" | "employers"
+  ): Promise<ApiResponse<{ message: string }>> => {
+    const response = await publicHttp.post<ApiResponse<{ message: string }>>(
       `/auth/${role}/reset-password`,
       { newPassword },
       {
@@ -62,8 +145,25 @@ export const authService = {
     return response.data;
   },
 
-  googleLogin: async (authorizationCode: string): Promise<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>>(
+  // Google Login (User)
+  googleLogin: async (
+    authorizationCode: string
+  ): Promise<
+    ApiResponse<{
+      accessToken?: string;
+      refreshToken?: string;
+      data?: User;
+      createPasswordToken?: string;
+    }>
+  > => {
+    const response = await publicHttp.post<
+      ApiResponse<{
+        accessToken?: string;
+        refreshToken?: string;
+        data?: User;
+        createPasswordToken?: string;
+      }>
+    >(
       "/auth/authenticate/google",
       {},
       {
@@ -75,8 +175,25 @@ export const authService = {
     return response.data;
   },
 
-  linkedInLogin: async (authorizationCode: string): Promise<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken?: string; refreshToken?: string; data?: User; createPasswordToken?: string }>>(
+  // LinkedIn Login (User)
+  linkedInLogin: async (
+    authorizationCode: string
+  ): Promise<
+    ApiResponse<{
+      accessToken?: string;
+      refreshToken?: string;
+      data?: User;
+      createPasswordToken?: string;
+    }>
+  > => {
+    const response = await publicHttp.post<
+      ApiResponse<{
+        accessToken?: string;
+        refreshToken?: string;
+        data?: User;
+        createPasswordToken?: string;
+      }>
+    >(
       "/auth/authenticate/linkedin",
       {},
       {
@@ -88,8 +205,16 @@ export const authService = {
     return response.data;
   },
 
-  createPassword: async (token: string, password: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string; data: User }>>(
+  // Create Password (for social login users)
+  createPassword: async (
+    token: string,
+    password: string
+  ): Promise<
+    ApiResponse<{ accessToken: string; refreshToken: string; data: User }>
+  > => {
+    const response = await publicHttp.post<
+      ApiResponse<{ accessToken: string; refreshToken: string; data: User }>
+    >(
       "/auth/create-password",
       { password },
       {
@@ -101,13 +226,13 @@ export const authService = {
     return response.data;
   },
 
-  getProfile: async () => {
-    const res = await axiosInstance.get<ApiResponse<User>>("/users/me");
-    return res.data;
-  },
-
-  refreshTokenUser: async (refreshToken: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+  // Refresh Token - User
+  refreshTokenUser: async (
+    refreshToken: string
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
+    const response = await publicHttp.post<
+      ApiResponse<{ accessToken: string; refreshToken: string }>
+    >(
       "/auth/users/refresh-token",
       {},
       {
@@ -119,8 +244,13 @@ export const authService = {
     return response.data;
   },
 
-  refreshTokenEmployer: async (refreshToken: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
-    const response = await axiosInstance.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+  // Refresh Token - Employer
+  refreshTokenEmployer: async (
+    refreshToken: string
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
+    const response = await publicHttp.post<
+      ApiResponse<{ accessToken: string; refreshToken: string }>
+    >(
       "/auth/employers/refresh-token",
       {},
       {

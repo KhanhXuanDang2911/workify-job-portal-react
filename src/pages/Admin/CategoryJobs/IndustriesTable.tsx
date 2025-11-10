@@ -1,11 +1,16 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import IndustrySheet from "@/pages/Admin/CategoryJobs/IndustrySheet";
 import Pagination from "@/components/Pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RowsPerPageOptions, type RowsPerPage } from "@/constants";
 import type { Industry } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,22 +29,28 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import CreateIndustryModal from "@/pages/Admin/CategoryJobs/CreateIndustryModal";
-import { Badge } from "@/components/ui/badge";
 import MultiSortButton from "@/components/MultiSortButton";
 
 type SortField = "name" | "engName" | "createdAt" | "updatedAt";
 type SortDirection = "asc" | "desc";
 
-export default function IndustriesTable({ categoryJobId }: { categoryJobId: number }) {
+export default function IndustriesTable({
+  categoryJobId,
+}: {
+  categoryJobId: number;
+}) {
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
+  const [sorts, setSorts] = useState<
+    { field: SortField; direction: SortDirection }[]
+  >([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState<RowsPerPage>(10);
 
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const [selectedIndustry, setSelectedIndustry] = useState<With<Industry, { categoryJobId: number }> | null>(null);
+  const [selectedIndustry, setSelectedIndustry] = useState<With<
+    Industry,
+    { categoryJobId: number }
+  > | null>(null);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -47,16 +58,31 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
 
   const queryClient = useQueryClient();
 
+  // Reset to page 1 when categoryJobId changes
+  useEffect(() => {
+    setPageNumber(1);
+    setKeyword("");
+    setSearchInput("");
+    setSorts([]);
+  }, [categoryJobId]);
+
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
   const { data: industriesData, isLoading } = useQuery({
-    queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortsString, categoryJobId],
+    queryKey: [
+      "industries",
+      categoryJobId,
+      pageNumber,
+      pageSize,
+      keyword,
+      sortsString,
+    ],
     queryFn: async () => {
       const res = await industryService.getIndustries({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
         sorts: sortsString || undefined,
-        categoryJobId,
+        categoryId: categoryJobId,
       });
       return res.data;
     },
@@ -69,27 +95,41 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
     onSuccess: () => {
       toast.success("Delete successful");
       setDeleteIndustryId(null);
-      queryClient.invalidateQueries({ queryKey: ["industries", categoryJobId, pageNumber, pageSize, keyword, sortsString] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "industries",
+          categoryJobId,
+          pageNumber,
+          pageSize,
+          keyword,
+          sortsString,
+        ],
+      });
     },
     onError: () => {
       toast.error("Delete failed");
     },
   });
 
-  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
-    setSorts((prev) => {
-      if (newDirection === null) {
-        return prev.filter((s) => s.field !== field);
-      }
-      const existing = prev.find((s) => s.field === field);
-      if (existing) {
-        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
-      }
-      return [...prev, { field, direction: newDirection }];
-    });
+  const handleSortChange = useCallback(
+    (field: SortField, newDirection: SortDirection | null) => {
+      setSorts((prev) => {
+        if (newDirection === null) {
+          return prev.filter((s) => s.field !== field);
+        }
+        const existing = prev.find((s) => s.field === field);
+        if (existing) {
+          return prev.map((s) =>
+            s.field === field ? { ...s, direction: newDirection } : s
+          );
+        }
+        return [...prev, { field, direction: newDirection }];
+      });
 
-    setPageNumber(1);
-  }, []);
+      setPageNumber(1);
+    },
+    []
+  );
 
   const industries = industriesData?.items || [];
   const totalPages = industriesData?.totalPages || 0;
@@ -99,22 +139,6 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
     setKeyword("");
     setSearchInput("");
     setPageNumber(1);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(industries?.map((item) => item.id) || []);
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: number, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-    }
   };
 
   const handleSearch = () => {
@@ -141,7 +165,10 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
       <div className="flex items-center justify-between gap-4">
         <div
           className="flex items-center gap-2 px-8 py-2 bg-teal-500 text-white w-fit"
-          style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+          style={{
+            clipPath:
+              "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
+          }}
         >
           <span className="font-semibold">Industries</span>
         </div>
@@ -162,7 +189,10 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="flex-1 focus-visible:border-none bg-white focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
-          <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-900">
+          <Button
+            variant="secondary"
+            className="bg-gray-800 text-white hover:bg-gray-900"
+          >
             Search
           </Button>
         </div>
@@ -178,41 +208,49 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
         )}
       </div>
 
-      {selectedIds.length > 0 && (
-        <div className="mt-4 flex items-center gap-2">
-          <Badge variant="secondary">{selectedIds.length} selected</Badge>
-          <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-600/10">
-            Delete selected
-          </Button>
-        </div>
-      )}
-
       {/* Table */}
       <div className="border border-gray-200 rounded-lg overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-100 border-b text-sm border-gray-200 ">
               <th className="px-4 py-3 text-left">
-                <Checkbox checked={selectedIds.length === industries.length && industries.length > 0} onCheckedChange={handleSelectAll} />
-              </th>
-              <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Name</span>
-                  <MultiSortButton direction={sorts.find((s) => s.field === "name")?.direction ?? null} onChange={(newDirection) => handleSortChange("name", newDirection)} />
+                  <MultiSortButton
+                    direction={
+                      sorts.find((s) => s.field === "name")?.direction ?? null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("name", newDirection)
+                    }
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Eng Name</span>
-                  <MultiSortButton direction={sorts.find((s) => s.field === "engName")?.direction ?? null} onChange={(newDirection) => handleSortChange("engName", newDirection)} />
+                  <MultiSortButton
+                    direction={
+                      sorts.find((s) => s.field === "engName")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("engName", newDirection)
+                    }
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
                   <span>Created At</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "createdAt")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("createdAt", newDirection)
+                    }
                   />
                 </div>
               </th>
@@ -220,8 +258,13 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
                 <div className="flex items-center gap-2">
                   <span>Updated At</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "updatedAt")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("updatedAt", newDirection)
+                    }
                   />
                 </div>
               </th>
@@ -231,35 +274,47 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="text-center py-10 text-muted-foreground italic">
+                <td
+                  colSpan={5}
+                  className="text-center py-10 text-muted-foreground italic"
+                >
                   Loading...
                 </td>
               </tr>
             ) : industries.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-10 text-muted-foreground">
-                  <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
-                  <p className="mt-2 text-sm text-gray-500">No industries found</p>
+                <td
+                  colSpan={5}
+                  className="text-center py-10 text-muted-foreground"
+                >
+                  <img
+                    src="/empty-folder.png"
+                    alt="Empty"
+                    className="mx-auto w-20 opacity-70"
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    No industries found
+                  </p>
                 </td>
               </tr>
             ) : (
               industries.map((industry) => (
                 <tr
                   key={industry.id}
-                  className={cn("border-b border-gray-200 text-[13px] hover:bg-gray-50 cursor-pointer", selectedIndustry?.id === industry.id && "bg-green-200")}
+                  className={cn(
+                    "border-b border-gray-200 text-[13px] hover:bg-gray-50 cursor-pointer",
+                    selectedIndustry?.id === industry.id && "bg-green-200"
+                  )}
                   onClick={() => handleEdit({ ...industry, categoryJobId })}
                 >
-                  <td className="px-4 py-3">
-                    <Checkbox
-                      onClick={(e) => e.stopPropagation()}
-                      checked={selectedIds.includes(industry.id)}
-                      onCheckedChange={(checked) => handleSelectOne(industry.id, checked as boolean)}
-                    />
-                  </td>
                   <td className="px-4 py-3">{industry.name}</td>
                   <td className="px-4 py-3">{industry.engName}</td>
-                  <td className="px-4 py-3">{new Date(industry.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">{new Date(industry.updatedAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    {new Date(industry.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    {new Date(industry.updatedAt).toLocaleDateString()}
+                  </td>
                   <td className="px-4 py-3">
                     <Button
                       variant="ghost"
@@ -284,7 +339,9 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
       {totalIndustries > 0 && (
         <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
           {(() => {
-            const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
+            const minOption = Math.min(
+              ...RowsPerPageOptions.map((opt) => Number(opt.value))
+            );
             if (totalIndustries < minOption) return null;
 
             return (
@@ -302,7 +359,10 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
                   </SelectTrigger>
                   <SelectContent>
                     {RowsPerPageOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value.toString()}>
+                      <SelectItem
+                        key={option.value}
+                        value={option.value.toString()}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -314,7 +374,11 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
           })()}
 
           <div className="w-full sm:w-auto flex justify-center">
-            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
+            <Pagination
+              currentPage={pageNumber}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
         </div>
       )}
@@ -333,15 +397,24 @@ export default function IndustriesTable({ categoryJobId }: { categoryJobId: numb
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteIndustryId !== null} onOpenChange={() => setDeleteIndustryId(null)}>
+      <AlertDialog
+        open={deleteIndustryId !== null}
+        onOpenChange={() => setDeleteIndustryId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete this industry. This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will permanently delete this industry. This action cannot be
+              undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteIndustryId && handleDelete(deleteIndustryId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={() => deleteIndustryId && handleDelete(deleteIndustryId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

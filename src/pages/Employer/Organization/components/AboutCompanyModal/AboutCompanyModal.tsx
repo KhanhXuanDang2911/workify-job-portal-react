@@ -30,7 +30,8 @@ function AboutCompanyModal() {
   }, [employerData]);
 
   const updateAboutMutation = useMutation({
-    mutationFn: (data: CompanyInformationModalFormData) => employerService.updateEmployerProfile(data),
+    mutationFn: (data: CompanyInformationModalFormData) =>
+      employerService.updateEmployerProfile(data),
     onSuccess: () => {
       toast.success("About company updated successfully");
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
@@ -43,6 +44,14 @@ function AboutCompanyModal() {
   const handleSave = (onClose: () => void) => {
     const cleanContent = aboutContent !== "<p><br></p>" ? aboutContent : "";
     if (employerData) {
+      // Validate phoneNumber before sending
+      if (!employerData.phoneNumber || employerData.phoneNumber.trim() === "") {
+        toast.error(
+          "Phone number is required. Please update your profile information first."
+        );
+        return;
+      }
+
       updateAboutMutation.mutate(
         {
           companyName: employerData.companyName,
@@ -51,7 +60,7 @@ function AboutCompanyModal() {
           phoneNumber: employerData.phoneNumber,
           provinceId: employerData.province?.id || 1,
           districtId: employerData.district?.id || 1,
-          detailAddress: employerData.detailAddress,
+          detailAddress: employerData.detailAddress || "",
           aboutCompany: cleanContent,
         },
         {
@@ -71,7 +80,11 @@ function AboutCompanyModal() {
     <BaseModal
       title="About company"
       trigger={
-        <Button variant="ghost" size="sm" className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]"
+        >
           <Pencil className="h-4 w-4 mr-2" />
           Edit
         </Button>
@@ -86,7 +99,11 @@ function AboutCompanyModal() {
           >
             Cancel
           </Button>
-          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleSave(onClose)} disabled={updateAboutMutation.isPending || isLoadingProfile}>
+          <Button
+            className="bg-[#1967d2] w-28 hover:bg-[#1251a3]"
+            onClick={() => handleSave(onClose)}
+            disabled={updateAboutMutation.isPending || isLoadingProfile}
+          >
             {updateAboutMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

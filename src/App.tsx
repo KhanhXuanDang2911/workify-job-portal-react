@@ -6,8 +6,13 @@ import AppRoutes from "./routes/AppRoutes";
 import "flowbite";
 import { useEffect, useState } from "react";
 import { ResponsiveContext } from "./context/ResponsiveContext";
-import type { DeviceType, ResponsiveContextProps } from "./context/ResponsiveContext";
-import AuthProvider from "@/context/auth/AuthProvider";
+import type {
+  DeviceType,
+  ResponsiveContextProps,
+} from "./context/ResponsiveContext";
+import { UserAuthProvider } from "@/context/user-auth";
+import { EmployerAuthProvider } from "@/context/employer-auth";
+import { WebSocketProvider } from "@/context/websocket/WebSocketContext";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const getDevice = (): DeviceType => {
@@ -17,42 +22,56 @@ const getDevice = (): DeviceType => {
   return "desktop";
 };
 
-export default function App() {
-  const [responsive, setResponsive] = useState<ResponsiveContextProps>({ device: "desktop" });
+function AppContent() {
+  const [responsive, setResponsive] = useState<ResponsiveContextProps>({
+    device: "desktop",
+  });
 
   useEffect(() => {
     const handleResize = () => {
       const newDevice = getDevice();
-      setResponsive((prev) => (prev.device !== newDevice ? { device: newDevice } : prev));
+      setResponsive((prev) =>
+        prev.device !== newDevice ? { device: newDevice } : prev
+      );
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
-    <>
-      <AuthProvider>
-        <ResponsiveContext value={responsive}>
-          <ScrollToTop />
-          <GlobalLoading />
-          <AppRoutes />
-          <ToastContainer
-            toastClassName="text-[14px]"
-            position="bottom-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={true}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-          <ScrollToTopButton />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </ResponsiveContext>
-      </AuthProvider>
-    </>
+    <ResponsiveContext value={responsive}>
+      <ScrollToTop />
+      <GlobalLoading />
+      <AppRoutes />
+      <ToastContainer
+        toastClassName="text-[14px]"
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <ScrollToTopButton />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </ResponsiveContext>
+  );
+}
+
+export default function App() {
+  return (
+    // BrowserRouter already exists in main.tsx
+    // Wrap with both providers - each checks route internally
+    <UserAuthProvider>
+      <EmployerAuthProvider>
+        <WebSocketProvider>
+          <AppContent />
+        </WebSocketProvider>
+      </EmployerAuthProvider>
+    </UserAuthProvider>
   );
 }

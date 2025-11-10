@@ -1,44 +1,55 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X, ChevronDown, LogIn, UserPlus, Settings, LogOut, User, Briefcase, BookmarkIcon, MessageCircle, File } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { employer_routes, routes } from "@/routes/routes.const";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  LogOut,
+  User,
+  Briefcase,
+  BookmarkIcon,
+  File,
+  Home,
+  Building2,
+  BookOpen,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { employer_routes, routes, admin_routes } from "@/routes/routes.const";
 import JobSeekerNotificationDropdown from "../JobSeekerNotificationDropdown";
-import { authUtils } from "@/lib/auth";
+import { userTokenUtils } from "@/lib/token";
 import { toast } from "react-toastify";
 import { authService } from "@/services";
-import { useAuth } from "@/context/auth/useAuth";
+import { useUserAuth } from "@/context/user-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { signOut } from "@/context/auth/auth.action";
-import type { User as UserType } from "@/types";
-import { getNameInitials } from "@/utils/string";
 import { ROLE } from "@/constants";
+import { Settings } from "lucide-react";
+import { getNameInitials } from "@/utils/string";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mobileSections, setMobileSections] = useState({
-    jobs: false,
-    pages: false,
-    blog: false,
-    cv: false,
-  });
   const queryClient = useQueryClient();
-  const { state, dispatch } = useAuth();
+  const { state, dispatch } = useUserAuth();
 
-  const user = state.user as UserType | null;
+  const user = state.user;
 
   const signOutMutation = useMutation({
     mutationFn: () => {
-      const accessToken = authUtils.getAccessToken() || "";
-      const refreshToken = authUtils.getRefreshToken() || "";
+      const accessToken = userTokenUtils.getAccessToken() || "";
+      const refreshToken = userTokenUtils.getRefreshToken() || "";
       return authService.signOut(accessToken, refreshToken);
     },
     onSettled: () => {
-      dispatch(signOut());
+      dispatch({ type: "CLEAR_USER" });
 
-      authUtils.clearAuth();
+      userTokenUtils.clearAuth();
       queryClient.removeQueries();
       toast.success("Signed out successfully");
     },
@@ -49,162 +60,134 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="main-layout">
+    <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-transparent to-indigo-50/50 pointer-events-none"></div>
+
+      <div className="main-layout relative z-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 flex items-center justify-center">
-                <img src="/logo.png" alt="logo" />
-              </div>
-              <span className="text-2xl font-extrabold tracking-tight text-primary-color">
-                <Link to={routes.BASE}>Workify</Link>
-              </span>
+          <Link to={routes.BASE} className="flex items-center space-x-2 group">
+            <div className="w-8 h-8 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+              <img
+                src="/logo.png"
+                alt="logo"
+                className="w-full h-full object-contain"
+              />
             </div>
-          </div>
+            <span className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent group-hover:from-[#1967d2] group-hover:to-[#1557b8] transition-all duration-300">
+              Workify
+            </span>
+          </Link>
 
-          <nav className="hidden lg:flex items-center lg:space-x-8">
-            <Link to={routes.BASE} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
+          <nav className="hidden lg:flex items-center space-x-1">
+            <Link
+              to={routes.BASE}
+              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
               Home
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
-                Jobs <ChevronDown className="ml-1 w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={8} className="w-[380px] p-2 rounded-none border border-gray-100 shadow-xl bg-white backdrop-blur-sm">
-                <div className="grid grid-cols-2 gap-0.5">
-                  {[
-                    { label: "Find jobs", to: routes.JOB_SEARCH },
-                    { label: "Saved Jobs", to: routes.MY_SAVED_JOBS },
-                    { label: "Applied Jobs", to: routes.MY_APPLIED_JOBS },
-                    { label: "My Resumes", to: routes.MY_RESUME },
-                    { label: "Messages", to: routes.MESSAGES },
-                  ].map(({ label, to }) => (
-                    <Link
-                      key={label}
-                      to={to}
-                      className="px-3 py-2 text-[13px] font-medium text-slate-700 hover:text-[#1967d2] hover:bg-[#f8faff] transition-all duration-200 hover:translate-x-0.5 border-l-2 border-transparent hover:border-[#1967d2]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
-                CV <ChevronDown className="ml-1 w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={8} className="w-[300px] p-2 rounded-none border border-gray-100 shadow-xl bg-white backdrop-blur-sm">
-                <div className="grid grid-cols-2 gap-0.5">
-                  {[
-                    { label: "Create CV", to: "/cv/create" },
-                    { label: "CV Templates", to: "/cv/templates" },
-                    { label: "My CVs", to: "/cv" },
-                  ].map(({ label, to }) => (
-                    <Link
-                      key={label}
-                      to={to}
-                      className="px-3 py-2 text-[13px] font-medium text-slate-700 hover:text-[#1967d2] hover:bg-[#f8faff] transition-all duration-200 hover:translate-x-0.5 border-l-2 border-transparent hover:border-[#1967d2]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Link to={routes.ARTICLES} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
-              Career guide
+            <Link
+              to={routes.JOB_SEARCH}
+              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+            >
+              <Briefcase className="w-4 h-4" />
+              Jobs
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link to={routes.EMPLOYER_SEARCH} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
+            <Link
+              to={routes.ARTICLES}
+              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              Career Guide
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link
+              to={routes.EMPLOYER_SEARCH}
+              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+            >
+              <Building2 className="w-4 h-4" />
               Companies
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center text-[#4b4b4b] hover:text-[#1967d2] font-[600]">
-                Pages <ChevronDown className="ml-1 w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={8} className="w-[380px] p-2 rounded-none border border-gray-100 shadow-xl bg-white backdrop-blur-sm">
-                <div className="grid grid-cols-2 gap-0.5">
-                  {[
-                    { label: "About Us", to: "/about" },
-                    { label: "Contact", to: "/contact" },
-                    { label: "FAQ", to: "/faq" },
-                    { label: "Pricing", to: "/pricing" },
-                    { label: "Terms", to: "/terms" },
-                    { label: "Privacy", to: "/privacy" },
-                  ].map(({ label, to }) => (
-                    <Link
-                      key={label}
-                      to={to}
-                      className="px-3 py-2 text-[13px] font-medium text-slate-700 hover:text-[#1967d2] hover:bg-[#f8faff] transition-all duration-200 hover:translate-x-0.5 border-l-2 border-transparent hover:border-[#1967d2]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
           </nav>
 
           <div className="hidden lg:flex items-center space-x-3">
-            {state.isAuthenticated && state.role === ROLE.JOB_SEEKER ? (
+            {state.isAuthenticated ? (
               <>
-                {/* Notifications */}
                 <JobSeekerNotificationDropdown />
-
-                {/* User Avatar Menu */}
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center space-x-2 focus:border-none focus:outline-0 hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
-                      <AvatarFallback>{getNameInitials(user?.fullName)}</AvatarFallback>
+                  <DropdownMenuTrigger className="flex items-center space-x-2 focus:outline-none hover:opacity-90 transition-all duration-200 rounded-lg px-2 py-1.5 hover:bg-gray-50">
+                    <Avatar className="h-9 w-9 ring-2 ring-gray-200 hover:ring-[#1967d2]/30 transition-all duration-300">
+                      <AvatarImage
+                        src={
+                          user?.avatarUrl ||
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`
+                        }
+                        alt={user?.fullName || "User"}
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-[#1967d2] to-[#1557b8] text-white">
+                        {getNameInitials(user?.fullName)}
+                      </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-gray-900">{user?.fullName || "User"}</span>
-                      <span className="text-xs text-gray-500">Job Seeker</span>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                    <ChevronDown className="w-4 h-4 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.SETTINGS} className="cursor-pointer">
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 shadow-xl border-gray-200/50 backdrop-blur-sm bg-white/95"
+                  >
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={routes.SETTINGS} className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
-                        My Profile
+                        Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.MY_APPLIED_JOBS} className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link
+                        to={routes.MY_APPLIED_JOBS}
+                        className="flex items-center"
+                      >
                         <Briefcase className="w-4 h-4 mr-2" />
-                        My Applied Jobs
+                        Applied Jobs
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.MY_SAVED_JOBS} className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link
+                        to={routes.MY_SAVED_JOBS}
+                        className="flex items-center"
+                      >
                         <BookmarkIcon className="w-4 h-4 mr-2" />
                         Saved Jobs
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.MY_RESUME} className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={routes.MY_RESUME} className="flex items-center">
                         <File className="w-4 h-4 mr-2" />
                         My Resumes
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.MESSAGES} className="cursor-pointer">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Messages
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="focus:bg-sky-200 focus:text-[#1967d2]">
-                      <Link to={routes.SETTINGS} className="cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600 cursor-pointer focus:bg-sky-200 focus:text-red-600" onClick={handleSignOut}>
+                    {user?.role === ROLE.ADMIN && (
+                      <>
+                        <DropdownMenuSeparator className="bg-gray-200" />
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link
+                            to={`${admin_routes.BASE}/${admin_routes.DASHBOARD}`}
+                            className="flex items-center"
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Tới trang quản trị
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator className="bg-gray-200" />
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                      onClick={handleSignOut}
+                    >
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
@@ -213,222 +196,147 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Button variant="outline" size="sm" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e0eeff] bg-transparent font-semibold">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  <Link to={routes.SIGN_UP}>Sign Up</Link>
-                </Button>
-                <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b8] text-white font-semibold">
-                  <LogIn className="w-4 h-4 mr-2" />
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-700 hover:text-[#1967d2] hover:bg-blue-50/50 transition-all duration-200"
+                >
                   <Link to={routes.SIGN_IN}>Sign In</Link>
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] hover:from-[#1557b8] hover:to-[#1445a0] text-white shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  <Link to={routes.SIGN_UP}>Sign Up</Link>
                 </Button>
               </>
             )}
-
             <div className="w-px h-6 bg-gray-300"></div>
             <Link
               to={employer_routes.BASE}
-              className="text-[#4b4b4b] hover:text-[#1967d2] font-medium px-4 py-2 hover:bg-[#f8faff] rounded-md transition-all duration-200 border border-transparent hover:border-[#e0eeff]"
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-200 rounded-lg hover:bg-blue-50/50"
             >
-              Employers
+              For Employers
             </Link>
           </div>
 
-          {/* Mobile menu button (visible until lg) */}
+          {/* Mobile menu */}
           <div className="lg:hidden flex items-center space-x-2">
-            {state.isAuthenticated && state.role === ROLE.JOB_SEEKER ? (
-              <>
-                {/* Mobile Notifications */}
-                <JobSeekerNotificationDropdown />
-              </>
-            ) : (
-              <>
-                <Link to={routes.SIGN_UP}>
-                  <Button variant="outline" size="sm" className="border-[#1967d2] text-[#1967d2] hover:bg-[#e0eeff] bg-transparent font-semibold p-2">
-                    <UserPlus className="w-4 h-4" />
-                  </Button>
-                </Link>
-
-                <Link to={routes.SIGN_IN}>
-                  <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b8] text-white font-semibold p-2">
-                    <LogIn className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </>
-            )}
-
-            <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {state.isAuthenticated && <JobSeekerNotificationDropdown />}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2"
+            >
+              {isMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
 
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4">
-            <nav className="flex flex-col space-y-3">
-              {state.isAuthenticated && state.role === ROLE.JOB_SEEKER && (
-                <div className="flex items-center space-x-3 px-4 py-2 bg-gray-50 rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`} alt={user?.fullName || "User"} />
-                    <AvatarFallback>{getNameInitials(user?.fullName)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900">{user?.fullName || "User"}</span>
-                    <span className="text-xs text-gray-500">Job Seeker</span>
-                  </div>
-                </div>
-              )}
-
-              <Link to={routes.BASE} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]" onClick={() => setIsMenuOpen(false)}>
+          <div className="lg:hidden border-t border-gray-100 py-4">
+            <nav className="flex flex-col space-y-1">
+              <Link
+                to={routes.BASE}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Home className="w-4 h-4" />
                 Home
               </Link>
-
-              {/* Jobs - mobile dropdown */}
-              <div>
-                <button
-                  onClick={() => setMobileSections((prev) => ({ ...prev, jobs: !prev.jobs }))}
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
-                  aria-expanded={mobileSections.jobs}
-                >
-                  Jobs
-                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileSections.jobs ? "rotate-180" : ""}`} />
-                </button>
-                {mobileSections.jobs && (
-                  <div className="mt-2 ml-4 flex flex-col space-y-2">
-                    <Link to={routes.JOB_SEARCH} className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Find jobs
-                    </Link>
-                    <Link to={routes.MY_APPLIED_JOBS} className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Applied jobs
-                    </Link>
-                    <Link to={routes.MY_SAVED_JOBS} className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Bookmarked jobs
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* CV - mobile dropdown */}
-              <div>
-                <button
-                  onClick={() => setMobileSections((prev) => ({ ...prev, cv: !prev.cv }))}
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
-                  aria-expanded={mobileSections.cv}
-                >
-                  CV
-                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileSections.cv ? "rotate-180" : ""}`} />
-                </button>
-                {mobileSections.cv && (
-                  <div className="mt-2 ml-4 flex flex-col space-y-2">
-                    <Link to="/cv/create" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Create CV
-                    </Link>
-                    <Link to="/cv/templates" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      CV Templates
-                    </Link>
-                    <Link to="/cv" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      My CVs
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Companies - mobile dropdown */}
-              <Link to={routes.EMPLOYER_SEARCH} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]" onClick={() => setIsMenuOpen(false)}>
+              <Link
+                to={routes.JOB_SEARCH}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Briefcase className="w-4 h-4" />
+                Jobs
+              </Link>
+              <Link
+                to={routes.ARTICLES}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BookOpen className="w-4 h-4" />
+                Career Guide
+              </Link>
+              <Link
+                to={routes.EMPLOYER_SEARCH}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Building2 className="w-4 h-4" />
                 Companies
               </Link>
-
-              {/* Articles - mobile dropdown */}
-              <Link to={routes.ARTICLES} className="text-[#4b4b4b] hover:text-[#1967d2] font-[600]" onClick={() => setIsMenuOpen(false)}>
-                Career guide
-              </Link>
-
-              {/* Pages - mobile dropdown */}
-              {/* <div>
-                <button
-                  onClick={() =>
-                    setMobileSections((prev) => ({
-                      ...prev,
-                      pages: !prev.pages,
-                    }))
-                  }
-                  className="w-full text-left text-[#4b4b4b] hover:text-[#1967d2] font-[600] flex items-center justify-between"
-                  aria-expanded={mobileSections.pages}
-                >
-                  Pages
-                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileSections.pages ? "rotate-180" : ""}`} />
-                </button>
-                {mobileSections.pages && (
-                  <div className="mt-2 ml-4 flex flex-col space-y-2">
-                    <Link to="/about" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      About Us
-                    </Link>
-                    <Link to="/contact" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Contact
-                    </Link>
-                    <Link to="/faq" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      FAQ
-                    </Link>
-                    <Link to="/pricing" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Pricing
-                    </Link>
-                    <Link to="/terms" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Terms
-                    </Link>
-                    <Link to="/privacy" className="text-sm text-slate-600 hover:text-[#1967d2] py-1" onClick={() => setIsMenuOpen(false)}>
-                      Privacy
-                    </Link>
-                  </div>
-                )}
-              </div> */}
-
-              {state.isAuthenticated && state.role === ROLE.JOB_SEEKER && (
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <Link to={routes.SETTINGS} className="flex items-center space-x-3 text-gray-700 hover:text-[#1967d2] font-medium py-2" onClick={() => setIsMenuOpen(false)}>
-                    <User className="w-5 h-5" />
-                    <span>My Profile</span>
-                  </Link>
-
+              {state.isAuthenticated && (
+                <>
+                  <div className="border-t border-gray-100 my-2"></div>
                   <Link
-                    to={routes.MY_APPLIED_JOBS}
-                    className="flex items-center space-x-3 text-gray-700 hover:text-[#1967d2] font-medium py-2"
+                    to={routes.SETTINGS}
+                    className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Briefcase className="w-5 h-5" />
-                    <span>My Applied Jobs</span>
+                    Profile
                   </Link>
-
-                  <Link to={routes.MY_SAVED_JOBS} className="flex items-center space-x-3 text-gray-700 hover:text-[#1967d2] font-medium py-2" onClick={() => setIsMenuOpen(false)}>
-                    <BookmarkIcon className="w-5 h-5" />
-                    <span>Saved Jobs</span>
+                  <Link
+                    to={routes.MY_APPLIED_JOBS}
+                    className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Applied Jobs
                   </Link>
-
-                  <Link to={routes.SETTINGS} className="flex items-center space-x-3 text-gray-700 hover:text-[#1967d2] font-medium py-2" onClick={() => setIsMenuOpen(false)}>
-                    <Settings className="w-5 h-5" />
-                    <span>Settings</span>
+                  <Link
+                    to={routes.MY_SAVED_JOBS}
+                    className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Saved Jobs
                   </Link>
-
                   <button
-                    className="flex items-center space-x-3 text-red-600 hover:text-red-700 font-medium py-2 w-full text-left"
+                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors text-left"
                     onClick={() => {
                       setIsMenuOpen(false);
                       handleSignOut();
                     }}
                   >
-                    <LogOut className="w-5 h-5" />
-                    <span>Sign Out</span>
+                    Sign Out
                   </button>
-                </div>
+                </>
               )}
-
-              <div className="border-t border-gray-200 pt-3 mt-2">
-                <Link
-                  to={employer_routes.BASE}
-                  className="text-[#4b4b4b] hover:text-[#1967d2] font-[600] block py-2 px-3 hover:bg-[#f8faff] rounded-md transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Employers
-                </Link>
-              </div>
+              {!state.isAuthenticated && (
+                <>
+                  <div className="border-t border-gray-100 my-2"></div>
+                  <Link
+                    to={routes.SIGN_IN}
+                    className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to={routes.SIGN_UP}
+                    className="px-4 py-2 text-sm text-[#1967d2] hover:bg-[#1967d2] hover:text-white rounded-md transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+              <div className="border-t border-gray-100 my-2"></div>
+              <Link
+                to={employer_routes.BASE}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                For Employers
+              </Link>
             </nav>
           </div>
         )}

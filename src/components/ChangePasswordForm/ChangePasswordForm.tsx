@@ -9,7 +9,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { useMutation } from "@tanstack/react-query";
-import { changePasswordFormSchema, type ChangePasswordFormData } from "@/schemas/auth.schema";
+import {
+  changePasswordFormSchema,
+  type ChangePasswordFormData,
+} from "@/schemas/auth.schema";
 import { Link, useLocation } from "react-router-dom";
 import { employer_routes, routes } from "@/routes/routes.const";
 import type { Role } from "@/constants";
@@ -33,7 +36,11 @@ interface ChangePasswordFormProps {
   passwordRequirements?: PasswordRequirement[];
 }
 
-export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRequirements = pwdRequirements, className }: ChangePasswordFormProps) {
+export default function ChangePasswordForm({
+  userType = "JOB_SEEKER",
+  passwordRequirements = pwdRequirements,
+  className,
+}: ChangePasswordFormProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -48,7 +55,11 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
     watch,
   } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordFormSchema),
-    defaultValues: { currentPassword: "", newPassword: "", confirmNewPassword: "" },
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    },
   });
 
   const changePasswordMutation = useMutation({
@@ -88,7 +99,9 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
     return requirement.test(newPassword || "");
   };
 
-  const allRequirementsMet = passwordRequirements.every((req) => checkRequirement(req));
+  const allRequirementsMet = passwordRequirements.every((req) =>
+    checkRequirement(req)
+  );
 
   const onSubmit = (data: ChangePasswordFormData) => {
     changePasswordMutation.mutate({
@@ -98,10 +111,16 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={cn(" space-y-6", className)}>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className={cn(" space-y-6", className)}
+    >
       {/* Old Password */}
       <div className="space-y-2">
-        <Label htmlFor="oldPassword" className="flex items-center gap-2 text-gray-700 font-semibold">
+        <Label
+          htmlFor="oldPassword"
+          className="flex items-center gap-2 text-gray-700 font-semibold"
+        >
           Current Password
         </Label>
         <div className="relative">
@@ -109,17 +128,27 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
             id="currentPassword"
             type={showCurrentPassword ? "text" : "password"}
             {...register("currentPassword")}
-            className={cn("pr-10 focus-visible:ring-1 focus-visible:border-none  focus-visible:ring-[#1967d2] ")}
+            className={cn(
+              "pr-10 focus-visible:ring-1 focus-visible:border-none  focus-visible:ring-[#1967d2] "
+            )}
           />
           <button
             type="button"
             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showCurrentPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
-        {errors.currentPassword && <p className="text-sm text-red-500">{errors.currentPassword.message}</p>}
+        {errors.currentPassword && (
+          <p className="text-sm text-red-500">
+            {errors.currentPassword.message}
+          </p>
+        )}
       </div>
 
       {/* New Password */}
@@ -132,26 +161,48 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
             id="newPassword"
             type={showNewPassword ? "text" : "password"}
             {...register("newPassword")}
-            className={cn("pr-10 focus-visible:ring-1 focus-visible:border-none  focus-visible:ring-[#1967d2]")}
+            placeholder="Enter your new password"
+            className={cn(
+              "pr-10 focus-visible:ring-1 focus-visible:border-none  focus-visible:ring-[#1967d2]"
+            )}
           />
-          <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-            {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          <button
+            type="button"
+            onClick={() => setShowNewPassword(!showNewPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            {showNewPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
-        {errors.newPassword && <p className="text-sm text-red-500">{errors.newPassword.message}</p>}
+        {errors.newPassword && (
+          <p className="text-sm text-red-500">{errors.newPassword.message}</p>
+        )}
 
         {/* Password Requirements */}
         {
           <div className="mt-3 space-y-1">
-            <p className="text-sm text-green-700 font-medium">Please add all necessary characters to create safe password.</p>
+            <p className="text-sm text-green-700 font-medium">
+              Please add all necessary characters to create safe password.
+            </p>
             <ul className="space-y-1">
               {passwordRequirements.map((requirement, index) => (
                 <>
-                  <li key={index} className={cn("text-sm flex items-center gap-2 text-gray-500")}>
+                  <li
+                    key={index}
+                    className={cn(
+                      "text-sm flex items-center gap-2 text-gray-500"
+                    )}
+                  >
                     <p className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />
                       {requirement.label}
-                      {checkRequirement(requirement) && <Check color="#1967d2" className="w-5 h-5" />}
+                      {checkRequirement(requirement) && (
+                        <Check color="#1967d2" className="w-5 h-5" />
+                      )}
                     </p>
                   </li>
                 </>
@@ -163,7 +214,10 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
 
       {/* Confirm New Password */}
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword" className="text-gray-700 font-semibold">
+        <Label
+          htmlFor="confirmPassword"
+          className="text-gray-700 font-semibold"
+        >
           Confirm New Password
         </Label>
         <div className="relative">
@@ -171,10 +225,12 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             {...register("confirmNewPassword")}
-            placeholder="enter your confirm new password"
+            placeholder="Enter your confirm new password"
             className={cn(
               "pr-10 placeholder:text-gray-300 focus-visible:ring-1 focus-visible:border-none ",
-              errors.confirmNewPassword ? "border-red-500 focus-visible:ring-red-500" : " focus-visible:ring-[#1967d2]"
+              errors.confirmNewPassword
+                ? "border-red-500 focus-visible:ring-red-500"
+                : " focus-visible:ring-[#1967d2]"
             )}
           />
           <button
@@ -182,17 +238,29 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showConfirmPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
-        {errors.confirmNewPassword && <p className="text-sm text-red-500">Passwords do not match</p>}
+        {errors.confirmNewPassword && (
+          <p className="text-sm text-red-500">Passwords do not match</p>
+        )}
       </div>
       {/* Change Password Button */}
       <div className="pt-4">
         <Button
           type="submit"
           className="w-full bg-[#1967d2] hover:bg-[#1557b0] text-white py-6 text-base"
-          disabled={changePasswordMutation.isPending || !allRequirementsMet || !!errors.confirmNewPassword || !newPassword || !confirmPassword}
+          disabled={
+            changePasswordMutation.isPending ||
+            !allRequirementsMet ||
+            !!errors.confirmNewPassword ||
+            !newPassword ||
+            !confirmPassword
+          }
         >
           Change Password
         </Button>
@@ -200,7 +268,14 @@ export default function ChangePasswordForm({ userType = "JOB_SEEKER", passwordRe
 
       {/* Forgot Password Link */}
       <div className="text-center">
-        <Link to={isEmployer ? `${employer_routes.BASE}/${employer_routes.FORGOT_PASSWORD}` : `${routes.BASE}/${routes.FORGOT_PASSWORD}`} className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+        <Link
+          to={
+            isEmployer
+              ? `${employer_routes.BASE}/${employer_routes.FORGOT_PASSWORD}`
+              : `${routes.BASE}/${routes.FORGOT_PASSWORD}`
+          }
+          className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+        >
           Forgot Password?
         </Link>
       </div>

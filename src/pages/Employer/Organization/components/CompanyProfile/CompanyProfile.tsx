@@ -2,24 +2,56 @@ import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Users, Pencil, Plus, Loader2, Link } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Camera,
+  MapPin,
+  Users,
+  Plus,
+  Loader2,
+  ExternalLink,
+  Facebook,
+  Linkedin,
+  Youtube,
+  Twitter,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CompanyBannerModal from "@/pages/Employer/Organization/components/CompanyBannerModal";
 import CompanyInformationModal from "@/pages/Employer/Organization/components/CompanyInformationModal";
-import CompanyLocationModal from "@/pages/Employer/Organization/components/CompanyLocationModal";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// sort select removed; pagination implemented instead
 import AboutCompanyModal from "@/pages/Employer/Organization/components/AboutCompanyModal";
 import { useNavigate } from "react-router-dom";
-import { employerService } from "@/services";
+import { employerService, jobService } from "@/services";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { PageResponse } from "@/types/api.types";
+import type { JobResponse } from "@/types/job.type";
 import { toast } from "react-toastify";
 import { CompanySizeLabelVN } from "@/constants";
 import Loading from "@/components/Loading";
 import { employer_routes } from "@/routes/routes.const";
 import EditWebsiteUrlsModal from "@/pages/Employer/Organization/components/CompanyProfile/EditWebsiteUrlsModal";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 
-const defaultBanner = "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
-const defaultAvatar = "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
+// Fix Leaflet default marker icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+const defaultBanner =
+  "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
+const defaultAvatar =
+  "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
 
 export default function CompanyProfile() {
   const navigate = useNavigate();
@@ -28,7 +60,9 @@ export default function CompanyProfile() {
   const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
   const [showAvatarHover, setShowAvatarHover] = useState(false);
   const [showEditCoverMenu, setShowEditCoverMenu] = useState(false);
-  const [sortBy, setSortBy] = useState<string>("Date Updated");
+  // pagination for hiring jobs (API uses 1-based pageNumber)
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const pageSize = 5;
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const { data: employerData, isLoading: isLoadingProfile } = useQuery({
@@ -38,6 +72,58 @@ export default function CompanyProfile() {
       return response.data;
     },
   });
+
+  // Get current hiring jobs - only fetch when employer data is loaded
+  const {
+    data: hiringJobsData,
+    isLoading: isLoadingJobs,
+    error: jobsError,
+  } = useQuery<PageResponse<JobResponse>, Error>({
+    queryKey: ["openingsByEmployer", employerData?.id, pageNumber, pageSize],
+    queryFn: async () => {
+      if (!employerData?.id) throw new Error("Missing employer id");
+      try {
+        const response = await jobService.getJobsByEmployerId(
+          employerData.id,
+          pageNumber,
+          pageSize
+        );
+        console.log("✅ Openings by employer response:", response);
+        return response.data;
+      } catch (error) {
+        console.error("❌ Error fetching openings by employer:", error);
+        throw error;
+      }
+    },
+    enabled: !!employerData?.id, // Only fetch when employer id is available
+  });
+
+  // Debug: log jobs data
+  useEffect(() => {
+    if (hiringJobsData) {
+      console.log("📊 Hiring Jobs Data:", hiringJobsData);
+      console.log("📈 Total jobs from API:", hiringJobsData.numberOfElements);
+      console.log("📋 All Jobs items:", hiringJobsData.items);
+      console.log("📄 Total pages:", hiringJobsData.totalPages);
+
+      // Log status of each job
+      hiringJobsData.items.forEach((job, index) => {
+        console.log(
+          `Job ${index + 1}: ${job.jobTitle} - Status: ${job.status}`
+        );
+      });
+
+      const approvedJobs = hiringJobsData.items.filter(
+        (job) => job.status === "APPROVED"
+      );
+      console.log(`✅ Approved jobs count: ${approvedJobs.length}`);
+      console.log("✅ Approved jobs:", approvedJobs);
+    }
+    if (jobsError) {
+      console.error("🔴 Jobs Error:", jobsError);
+      toast.error("Failed to load hiring jobs");
+    }
+  }, [hiringJobsData, jobsError]);
 
   const updateAvatarMutation = useMutation({
     mutationFn: (file: File) => employerService.updateEmployerAvatar(file),
@@ -76,25 +162,22 @@ export default function CompanyProfile() {
         </div>
       )}
       <div className="bg-white rounded-lg shadow-sm">
-        {/* Preview Mode Banner */}
-        <div className="bg-gray-700 text-white px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-gray-600">
-              ← Back
-            </Button>
-            <span>You are in preview and editing mode</span>
-          </div>
-          <Button variant="outline" size="sm" className="bg-[#1967d2] text-white border-[#1967d2] hover:bg-[#1557b0]">
-            View this page on job-seeker site
-          </Button>
-        </div>
-
         {/* Banner Section */}
         <div className="relative">
-          <img src={bannerImage || defaultBanner} alt="Company Banner" className="w-full h-64 object-cover" />
-          <DropdownMenu open={showEditCoverMenu} onOpenChange={setShowEditCoverMenu}>
+          <img
+            src={bannerImage || defaultBanner}
+            alt="Company Banner"
+            className="w-full h-64 object-cover"
+          />
+          <DropdownMenu
+            open={showEditCoverMenu}
+            onOpenChange={setShowEditCoverMenu}
+          >
             <DropdownMenuTrigger asChild>
-              <Button className="absolute top-4 right-4 bg-white text-gray-700 hover:bg-gray-100" size="sm">
+              <Button
+                className="absolute top-4 right-4 bg-white text-gray-700 hover:bg-gray-100"
+                size="sm"
+              >
                 <Camera className="mr-2 h-4 w-4" />
                 Edit cover
               </Button>
@@ -104,26 +187,51 @@ export default function CompanyProfile() {
                 currentBanner={bannerImage}
                 onBannerChange={setBannerImage}
                 trigger={
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="focus:bg-sky-200 focus:text-[#1967d2]"
+                  >
                     Select banner
                   </DropdownMenuItem>
                 }
               />
-              <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">Change position</DropdownMenuItem>
+              <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">
+                Change position
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Avatar */}
           <div className="absolute -bottom-16 left-8">
-            <div className="relative cursor-pointer" onMouseEnter={() => setShowAvatarHover(true)} onMouseLeave={() => setShowAvatarHover(false)} onClick={handleAvatarClick}>
-              <img src={avatarImage || defaultAvatar} alt="Company Avatar" className="w-32 h-32 rounded-lg border-4 border-white object-cover" />
+            <div
+              className="relative cursor-pointer"
+              onMouseEnter={() => setShowAvatarHover(true)}
+              onMouseLeave={() => setShowAvatarHover(false)}
+              onClick={handleAvatarClick}
+            >
+              <img
+                src={avatarImage || defaultAvatar}
+                alt="Company Avatar"
+                className="w-32 h-32 rounded-lg border-4 border-white object-cover"
+              />
               {showAvatarHover && (
                 <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                  {updateAvatarMutation.isPending ? <Loader2 className="h-8 w-8 animate-spin text-white" /> : <Camera className="h-8 w-8 text-white" />}
+                  {updateAvatarMutation.isPending ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-white" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-white" />
+                  )}
                 </div>
               )}
             </div>
-            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={updateAvatarMutation.isPending} />
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+              disabled={updateAvatarMutation.isPending}
+            />
           </div>
         </div>
 
@@ -131,15 +239,25 @@ export default function CompanyProfile() {
         <div className="pt-20 px-8 pb-6 border-b">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">{employerData?.companyName}</h2>
+              <h2 className="text-2xl font-bold mb-2">
+                {employerData?.companyName}
+              </h2>
               <div className="flex items-center gap-4 text-gray-600">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{employerData ? `${employerData.detailAddress}, ${employerData.district?.name}, ${employerData.province?.name}` : "Address not set"}</span>
+                  <span>
+                    {employerData
+                      ? `${employerData.detailAddress}, ${employerData.district?.name}, ${employerData.province?.name}`
+                      : "Address not set"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  <span>{employerData?.companySize ? CompanySizeLabelVN[employerData.companySize] : "Company size not set"}</span>
+                  <span>
+                    {employerData?.companySize
+                      ? CompanySizeLabelVN[employerData.companySize]
+                      : "Company size not set"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -154,11 +272,18 @@ export default function CompanyProfile() {
             {/* About Company */}
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#1967d2]">About company</h3>
+                <h3 className="text-lg font-semibold text-[#1967d2]">
+                  About company
+                </h3>
                 <AboutCompanyModal />
               </div>
               {employerData && employerData.aboutCompany !== "" ? (
-                <div className="text-gray-600 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: employerData.aboutCompany || "" }} />
+                <div
+                  className="text-gray-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: employerData.aboutCompany || "",
+                  }}
+                />
               ) : (
                 <p className="text-gray-600">No description available.</p>
               )}
@@ -167,55 +292,170 @@ export default function CompanyProfile() {
             {/* Current Hiring Position */}
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#1967d2]">Current hiring position</h3>
-                <Button className="bg-[#1967d2] hover:bg-[#1557b0] py-5" size="sm" onClick={() => navigate(`${employer_routes.BASE}/${employer_routes.JOB_ADD}`)}>
+                <h3 className="text-lg font-semibold text-[#1967d2]">
+                  Current hiring position
+                </h3>
+                <Button
+                  className="bg-[#1967d2] hover:bg-[#1557b0] py-5"
+                  size="sm"
+                  onClick={() =>
+                    navigate(
+                      `${employer_routes.BASE}/${employer_routes.JOB_ADD}`
+                    )
+                  }
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Post a new Job
                 </Button>
               </div>
               <div className="mb-4 flex justify-between items-center">
                 <span className="text-gray-600 space-x-2">
-                  <span className="text-green-500">0</span>
-                  <span className="font-semibold">job</span>
+                  <span className="text-green-500">
+                    {hiringJobsData?.numberOfElements || 0}
+                  </span>
+                  <span className="font-semibold">
+                    active job
+                    {(hiringJobsData?.numberOfElements || 0) !== 1 ? "s" : ""}
+                  </span>
                 </span>
-                <div className="ml-auto flex items-center">
-                  <span className="text-sm text-gray-500">Sort by</span>
-                  <div className="ml-2">
-                    <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
-                      <SelectTrigger className="mt-1 w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Date Updated" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                          Date Updated
-                        </SelectItem>
-                        <SelectItem value="Date Posted" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                          Date Posted
-                        </SelectItem>
-                        <SelectItem value="Expire soon" className="focus:bg-sky-200 focus:text-[#1967d2]">
-                          Expire soon
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              </div>
+              {isLoadingJobs ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#1967d2] mx-auto" />
                 </div>
-              </div>
-              <div className="text-left py-8">
-                <p className="font-semibold mb-2">We have not found jobs for this search.</p>
-                <p className="text-sm text-gray-600">Search suggestions:</p>
-                <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                  <li>○ Check your spelling.</li>
-                  <li>○ Try different keywords.</li>
-                  <li>○ Try more general keywords.</li>
-                </ul>
-              </div>
+              ) : hiringJobsData && hiringJobsData.items.length > 0 ? (
+                <div className="space-y-4">
+                  {hiringJobsData.items.map((job) => (
+                    <div
+                      key={job.id}
+                      className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4
+                            className="font-semibold text-[#1967d2] hover:underline cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                `${employer_routes.BASE}/${employer_routes.JOBS}`
+                              )
+                            }
+                          >
+                            {job.jobTitle}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                            <MapPin className="h-4 w-4" />
+                            <span>
+                              {job.jobLocations
+                                ?.map((loc) => loc.province?.name)
+                                .join(", ") || "N/A"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                            <span>
+                              Posted:{" "}
+                              {new Date(job.createdAt).toLocaleDateString()}
+                            </span>
+                            <span>
+                              Expires:{" "}
+                              {new Date(
+                                job.expirationDate
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate(
+                              `${employer_routes.BASE}/${employer_routes.JOBS}/${job.id}/edit`
+                            )
+                          }
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {(hiringJobsData?.numberOfElements || 0) === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>
+                        All your jobs are pending approval or no approved jobs
+                        yet.
+                      </p>
+                    </div>
+                  )}
+                  {(hiringJobsData?.numberOfElements || 0) > 0 && (
+                    <div className="mt-3">
+                      {/* Pagination controls */}
+                      {hiringJobsData && hiringJobsData.totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="text-sm text-gray-600">
+                            Page {pageNumber} of {hiringJobsData.totalPages}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setPageNumber((p) => Math.max(1, p - 1))
+                              }
+                              disabled={pageNumber === 1}
+                            >
+                              Previous
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setPageNumber((p) =>
+                                  Math.min(hiringJobsData.totalPages, p + 1)
+                                )
+                              }
+                              disabled={
+                                pageNumber === hiringJobsData.totalPages
+                              }
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {/* View all jobs link */}
+                      <div className="mt-3">
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() =>
+                            navigate(
+                              `${employer_routes.BASE}/${employer_routes.JOBS}`
+                            )
+                          }
+                        >
+                          View all jobs
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-left py-8">
+                  <p className="font-semibold mb-2">
+                    No active job postings found.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Post your first job to start hiring!
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Work Locations */}
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#1967d2]">Work locations (2)</h3>
-                <CompanyLocationModal />
+                <h3 className="text-lg font-semibold text-[#1967d2]">
+                  Work locations
+                </h3>
               </div>
               <div className="space-y-4 mb-4">
                 <div className="flex items-start gap-3">
@@ -223,24 +463,44 @@ export default function CompanyProfile() {
                     <MapPin className="h-5 w-5 text-gray-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-[#1967d2]">{employerData?.companyName}</h4>
-                    <p className="text-sm text-gray-600">130 Nguyễn Chí Thanh, Hai Chau District, Da Nang</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-gray-100 p-2 rounded">
-                    <MapPin className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#1967d2]">FPT Building</h4>
-                    <p className="text-sm text-gray-600">số 17 Duy Tân, Cầu Giấy, Hà Nội, Cau Giay District, Ha Noi</p>
+                    <h4 className="font-semibold text-[#1967d2]">
+                      {employerData?.companyName}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {employerData
+                        ? `${employerData.detailAddress}, ${employerData.district?.name}, ${employerData.province?.name}`
+                        : "Address not set"}
+                    </p>
                   </div>
                 </div>
               </div>
-              {/* Map Placeholder */}
-              <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">Map View</span>
-              </div>
+              {/* Map View */}
+              {employerData?.province && employerData?.district && (
+                <div className="w-full h-64 rounded-lg overflow-hidden">
+                  <MapContainer
+                    center={[16.0544, 108.2022]} // Da Nang coordinates as default
+                    zoom={13}
+                    style={{ height: "100%", width: "100%" }}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <Marker position={[16.0544, 108.2022]}>
+                      <Popup>
+                        <div>
+                          <strong>{employerData.companyName}</strong>
+                          <br />
+                          {employerData.detailAddress},{" "}
+                          {employerData.district?.name},{" "}
+                          {employerData.province?.name}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              )}
             </div>
           </div>
 
@@ -249,82 +509,156 @@ export default function CompanyProfile() {
             {/* Website */}
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-[#1967d2]">Website</h3>
+                <h3 className="text-lg font-semibold text-[#1967d2]">
+                  Website
+                </h3>
                 <EditWebsiteUrlsModal />
               </div>
               <div className="space-y-2">
-                {employerData?.websiteUrls && employerData.websiteUrls.length > 0 && (
+                {employerData?.websiteUrls &&
+                employerData.websiteUrls.length > 0 ? (
                   <>
                     {employerData.websiteUrls.map((url, index) => (
-                      <div key={index} className="text-sm flex items-center gap-1 text-gray-600">
-                        <Link size={18} />{" "}
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                      <div
+                        key={index}
+                        className="text-sm flex items-center gap-2 text-gray-600"
+                      >
+                        <ExternalLink size={16} className="text-gray-500" />
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate"
+                        >
                           {url}
                         </a>
                       </div>
                     ))}
                   </>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Chưa có thông tin website
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Follow */}
             <div className="border rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">Follow</h3>
+              <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
+                Follow us
+              </h3>
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                    <span className="text-blue-600">f</span>
-                  </Button>
-                  <a href={employerData?.facebookUrl ? employerData.facebookUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                    {employerData?.facebookUrl ? employerData.facebookUrl : "empty"}
-                  </a>
+                {/* Facebook */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Facebook className="h-5 w-5 text-blue-600" />
+                  </div>
+                  {employerData?.facebookUrl ? (
+                    <a
+                      href={employerData.facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate text-sm"
+                    >
+                      {employerData.facebookUrl}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Chưa có</span>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                    <span className="text-blue-500">in</span>
-                  </Button>
-                  <a href={employerData?.linkedinUrl ? employerData.linkedinUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                    {employerData?.linkedinUrl ? employerData.linkedinUrl : "empty"}
-                  </a>
+                {/* LinkedIn */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Linkedin className="h-5 w-5 text-blue-700" />
+                  </div>
+                  {employerData?.linkedinUrl ? (
+                    <a
+                      href={employerData.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate text-sm"
+                    >
+                      {employerData.linkedinUrl}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Chưa có</span>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                    <span className="text-red-500">yt</span>
-                  </Button>
-                  <a href={employerData?.youtubeUrl ? employerData.youtubeUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                    {employerData?.youtubeUrl ? employerData.youtubeUrl : "empty"}
-                  </a>
+                {/* YouTube */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <Youtube className="h-5 w-5 text-red-600" />
+                  </div>
+                  {employerData?.youtubeUrl ? (
+                    <a
+                      href={employerData.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate text-sm"
+                    >
+                      {employerData.youtubeUrl}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Chưa có</span>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                    <span className="text-blue-400">tw</span>
-                  </Button>
-                  <a href={employerData?.twitterUrl ? employerData.twitterUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                    {employerData?.twitterUrl ? employerData.twitterUrl : "empty"}
-                  </a>
+                {/* Twitter */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
+                    <Twitter className="h-5 w-5 text-sky-500" />
+                  </div>
+                  {employerData?.twitterUrl ? (
+                    <a
+                      href={employerData.twitterUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate text-sm"
+                    >
+                      {employerData.twitterUrl}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Chưa có</span>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
-                    <span className="text-orange-500">g</span>
-                  </Button>
-                  <a href={employerData?.googleUrl ? employerData.googleUrl : "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                    {employerData?.googleUrl ? employerData.googleUrl : "empty"}
-                  </a>
-                </div>
-              </div>
-
-              {/* Company Photos */}
-              <div className="border rounded-lg p-6 mt-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#1967d2]">Company photos</h3>
-                  <Button variant="ghost" size="icon">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                {/* Google */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                      <path
+                        fill="#EA4335"
+                        d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"
+                      />
+                      <path
+                        fill="#4A90E2"
+                        d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5272727 23.1818182,9.81818182 L12,9.81818182 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z"
+                      />
+                    </svg>
+                  </div>
+                  {employerData?.googleUrl ? (
+                    <a
+                      href={employerData.googleUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate text-sm"
+                    >
+                      {employerData.googleUrl}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Chưa có</span>
+                  )}
                 </div>
               </div>
             </div>

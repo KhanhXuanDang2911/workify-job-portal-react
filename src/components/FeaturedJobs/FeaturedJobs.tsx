@@ -105,39 +105,77 @@ export default function FeaturedJobs() {
   }, [mappedJobs.length]);
 
   return (
-    <section className="py-16 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 relative overflow-x-hidden">
-      <div className="absolute inset-0 opacity-40">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-300 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-300 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-teal-300 rounded-full blur-2xl"></div>
-        <div className="absolute top-20 right-1/4 w-2 h-20 bg-gradient-to-b from-blue-200 to-transparent rotate-45"></div>
-        <div className="absolute bottom-32 left-1/4 w-2 h-16 bg-gradient-to-b from-purple-200 to-transparent -rotate-45"></div>
-        <div className="absolute top-1/3 right-10 w-1 h-12 bg-gradient-to-b from-teal-200 to-transparent rotate-12"></div>
+    <section className="relative py-20 bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 overflow-hidden">
+      {/* Decorative background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-100/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="main-layout relative z-10">
-        <div className="text-center mb-12">
-          <p className="text-[#1967d2] font-semibold mb-3 text-lg">Top Attractive Jobs</p>
-          <h2 className="text-3xl font-bold text-gray-900">
-            Find Your Career You Deserve it
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/50 rounded-full mb-4">
+            <span className="w-2 h-2 bg-[#1967d2] rounded-full animate-pulse"></span>
+            <p className="text-[#1967d2] font-semibold text-sm">
+              Top Attractive Jobs
+            </p>
+          </div>
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Find Your{" "}
+            <span className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] bg-clip-text text-transparent">
+              Dream Career
+            </span>
           </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover the most attractive job opportunities from top companies. Start your journey today.
+          </p>
         </div>
 
         <div className="relative">
           {isLoading ? (
-            <div className="py-12 flex items-center justify-center">
+            <div className="py-20 flex items-center justify-center">
               <Loading variant="spinner" size="lg" />
             </div>
           ) : isError ? (
-            <div className="py-12 text-center text-red-600">
-              {(queryError as any)?.message || "Không thể tải danh sách công việc"}
+            <div className="py-20 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <p className="text-red-600 font-medium">
+                {(queryError as any)?.message || "Không thể tải danh sách công việc"}
+              </p>
             </div>
           ) : mappedJobs.length === 0 ? (
-            <div className="py-12 text-center text-gray-600">
-              Không có công việc nào
+            <div className="py-20 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <span className="text-2xl">📋</span>
+              </div>
+              <p className="text-gray-600 font-medium">Không có công việc nào</p>
             </div>
           ) : (
             <>
+              {/* Navigation buttons */}
+              {totalSlides > 1 && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:border-[#1967d2] transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
+                    disabled={currentSlide === 0}
+                  >
+                    <ChevronLeft className="w-5 h-5 text-gray-600 group-hover:text-[#1967d2] transition-colors" />
+                  </button>
+
+                  <button
+                    onClick={nextSlide}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:border-[#1967d2] transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
+                    disabled={currentSlide === totalSlides - 1}
+                  >
+                    <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-[#1967d2] transition-colors" />
+                  </button>
+                </>
+              )}
+
               <div className="overflow-x-hidden">
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
@@ -145,7 +183,7 @@ export default function FeaturedJobs() {
                 >
                   {Array.from({ length: totalSlides }).map((_, slideIndex) => (
                     <div key={slideIndex} className="w-full flex-shrink-0">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-2">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {mappedJobs
                           .slice(
                             slideIndex * itemsPerSlide,
@@ -160,46 +198,35 @@ export default function FeaturedJobs() {
                 </div>
               </div>
 
+              {/* Pagination dots */}
               {totalSlides > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-8">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={prevSlide}
-                    className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <div className="flex space-x-2">
-                    {Array.from({ length: totalSlides }).map((_, index) => (
-                      <button
-                        key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
-                        }`}
-                        onClick={() => setCurrentSlide(index)}
-                      />
-                    ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={nextSlide}
-                    className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                <div className="flex justify-center items-center space-x-3 mt-10">
+                  {Array.from({ length: totalSlides }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`transition-all duration-300 rounded-full ${
+                        index === currentSlide
+                          ? "w-8 h-2 bg-[#1967d2]"
+                          : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                      }`}
+                    />
+                  ))}
                 </div>
               )}
             </>
           )}
 
-          <div className="text-center mt-8">
-            <Link to={`/${routes.JOB_SEARCH}`}>
-              <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3">
+          <div className="text-center mt-12">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] hover:from-[#1557b8] hover:to-[#1445a0] text-white px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Link to={`/${routes.JOB_SEARCH}`}>
                 View All Jobs
-              </Button>
-            </Link>
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

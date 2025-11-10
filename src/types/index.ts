@@ -6,3 +6,4 @@ export * from "./job.type";
 export * from "./industry.type";
 export * from "./post.type";
 export * from "./application.type";
+export * from "./notification.type";

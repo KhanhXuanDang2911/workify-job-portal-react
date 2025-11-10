@@ -19,6 +19,7 @@ export const routes = {
   CREATE_PASSWORD: "create-password",
   CREATE_CV: "cv-builder",
   LINKEDIN_AUTHENTICATE: "linkedin/authenticate",
+  NOTIFICATIONS: "notifications",
 };
 
 export const employer_routes = {
@@ -27,21 +28,19 @@ export const employer_routes = {
   SIGN_IN: "sign-in",
   HOME: "home",
   APPLICATIONS: "applications",
-  SEARCH_TALENTS: "search-talents",
-  VIEWED_TALENTS: "viewed-talents",
-  SAVED_TALENTS: "saved-talents",
   ORGANIZATION: "organization",
   JOBS: "jobs",
   JOB_ADD: "jobs/add",
+  JOB_EDIT: "jobs/edit/:id",
   SETTINGS: "settings",
   FORGOT_PASSWORD: "forgot-password",
   RESET_PASSWORD: "reset-password",
   VERIFY_EMAIL: "verify-email",
+  NOTIFICATIONS: "notifications",
 };
 
 export const admin_routes = {
   BASE: "/admin",
-  SIGN_IN: "sign-in",
   DASHBOARD: "dashboard",
   USERS: "users",
   EMPLOYERS: "employers",

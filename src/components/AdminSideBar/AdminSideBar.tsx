@@ -1,27 +1,32 @@
-import type React from "react";
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, User, LogOut, Menu, X, BookHeart, Factory, Building, MapPinPen, Users, FolderOpen, BriefcaseBusiness } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { LucideProps } from "lucide-react";
+import {
+  LayoutDashboard,
+  BriefcaseBusiness,
+  BookHeart,
+  FolderOpen,
+  Building,
+  Factory,
+  MapPinPen,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  User,
+} from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authUtils } from "@/lib/auth";
+import { userTokenUtils } from "@/lib/token";
 import { authService } from "@/services";
-import { useAuth } from "@/context/auth/useAuth";
-import { signOut } from "@/context/auth/auth.action";
+import { useUserAuth } from "@/context/user-auth";
 import { toast } from "react-toastify";
 import { admin_routes } from "@/routes/routes.const";
+import { getNameInitials } from "@/utils/string";
 
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
-  href: string;
-}
-
-const menuItems: MenuItem[] = [
+const menuItems = [
   {
     id: "dashboard",
     label: "Dashboard",
@@ -72,74 +77,29 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-type Face = "up" | "down";
-type Position = "top" | "mid" | "bottom";
-
-function getTailwindClass(face: Face, position: Position): string {
-  const map: Record<Face, Record<Position, string>> = {
-    up: {
-      top: "rounded-tl-[32px] rounded-tr-[4px] rounded-bl-[0px] rounded-br-[32px]",
-      mid: "rounded-tl-[32px] rounded-tr-[0px] rounded-bl-[0px] rounded-br-[32px]",
-      bottom: "rounded-tl-[32px] rounded-tr-[0px] rounded-bl-[4px] rounded-br-[32px]",
-    },
-    down: {
-      top: "rounded-tr-[32px] rounded-bl-[32px] rounded-br-[0px]",
-      mid: "rounded-tl-[0px] rounded-tr-[32px] rounded-bl-[32px] rounded-br-[0px]",
-      bottom: "rounded-tl-[0px] rounded-tr-[32px] rounded-bl-[32px] rounded-br-[4px]",
-    },
-  };
-
-  return map[face][position];
-}
-
-interface SidebarItemProps {
-  item: MenuItem;
+export default function AdminSidebar({
+  isCollapsed = false,
+  setIsCollapsed,
+  device,
+}: {
   isCollapsed: boolean;
-  isActive: boolean;
-  face: Face;
-  position: Position;
-}
-
-export function SidebarItem({ item, isCollapsed, isActive, face, position }: SidebarItemProps) {
-  const { label, icon: Icon, href = "#" } = item;
-
-  const borderClass = getTailwindClass(face, position);
-
-  const baseClass = `
-    h-[56px] flex items-center gap-3 px-4  text-[15px]
-    transition-all duration-200 cursor-pointer select-none 
-    outline outline-1 outline-[#009473]/30 outline-offset-[-1px]
-    hover:outline-[#009473]/100 hover:bg-[#6EBD9D] hover:text-[#6AE2B2]
-    ${borderClass}
-    ${isCollapsed ? "w-[72px] justify-center" : "w-[177px]"}
-    ${isActive ? " text-[#1E1E1E] bg-[#4B9D7C] drop-shadow-[0_4px_4px_rgba(0,0,0,0.2)]" : "text-[#4c5b55]  bg-[#6EBD9D]"}
-  `;
-  return (
-    <Link to={href} className={baseClass}>
-      {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
-      {!isCollapsed && <span className="font-normal">{label}</span>}
-    </Link>
-  );
-}
-
-export default function AdminSidebar() {
+  setIsCollapsed: (v: boolean) => void;
+  device?: string;
+}) {
   const location = useLocation();
-  const [userName] = useState("Dung Van");
-  const [userEmail] = useState("admin@workify.com");
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const { dispatch } = useAuth();
+  const { state, dispatch } = useUserAuth();
   const queryClient = useQueryClient();
+  const user = state.user;
 
   const signOutMutation = useMutation({
     mutationFn: () => {
-      const accessToken = authUtils.getAccessToken() || "";
-      const refreshToken = authUtils.getRefreshToken() || "";
+      const accessToken = userTokenUtils.getAccessToken() || "";
+      const refreshToken = userTokenUtils.getRefreshToken() || "";
       return authService.signOut(accessToken, refreshToken);
     },
     onSettled: () => {
-      dispatch(signOut());
-
-      authUtils.clearAuth();
+      dispatch({ type: "CLEAR_USER" });
+      userTokenUtils.clearAuth();
       queryClient.removeQueries();
       toast.success("Signed out successfully");
     },
@@ -148,79 +108,152 @@ export default function AdminSidebar() {
   const handleSignOut = () => {
     signOutMutation.mutate();
   };
-  return (
-    <div className={cn("flex flex-col h-screen relative bg-[#6AE2B2] transition-all duration-300 overflow-hidden", isCollapsed ? "w-[120px]" : "w-[215px]")}>
-      {/* Header with Logo and Toggle */}
-      <div className="flex items-center justify-between p-6 py-4">
-        {!isCollapsed && (
-          <div className="flex gap-2 items-center">
-            <img src="/logo.png" alt="" className="w-10 h-10" />
-            <h1 className="text-2xl font-bold text-[#4B9D7C]">Workify</h1>
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed((isCollapsed) => !isCollapsed)}
-          className={cn("text-white hover:bg-white/20", !isCollapsed ? "hidden" : "mx-auto")}
-        >
-          {isCollapsed && <Menu className="h-8! w-8! text-[#4B9D7C]" strokeWidth={1.8} />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed((isCollapsed) => !isCollapsed)}
-          className={cn("text-white hover:bg-white/20 absolute right-1 top-1", isCollapsed && "hidden")}
-        >
-          <X className="h-5 w-5 text-[#4B9D7C]" />
-        </Button>
-      </div>
-      {/* User Profile Section */}
-      <Link
-        to="/admin/profile"
-        className={cn(
-          "h-[56px] flex items-center gap-3 px-4 text-[15px] transition-all duration-200 cursor-pointer select-none outline-1 outline-[#009473]/30 outline-offset-[-1px] hover:outline-[#009473]/100 hover:bg-[#6EBD9D] hover:text-[#6AE2B2] mx-auto mb-4",
-          isCollapsed ? "w-[72px] justify-center" : "w-[177px] justify-start",
-          location.pathname === "/admin/profile" ? "text-[#1E1E1E] bg-[#4B9D7C] drop-shadow-[0_4px_4px_rgba(0,0,0,0.2)]" : "text-[#4c5b55] bg-[#6EBD9D]",
-          "rounded-tl-[4px] rounded-tr-[32px] rounded-bl-[32px] rounded-br-[4px]"
-        )}
-      >
-        <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
-          <User className="h-5 w-5 flex-shrink-0" />
-        </div>
-        {!isCollapsed && (
-          <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">{userName}</p>
-            <p className="text-xs truncate">{userEmail}</p>
-          </div>
-        )}
-      </Link>
 
-      {/* Menu Items */}
-      <nav className="flex-1 flex flex-col items-center z-10 px-4 overflow-y-auto ">
-        {menuItems.map((item, index, array) => {
-          const isActive = location.pathname === item.href;
-          const Icon = item.icon;
-          const position = index === 0 ? "top" : index === array.length - 1 ? "bottom" : "mid";
-          return <SidebarItem key={item.id} item={item} isCollapsed={isCollapsed} isActive={isActive} face={index % 2 === 0 ? "up" : "down"} position={position} />;
-        })}
-      </nav>
-      {/* Decorative Plant Section */}
-      <img src="/asset-1.png" alt="" className="absolute bottom-1 w-full" />
-      {/* Logout Button */}
-      <button
-        className={cn(
-          "h-[56px] flex items-center gap-3 px-4 text-[15px] transition-all duration-200 outline-1 outline-[#009473]/30 outline-offset-[-1px] hover:outline-[#009473]/100 hover:bg-[#6EBD9D] hover:text-[#6AE2B2] mx-auto mb-4 absolute bottom-1 z-10 left-1/2 transform -translate-x-1/2 text-[#4c5b55] bg-[#6EBD9D] cursor-pointer",
-          isCollapsed ? "w-[72px] justify-center" : "w-[177px] justify-start",
-          "rounded-tl-[32px] rounded-tr-[4px] rounded-bl-[4px] rounded-br-[32px]"
-        )}
-        onClick={handleSignOut}
-      >
-        <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
-          <LogOut className="h-5 w-5 flex-shrink-0" />
+  return (
+    <div
+      className={cn(
+        "flex flex-col h-screen bg-white border-r border-gray-200 transition-all duration-300 z-45 overflow-y-auto",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Collapse Toggle Button - Desktop only */}
+      {device === "desktop" && (
+        <div className="p-2 border-b border-gray-200">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full p-2 bg-white/50 hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+            onClick={() => setIsCollapsed((v) => !v)}
+            aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-gray-600" strokeWidth={2} />
+            ) : (
+              <ChevronLeft className="w-5 h-5 text-gray-600" strokeWidth={2} />
+            )}
+          </Button>
         </div>
-        {!isCollapsed && <span>Log out</span>}
-      </button>
+      )}
+
+      {/* Navigation */}
+      <nav className="overflow-y-auto p-2 flex-1">
+        <ul className="space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.href;
+            return (
+              <li key={item.id}>
+                <Link to={item.href}>
+                  {!isCollapsed ? (
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        isActive && "bg-blue-50 text-blue-600"
+                      )}
+                    >
+                      <Icon
+                        className="size-5 shrink-0"
+                        strokeWidth={2}
+                        color={isActive ? "#1967d2" : "#1967d2"}
+                      />
+                      <span className="ml-3">{item.label}</span>
+                    </Button>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start text-left font-normal text-[15px]",
+                            isActive && "bg-blue-50 text-blue-600"
+                          )}
+                        >
+                          <Icon
+                            className="size-5 shrink-0"
+                            strokeWidth={2}
+                            color={isActive ? "#1967d2" : "#1967d2"}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        sideOffset={10}
+                        className="bg-[#1967d2] text-white"
+                      >
+                        {item.label}
+                        <TooltipArrow className="fill-[#1967d2]" />
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* User Profile */}
+      {!isCollapsed && (
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName || "Admin"}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4 text-gray-600" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {user?.fullName || "Admin"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || "admin@workify.com"}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full justify-start text-left font-normal text-red-600 hover:bg-red-50 hover:border-red-300"
+            onClick={handleSignOut}
+            disabled={signOutMutation.isPending}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Đăng xuất
+          </Button>
+        </div>
+      )}
+
+      {/* Collapsed Logout */}
+      {isCollapsed && (
+        <div className="p-2 border-t border-gray-200">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-center text-red-600 hover:bg-red-50"
+                onClick={handleSignOut}
+                disabled={signOutMutation.isPending}
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="right"
+              sideOffset={10}
+              className="bg-red-600 text-white"
+            >
+              Đăng xuất
+              <TooltipArrow className="fill-red-600" />
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }

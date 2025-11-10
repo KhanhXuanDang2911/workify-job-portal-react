@@ -100,6 +100,7 @@ export interface JobResponse {
     backgroundUrl?: string;
     employerSlug: string;
   };
+  numberOfApplications?: number;
 }
 
 export interface JobsAdvancedSearchParams {

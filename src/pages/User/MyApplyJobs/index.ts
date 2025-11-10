@@ -1,1 +1,1 @@
-export { default } from "./MySavedJobs";
+export { default } from "./MyApplyJobs";

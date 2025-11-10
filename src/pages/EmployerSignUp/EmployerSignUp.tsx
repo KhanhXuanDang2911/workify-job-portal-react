@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,210 +100,210 @@ function EmployerSignUp() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Floating Geometric Shapes */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-lg float-animation"></div>
-        <div className="absolute bottom-40 left-20 w-40 h-40 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-2xl float-animation-delayed"></div>
-        <div className="absolute bottom-20 right-40 w-28 h-28 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 rounded-full blur-xl float-animation-delayed-2"></div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-2xl">
-          {/* Header */}
-          <div className="text-center mb-6 animate-fade-in-up">
-            <div className="flex justify-center mb-3">
-              <div className="p-3 bg-gradient-to-r from-[#1967d2] to-blue-600 rounded-2xl shadow-lg">
-                <Building2 className="w-7 h-7 text-white" />
-              </div>
+    <div className="min-h-screen bg-white relative">
+      <div className="relative z-10 min-h-screen flex">
+        {/* Main Content - Centered */}
+        <div className="w-full flex items-start justify-center p-4 sm:p-6 lg:p-8 py-8 overflow-y-auto">
+          <div className="w-full max-w-3xl space-y-6 my-8">
+            {/* Header */}
+            <div className="space-y-3 text-center">
+              <p className="text-sm text-[#0A2E5C] font-medium">Get started!</p>
+              <h1 className="text-4xl font-bold text-[#0A2E5C]">Employer Sign Up</h1>
+              <p className="text-sm text-gray-500">Access to all features. No credit card required.</p>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Employer Registration</h1>
-            <p className="text-gray-600 text-base">Create an account to access high-quality candidates and start hiring today</p>
-          </div>
 
-          {/* Form Card */}
-          <Card className="backdrop-blur-sm bg-white/80 shadow-2xl border-0 animate-fade-in-up delay-300">
-            <CardContent className="space-y-5">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    Email Address
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      placeholder="Enter your work email"
-                      className={cn(
-                        "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 text-sm",
-                        errors.email && "border-red-500 "
-                      )}
-                      {...register("email")}
-                    />
-                  </div>
-                  {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-                </div>
-
-                {/* Password Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Account Information Section */}
+                <div className="space-y-5 pb-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-1 h-6 bg-[#0A2E5C] rounded-full"></div>
+                    Account Information
+                  </h3>
+                  
+                  {/* Email */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                      Password
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      Email Address <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a strong password"
+                        id="email"
+                        placeholder="work@company.com"
                         className={cn(
-                          "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 text-sm",
-                          errors.password && "border-red-500 "
+                          "pl-12 pr-4 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                          errors.email && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                         )}
-                        {...register("password")}
+                        {...register("email")}
                       />
-                      <button type="button" className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
                     </div>
-                    {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                    {errors.email && <p className="text-xs text-red-600 font-medium">{errors.email.message}</p>}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                      Confirm Password
+                  {/* Password Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Password <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a strong password"
+                          className={cn(
+                            "pl-12 pr-12 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                            errors.password && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                          )}
+                          {...register("password")}
+                        />
+                        <button type="button" className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      {errors.password && <p className="text-xs text-red-600 font-medium">{errors.password.message}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          id="confirmPassword"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Confirm your password"
+                          className={cn(
+                            "pl-12 pr-12 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                            errors.confirmPassword && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                          )}
+                          {...register("confirmPassword")}
+                        />
+                        <button type="button" className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && <p className="text-xs text-red-600 font-medium">{errors.confirmPassword.message}</p>}
+                    </div>
+                  </div>
+
+                  {/* Show Password Checkbox */}
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox id="showPassword" checked={showPassword} onCheckedChange={(checked) => setShowPassword(checked as boolean)} />
+                    <Label htmlFor="showPassword" className="text-sm text-gray-600 font-medium cursor-pointer">
+                      Show password
                     </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="confirmPassword"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Confirm your password"
-                        className={cn(
-                          "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200text-sm",
-                          errors.confirmPassword && "border-red-500 "
-                        )}
-                        {...register("confirmPassword")}
-                      />
-                      <button type="button" className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
                   </div>
-                </div>
-
-                {/* Show Password Checkbox */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="showPassword" checked={showPassword} onCheckedChange={(checked) => setShowPassword(checked as boolean)} />
-                  <Label htmlFor="showPassword" className="text-sm text-gray-600">
-                    Show password
-                  </Label>
                 </div>
 
                 {/* Company Information Section */}
-                <div className="border-t pt-5">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Information</h3>
+                <div className="space-y-5 pb-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-1 h-6 bg-[#0A2E5C] rounded-full"></div>
+                    Company Information
+                  </h3>
 
-                  {/* Company Name */}
-                  <div className="space-y-2 mb-4">
-                    <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
-                      Company Name
-                    </Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="companyName"
-                        placeholder="Enter your company name"
-                        className={cn(
-                          "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 text-sm",
-                          errors.companyName && "border-red-500 "
-                        )}
-                        {...register("companyName")}
-                      />
+                  {/* Company Name and Employee Count */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+                        Company Name <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Building2 className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          id="companyName"
+                          placeholder="Enter your company name"
+                          className={cn(
+                            "pl-12 pr-4 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                            errors.companyName && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                          )}
+                          {...register("companyName")}
+                        />
+                      </div>
+                      {errors.companyName && <p className="text-xs text-red-600 font-medium">{errors.companyName.message}</p>}
                     </div>
-                    {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
-                  </div>
 
-                  {/* Employee Count */}
-                  <div className="space-y-2 mb-4">
-                    <Label htmlFor="employeeCount" className="text-sm font-medium text-gray-700">
-                      Number of Employees
-                    </Label>
-                    <Controller
-                      name="companySize"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value} // hiển thị giá trị đã chọn
-                        >
-                          <SelectTrigger className="h-11 border-gray-200 focus:border-[#1967d2] focus:ring-[#1967d2] text-sm">
-                            <SelectValue placeholder={lang === "vi" ? "Chọn quy mô công ty" : "Select company size"} />
-                          </SelectTrigger>
-
-                          <SelectContent>
-                            {Object.keys(CompanySize).map((key) => (
-                              <SelectItem key={key} value={key} className="text-sm focus:bg-sky-200 focus:text-[#1967d2]">
-                                {CompanySizeLabel[lang][key as keyof (typeof CompanySizeLabel)["vi"]]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors.companySize && <p className="text-sm text-red-500">{errors.companySize.message}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="employeeCount" className="text-sm font-medium text-gray-700">
+                        Number of Employees <span className="text-red-500">*</span>
+                      </Label>
+                      <Controller
+                        name="companySize"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger className="!h-12 w-full bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 rounded-none text-sm">
+                              <SelectValue placeholder={lang === "vi" ? "Chọn quy mô công ty" : "Select company size"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(CompanySize).map((key) => (
+                                <SelectItem key={key} value={key} className="text-sm focus:bg-blue-50 focus:text-[#0A2E5C]">
+                                  {CompanySizeLabel[lang][key as keyof (typeof CompanySizeLabel)["vi"]]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.companySize && <p className="text-xs text-red-600 font-medium">{errors.companySize.message}</p>}
+                    </div>
                   </div>
 
                   {/* Contact Person and Phone */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="contactPerson" className="text-sm font-medium text-gray-700">
-                        Contact Person
+                        Contact Person <span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input
                           id="contactPerson"
                           placeholder="Full name"
                           className={cn(
-                            "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200text-sm",
-                            errors.contactPerson && "border-red-500 "
+                            "pl-12 pr-4 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                            errors.contactPerson && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                           )}
                           {...register("contactPerson")}
                         />
                       </div>
-                      {errors.contactPerson && <p className="text-sm text-red-500">{errors.contactPerson.message}</p>}
+                      {errors.contactPerson && <p className="text-xs text-red-600 font-medium">{errors.contactPerson.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                        Phone Number
+                        Phone Number <span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input
                           id="phone"
                           placeholder="Phone number"
                           className={cn(
-                            "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 text-sm",
-                            errors.email && "border-red-500 "
+                            "pl-12 pr-4 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                            errors.phone && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                           )}
                           {...register("phone")}
                         />
                       </div>
-                      {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
+                      {errors.phone && <p className="text-xs text-red-600 font-medium">{errors.phone.message}</p>}
                     </div>
                   </div>
                 </div>
 
                 {/* Address Section */}
-                <div className="border-t pt-5">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Address</h3>
+                <div className="space-y-5 pb-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-1 h-6 bg-[#0A2E5C] rounded-full"></div>
+                    Address Information
+                  </h3>
 
                   {/* Location Selects */}
                   <div className="mb-4">
@@ -328,48 +327,48 @@ function EmployerSignUp() {
                   {/* Detailed Address */}
                   <div className="space-y-2">
                     <Label htmlFor="detailAddress" className="text-sm font-medium text-gray-700">
-                      Detailed Address
+                      Detailed Address <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                      <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <Input
                         id="detailAddress"
                         placeholder="House number, street, ward"
                         className={cn(
-                          "pl-10 h-11 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] transition-all duration-200 text-sm",
-                          errors.email && "border-red-500 "
+                          "pl-12 pr-4 h-12 bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm",
+                          errors.detailAddress && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                         )}
                         {...register("detailAddress")}
                       />
                     </div>
-                    {errors.detailAddress && <p className="text-sm text-red-500">{errors.detailAddress.message}</p>}
+                    {errors.detailAddress && <p className="text-xs text-red-600 font-medium">{errors.detailAddress.message}</p>}
                   </div>
                 </div>
 
                 {/* Checkboxes */}
-                <div className="space-y-3 pt-4">
+                <div className="space-y-4 pt-4">
                   <div className="flex items-start space-x-3">
                     <Checkbox id="receiveJobAlerts" checked={receiveJobAlerts} onCheckedChange={(checked) => setValue("receiveJobAlerts", checked as boolean)} className="mt-0.5" />
-                    <Label htmlFor="receiveJobAlerts" className="text-sm text-gray-600 leading-relaxed">
+                    <Label htmlFor="receiveJobAlerts" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
                       Receive job alerts and updates
                     </Label>
                   </div>
 
                   <div className="flex items-start space-x-3">
                     <Checkbox id="acceptTerms" checked={acceptTerms} onCheckedChange={(checked) => setValue("acceptTerms", checked as boolean)} className="mt-0.5" />
-                    <Label htmlFor="acceptTerms" className="text-sm text-gray-600 leading-relaxed inline-block">
+                    <Label htmlFor="acceptTerms" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
                       I agree to the processing of personal data and agree to the{" "}
-                      <a href="#" className="text-[#1967d2] hover:underline font-medium">
+                      <a href="#" className="text-[#0A2E5C] hover:text-[#082040] hover:underline font-medium">
                         Terms of Service
                       </a>{" "}
                       and{" "}
-                      <a href="#" className="text-[#1967d2] hover:underline font-medium">
+                      <a href="#" className="text-[#0A2E5C] hover:text-[#082040] hover:underline font-medium">
                         Privacy Policy
                       </a>{" "}
-                      of CareerLink.
+                      of Workify.
                     </Label>
                   </div>
-                  {errors.acceptTerms && <p className="text-sm text-red-500">{errors.acceptTerms.message}</p>}
+                  {errors.acceptTerms && <p className="text-xs text-red-500">{errors.acceptTerms.message}</p>}
                 </div>
 
                 {/* Submit Button */}
@@ -377,24 +376,59 @@ function EmployerSignUp() {
                   type="submit"
                   disabled={!acceptTerms || signUpMutation.isPending}
                   className={cn(
-                    "w-full h-12 bg-gradient-to-r from-[#1967d2] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 pulse-on-hover",
-                    (!acceptTerms || signUpMutation.isPending) && "cursor-not-allowed"
+                    "w-full h-12 bg-[#0A2E5C] hover:bg-[#082040] text-white font-medium text-base rounded-none transition-all duration-200 mt-4",
+                    (!acceptTerms || signUpMutation.isPending) && "cursor-not-allowed opacity-50"
                   )}
                 >
-                  Register Now
+                  {signUpMutation.isPending ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Creating account...
+                    </span>
+                  ) : (
+                    "Sign Up"
+                  )}
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
+            </form>
 
-          {/* Footer */}
-          <div className="text-center mt-6 animate-fade-in-up delay-1000">
-            <p className="text-gray-600 text-sm">
-              Already have an account?{" "}
-              <NavLink to="/employer/sign-in" className="text-[#1967d2] hover:underline font-medium">
-                Sign in here
-              </NavLink>
-            </p>
+            {/* Footer */}
+            <div className="text-center">
+              <p className="text-gray-700">
+                Already have an account?{" "}
+                <NavLink to="/employer/sign-in" className="text-[#0A2E5C] hover:text-[#082040] font-medium transition-colors">
+                  Sign in
+                </NavLink>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Decorative Elements (Hot Air Balloons) */}
+        <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/3 pointer-events-none">
+          <div className="relative h-full">
+            {/* Large hot air balloon */}
+            <div className="absolute top-1/4 right-1/4 w-64 h-80 opacity-20">
+              <svg viewBox="0 0 200 240" className="w-full h-full">
+                <ellipse cx="100" cy="180" rx="80" ry="40" fill="#1967d2" />
+                <path d="M 100 180 L 100 220 L 90 220 L 90 200 L 110 200 L 110 220 L 100 220" fill="#1967d2" />
+                <ellipse cx="100" cy="100" rx="70" ry="90" fill="#5b8fd7" />
+              </svg>
+            </div>
+            {/* Smaller balloons */}
+            <div className="absolute top-1/3 right-1/6 w-32 h-40 opacity-15">
+              <svg viewBox="0 0 160 200" className="w-full h-full">
+                <ellipse cx="80" cy="150" rx="60" ry="30" fill="#1967d2" />
+                <path d="M 80 150 L 80 180 L 75 180 L 75 165 L 85 165 L 85 180 L 80 180" fill="#1967d2" />
+                <ellipse cx="80" cy="80" rx="50" ry="70" fill="#5b8fd7" />
+              </svg>
+            </div>
+            <div className="absolute bottom-1/4 right-1/3 w-40 h-48 opacity-15">
+              <svg viewBox="0 0 180 220" className="w-full h-full">
+                <ellipse cx="90" cy="170" rx="70" ry="35" fill="#1967d2" />
+                <path d="M 90 170 L 90 200 L 85 200 L 85 180 L 95 180 L 95 200 L 90 200" fill="#1967d2" />
+                <ellipse cx="90" cy="90" rx="60" ry="80" fill="#5b8fd7" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>

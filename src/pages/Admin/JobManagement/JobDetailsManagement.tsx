@@ -6,8 +6,16 @@ import { admin_routes } from "@/routes/routes.const";
 import type { JobProp } from "@/components/JobInformation/JobInformation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services";
-import { AgeType, CompanySize, EducationLevel, ExperienceLevel, JobGender, JobLevel, JobStatus, JobType } from "@/constants";
-import { authUtils } from "@/lib/auth";
+import {
+  AgeType,
+  CompanySize,
+  EducationLevel,
+  ExperienceLevel,
+  JobGender,
+  JobLevel,
+  JobStatus,
+  JobType,
+} from "@/constants";
 import Loading from "@/components/Loading";
 import { useCallback, useEffect, useState } from "react";
 import JobAuthor from "@/components/JobAuthor";
@@ -35,9 +43,9 @@ export default function JobDetailsManagement() {
   const [jobStatus, setJobStatus] = useState<JobStatus>(JobStatus.PENDING);
 
   const { data: job, isLoading: isLoadingJob } = useQuery({
-    queryKey: ["job", Number(id)],
+    queryKey: ["admin-job", Number(id)],
     queryFn: async () => {
-      const res = await jobService.getJobById(Number(id));
+      const res = await jobService.getJobByIdWithAuth(Number(id));
       return res.data;
     },
     staleTime: 60 * 60 * 1000,
@@ -48,8 +56,8 @@ export default function JobDetailsManagement() {
     if (job) {
       setJobDetail({
         isNew: true,
-        companyBanner: authUtils.getEmployer()?.backgroundUrl || "",
-        companyLogo: authUtils.getEmployer()?.avatarUrl || "",
+        companyBanner: job.author?.backgroundUrl || "",
+        companyLogo: job.author?.avatarUrl || "",
         jobTitle: job.jobTitle || "Tiêu đề Job",
         companyName: job.companyName || "Company Name",
         jobLocation:
@@ -72,7 +80,8 @@ export default function JobDetailsManagement() {
         jobType: job.jobType || JobType.FULL_TIME,
         jobLevel: job.jobLevel || JobLevel.MANAGER,
         educationLevel: job.educationLevel || EducationLevel.UNIVERSITY,
-        experienceLevel: job.experienceLevel || ExperienceLevel.MORE_THAN_TEN_YEARS,
+        experienceLevel:
+          job.experienceLevel || ExperienceLevel.MORE_THAN_TEN_YEARS,
         gender: job.gender || JobGender.ANY,
         age: {
           ageType: job.ageType || AgeType.NONE,
@@ -106,11 +115,17 @@ export default function JobDetailsManagement() {
   }, [job]);
 
   const updateJobStatusMutation = useMutation({
-    mutationFn: ({ jobId, newStatus }: { jobId: number; newStatus: JobStatus }) => jobService.updateJobStatus(jobId, newStatus),
+    mutationFn: ({
+      jobId,
+      newStatus,
+    }: {
+      jobId: number;
+      newStatus: JobStatus;
+    }) => jobService.updateJobStatusAsAdmin(jobId, newStatus),
     onSuccess: () => {
       toast.success("Job status updated successfully");
       queryClient.invalidateQueries({ queryKey: ["job", Number(id)] });
-      queryClient.invalidateQueries({ queryKey: ["jobs","all"] });
+      queryClient.invalidateQueries({ queryKey: ["jobs", "all"] });
     },
     onError: () => {
       toast.error("An error occurred while updating the job status");
@@ -125,15 +140,20 @@ export default function JobDetailsManagement() {
   );
 
   if (isLoadingJob || !jobDetail) {
-    return(
-    <div className="h-screen relative">
-      <Loading className="mx-auto top-1/2 left-1/2 absolute" variant="bars" />
-    </div>
-  )}
+    return (
+      <div className="h-screen relative">
+        <Loading className="mx-auto top-1/2 left-1/2 absolute" variant="bars" />
+      </div>
+    );
+  }
 
   return (
     <div className="py-6">
-      <Button variant="outline" className="mb-4 ml-12 " onClick={() => navigate(`${admin_routes.BASE}/${admin_routes.JOBS}`)}>
+      <Button
+        variant="outline"
+        className="mb-4 ml-12 "
+        onClick={() => navigate(`${admin_routes.BASE}/${admin_routes.JOBS}`)}
+      >
         <ChevronLeft className="h-5 w-5" /> Back
       </Button>
       <div className="px-6 mb-6 flex">
@@ -149,7 +169,12 @@ export default function JobDetailsManagement() {
             <JobAuthor {...jobAuthors!} />
             <div className="flex mt-6 gap-4">
               <h2 className="text-lg font-semibold text-gray-900">Status:</h2>
-              <JobStatusTooltip status={jobStatus} onChangeStatus={(newStatus) => handleChangeStatus(Number(id), newStatus)} />
+              <JobStatusTooltip
+                status={jobStatus}
+                onChangeStatus={(newStatus) =>
+                  handleChangeStatus(Number(id), newStatus)
+                }
+              />
             </div>
           </div>
         </div>

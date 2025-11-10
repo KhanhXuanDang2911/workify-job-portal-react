@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,13 +12,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, X, Phone, FileText, AlertTriangle, Link as LinkIcon, Loader2 } from "lucide-react";
+import {
+  Upload,
+  X,
+  Phone,
+  FileText,
+  AlertTriangle,
+  Link as LinkIcon,
+  Loader2,
+} from "lucide-react";
 import { applicationService } from "@/services/application.service";
-import { authService } from "@/services/auth.service";
-import { useAuth } from "@/context/auth/useAuth";
-import { ROLE } from "@/constants";
+import { userService } from "@/services/user.service";
+import { useUserAuth } from "@/context/user-auth";
 import type { User } from "@/types";
-import TiptapEditor from "@/components/TiptapEditor";
+import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
+import { Textarea } from "@/components/ui/textarea";
 
 interface JobApplicationModalProps {
   jobId?: number; // Make optional since we can get from URL
@@ -36,90 +44,73 @@ export default function JobApplicationModal({
   // Get jobId from URL params if not provided as prop
   const { id } = useParams<{ id: string }>();
   const jobId = jobIdProp || (id ? Number(id) : undefined);
-  
+
   // Debug: log jobId when component receives it
-  console.log("JobApplicationModal - jobIdProp:", jobIdProp, "id from URL:", id, "final jobId:", jobId);
+  console.log(
+    "JobApplicationModal - jobIdProp:",
+    jobIdProp,
+    "id from URL:",
+    id,
+    "final jobId:",
+    jobId
+  );
   const [isOpen, setIsOpen] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [cvLink, setCvLink] = useState("");
-  const [useLink, setUseLink] = useState(false);
+  const [applyOption, setApplyOption] = useState<"new" | "reuse">("new"); // "new" = upload CV mới, "reuse" = dùng CV cũ
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const editorInitialized = useRef(false);
 
   const queryClient = useQueryClient();
-  const { state: authState } = useAuth();
+  const { state: authState } = useUserAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Use user from auth context, or fetch if needed
-  // Fetch profile if:
-  // - User is ADMIN (always need to fetch)
-  // - User is JOB_SEEKER but not in authState
-  const shouldFetchProfile = 
-    isOpen && 
-    (authState.role === ROLE.ADMIN || 
-     (authState.role === ROLE.JOB_SEEKER && !authState.user));
-
+  // Fetch user profile if not available in auth context
   const { data: profileResponse, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
-    queryFn: () => authService.getProfile(),
-    enabled: shouldFetchProfile,
+    queryFn: () => userService.getUserProfile(),
+    enabled: isOpen && !authState.user,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Use user from auth context if JOB_SEEKER and available, otherwise use fetched profile
-  const profile: User | null = 
-    authState.user && authState.role === ROLE.JOB_SEEKER 
-      ? (authState.user as User)
-      : profileResponse?.data || null;
+  // Use user from auth context if available, otherwise use fetched profile
+  const profile: User | null = authState.user || profileResponse?.data || null;
 
-  // Fetch latest application by job
-  const { data: latestApplicationResponse, isLoading: isLoadingLatest } = useQuery({
-    queryKey: ["latestApplication", jobId],
-    queryFn: () => applicationService.getLatestApplicationByJob(jobId),
-    enabled: isOpen && !!jobId,
-  });
+  // Fetch latest application by job - only when authenticated
+  const { data: latestApplicationResponse, isLoading: isLoadingLatest } =
+    useQuery({
+      queryKey: ["latestApplication", jobId],
+      queryFn: () => applicationService.getLatestApplicationByJob(jobId!),
+      enabled: isOpen && !!jobId && authState.isAuthenticated, // Only fetch when authenticated
+    });
 
   const latestApplication = latestApplicationResponse?.data;
-
-  // Helper function to strip HTML tags and get plain text
-  const stripHtml = (html: string): string => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-  };
 
   // Initialize form data when modal opens or data loads
   useEffect(() => {
     if (isOpen) {
-      if (profile) {
-        setPhoneNumber(profile.phoneNumber || "");
-      }
       if (latestApplication) {
-        // Có application trước đó - có thể dùng link CV hoặc upload file mới
+        // Có application trước đó - có 2 option
+        setFullName(latestApplication.fullName || profile?.fullName || "");
+        setEmail(latestApplication.email || profile?.email || "");
         setPhoneNumber(latestApplication.phoneNumber || profile?.phoneNumber || "");
         setCoverLetter(latestApplication.coverLetter || "");
-        setCvLink(latestApplication.cvUrl || "");
-        setUseLink(true); // Mặc định dùng link CV từ lần trước
-        editorInitialized.current = false;
+        setApplyOption("reuse"); // Mặc định dùng CV cũ
       } else {
         // Lần đầu tiên - BẮT BUỘC phải upload file CV
+        setFullName(profile?.fullName || "");
+        setEmail(profile?.email || "");
+        setPhoneNumber(profile?.phoneNumber || "");
         setCoverLetter("");
-        setCvLink("");
-        setUseLink(false); // Không được dùng link CV
-        editorInitialized.current = false;
+        setApplyOption("new"); // Chỉ có option upload CV mới
       }
       setSelectedFile(null);
       setErrors({});
     }
   }, [isOpen, profile, latestApplication]);
 
-  // Initialize editor content when cover letter is loaded
-  useEffect(() => {
-    if (latestApplication?.coverLetter && !editorInitialized.current && isOpen) {
-      editorInitialized.current = true;
-    }
-  }, [latestApplication, isOpen]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -140,7 +131,7 @@ export default function JobApplicationModal({
       }
 
       setSelectedFile(file);
-      setUseLink(false);
+      setApplyOption("new"); // Khi chọn file mới, chuyển sang option upload CV mới
       setErrors({ ...errors, file: "" });
     }
   };
@@ -148,47 +139,51 @@ export default function JobApplicationModal({
   // Apply mutation
   const applyMutation = useMutation({
     mutationFn: async () => {
-      if (!profile) {
-        throw new Error("Không tìm thấy thông tin người dùng");
-      }
-
-      // Get cover letter text - strip HTML tags for backend
-      // Backend might not accept HTML, so convert to plain text
-      const coverLetterText = stripHtml(coverLetter).trim();
+      // Get cover letter text
+      const coverLetterText = coverLetter.trim();
 
       // Validate jobId
-      console.log("jobId in mutation:", jobId, typeof jobId);
       if (!jobId || isNaN(Number(jobId))) {
-        console.error("Invalid jobId:", jobId);
         throw new Error("Job ID không hợp lệ");
       }
       const validJobId = Number(jobId);
 
-      if (useLink) {
-        // Chỉ được dùng link CV nếu đã có application trước đó
+      // Validate required fields
+      if (!fullName.trim()) {
+        throw new Error("Vui lòng nhập họ và tên!");
+      }
+      if (!email.trim()) {
+        throw new Error("Vui lòng nhập email!");
+      }
+      if (!phoneNumber.trim()) {
+        throw new Error("Vui lòng nhập số điện thoại!");
+      }
+
+      if (applyOption === "reuse") {
+        // Option 2: Dùng CV cũ (chỉ sửa thông tin, CV giữ nguyên)
         if (!latestApplication) {
-          throw new Error("Lần đầu ứng tuyển phải tải lên CV!");
+          throw new Error("Không tìm thấy CV cũ!");
         }
-        if (!cvLink.trim()) {
-          throw new Error("Vui lòng nhập link CV!");
+        if (!latestApplication.cvUrl) {
+          throw new Error("CV cũ không tồn tại!");
         }
         return await applicationService.applyWithLinkCV({
-          fullName: profile.fullName,
-          email: profile.email,
+          fullName: fullName.trim(),
+          email: email.trim(),
           phoneNumber: phoneNumber.trim(),
           coverLetter: coverLetterText,
           jobId: validJobId,
-          cvUrl: cvLink.trim(),
+          cvUrl: latestApplication.cvUrl, // Dùng CV cũ từ latestApplication
         });
       } else {
-        // Upload file CV (lần đầu hoặc lần sau)
+        // Option 1: Upload CV mới (lần đầu hoặc lần sau)
         if (!selectedFile) {
           throw new Error("Vui lòng tải lên CV!");
         }
         return await applicationService.applyWithFileCV(
           {
-            fullName: profile.fullName,
-            email: profile.email,
+            fullName: fullName.trim(),
+            email: email.trim(),
             phoneNumber: phoneNumber.trim(),
             coverLetter: coverLetterText,
             jobId: validJobId,
@@ -210,9 +205,9 @@ export default function JobApplicationModal({
       console.error("Error response:", error?.response?.data);
       console.error("Error status:", error?.response?.status);
       console.error("Error config:", error?.config);
-      
+
       let errorMessage = "Không thể gửi ứng tuyển, thử lại sau.";
-      
+
       if (error?.response?.data) {
         const data = error.response.data;
         // Try different ways to extract error message
@@ -228,42 +223,69 @@ export default function JobApplicationModal({
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
       });
-      if (!useLink) {
+      if (applyOption === "new") {
         setSelectedFile(null);
       }
     },
   });
 
+  // Validation regexes from API docs
+  const EMAIL_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
+  const PHONE_REGEX = /^(?:\+84|0)[35789][0-9]{8}$/;
+
   const handleSubmit = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!phoneNumber.trim()) {
-      newErrors.phone = "Vui lòng nhập số điện thoại!";
+    // Validate fullName: 3-160 characters (required)
+    if (!fullName.trim()) {
+      newErrors.fullName = "Vui lòng nhập họ và tên!";
+    } else {
+      const trimmedFullName = fullName.trim();
+      if (trimmedFullName.length < 3) {
+        newErrors.fullName = "Họ và tên phải có ít nhất 3 ký tự!";
+      } else if (trimmedFullName.length > 160) {
+        newErrors.fullName = "Họ và tên không được vượt quá 160 ký tự!";
+      }
     }
 
-    // Check if cover letter has content (strip HTML to check)
-    const coverLetterText = stripHtml(coverLetter);
-    if (!coverLetterText.trim()) {
+    // Validate email: regex (required)
+    if (!email.trim()) {
+      newErrors.email = "Vui lòng nhập email!";
+    } else if (!EMAIL_REGEX.test(email.trim())) {
+      newErrors.email = "Email không hợp lệ!";
+    }
+
+    // Validate phoneNumber: regex (required)
+    if (!phoneNumber.trim()) {
+      newErrors.phone = "Vui lòng nhập số điện thoại!";
+    } else {
+      // Remove spaces and format phone number for validation
+      const cleanedPhone = phoneNumber.trim().replace(/\s/g, "");
+      if (!PHONE_REGEX.test(cleanedPhone)) {
+        newErrors.phone = "Số điện thoại không hợp lệ! (Ví dụ: +84912345678 hoặc 0912345678)";
+      }
+    }
+
+    // Validate coverLetter: required
+    if (!coverLetter.trim()) {
       newErrors.coverLetter = "Vui lòng nhập thư xin việc!";
     }
 
-    // Nếu không có latestApplication (lần đầu), BẮT BUỘC phải upload file
-    if (!latestApplication) {
+    // Validate CV based on option
+    if (applyOption === "new") {
+      // Option 1: Upload CV mới - BẮT BUỘC phải có file
       if (!selectedFile) {
-        newErrors.file = "Lần đầu ứng tuyển phải tải lên CV!";
+        newErrors.file = "Vui lòng tải lên CV!";
       }
     } else {
-      // Có latestApplication (lần 2, 3) - có thể dùng link hoặc upload file mới
-      if (!useLink && !selectedFile) {
-        newErrors.file = "Vui lòng tải lên CV hoặc chọn link CV!";
-      }
-      if (useLink && !cvLink.trim()) {
-        newErrors.cvLink = "Vui lòng nhập link CV!";
+      // Option 2: Dùng CV cũ - phải có latestApplication và cvUrl
+      if (!latestApplication || !latestApplication.cvUrl) {
+        newErrors.cv = "Không tìm thấy CV cũ!";
       }
     }
 
@@ -277,13 +299,13 @@ export default function JobApplicationModal({
 
   const handleCancel = () => {
     setIsOpen(false);
+    setFullName("");
+    setEmail("");
     setPhoneNumber("");
     setCoverLetter("");
     setSelectedFile(null);
-    setCvLink("");
-    setUseLink(false);
+    setApplyOption("new");
     setErrors({});
-    editorInitialized.current = false;
   };
 
   // Check authentication and role before opening modal
@@ -291,25 +313,7 @@ export default function JobApplicationModal({
     if (open) {
       // Check if user is authenticated
       if (!authState.isAuthenticated) {
-        toast.error("Vui lòng đăng nhập để ứng tuyển", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        return;
-      }
-      // Check if user is JOB_SEEKER or ADMIN (EMPLOYER cannot apply)
-      if (authState.role === ROLE.EMPLOYER) {
-        toast.error("Nhà tuyển dụng không thể ứng tuyển", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        return;
-      }
-      if (authState.role !== ROLE.JOB_SEEKER && authState.role !== ROLE.ADMIN) {
-        toast.error("Chỉ ứng viên và quản trị viên mới có thể ứng tuyển", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        setShowLoginModal(true);
         return;
       }
     }
@@ -317,15 +321,20 @@ export default function JobApplicationModal({
   };
 
   const isLoading = isLoadingProfile || isLoadingLatest;
-  const remainingApplications = latestApplication ? 3 - latestApplication.applyCount : 3;
+  const remainingApplications = latestApplication
+    ? 3 - latestApplication.applyCount
+    : 3;
+  const hasReachedLimit = latestApplication ? latestApplication.applyCount >= 3 : false;
+  const isSubmitting = applyMutation.isPending;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        className="max-w-2xl max-h-[90vh] flex flex-col
-             [&>button.absolute.right-4.top-4]:top-7"
-      >
+    <>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent
+          className="max-w-2xl max-h-[90vh] flex flex-col
+               [&>button.absolute.right-4.top-4]:top-7"
+        >
         {/* Header cố định */}
         <DialogHeader className="border-b pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -359,31 +368,65 @@ export default function JobApplicationModal({
             </div>
           ) : (
             <>
-              {/* Notice about remaining applications */}
-              {latestApplication && remainingApplications > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800 font-medium">
-                    Bạn còn {remainingApplications} lượt nộp cho công việc này
+              {/* Notice about remaining applications or limit reached */}
+              {latestApplication && (
+                <div
+                  className={`rounded-lg p-3 ${
+                    hasReachedLimit
+                      ? "bg-red-50 border border-red-200"
+                      : "bg-blue-50 border border-blue-200"
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-medium ${
+                      hasReachedLimit ? "text-red-800" : "text-blue-800"
+                    }`}
+                  >
+                    {hasReachedLimit
+                      ? "Bạn đã hết lượt nộp cho công việc này (tối đa 3 lần)"
+                      : `Bạn còn ${remainingApplications} lượt nộp cho công việc này`}
                   </p>
                 </div>
               )}
 
-              {/* User Info Display */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <FileText className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-green-800">
-                    Thông tin cá nhân
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm text-gray-700">
-                  <p>
-                    <span className="font-medium">Họ và tên:</span> {profile?.fullName || "N/A"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Email:</span> {profile?.email || "N/A"}
-                  </p>
-                </div>
+              {/* Full Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Họ và tên <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Nhập họ và tên"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={errors.fullName ? "border-red-500" : ""}
+                />
+                {errors.fullName && (
+                  <div className="flex items-center text-red-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    {errors.fullName}
+                  </div>
+                )}
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="email"
+                  placeholder="Nhập email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && (
+                  <div className="flex items-center text-red-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    {errors.email}
+                  </div>
+                )}
               </div>
 
               {/* Phone Number */}
@@ -414,73 +457,150 @@ export default function JobApplicationModal({
                 <div className="flex items-center">
                   <FileText className="w-5 h-5 text-green-600 mr-2" />
                   <span className="text-sm font-medium text-gray-700">
-                    Hồ sơ xin việc
+                    Hồ sơ xin việc <span className="text-red-500">*</span>
                   </span>
                 </div>
 
-                {/* Option to use link CV - CHỈ hiển thị nếu đã có application trước đó */}
+                {/* Nếu có latestApplication, hiển thị 2 option */}
                 {latestApplication?.cvUrl ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Bạn đã ứng tuyển công việc này trước đó. Chọn một trong hai cách:
+                    </p>
+                    
+                    {/* Option 1: Upload CV mới */}
                     <button
                       type="button"
                       onClick={() => {
-                        setUseLink(true);
-                        setCvLink(latestApplication.cvUrl || "");
+                        setApplyOption("new");
                         setSelectedFile(null);
                       }}
                       className={`w-full flex items-center p-3 border-2 rounded-lg transition-colors ${
-                        useLink
+                        applyOption === "new"
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Upload className="w-5 h-5 text-green-600 mr-2" />
+                      <div className="text-left">
+                        <span className="text-sm font-medium block">
+                          Option 1: Tải lên CV mới
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Nhập thông tin và chọn CV mới từ thiết bị
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Option 2: Dùng CV cũ */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApplyOption("reuse");
+                        setSelectedFile(null);
+                      }}
+                      className={`w-full flex items-center p-3 border-2 rounded-lg transition-colors ${
+                        applyOption === "reuse"
                           ? "border-green-500 bg-green-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
                       <LinkIcon className="w-5 h-5 text-green-600 mr-2" />
-                      <span className="text-sm font-medium">Link CV của bạn</span>
+                      <div className="text-left flex-1">
+                        <span className="text-sm font-medium block">
+                          Option 2: Sử dụng CV cũ
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Chỉ sửa thông tin, CV giữ nguyên từ lần trước
+                        </span>
+                      </div>
                     </button>
-                    {useLink && latestApplication.cvUrl && (
-                      <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <div className="flex items-center flex-1 min-w-0">
-                          <FileText className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+
+                    {/* Hiển thị CV cũ khi chọn Option 2 */}
+                    {applyOption === "reuse" && latestApplication.cvUrl && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center flex-1 min-w-0">
+                            <FileText className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+                            <span className="text-sm text-gray-700 truncate">
+                              CV cũ: {latestApplication.cvUrl.split("/").pop() || latestApplication.cvUrl}
+                            </span>
+                          </div>
                           <a
                             href={latestApplication.cvUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-gray-700 truncate hover:text-green-600"
+                            className="text-sm text-green-600 hover:text-green-700 ml-2 flex-shrink-0"
                           >
-                            {latestApplication.cvUrl.split("/").pop() || latestApplication.cvUrl}
+                            Xem
                           </a>
                         </div>
                       </div>
                     )}
+
+                    {/* Hiển thị upload area khi chọn Option 1 */}
+                    {applyOption === "new" && (
+                      <>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">
+                            <span className="font-medium">
+                              Tải lên CV từ máy tính, chọn hoặc kéo thả
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-500 mb-4">
+                            Hỗ trợ định dạng .doc, .docx, pdf có kích thước dưới 5MB
+                          </p>
+                          <input
+                            type="file"
+                            accept=".doc,.docx,.pdf"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            id="cv-upload"
+                          />
+                          <label htmlFor="cv-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="cursor-pointer"
+                              asChild
+                            >
+                              <span>Chọn tệp để tải lên</span>
+                            </Button>
+                          </label>
+                        </div>
+
+                        {selectedFile && (
+                          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center flex-1 min-w-0">
+                              <FileText className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 truncate">
+                                {selectedFile.name}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              type="button"
+                              onClick={() => setSelectedFile(null)}
+                              className="h-6 w-6 p-0 text-gray-500 hover:text-red-500 flex-shrink-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 ) : (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
-                      <span className="font-medium">Lưu ý:</span> Lần đầu ứng tuyển, vui lòng tải lên CV từ thiết bị.
-                    </p>
-                  </div>
-                )}
-
-                {/* Option to upload file */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUseLink(false);
-                    setCvLink("");
-                    setSelectedFile(null);
-                  }}
-                  className={`w-full flex items-center p-3 border-2 rounded-lg transition-colors ${
-                    !useLink
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <Upload className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm font-medium">Tải lên từ thiết bị</span>
-                </button>
-
-                {!useLink && (
+                  /* Lần đầu - chỉ có option upload CV mới */
                   <>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">Lưu ý:</span> Lần đầu ứng
+                        tuyển, vui lòng tải lên CV từ thiết bị.
+                      </p>
+                    </div>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600 mb-2">
@@ -532,30 +652,16 @@ export default function JobApplicationModal({
                   </>
                 )}
 
-                {useLink && (
-                  <div className="space-y-2">
-                    {!latestApplication?.cvUrl && (
-                      <Input
-                        type="url"
-                        placeholder="Nhập link CV (Google Drive, Dropbox, ...)"
-                        value={cvLink}
-                        onChange={(e) => setCvLink(e.target.value)}
-                        className={errors.cvLink ? "border-red-500" : ""}
-                      />
-                    )}
-                    {errors.cvLink && (
-                      <div className="flex items-center text-red-600 text-sm">
-                        <AlertTriangle className="w-4 h-4 mr-1" />
-                        {errors.cvLink}
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {errors.file && (
                   <div className="flex items-center text-red-600 text-sm">
                     <AlertTriangle className="w-4 h-4 mr-1" />
                     {errors.file}
+                  </div>
+                )}
+                {errors.cv && (
+                  <div className="flex items-center text-red-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    {errors.cv}
                   </div>
                 )}
               </div>
@@ -569,14 +675,14 @@ export default function JobApplicationModal({
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Một thư xin việc ngắn gọn, chỉnh chu sẽ giúp bạn trở nên chuyên
-                  nghiệp và gây ấn tượng hơn với nhà tuyển dụng.
+                  Một thư xin việc ngắn gọn, chỉnh chu sẽ giúp bạn trở nên
+                  chuyên nghiệp và gây ấn tượng hơn với nhà tuyển dụng.
                 </p>
-                <TiptapEditor
-                  content={coverLetter}
-                  onChange={setCoverLetter}
+                <Textarea
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
                   placeholder="Nhập thư xin việc của bạn..."
-                  className="min-h-[200px]"
+                  className={`min-h-[200px] ${errors.coverLetter ? "border-red-500" : ""}`}
                 />
                 {errors.coverLetter && (
                   <div className="flex items-center text-red-600 text-sm">
@@ -593,9 +699,9 @@ export default function JobApplicationModal({
                   <div className="text-sm text-orange-800">
                     <p className="font-medium mb-1">Lưu ý:</p>
                     <p>
-                      Workify khuyến cáo ứng viên không nên đóng phí trước trong quá
-                      trình tìm việc. Nếu có vấn đề phát sinh trong quá trình ứng
-                      tuyển, vui lòng liên hệ với chúng tôi.
+                      Workify khuyến cáo ứng viên không nên đóng phí trước trong
+                      quá trình tìm việc. Nếu có vấn đề phát sinh trong quá
+                      trình ứng tuyển, vui lòng liên hệ với chúng tôi.
                     </p>
                   </div>
                 </div>
@@ -616,14 +722,16 @@ export default function JobApplicationModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || applyMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white px-6"
+            disabled={isLoading || isSubmitting || hasReachedLimit}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {applyMutation.isPending ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Đang gửi...
               </>
+            ) : hasReachedLimit ? (
+              "Đã hết lượt nộp"
             ) : (
               "Nộp đơn ngay"
             )}
@@ -631,5 +739,13 @@ export default function JobApplicationModal({
         </div>
       </DialogContent>
     </Dialog>
+    <LoginRequiredModal
+      open={showLoginModal}
+      onOpenChange={setShowLoginModal}
+      title="Yêu cầu đăng nhập"
+      description="Vui lòng đăng nhập để ứng tuyển cho vị trí này. Đăng nhập để quản lý đơn ứng tuyển và theo dõi trạng thái ứng tuyển của bạn."
+      actionText="Đăng nhập ngay"
+    />
+    </>
   );
 }

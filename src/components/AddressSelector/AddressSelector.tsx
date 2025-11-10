@@ -61,12 +61,12 @@ function AddressSelector({
       <div className="space-y-2">
         <Label className="text-sm font-medium text-gray-700">Province/City</Label>
         <Select value={provinceId > 0 ? provinceId.toString() : ""} onValueChange={(value) => onProvinceChange(value)} disabled={queryProvinces.isLoading}>
-          <SelectTrigger className={`h-11 w-full border-gray-200 focus:border-[#1967d2] focus:ring-[#1967d2] text-sm ${errors?.provinceId ? "border-red-500" : ""}`}>
+          <SelectTrigger className={`!h-12 w-full bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 rounded-none text-sm ${errors?.provinceId ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}>
             <SelectValue placeholder="Select province" />
           </SelectTrigger>
           <SelectContent>
             {provinces.map((province) => (
-              <SelectItem key={province.id} value={province.id.toString()} className="text-sm focus:bg-sky-200 focus:text-[#1967d2]">
+              <SelectItem key={province.id} value={province.id.toString()} className="text-sm focus:bg-blue-50 focus:text-[#0A2E5C]">
                 {province.name}
               </SelectItem>
             ))}
@@ -82,12 +82,12 @@ function AddressSelector({
           onValueChange={(value) => onDistrictChange(value)}
           disabled={!provinceId || provinceId === 0 || queryDistricts.isLoading}
         >
-          <SelectTrigger className={`h-11 w-full border-gray-200 focus:border-[#1967d2] focus:ring-[#1967d2] text-sm ${errors?.districtId ? "border-red-500" : ""}`}>
+          <SelectTrigger className={`!h-12 w-full bg-white border border-gray-300 focus:border-[#0A2E5C] focus:ring-1 focus:ring-[#0A2E5C]/20 rounded-none text-sm ${errors?.districtId ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}>
             <SelectValue placeholder="Select district" />
           </SelectTrigger>
           <SelectContent>
             {districts.map((district) => (
-              <SelectItem key={district.id} value={district.id.toString()} className="text-sm focus:bg-sky-200 focus:text-[#1967d2]">
+              <SelectItem key={district.id} value={district.id.toString()} className="text-sm focus:bg-blue-50 focus:text-[#0A2E5C]">
                 {district.name}
               </SelectItem>
             ))}

@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import {
   Heart,
 } from "lucide-react";
 import SuggestedJobs from "@/components/SuggestedJob";
+import CompanyHiringJobs from "@/components/CompanyHiringJobs/CompanyHiringJobs";
 import JobInformation from "@/components/JobInformation";
 import JobApplicationModal from "@/components/JobApplicationModal";
 import { jobService } from "@/services/job.service";
@@ -23,6 +24,8 @@ import {
   JobTypeLabelVN,
 } from "@/constants";
 import Loading from "@/components/Loading";
+import { useUserAuth } from "@/context/user-auth";
+import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 
 // Format salary
 const formatSalary = (job: JobResponse): string => {
@@ -86,6 +89,9 @@ const formatDate = (dateString?: string): string => {
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { state: authState } = useUserAuth();
+  const isAuthenticated = authState.isAuthenticated;
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Fetch job detail
   const {
@@ -99,26 +105,70 @@ const JobDetail = () => {
     enabled: !!id,
   });
 
-  // Fetch top attractive jobs for suggestions
-  const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs"],
-    queryFn: () => jobService.getTopAttractiveJobs(),
+  // Get employer ID from job response
+  const employerId = jobResponse?.data?.author?.id;
+
+  // Fetch hiring jobs of the company
+  const { data: companyJobsResponse } = useQuery({
+    queryKey: ["company-hiring-jobs", employerId],
+    queryFn: () => jobService.getJobsByEmployerId(employerId!, 1, 6),
+    enabled: !!employerId && !!jobResponse?.data,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Map suggested jobs
-  const suggestedJobs = useMemo(() => {
+  // Map company hiring jobs (exclude current job)
+  const companyHiringJobs = useMemo(() => {
+    if (!companyJobsResponse?.data?.items) return [];
+    const currentJobId = jobResponse?.data?.id;
+    return companyJobsResponse.data.items
+      .filter((job) => job.id !== currentJobId) // Exclude current job
+      .slice(0, 5) // Limit to 5 jobs
+      .map((job) => {
+        const firstLocation = Array.isArray(job.jobLocations) && job.jobLocations.length > 0 ? job.jobLocations[0] : null;
+        const locationParts: string[] = [];
+        if (firstLocation) {
+          if (firstLocation.province?.name) locationParts.push(firstLocation.province.name);
+          if (firstLocation.district?.name) locationParts.push(firstLocation.district.name);
+        }
+
+        return {
+          id: job.id,
+          title: job.jobTitle || "",
+          company: job.companyName || job.author?.companyName || "",
+          location: locationParts.join(", ") || "",
+          salary: formatSalary(job),
+          type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+          typeColor: mapTypeColor(job.jobType),
+          logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+          numberOfApplications: job.numberOfApplications || 0,
+        };
+      });
+  }, [companyJobsResponse, jobResponse?.data?.id]);
+
+  // Fetch top 5 attractive jobs for sidebar
+  const { data: topAttractiveResponse } = useQuery({
+    queryKey: ["top-attractive-jobs", 5],
+    queryFn: () => jobService.getTopAttractiveJobs(5),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Map top 5 attractive jobs for sidebar
+  const topAttractiveJobs = useMemo(() => {
     if (!topAttractiveResponse?.data) return [];
-    return topAttractiveResponse.data.map((job) => ({
-      id: job.id,
-      title: job.jobTitle || "",
-      company: job.companyName || job.author?.companyName || "",
-      salary: formatSalary(job),
-      type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
-      typeColor: mapTypeColor(job.jobType),
-      logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
-    }));
-  }, [topAttractiveResponse]);
+    const currentJobId = jobResponse?.data?.id;
+    return topAttractiveResponse.data
+      .filter((job) => job.id !== currentJobId) // Exclude current job
+      .slice(0, 5) // Limit to 5 jobs
+      .map((job) => ({
+        id: job.id,
+        title: job.jobTitle || "",
+        company: job.companyName || job.author?.companyName || "",
+        salary: formatSalary(job),
+        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        typeColor: mapTypeColor(job.jobType),
+        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      }));
+  }, [topAttractiveResponse, jobResponse?.data?.id]);
 
   // Map job data for JobInformation component
   const jobData = useMemo(() => {
@@ -225,11 +275,11 @@ const JobDetail = () => {
   const queryClient = useQueryClient();
   const jobId = jobResponse?.data?.id;
 
-  // Check if job is saved - use placeholderData from saved-jobs cache to avoid flash
+  // Check if job is saved - only check when user is authenticated
   const { data: isSavedResponse } = useQuery({
     queryKey: ["saved-job", jobId],
     queryFn: () => jobService.checkSavedJob(jobId!),
-    enabled: !!jobId,
+    enabled: !!jobId && isAuthenticated, // Only check when authenticated
     retry: false,
     placeholderData: () => {
       // Check if job exists in saved-jobs cache
@@ -269,6 +319,10 @@ const JobDetail = () => {
       toast.error("Không tìm thấy ID công việc");
       return;
     }
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
     toggleSaveMutation.mutate();
   };
 
@@ -298,8 +352,18 @@ const JobDetail = () => {
       <div className="main-layout relative z-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Job Information */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
             <JobInformation job={jobData} jobId={jobResponse?.data?.id} hideActionButtons={false} />
+            
+            {/* Company Hiring Jobs */}
+            {companyHiringJobs.length > 0 && (
+              <div className="mt-8">
+                <CompanyHiringJobs
+                  jobs={companyHiringJobs}
+                  companyName={jobData?.companyName || ""}
+                />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -404,15 +468,25 @@ const JobDetail = () => {
                 </div>
               </Card>
 
-              {/* Suggested Jobs */}
-              <SuggestedJobs
-                jobs={suggestedJobs}
-                onViewAll={() => console.log("View all suggested jobs")}
-              />
+              {/* Top 5 Attractive Jobs */}
+              {topAttractiveJobs.length > 0 && (
+                <SuggestedJobs
+                  jobs={topAttractiveJobs}
+                  onViewAll={() => console.log("View all suggested jobs")}
+                />
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <LoginRequiredModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        title="Yêu cầu đăng nhập"
+        description="Vui lòng đăng nhập để lưu việc làm và quản lý danh sách việc làm yêu thích của bạn."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 };

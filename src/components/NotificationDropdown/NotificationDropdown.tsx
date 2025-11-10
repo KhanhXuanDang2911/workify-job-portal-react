@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Popover,
   PopoverContent,
@@ -14,91 +15,124 @@ import {
   X,
   User,
   Building2,
-  MessageSquare,
-  Calendar,
+  FileText,
 } from "lucide-react";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { notificationService } from "@/services";
+import type { NotificationResponse, NotificationType } from "@/types/notification.type";
+import { employer_routes, routes } from "@/routes/routes.const";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "application" | "message" | "system" | "interview";
-  time: string;
-  isRead: boolean;
-  icon: React.ReactNode;
-}
+// Map notification type to icon
+const getNotificationIcon = (type: NotificationType) => {
+  switch (type) {
+    case "NEW_APPLICATION":
+      return <User className="w-4 h-4 text-blue-600" />;
+    case "APPLICATION_STATUS_UPDATE":
+      return <FileText className="w-4 h-4 text-green-600" />;
+    default:
+      return <Bell className="w-4 h-4 text-gray-600" />;
+  }
+};
+
+// Format relative time
+const relativeTime = (dateString?: string): string => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString("vi-VN");
+  } catch (e) {
+    return "";
+  }
+};
 
 export default function NotificationDropdown() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "New Job Application",
-      message: "Sarah Johnson applied for Senior Developer position",
-      type: "application",
-      time: "2 minutes ago",
-      isRead: false,
-      icon: <User className="w-4 h-4 text-blue-600" />,
-    },
-    {
-      id: "2",
-      title: "Interview Scheduled",
-      message: "Interview with John Doe scheduled for tomorrow at 2 PM",
-      type: "interview",
-      time: "1 hour ago",
-      isRead: false,
-      icon: <Calendar className="w-4 h-4 text-green-600" />,
-    },
-    {
-      id: "3",
-      title: "New Message",
-      message: "You have a new message from candidate Alex Smith",
-      type: "message",
-      time: "3 hours ago",
-      isRead: true,
-      icon: <MessageSquare className="w-4 h-4 text-purple-600" />,
-    },
-    {
-      id: "4",
-      title: "Job Post Approved",
-      message: "Your job posting 'Frontend Developer' has been approved",
-      type: "system",
-      time: "1 day ago",
-      isRead: true,
-      icon: <Building2 className="w-4 h-4 text-orange-600" />,
-    },
-    {
-      id: "5",
-      title: "Application Deadline",
-      message: "Job posting 'UI/UX Designer' expires in 2 days",
-      type: "system",
-      time: "2 days ago",
-      isRead: false,
-      icon: <Building2 className="w-4 h-4 text-red-600" />,
-    },
-  ]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { notifications: wsNotifications, unreadCount: wsUnreadCount, markAsRead: wsMarkAsRead, markAllAsRead: wsMarkAllAsRead } = useWebSocket();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  // Fetch notifications from API
+  const { data: notificationsResponse, isLoading } = useQuery({
+    queryKey: ["notifications", currentPage, pageSize],
+    queryFn: () =>
+      notificationService.getNotifications({
+        pageNumber: currentPage,
+        pageSize: pageSize,
+      }),
+    staleTime: 30 * 1000, // 30 seconds
+  });
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
+  // Fetch unread count
+  const { data: unreadCountResponse } = useQuery({
+    queryKey: ["notifications-unread-count"],
+    queryFn: () => notificationService.getUnreadCount(),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+
+  // Refetch unread count when receiving new notification via WebSocket
+  const prevNotificationsLengthRef = useRef(0);
+  useEffect(() => {
+    if (wsNotifications.length > prevNotificationsLengthRef.current) {
+      const latestNotification = wsNotifications[0];
+      if (!latestNotification.readFlag) {
+        // Invalidate query to refetch unread count when new unread notification arrives
+        queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+      }
+      prevNotificationsLengthRef.current = wsNotifications.length;
+    }
+  }, [wsNotifications, queryClient]);
+
+  // Mark as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: (id: number) => notificationService.markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+    },
+  });
+
+  // Mark all as read mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => notificationService.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+      wsMarkAllAsRead();
+    },
+  });
+
+  // Combine API notifications with WebSocket notifications
+  const apiNotifications = notificationsResponse?.data?.items || [];
+  const allNotifications = [...wsNotifications, ...apiNotifications].filter(
+    (notif, index, self) => index === self.findIndex((n) => n.id === notif.id)
+  );
+
+  // Use unread count from API (more accurate) or WebSocket as fallback
+  const unreadCount = unreadCountResponse?.data ?? wsUnreadCount;
+
+  const handleMarkAsRead = (id: number) => {
+    markAsReadMutation.mutate(id);
+    wsMarkAsRead(id);
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, isRead: true }))
-    );
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
   };
 
-  const removeNotification = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
+  const handleNotificationClick = (notification: NotificationResponse) => {
+    // No navigation on click
   };
 
   return (
@@ -124,92 +158,99 @@ export default function NotificationDropdown() {
         <div className="border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
-              Notifications
+              Thông báo
             </h3>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
+                disabled={markAllAsReadMutation.isPending}
                 className="text-[#1967d2] hover:text-[#1557b8] text-sm font-medium"
               >
-                Mark all as read
+                Đánh dấu tất cả đã đọc
               </Button>
             )}
           </div>
           {unreadCount > 0 && (
             <p className="text-sm text-gray-500 mt-1">
-              You have {unreadCount} unread notification
-              {unreadCount !== 1 ? "s" : ""}
+              Bạn có {unreadCount} thông báo chưa đọc
             </p>
           )}
         </div>
 
         <ScrollArea className="h-96">
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-gray-500">Đang tải...</p>
+            </div>
+          ) : allNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Bell className="w-12 h-12 text-gray-300 mb-3" />
-              <p className="text-gray-500 font-medium">No notifications</p>
-              <p className="text-gray-400 text-sm">You're all caught up!</p>
+              <p className="text-gray-500 font-medium">Không có thông báo</p>
+              <p className="text-gray-400 text-sm">Bạn đã cập nhật tất cả!</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {notifications.map((notification) => (
+              {allNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors ${
-                    !notification.isRead ? "bg-blue-50/50" : ""
+                  className={`p-4 transition-all cursor-pointer relative border-l-4 ${
+                    !notification.readFlag
+                      ? "bg-blue-50 border-blue-500 shadow-sm hover:bg-blue-100 hover:shadow-md"
+                      : "hover:bg-gray-50 border-transparent"
                   }`}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 mt-1">
-                      {notification.icon}
+                      {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p
+                              className={`text-sm font-semibold ${
+                                !notification.readFlag
+                                  ? "text-blue-900"
+                                  : "text-gray-700"
+                              }`}
+                            >
+                              {notification.title}
+                            </p>
+                            {!notification.readFlag && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            )}
+                          </div>
                           <p
-                            className={`text-sm font-medium ${
-                              !notification.isRead
-                                ? "text-gray-900"
-                                : "text-gray-700"
+                            className={`text-sm mt-1 line-clamp-2 ${
+                              !notification.readFlag
+                                ? "text-gray-800 font-medium"
+                                : "text-gray-600"
                             }`}
                           >
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                            {notification.message}
+                            {notification.content}
                           </p>
                           <p className="text-xs text-gray-400 mt-2">
-                            {notification.time}
+                            {relativeTime(notification.createdAt)}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          {!notification.isRead && (
+                        <div className="flex items-center space-x-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                          {!notification.readFlag && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => markAsRead(notification.id)}
-                              className="p-1 h-auto hover:bg-blue-100"
-                              title="Mark as read"
+                              onClick={() => handleMarkAsRead(notification.id)}
+                              disabled={markAsReadMutation.isPending}
+                              className="p-1 h-auto hover:bg-blue-200"
+                              title="Đánh dấu đã đọc"
                             >
                               <Check className="w-3 h-3 text-blue-600" />
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeNotification(notification.id)}
-                            className="p-1 h-auto hover:bg-red-100"
-                            title="Remove notification"
-                          >
-                            <X className="w-3 h-3 text-red-600" />
-                          </Button>
                         </div>
                       </div>
-                      {!notification.isRead && (
-                        <div className="w-2 h-2 bg-[#1967d2] rounded-full absolute left-2 top-6"></div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -218,13 +259,20 @@ export default function NotificationDropdown() {
           )}
         </ScrollArea>
 
-        {notifications.length > 0 && (
+        {allNotifications.length > 0 && (
           <div className="border-t border-gray-200 p-3">
             <Button
               variant="ghost"
               className="w-full text-[#1967d2] hover:text-[#1557b8] hover:bg-blue-50 font-medium"
+              onClick={() => {
+                const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
+                const notificationsPath = isEmployerRoute
+                  ? `${employer_routes.BASE}/${employer_routes.NOTIFICATIONS}`
+                  : `/${routes.NOTIFICATIONS}`;
+                navigate(notificationsPath);
+              }}
             >
-              View all notifications
+              Xem tất cả thông báo
             </Button>
           </div>
         )}

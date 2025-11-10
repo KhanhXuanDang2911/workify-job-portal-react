@@ -52,19 +52,37 @@ export default function FeaturedArticles() {
     }
   }, [mappedArticles.length]);
   return (
-    <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-25 to-indigo-50 relative overflow-x-hidden">
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-200 rounded-full blur-3xl"></div>
-        <div className="absolute top-10 right-10 w-20 h-1 bg-gradient-to-r from-blue-300 to-transparent"></div>
-        <div className="absolute bottom-10 left-10 w-16 h-1 bg-gradient-to-r from-purple-300 to-transparent"></div>
-        <div className="absolute top-1/2 right-5 w-1 h-24 bg-gradient-to-b from-teal-300 to-transparent"></div>
-      </div>
-
+    <section className="relative py-20 bg-white overflow-hidden">
       <div className="main-layout relative z-10">
-        <div className="text-center mb-12">
-          <p className="text-[#1967d2] font-semibold mb-3 text-lg">Our Blogs</p>
-          <h2 className="text-3xl font-bold text-gray-900">Latest Article</h2>
+        <div className="flex items-center justify-between mb-12">
+          <div className="text-center flex-1">
+            <h2 className="text-4xl lg:text-5xl font-bold text-[#1e3a5f] mb-3">
+              News and Blog
+            </h2>
+            <p className="text-lg text-[#66789c]">
+              Get the latest news, updates and tips
+            </p>
+          </div>
+          
+          {/* Navigation arrows - only show if more than 1 slide */}
+          {totalSlides > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={prevSlide}
+                className="w-12 h-12 bg-blue-50 hover:bg-[#4a6cf7] rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group border border-blue-100"
+                disabled={currentSlide === 0}
+              >
+                <ChevronLeft className="w-5 h-5 text-[#4a6cf7] group-hover:text-white transition-colors" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="w-12 h-12 bg-blue-50 hover:bg-[#4a6cf7] rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group border border-blue-100"
+                disabled={currentSlide === totalSlides - 1}
+              >
+                <ChevronRight className="w-5 h-5 text-[#4a6cf7] group-hover:text-white transition-colors" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="relative">
@@ -100,48 +118,22 @@ export default function FeaturedArticles() {
                   ))}
                 </div>
 
-                {/* Navigation - only show if more than 1 slide */}
-                {totalSlides > 1 && (
-                  <div className="flex justify-center items-center space-x-4 mt-8">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={prevSlide}
-                      className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <div className="flex space-x-2">
-                      {Array.from({ length: totalSlides }).map((_, index) => (
-                        <button
-                          key={index}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
-                          }`}
-                          onClick={() => setCurrentSlide(index)}
-                        />
-                      ))}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={nextSlide}
-                      className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
               </>
             )}
           </div>
 
-          <div className="text-center mt-8">
-            <Link to={`/${routes.ARTICLES}`}>
-              <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3">
-                View All Articles
-              </Button>
-            </Link>
+          <div className="text-center mt-16">
+            <Button
+              asChild
+              className="bg-[#1e3a5f] hover:bg-[#152a45] text-white px-8 py-6 h-auto text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <Link to={`/${routes.ARTICLES}`} className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Load More Posts
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

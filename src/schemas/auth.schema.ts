@@ -9,13 +9,19 @@ export const signUpSchema = z
       .min(2, "Họ và tên phải có ít nhất 2 ký tự")
       .max(50, "Họ và tên không được vượt quá 50 ký tự")
       .regex(FULLNAME_REGEX, "Họ và tên chỉ được chứa chữ cái và khoảng trắng"),
-    email: z.string().min(1, "Email là bắt buộc").regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
+    email: z
+      .string()
+      .min(1, "Email là bắt buộc")
+      .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
     password: z
       .string()
       .min(1, "Mật khẩu là bắt buộc")
       .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
       .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(PASSWORD_REGEX, "Mật khẩu chứa ít nhất 8 kí tự gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"),
+      .regex(
+        PASSWORD_REGEX,
+        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
+      ),
     confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
     agreeToTerms: z.boolean().refine((val) => val === true, {
       message: "Bạn phải đồng ý với điều khoản sử dụng",
@@ -27,7 +33,10 @@ export const signUpSchema = z
   });
 
 export const signInSchema = z.object({
-  email: z.string().min(1, "Email là bắt buộc").regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
+  email: z
+    .string()
+    .min(1, "Email là bắt buộc")
+    .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
   password: z.string().min(1, "Mật khẩu là bắt buộc"),
 });
 
@@ -39,7 +48,10 @@ export const changePasswordFormSchema = z
       .min(1, "Mật khẩu mới là bắt buộc")
       .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
       .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(PASSWORD_REGEX, "Mật khẩu chứa ít nhất 8 kí tự gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"),
+      .regex(
+        PASSWORD_REGEX,
+        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
+      ),
     confirmNewPassword: z.string().min(1, "Xác nhận mật khẩu mới là bắt buộc"),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
@@ -65,7 +77,10 @@ export const resetPasswordSchema = z
       .min(1, "Mật khẩu mới là bắt buộc")
       .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
       .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(PASSWORD_REGEX, "Mật khẩu chứa ít nhất 8 kí tự gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"),
+      .regex(
+        PASSWORD_REGEX,
+        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
+      ),
     confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -78,9 +93,12 @@ export const createPasswordSchema = z
     password: z
       .string()
       .min(1, "Mật khẩu là bắt buộc")
-      .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+      .min(8, "Mật khẩu phải có ít nhất 8 ký tú")
       .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(PASSWORD_REGEX, "Mật khẩu chứa ít nhất 8 kí tự gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"),
+      .regex(
+        PASSWORD_REGEX,
+        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
+      ),
     confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
   })
   .refine((data) => data.password === data.confirmPassword, {

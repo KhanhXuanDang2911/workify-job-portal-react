@@ -46,23 +46,18 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
               <Link
                 key={job.id}
                 to={`/${routes.JOB_DETAIL}/${job.id}`}
-                className="block p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                className="block p-4 bg-gray-50 border-2 border-blue-200 rounded-lg shadow-md hover:bg-blue-50 hover:shadow-xl transition-all cursor-pointer"
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar + Badge */}
                   <div className="flex flex-col items-center flex-shrink-0">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage
-                        src={job.logo}
-                        alt={job.company}
-                      />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
+                    <Avatar className="w-12 h-12 border-2 border-gray-300">
+                      <AvatarImage src={job.logo} alt={job.company} />
+                      <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-medium">
                         {getCompanyInitials(job.company)}
                       </AvatarFallback>
                     </Avatar>
-                    <Badge
-                      className={`${job.typeColor} text-white text-[10px] px-2 py-0.5 rounded mt-1`}
-                    >
+                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-[10px] px-2 py-0.5 rounded mt-1 font-medium">
                       {job.type}
                     </Badge>
                   </div>
