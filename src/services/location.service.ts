@@ -11,9 +11,8 @@ import type {
 export const provinceService = {
   // Public: Get all provinces
   getProvinces: async (): Promise<ApiResponse<Province[]>> => {
-    const response = await publicHttp.get<ApiResponse<Province[]>>(
-      "/provinces"
-    );
+    const response =
+      await publicHttp.get<ApiResponse<Province[]>>("/provinces");
     return response.data;
   },
 
@@ -73,9 +72,8 @@ export const provinceService = {
 export const districtService = {
   // Public: Get all districts
   getDistricts: async (): Promise<ApiResponse<District[]>> => {
-    const response = await publicHttp.get<ApiResponse<District[]>>(
-      "/districts"
-    );
+    const response =
+      await publicHttp.get<ApiResponse<District[]>>("/districts");
     return response.data;
   },
 

@@ -16,16 +16,23 @@ type Article = {
 
 // Generate random avatar based on author name
 const getAvatarUrl = (name: string) => {
-  const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seed = name
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return `https://i.pravatar.cc/150?img=${(seed % 70) + 1}`;
 };
 
 export default function ArticleCard({ article }: { article: Article }) {
-  const readingTime = article.readingTime || `${Math.floor(Math.random() * 4) + 6} mins to read`;
-  
+  const readingTime =
+    article.readingTime || `${Math.floor(Math.random() * 4) + 6} mins to read`;
+
   return (
     <Link
-      to={article.id ? `/${routes.ARTICLES_DETAIL}/${article.id}` : `/${routes.ARTICLES_DETAIL}`}
+      to={
+        article.id
+          ? `/${routes.ARTICLES_DETAIL}/${article.id}`
+          : `/${routes.ARTICLES_DETAIL}`
+      }
       className="block group"
     >
       <div className="bg-white rounded-3xl overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-xl shadow-sm">
@@ -42,7 +49,7 @@ export default function ArticleCard({ article }: { article: Article }) {
         <div className="p-6">
           {/* Category Badge */}
           <Badge className="bg-blue-100/80 text-[#4a6cf7] hover:bg-blue-100 font-medium border-0 mb-4">
-            {article.category || 'News'}
+            {article.category || "News"}
           </Badge>
 
           {/* Title */}
@@ -63,7 +70,9 @@ export default function ArticleCard({ article }: { article: Article }) {
               className="w-10 h-10 rounded-full object-cover"
             />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-[#1e3a5f]">{article.author}</p>
+              <p className="text-sm font-semibold text-[#1e3a5f]">
+                {article.author}
+              </p>
               <p className="text-xs text-[#66789c]">{article.date}</p>
             </div>
             <span className="text-xs text-[#66789c]">{readingTime}</span>

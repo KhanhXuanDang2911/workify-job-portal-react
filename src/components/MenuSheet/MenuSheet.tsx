@@ -8,13 +8,19 @@ interface MenuSheetProps {
   setIsMobileSidebarOpen: (open: boolean) => void;
 }
 
-function MenuSheet({ isMobileSidebarOpen, setIsMobileSidebarOpen }: MenuSheetProps) {
+function MenuSheet({
+  isMobileSidebarOpen,
+  setIsMobileSidebarOpen,
+}: MenuSheetProps) {
   return (
     <>
       <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
         <div className="p-4">
           <SheetTrigger asChild>
-            <Button variant="outline" className=" fixed top-4 left-4 z-50 flex items-center gap-2 border-[#e2e7f5] bg-white">
+            <Button
+              variant="outline"
+              className=" fixed top-4 left-4 z-50 flex items-center gap-2 border-[#e2e7f5] bg-white"
+            >
               <Menu size={16} />
               <span>Menu</span>
             </Button>

@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
 
 /**
  * HTTP client for public endpoints (no authentication required)
@@ -22,7 +23,11 @@ publicHttp.interceptors.request.use(
     if (config.data instanceof FormData && !config.headers["Content-Type"]) {
       delete config.headers["Content-Type"];
     }
-    console.log("[Public HTTP] Request:", config.method?.toUpperCase(), config.url);
+    console.log(
+      "[Public HTTP] Request:",
+      config.method?.toUpperCase(),
+      config.url
+    );
     return config;
   },
   (error) => {
@@ -34,11 +39,19 @@ publicHttp.interceptors.request.use(
 // Response interceptor
 publicHttp.interceptors.response.use(
   (response) => {
-    console.log("[Public HTTP] Response:", response.status, response.config.url);
+    console.log(
+      "[Public HTTP] Response:",
+      response.status,
+      response.config.url
+    );
     return response;
   },
   (error) => {
-    console.error("[Public HTTP] Response error:", error.response?.status, error.config?.url);
+    console.error(
+      "[Public HTTP] Response error:",
+      error.response?.status,
+      error.config?.url
+    );
     return Promise.reject(error);
   }
 );

@@ -36,6 +36,7 @@ import { employer_routes } from "@/routes/routes.const";
 import EditWebsiteUrlsModal from "@/pages/Employer/Organization/components/CompanyProfile/EditWebsiteUrlsModal";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -54,6 +55,7 @@ const defaultAvatar =
   "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
 
 export default function CompanyProfile() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [bannerImage, setBannerImage] = useState<string>(defaultBanner);
@@ -121,7 +123,7 @@ export default function CompanyProfile() {
     }
     if (jobsError) {
       console.error("🔴 Jobs Error:", jobsError);
-      toast.error("Failed to load hiring jobs");
+      toast.error(t("toast.error.unknownError"));
     }
   }, [hiringJobsData, jobsError]);
 
@@ -129,10 +131,10 @@ export default function CompanyProfile() {
     mutationFn: (file: File) => employerService.updateEmployerAvatar(file),
     onSuccess: (response) => {
       setAvatarImage(response.data?.avatarUrl || "");
-      toast.success("Cập nhật avatar thành công");
+      toast.success(t("toast.success.profileUpdated"));
     },
     onError: () => {
-      toast.error("Cập nhật avatar thất bại");
+      toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
@@ -179,7 +181,7 @@ export default function CompanyProfile() {
                 size="sm"
               >
                 <Camera className="mr-2 h-4 w-4" />
-                Edit cover
+                {t("employer.organization.editCover")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -248,7 +250,7 @@ export default function CompanyProfile() {
                   <span>
                     {employerData
                       ? `${employerData.detailAddress}, ${employerData.district?.name}, ${employerData.province?.name}`
-                      : "Address not set"}
+                      : t("employer.organization.addressNotSet")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -273,7 +275,7 @@ export default function CompanyProfile() {
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#1967d2]">
-                  About company
+                  {t("employer.organization.aboutCompany")}
                 </h3>
                 <AboutCompanyModal />
               </div>
@@ -285,7 +287,9 @@ export default function CompanyProfile() {
                   }}
                 />
               ) : (
-                <p className="text-gray-600">No description available.</p>
+                <p className="text-gray-600">
+                  {t("employer.organization.noDescription")}
+                </p>
               )}
             </div>
 
@@ -293,7 +297,7 @@ export default function CompanyProfile() {
             <div className="border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#1967d2]">
-                  Current hiring position
+                  {t("employer.organization.currentHiring")}
                 </h3>
                 <Button
                   className="bg-[#1967d2] hover:bg-[#1557b0] py-5"
@@ -305,7 +309,7 @@ export default function CompanyProfile() {
                   }
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Post a new Job
+                  {t("employer.organization.postNewJob")}
                 </Button>
               </div>
               <div className="mb-4 flex justify-between items-center">
@@ -314,8 +318,9 @@ export default function CompanyProfile() {
                     {hiringJobsData?.numberOfElements || 0}
                   </span>
                   <span className="font-semibold">
-                    active job
-                    {(hiringJobsData?.numberOfElements || 0) !== 1 ? "s" : ""}
+                    {t("employer.organization.activeJobs", {
+                      count: hiringJobsData?.numberOfElements || 0,
+                    })}
                   </span>
                 </span>
               </div>
@@ -352,11 +357,11 @@ export default function CompanyProfile() {
                           </div>
                           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                             <span>
-                              Posted:{" "}
+                              {t("employer.organization.posted")}:{" "}
                               {new Date(job.createdAt).toLocaleDateString()}
                             </span>
                             <span>
-                              Expires:{" "}
+                              {t("employer.organization.expires")}:{" "}
                               {new Date(
                                 job.expirationDate
                               ).toLocaleDateString()}
@@ -372,17 +377,14 @@ export default function CompanyProfile() {
                             )
                           }
                         >
-                          Edit
+                          {t("common.edit")}
                         </Button>
                       </div>
                     </div>
                   ))}
                   {(hiringJobsData?.numberOfElements || 0) === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      <p>
-                        All your jobs are pending approval or no approved jobs
-                        yet.
-                      </p>
+                      <p>{t("employer.organization.allJobsPending")}</p>
                     </div>
                   )}
                   {(hiringJobsData?.numberOfElements || 0) > 0 && (
@@ -391,7 +393,10 @@ export default function CompanyProfile() {
                       {hiringJobsData && hiringJobsData.totalPages > 1 && (
                         <div className="flex items-center justify-between mt-4">
                           <div className="text-sm text-gray-600">
-                            Page {pageNumber} of {hiringJobsData.totalPages}
+                            {t("employer.organization.pageOf", {
+                              page: pageNumber,
+                              total: hiringJobsData.totalPages,
+                            })}
                           </div>
                           <div className="flex gap-2">
                             <Button
@@ -402,7 +407,7 @@ export default function CompanyProfile() {
                               }
                               disabled={pageNumber === 1}
                             >
-                              Previous
+                              {t("common.previous")}
                             </Button>
                             <Button
                               size="sm"
@@ -416,7 +421,7 @@ export default function CompanyProfile() {
                                 pageNumber === hiringJobsData.totalPages
                               }
                             >
-                              Next
+                              {t("common.next")}
                             </Button>
                           </div>
                         </div>
@@ -432,7 +437,7 @@ export default function CompanyProfile() {
                             )
                           }
                         >
-                          View all jobs
+                          {t("employer.organization.viewAllJobs")}
                         </Button>
                       </div>
                     </div>
@@ -441,10 +446,10 @@ export default function CompanyProfile() {
               ) : (
                 <div className="text-left py-8">
                   <p className="font-semibold mb-2">
-                    No active job postings found.
+                    {t("employer.organization.noActiveJobPostings")}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Post your first job to start hiring!
+                    {t("employer.organization.postFirstJob")}
                   </p>
                 </div>
               )}
@@ -469,7 +474,7 @@ export default function CompanyProfile() {
                     <p className="text-sm text-gray-600">
                       {employerData
                         ? `${employerData.detailAddress}, ${employerData.district?.name}, ${employerData.province?.name}`
-                        : "Address not set"}
+                        : t("employer.organization.addressNotSet")}
                     </p>
                   </div>
                 </div>

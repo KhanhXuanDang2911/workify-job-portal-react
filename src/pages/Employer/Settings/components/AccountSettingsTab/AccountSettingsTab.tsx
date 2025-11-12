@@ -20,14 +20,25 @@ interface AccountSettingsTabProps {
   accountInformation: AccountInformation;
   setAccountInformation: any;
 }
-export default function AccountSettingsTab({ accountInformation, setAccountInformation }: AccountSettingsTabProps) {
+export default function AccountSettingsTab({
+  accountInformation,
+  setAccountInformation,
+}: AccountSettingsTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [profileImage, setProfileImage] = useState<string>(accountInformation.avatarUrl || "");
-  const [fullName, setFullName] = useState<string>(accountInformation.fullName || "");
+  const [profileImage, setProfileImage] = useState<string>(
+    accountInformation.avatarUrl || ""
+  );
+  const [fullName, setFullName] = useState<string>(
+    accountInformation.fullName || ""
+  );
   const [email, setEmail] = useState<string>(accountInformation.email || "");
-  const [username, setUsername] = useState<string>(accountInformation.username || "");
-  const [phoneNumber, setPhoneNumber] = useState<string>(accountInformation.phoneNumber || "");
+  const [username, setUsername] = useState<string>(
+    accountInformation.username || ""
+  );
+  const [phoneNumber, setPhoneNumber] = useState<string>(
+    accountInformation.phoneNumber || ""
+  );
   const [bio, setBio] = useState<string>(accountInformation.bio || "");
 
   useEffect(() => {
@@ -65,11 +76,19 @@ export default function AccountSettingsTab({ accountInformation, setAccountInfor
         <Label className="text-gray-600 mb-3 block">Your Profile Picture</Label>
         <div className="flex items-center gap-4">
           <Avatar className="w-20 h-20">
-            <AvatarImage src={profileImage || "/placeholder.svg"} alt={fullName} />
-            <AvatarFallback className="bg-purple-500 text-white text-2xl font-semibold">{fullName.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarImage
+              src={profileImage || "/placeholder.svg"}
+              alt={fullName}
+            />
+            <AvatarFallback className="bg-purple-500 text-white text-2xl font-semibold">
+              {fullName.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div className="flex gap-3">
-            <Button onClick={handleUploadNew} className="bg-[#1967d2] hover:bg-[#1557b0] text-white">
+            <Button
+              onClick={handleUploadNew}
+              className="bg-[#1967d2] hover:bg-[#1557b0] text-white"
+            >
               Upload New
             </Button>
             <Button
@@ -80,7 +99,13 @@ export default function AccountSettingsTab({ accountInformation, setAccountInfor
               Remove Profile Picture
             </Button>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
         </div>
       </div>
 
@@ -150,7 +175,9 @@ export default function AccountSettingsTab({ accountInformation, setAccountInfor
       </div>
 
       <div>
-        <Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-8">Update Profile</Button>
+        <Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-8">
+          Update Profile
+        </Button>
       </div>
     </div>
   );

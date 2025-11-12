@@ -3,12 +3,30 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +41,7 @@ import { industryService } from "@/services/industry.service";
 import type { Industry } from "@/types";
 import { toast } from "react-toastify";
 import { categoryJobService } from "@/services/categoryJobs.service";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface IndustrySheetProps {
   industry: Industry;
@@ -40,7 +59,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId }: IndustrySheetProps) {
+export default function IndustrySheet({
+  industry,
+  isOpen,
+  onClose,
+  categoryJobId,
+}: IndustrySheetProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -67,12 +92,14 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
     }
   }, [industry, isOpen, form, categoryJobId]);
 
-  const { data: categoryJobsData, isLoading: isLoadingCategoryJobs } = useQuery({
-    queryKey: ["categoryJobs","all"],
-    queryFn: () => categoryJobService.getAllCategoryJobs(),
-    select: (data) => data.data,
-    refetchOnWindowFocus: false,
-  });
+  const { data: categoryJobsData, isLoading: isLoadingCategoryJobs } = useQuery(
+    {
+      queryKey: ["categoryJobs", "all"],
+      queryFn: () => categoryJobService.getAllCategoryJobs(),
+      select: (data) => data.data,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const updateMutation = useMutation({
     mutationFn: (data: FormValues) =>
@@ -80,39 +107,41 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
         name: data.name,
         engName: data.engName,
         description: data.description || "",
-         categoryJobId: data.categoryJobId,
+        categoryJobId: data.categoryJobId,
       }),
     onSuccess: () => {
-      toast.success("Industry updated successfully");
+      toast.success(t("toast.success.industryUpdated"));
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["industries",categoryJobId] });
+      queryClient.invalidateQueries({
+        queryKey: ["industries", categoryJobId],
+      });
     },
     onError: () => {
-      toast.error("Failed to update industry");
+      toast.error(t("toast.error.updateIndustryFailed"));
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => industryService.deleteIndustry(industry.id),
     onSuccess: () => {
-      toast.success("Xóa thành công");
+      toast.success(t("toast.success.industryDeleted"));
       queryClient.invalidateQueries({ queryKey: ["industries"] });
       onClose();
     },
     onError: () => {
-      toast.error("Xóa thất bại");
+      toast.error(t("toast.error.deleteIndustryFailed"));
     },
   });
 
   const onSubmit = (data: FormValues) => {
     if (isEditing) {
       updateMutation.mutate(data);
-    } 
+    }
   };
 
   const handleCancel = () => {
     form.reset();
-      setIsEditing(false);
+    setIsEditing(false);
   };
 
   const handleDelete = () => {
@@ -123,17 +152,26 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-full max-w-2xl p-0 overflow-y-auto">
+        <SheetContent
+          side="right"
+          className="w-full max-w-2xl p-0 overflow-y-auto"
+        >
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="flex items-center justify-between">
               <span> Industry Details</span>
               <div className="flex gap-2">
                 {!isEditing ? (
                   <>
-                    <Button onClick={() => setIsEditing(true)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                    >
                       Edit
                     </Button>
-                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
                       Delete
                     </Button>
                   </>
@@ -142,7 +180,11 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
                     <Button variant="outline" onClick={handleCancel}>
                       Cancel
                     </Button>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={updateMutation.isPending} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
+                    <Button
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={updateMutation.isPending}
+                      className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                    >
                       {updateMutation.isPending ? "Saving..." : "Save"}
                     </Button>
                   </>
@@ -159,7 +201,10 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <FormLabel>
+                        Name{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -178,7 +223,10 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
                   name="engName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>English Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <FormLabel>
+                        English Name{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -217,16 +265,33 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
                   name="categoryJobId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category Job {isEditing && <span className="text-red-600">*</span>}</FormLabel>
-                      <Select disabled={!isEditing || isLoadingCategoryJobs} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                      <FormLabel>
+                        Category Job{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
+                      <Select
+                        disabled={!isEditing || isLoadingCategoryJobs}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={field.value?.toString()}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={isLoadingCategoryJobs ? "Loading..." : "Select category job"} />
+                            <SelectValue
+                              placeholder={
+                                isLoadingCategoryJobs
+                                  ? "Loading..."
+                                  : "Select category job"
+                              }
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {categoryJobsData?.map((job) => (
-                            <SelectItem key={job.id} value={job.id.toString()} className="focus:bg-green-200">
+                            <SelectItem
+                              key={job.id}
+                              value={job.id.toString()}
+                              className="focus:bg-green-200"
+                            >
                               {job.name}
                             </SelectItem>
                           ))}
@@ -247,11 +312,17 @@ export default function IndustrySheet({ industry, isOpen, onClose, categoryJobId
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the industry "{industry.name}". This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will permanently delete the industry "{industry.name}". This
+              action cannot be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

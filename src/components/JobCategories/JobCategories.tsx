@@ -56,8 +56,10 @@ import CategoryCard from "../CategoryCard";
 import Loading from "../Loading";
 import { jobService } from "@/services";
 import type { CategoryJobResponse } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function JobCategories() {
+  const { t, i18n } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 8;
 
@@ -72,243 +74,441 @@ export default function JobCategories() {
   // Maps to actual categories from database
   const getCategoryIcon = (name: string, engName: string): LucideIcon => {
     const searchText = `${name.toLowerCase()} ${engName.toLowerCase()}`;
-    
+
     // IT - Công nghệ thông tin / IT - Information Technology
-    if (searchText.includes("it") || searchText.includes("công nghệ thông tin") || 
-        searchText.includes("information technology") || searchText.includes("cntt") ||
-        searchText.includes("phần mềm") || searchText.includes("software") ||
-        searchText.includes("phần cứng") || searchText.includes("hardware") ||
-        searchText.includes("mạng") || searchText.includes("networking")) {
+    if (
+      searchText.includes("it") ||
+      searchText.includes("công nghệ thông tin") ||
+      searchText.includes("information technology") ||
+      searchText.includes("cntt") ||
+      searchText.includes("phần mềm") ||
+      searchText.includes("software") ||
+      searchText.includes("phần cứng") ||
+      searchText.includes("hardware") ||
+      searchText.includes("mạng") ||
+      searchText.includes("networking")
+    ) {
       return Code;
     }
-    
+
     // Xây dựng / Bất động sản / Construction / Real Estate
-    if (searchText.includes("xây dựng") || searchText.includes("construction") ||
-        searchText.includes("bất động sản") || searchText.includes("real estate") ||
-        searchText.includes("kiến trúc") || searchText.includes("architecture") ||
-        searchText.includes("nội thất") || searchText.includes("interior") ||
-        searchText.includes("ngoại thất") || searchText.includes("exterior")) {
+    if (
+      searchText.includes("xây dựng") ||
+      searchText.includes("construction") ||
+      searchText.includes("bất động sản") ||
+      searchText.includes("real estate") ||
+      searchText.includes("kiến trúc") ||
+      searchText.includes("architecture") ||
+      searchText.includes("nội thất") ||
+      searchText.includes("interior") ||
+      searchText.includes("ngoại thất") ||
+      searchText.includes("exterior")
+    ) {
       return Building2;
     }
-    
+
     // Truyền thông / Media / Communication
-    if (searchText.includes("truyền thông") || searchText.includes("media") ||
-        searchText.includes("báo chí") || searchText.includes("journalism") ||
-        searchText.includes("biên tập") || searchText.includes("editing") ||
-        searchText.includes("xuất bản") || searchText.includes("publishing") ||
-        searchText.includes("viễn thông") || searchText.includes("telecommunications")) {
+    if (
+      searchText.includes("truyền thông") ||
+      searchText.includes("media") ||
+      searchText.includes("báo chí") ||
+      searchText.includes("journalism") ||
+      searchText.includes("biên tập") ||
+      searchText.includes("editing") ||
+      searchText.includes("xuất bản") ||
+      searchText.includes("publishing") ||
+      searchText.includes("viễn thông") ||
+      searchText.includes("telecommunications")
+    ) {
       return Camera;
     }
-    
+
     // Dịch vụ / Services
-    if (searchText.includes("dịch vụ") && !searchText.includes("tài chính") && 
-        !searchText.includes("khách hàng") && !searchText.includes("ăn uống")) {
+    if (
+      searchText.includes("dịch vụ") &&
+      !searchText.includes("tài chính") &&
+      !searchText.includes("khách hàng") &&
+      !searchText.includes("ăn uống")
+    ) {
       // Check for specific services
-      if (searchText.includes("an ninh") || searchText.includes("bảo vệ") || 
-          searchText.includes("security") || searchText.includes("guard")) {
+      if (
+        searchText.includes("an ninh") ||
+        searchText.includes("bảo vệ") ||
+        searchText.includes("security") ||
+        searchText.includes("guard")
+      ) {
         return Shield;
       }
-      if (searchText.includes("chăm sóc sức khỏe") || searchText.includes("y tế") ||
-          searchText.includes("healthcare") || searchText.includes("medical")) {
+      if (
+        searchText.includes("chăm sóc sức khỏe") ||
+        searchText.includes("y tế") ||
+        searchText.includes("healthcare") ||
+        searchText.includes("medical")
+      ) {
         return Stethoscope;
       }
-      if (searchText.includes("giáo dục") || searchText.includes("đào tạo") ||
-          searchText.includes("education") || searchText.includes("training") ||
-          searchText.includes("thư viện") || searchText.includes("library")) {
+      if (
+        searchText.includes("giáo dục") ||
+        searchText.includes("đào tạo") ||
+        searchText.includes("education") ||
+        searchText.includes("training") ||
+        searchText.includes("thư viện") ||
+        searchText.includes("library")
+      ) {
         return GraduationCap;
       }
-      if (searchText.includes("phi chính phủ") || searchText.includes("phi lợi nhuận") ||
-          searchText.includes("non-governmental") || searchText.includes("non-profit")) {
+      if (
+        searchText.includes("phi chính phủ") ||
+        searchText.includes("phi lợi nhuận") ||
+        searchText.includes("non-governmental") ||
+        searchText.includes("non-profit")
+      ) {
         return Heart;
       }
-      if (searchText.includes("bán lẻ") || searchText.includes("bán sỉ") ||
-          searchText.includes("retail") || searchText.includes("wholesale")) {
+      if (
+        searchText.includes("bán lẻ") ||
+        searchText.includes("bán sỉ") ||
+        searchText.includes("retail") ||
+        searchText.includes("wholesale")
+      ) {
         return ShoppingBag;
       }
       return Users; // General services
     }
-    
+
     // Dịch vụ tài chính / Financial Services
-    if (searchText.includes("dịch vụ tài chính") || searchText.includes("financial services") ||
-        searchText.includes("tài chính") || searchText.includes("finance") ||
-        searchText.includes("đầu tư") || searchText.includes("investment") ||
-        searchText.includes("ngân hàng") || searchText.includes("banking") ||
-        searchText.includes("chứng khoán") || searchText.includes("securities") ||
-        searchText.includes("kế toán") || searchText.includes("accounting") ||
-        searchText.includes("kiểm toán") || searchText.includes("auditing") ||
-        searchText.includes("bảo hiểm") || searchText.includes("insurance")) {
+    if (
+      searchText.includes("dịch vụ tài chính") ||
+      searchText.includes("financial services") ||
+      searchText.includes("tài chính") ||
+      searchText.includes("finance") ||
+      searchText.includes("đầu tư") ||
+      searchText.includes("investment") ||
+      searchText.includes("ngân hàng") ||
+      searchText.includes("banking") ||
+      searchText.includes("chứng khoán") ||
+      searchText.includes("securities") ||
+      searchText.includes("kế toán") ||
+      searchText.includes("accounting") ||
+      searchText.includes("kiểm toán") ||
+      searchText.includes("auditing") ||
+      searchText.includes("bảo hiểm") ||
+      searchText.includes("insurance")
+    ) {
       return DollarSign;
     }
-    
+
     // Giao dịch khách hàng / Customer Transactions
-    if (searchText.includes("giao dịch khách hàng") || searchText.includes("customer transactions") ||
-        searchText.includes("bán hàng") || searchText.includes("sales") ||
-        searchText.includes("kinh doanh") || searchText.includes("business development") ||
-        searchText.includes("tiếp thị") || searchText.includes("marketing") ||
-        searchText.includes("quảng cáo") || searchText.includes("advertising") ||
-        searchText.includes("khuyến mãi") || searchText.includes("promotion") ||
-        searchText.includes("đối ngoại") || searchText.includes("public relations") ||
-        searchText.includes("thời trang") || searchText.includes("fashion") ||
-        searchText.includes("tư vấn dịch vụ khách hàng") || searchText.includes("customer service consulting")) {
+    if (
+      searchText.includes("giao dịch khách hàng") ||
+      searchText.includes("customer transactions") ||
+      searchText.includes("bán hàng") ||
+      searchText.includes("sales") ||
+      searchText.includes("kinh doanh") ||
+      searchText.includes("business development") ||
+      searchText.includes("tiếp thị") ||
+      searchText.includes("marketing") ||
+      searchText.includes("quảng cáo") ||
+      searchText.includes("advertising") ||
+      searchText.includes("khuyến mãi") ||
+      searchText.includes("promotion") ||
+      searchText.includes("đối ngoại") ||
+      searchText.includes("public relations") ||
+      searchText.includes("thời trang") ||
+      searchText.includes("fashion") ||
+      searchText.includes("tư vấn dịch vụ khách hàng") ||
+      searchText.includes("customer service consulting")
+    ) {
       return TrendingUp;
     }
-    
+
     // Khách sạn / Du lịch / Hotel / Tourism
-    if (searchText.includes("khách sạn") || searchText.includes("hotel") ||
-        searchText.includes("du lịch") || searchText.includes("tourism") ||
-        searchText.includes("nhà hàng") || searchText.includes("restaurant") ||
-        searchText.includes("dịch vụ ăn uống") || searchText.includes("food service")) {
+    if (
+      searchText.includes("khách sạn") ||
+      searchText.includes("hotel") ||
+      searchText.includes("du lịch") ||
+      searchText.includes("tourism") ||
+      searchText.includes("nhà hàng") ||
+      searchText.includes("restaurant") ||
+      searchText.includes("dịch vụ ăn uống") ||
+      searchText.includes("food service")
+    ) {
       return UtensilsCrossed;
     }
-    
+
     // Tư vấn chuyên môn / Professional Consulting
-    if (searchText.includes("tư vấn chuyên môn") || searchText.includes("professional consulting") ||
-        searchText.includes("tư vấn kỹ thuật") || searchText.includes("technical consulting") ||
-        searchText.includes("tư vấn logistics") || searchText.includes("logistics consulting") ||
-        searchText.includes("tư vấn marketing") || searchText.includes("marketing consulting") ||
-        searchText.includes("tư vấn thương mại") || searchText.includes("trade consulting") ||
-        searchText.includes("tư vấn quản trị") || searchText.includes("management consulting") ||
-        searchText.includes("tư vấn pháp lý") || searchText.includes("legal consulting") ||
-        searchText.includes("tư vấn nhân sự") || searchText.includes("hr consulting")) {
+    if (
+      searchText.includes("tư vấn chuyên môn") ||
+      searchText.includes("professional consulting") ||
+      searchText.includes("tư vấn kỹ thuật") ||
+      searchText.includes("technical consulting") ||
+      searchText.includes("tư vấn logistics") ||
+      searchText.includes("logistics consulting") ||
+      searchText.includes("tư vấn marketing") ||
+      searchText.includes("marketing consulting") ||
+      searchText.includes("tư vấn thương mại") ||
+      searchText.includes("trade consulting") ||
+      searchText.includes("tư vấn quản trị") ||
+      searchText.includes("management consulting") ||
+      searchText.includes("tư vấn pháp lý") ||
+      searchText.includes("legal consulting") ||
+      searchText.includes("tư vấn nhân sự") ||
+      searchText.includes("hr consulting")
+    ) {
       return Briefcase;
     }
-    
+
     // Kỹ thuật / Engineering / Technical
-    if (searchText.includes("kỹ thuật") || searchText.includes("engineering") ||
-        searchText.includes("bảo trì") || searchText.includes("maintenance") ||
-        searchText.includes("sửa chữa") || searchText.includes("repair") ||
-        searchText.includes("điện lạnh") || searchText.includes("refrigeration") ||
-        searchText.includes("nhiệt lạnh") || searchText.includes("hvac") ||
-        searchText.includes("dược") || searchText.includes("pharmaceutical") ||
-        searchText.includes("sinh học") || searchText.includes("biology") ||
-        searchText.includes("điện") || searchText.includes("electrical") ||
-        searchText.includes("điện tử") || searchText.includes("electronics") ||
-        searchText.includes("cơ khí") || searchText.includes("mechanical") ||
-        searchText.includes("môi trường") || searchText.includes("environment") ||
-        searchText.includes("xử lý chất thải") || searchText.includes("waste treatment")) {
+    if (
+      searchText.includes("kỹ thuật") ||
+      searchText.includes("engineering") ||
+      searchText.includes("bảo trì") ||
+      searchText.includes("maintenance") ||
+      searchText.includes("sửa chữa") ||
+      searchText.includes("repair") ||
+      searchText.includes("điện lạnh") ||
+      searchText.includes("refrigeration") ||
+      searchText.includes("nhiệt lạnh") ||
+      searchText.includes("hvac") ||
+      searchText.includes("dược") ||
+      searchText.includes("pharmaceutical") ||
+      searchText.includes("sinh học") ||
+      searchText.includes("biology") ||
+      searchText.includes("điện") ||
+      searchText.includes("electrical") ||
+      searchText.includes("điện tử") ||
+      searchText.includes("electronics") ||
+      searchText.includes("cơ khí") ||
+      searchText.includes("mechanical") ||
+      searchText.includes("môi trường") ||
+      searchText.includes("environment") ||
+      searchText.includes("xử lý chất thải") ||
+      searchText.includes("waste treatment")
+    ) {
       return Wrench;
     }
-    
+
     // Sản xuất / Manufacturing / Production
-    if (searchText.includes("sản xuất") || searchText.includes("manufacturing") ||
-        searchText.includes("production") || searchText.includes("vận hành sản xuất") ||
-        searchText.includes("production operation") ||
-        searchText.includes("an toàn lao động") || searchText.includes("occupational safety") ||
-        searchText.includes("dầu khí") || searchText.includes("oil") ||
-        searchText.includes("khoáng sản") || searchText.includes("mining") ||
-        searchText.includes("dệt may") || searchText.includes("textile") ||
-        searchText.includes("da giày") || searchText.includes("footwear") ||
-        searchText.includes("đồ gỗ") || searchText.includes("woodwork") ||
-        searchText.includes("furniture") ||
-        searchText.includes("hóa chất") || searchText.includes("chemical") ||
-        searchText.includes("thực phẩm") || searchText.includes("food") ||
-        searchText.includes("nông nghiệp") || searchText.includes("agriculture") ||
-        searchText.includes("lâm nghiệp") || searchText.includes("forestry") ||
-        searchText.includes("ô tô") || searchText.includes("automotive") ||
-        searchText.includes("thủy hải sản") || searchText.includes("fisheries") ||
-        searchText.includes("aquaculture")) {
+    if (
+      searchText.includes("sản xuất") ||
+      searchText.includes("manufacturing") ||
+      searchText.includes("production") ||
+      searchText.includes("vận hành sản xuất") ||
+      searchText.includes("production operation") ||
+      searchText.includes("an toàn lao động") ||
+      searchText.includes("occupational safety") ||
+      searchText.includes("dầu khí") ||
+      searchText.includes("oil") ||
+      searchText.includes("khoáng sản") ||
+      searchText.includes("mining") ||
+      searchText.includes("dệt may") ||
+      searchText.includes("textile") ||
+      searchText.includes("da giày") ||
+      searchText.includes("footwear") ||
+      searchText.includes("đồ gỗ") ||
+      searchText.includes("woodwork") ||
+      searchText.includes("furniture") ||
+      searchText.includes("hóa chất") ||
+      searchText.includes("chemical") ||
+      searchText.includes("thực phẩm") ||
+      searchText.includes("food") ||
+      searchText.includes("nông nghiệp") ||
+      searchText.includes("agriculture") ||
+      searchText.includes("lâm nghiệp") ||
+      searchText.includes("forestry") ||
+      searchText.includes("ô tô") ||
+      searchText.includes("automotive") ||
+      searchText.includes("thủy hải sản") ||
+      searchText.includes("fisheries") ||
+      searchText.includes("aquaculture")
+    ) {
       return Factory;
     }
-    
+
     // Hỗ trợ sản xuất / Production Support
-    if (searchText.includes("hỗ trợ sản xuất") || searchText.includes("production support") ||
-        searchText.includes("quản lý chất lượng") || searchText.includes("quality assurance") ||
-        searchText.includes("quality control") || searchText.includes("qa") || searchText.includes("qc") ||
-        searchText.includes("vận chuyển") || searchText.includes("transportation") ||
-        searchText.includes("giao thông") || searchText.includes("traffic") ||
-        searchText.includes("kho bãi") || searchText.includes("warehouse") ||
-        searchText.includes("vật tư") || searchText.includes("procurement") ||
-        searchText.includes("thu mua") || searchText.includes("purchasing") ||
-        searchText.includes("xuất nhập khẩu") || searchText.includes("import") ||
-        searchText.includes("export") || searchText.includes("ngoại thương") ||
-        searchText.includes("international trade")) {
+    if (
+      searchText.includes("hỗ trợ sản xuất") ||
+      searchText.includes("production support") ||
+      searchText.includes("quản lý chất lượng") ||
+      searchText.includes("quality assurance") ||
+      searchText.includes("quality control") ||
+      searchText.includes("qa") ||
+      searchText.includes("qc") ||
+      searchText.includes("vận chuyển") ||
+      searchText.includes("transportation") ||
+      searchText.includes("giao thông") ||
+      searchText.includes("traffic") ||
+      searchText.includes("kho bãi") ||
+      searchText.includes("warehouse") ||
+      searchText.includes("vật tư") ||
+      searchText.includes("procurement") ||
+      searchText.includes("thu mua") ||
+      searchText.includes("purchasing") ||
+      searchText.includes("xuất nhập khẩu") ||
+      searchText.includes("import") ||
+      searchText.includes("export") ||
+      searchText.includes("ngoại thương") ||
+      searchText.includes("international trade")
+    ) {
       return Car;
     }
-    
+
     // Bộ phận hỗ trợ / Support Department
-    if (searchText.includes("bộ phận hỗ trợ") || searchText.includes("support department") ||
-        searchText.includes("biên phiên dịch") || searchText.includes("translation") ||
-        searchText.includes("thông dịch viên") || searchText.includes("interpretation") ||
-        searchText.includes("tiếng nhật") || searchText.includes("japanese language") ||
-        searchText.includes("pháp lý") || searchText.includes("legal") ||
-        searchText.includes("luật") || searchText.includes("law") ||
-        searchText.includes("thư ký") || searchText.includes("secretary") ||
-        searchText.includes("hành chính") || searchText.includes("administration")) {
+    if (
+      searchText.includes("bộ phận hỗ trợ") ||
+      searchText.includes("support department") ||
+      searchText.includes("biên phiên dịch") ||
+      searchText.includes("translation") ||
+      searchText.includes("thông dịch viên") ||
+      searchText.includes("interpretation") ||
+      searchText.includes("tiếng nhật") ||
+      searchText.includes("japanese language") ||
+      searchText.includes("pháp lý") ||
+      searchText.includes("legal") ||
+      searchText.includes("luật") ||
+      searchText.includes("law") ||
+      searchText.includes("thư ký") ||
+      searchText.includes("secretary") ||
+      searchText.includes("hành chính") ||
+      searchText.includes("administration")
+    ) {
       return FileText;
     }
-    
+
     // Theo đối tượng / By Target Audience
-    if (searchText.includes("theo đối tượng") || searchText.includes("by target audience") ||
-        searchText.includes("lao động phổ thông") || searchText.includes("manual labor") ||
-        searchText.includes("mới tốt nghiệp") || searchText.includes("fresh graduate") ||
-        searchText.includes("thực tập") || searchText.includes("internship") ||
-        searchText.includes("người nước ngoài") || searchText.includes("foreigners") ||
-        searchText.includes("quản lý điều hành") || searchText.includes("management") ||
-        searchText.includes("executive")) {
+    if (
+      searchText.includes("theo đối tượng") ||
+      searchText.includes("by target audience") ||
+      searchText.includes("lao động phổ thông") ||
+      searchText.includes("manual labor") ||
+      searchText.includes("mới tốt nghiệp") ||
+      searchText.includes("fresh graduate") ||
+      searchText.includes("thực tập") ||
+      searchText.includes("internship") ||
+      searchText.includes("người nước ngoài") ||
+      searchText.includes("foreigners") ||
+      searchText.includes("quản lý điều hành") ||
+      searchText.includes("management") ||
+      searchText.includes("executive")
+    ) {
       return Users;
     }
-    
+
     // Nghệ thuật / Thiết kế / Giải trí / Art / Design / Entertainment
-    if (searchText.includes("nghệ thuật") || searchText.includes("art") ||
-        searchText.includes("thiết kế") || searchText.includes("design") ||
-        searchText.includes("giải trí") || searchText.includes("entertainment") ||
-        searchText.includes("music") || searchText.includes("âm nhạc")) {
+    if (
+      searchText.includes("nghệ thuật") ||
+      searchText.includes("art") ||
+      searchText.includes("thiết kế") ||
+      searchText.includes("design") ||
+      searchText.includes("giải trí") ||
+      searchText.includes("entertainment") ||
+      searchText.includes("music") ||
+      searchText.includes("âm nhạc")
+    ) {
       return Palette;
     }
-    
+
     // Khác / Others
-    if (searchText.includes("khác") || searchText.includes("others") ||
-        searchText.includes("other")) {
+    if (
+      searchText.includes("khác") ||
+      searchText.includes("others") ||
+      searchText.includes("other")
+    ) {
       return Briefcase;
     }
-    
+
     // Default fallback
     return Briefcase;
   };
 
   const colorSchemes = [
-    { color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200", hoverBg: "hover:bg-blue-100" },
-    { color: "text-purple-600", bgColor: "bg-purple-50", borderColor: "border-purple-200", hoverBg: "hover:bg-purple-100" },
-    { color: "text-green-600", bgColor: "bg-green-50", borderColor: "border-green-200", hoverBg: "hover:bg-green-100" },
-    { color: "text-orange-600", bgColor: "bg-orange-50", borderColor: "border-orange-200", hoverBg: "hover:bg-orange-100" },
-    { color: "text-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-200", hoverBg: "hover:bg-pink-100" },
-    { color: "text-indigo-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", hoverBg: "hover:bg-indigo-100" },
-    { color: "text-teal-600", bgColor: "bg-teal-50", borderColor: "border-teal-200", hoverBg: "hover:bg-teal-100" },
-    { color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200", hoverBg: "hover:bg-red-100" },
+    {
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      hoverBg: "hover:bg-blue-100",
+    },
+    {
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+      hoverBg: "hover:bg-purple-100",
+    },
+    {
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      hoverBg: "hover:bg-green-100",
+    },
+    {
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
+      hoverBg: "hover:bg-orange-100",
+    },
+    {
+      color: "text-pink-600",
+      bgColor: "bg-pink-50",
+      borderColor: "border-pink-200",
+      hoverBg: "hover:bg-pink-100",
+    },
+    {
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      borderColor: "border-indigo-200",
+      hoverBg: "hover:bg-indigo-100",
+    },
+    {
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+      borderColor: "border-teal-200",
+      hoverBg: "hover:bg-teal-100",
+    },
+    {
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
+      hoverBg: "hover:bg-red-100",
+    },
   ];
 
   // Transform API data to component format
   const categories = useMemo(() => {
     if (!categoriesResponse?.data) return [];
 
-    return categoriesResponse.data.map((category: CategoryJobResponse, index: number) => {
-      // Calculate total jobs by summing jobCount from all industries
-      const totalJobs = category.industries.reduce(
-        (sum, industry) => sum + (industry.jobCount || 0),
-        0
-      );
+    return categoriesResponse.data.map(
+      (category: CategoryJobResponse, index: number) => {
+        // Calculate total jobs by summing jobCount from all industries
+        const totalJobs = category.industries.reduce(
+          (sum, industry) => sum + (industry.jobCount || 0),
+          0
+        );
 
-      // Format jobs count with comma separator
-      const formattedJobs = totalJobs.toLocaleString("en-US");
+        // Format jobs count with comma separator
+        const formattedJobs = totalJobs.toLocaleString("en-US");
 
-      // Get icon based on category name (both Vietnamese and English)
-      const icon = getCategoryIcon(category.name, category.engName || "");
-      
-      // Get color scheme based on index for variety
-      const colorIndex = index % colorSchemes.length;
-      const scheme = colorSchemes[colorIndex];
+        // Get icon based on category name (both Vietnamese and English)
+        const icon = getCategoryIcon(category.name, category.engName || "");
 
-      return {
-        name: category.name,
-        jobs: `${formattedJobs} Jobs`,
-        icon: icon,
-        color: scheme.color,
-        bgColor: scheme.bgColor,
-        borderColor: scheme.borderColor,
-        hoverBg: scheme.hoverBg,
-      };
-    });
-  }, [categoriesResponse?.data]);
+        // Get color scheme based on index for variety
+        const colorIndex = index % colorSchemes.length;
+        const scheme = colorSchemes[colorIndex];
+
+        return {
+          name:
+            i18n.language === "en"
+              ? category.engName || category.name
+              : category.name,
+          jobs: `${formattedJobs} ${t("jobCategories.jobs")}`,
+          icon: icon,
+          color: scheme.color,
+          bgColor: scheme.bgColor,
+          borderColor: scheme.borderColor,
+          hoverBg: scheme.hoverBg,
+        };
+      }
+    );
+  }, [categoriesResponse?.data, i18n.language, t]);
 
   const totalSlides = Math.ceil(categories.length / itemsPerSlide);
 
@@ -344,7 +544,7 @@ export default function JobCategories() {
       <section className="py-20 bg-white">
         <div className="main-layout">
           <div className="flex items-center justify-center py-20">
-            <p className="text-gray-600">No categories available</p>
+            <p className="text-gray-600">{t("jobCategories.noCategories")}</p>
           </div>
         </div>
       </section>
@@ -364,17 +564,17 @@ export default function JobCategories() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/50 rounded-full mb-4">
             <span className="w-2 h-2 bg-[#1967d2] rounded-full animate-pulse"></span>
             <p className="text-[#1967d2] font-semibold text-sm">
-              Explore Opportunities
+              {t("jobCategories.badge")}
             </p>
           </div>
           <h2 className="text-4xl lg:text-5xl font-semibold text-gray-900 mb-4">
-            Browse Jobs by{" "}
+            {t("jobCategories.title")}{" "}
             <span className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] bg-clip-text text-transparent">
-              Category
+              {t("jobCategories.titleHighlight")}
             </span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover thousands of opportunities across various industries. Find the perfect match for your skills and career goals.
+            {t("jobCategories.description")}
           </p>
         </div>
 
@@ -393,7 +593,10 @@ export default function JobCategories() {
                         slideIndex * itemsPerSlide + itemsPerSlide
                       )
                       .map((category, index) => (
-                        <CategoryCard key={`${slideIndex}-${index}`} category={category} />
+                        <CategoryCard
+                          key={`${slideIndex}-${index}`}
+                          category={category}
+                        />
                       ))}
                   </div>
                 </div>

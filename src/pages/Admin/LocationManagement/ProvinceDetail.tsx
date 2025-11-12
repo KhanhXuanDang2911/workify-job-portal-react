@@ -4,9 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +36,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ProvinceDetails({ province }: { province: Province }) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -59,23 +67,23 @@ export default function ProvinceDetails({ province }: { province: Province }) {
         code: data.code,
       }),
     onSuccess: () => {
-      toast.success("Update successful");
+      toast.success(t("toast.success.locationUpdated"));
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["provinces"] });
     },
     onError: () => {
-      toast.error("Update failed");
+      toast.error(t("toast.error.updateLocationFailed"));
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => provinceService.deleteProvince(province.id),
     onSuccess: () => {
-      toast.success("Delete successful");
+      toast.success(t("toast.success.locationDeleted"));
       queryClient.invalidateQueries({ queryKey: ["provinces"] });
     },
     onError: () => {
-      toast.error("Delete failed");
+      toast.error(t("toast.error.deleteLocationFailed"));
     },
   });
 
@@ -103,27 +111,49 @@ export default function ProvinceDetails({ province }: { province: Province }) {
       <div className="flex items-center justify-between">
         <div
           className="flex items-center gap-2 px-8 py-2 bg-teal-500 text-white w-fit"
-          style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+          style={{
+            clipPath:
+              "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
+          }}
         >
-          <span className="font-semibold">Province</span>
+          <span className="font-semibold">
+            {t("admin.locationManagement.province.title")}
+          </span>
         </div>
         <div className="flex gap-2">
           {!isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(true)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
-                Edit
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+              >
+                {t("admin.locationManagement.province.edit")}
               </Button>
-              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                Delete
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                {t("admin.locationManagement.province.delete")}
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleCancel} className="border-gray-300 bg-transparent">
-                Cancel
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                className="border-gray-300 bg-transparent"
+              >
+                {t("admin.locationManagement.province.cancel")}
               </Button>
-              <Button onClick={form.handleSubmit(onSubmit)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Saving..." : "Save"}
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending
+                  ? t("admin.locationManagement.province.saving")
+                  : t("admin.locationManagement.province.save")}
               </Button>
             </>
           )}
@@ -139,12 +169,21 @@ export default function ProvinceDetails({ province }: { province: Province }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                  <FormLabel>
+                    {t("admin.locationManagement.province.fields.name")}{" "}
+                    {isEditing && <span className="text-red-600">*</span>}
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+                    />
                   </FormControl>
                   {form.formState.errors.name ? (
-                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.name.message}</p>
+                    <p className="text-red-600 text-sm min-h-[15px]">
+                      {form.formState.errors.name.message}
+                    </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>
                   )}
@@ -157,12 +196,21 @@ export default function ProvinceDetails({ province }: { province: Province }) {
               name="engName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Eng Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                  <FormLabel>
+                    {t("admin.locationManagement.province.fields.engName")}{" "}
+                    {isEditing && <span className="text-red-600">*</span>}
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+                    />
                   </FormControl>
                   {form.formState.errors.engName ? (
-                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.engName.message}</p>
+                    <p className="text-red-600 text-sm min-h-[15px]">
+                      {form.formState.errors.engName.message}
+                    </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>
                   )}
@@ -176,11 +224,24 @@ export default function ProvinceDetails({ province }: { province: Province }) {
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Code{isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                <FormLabel>
+                  {t("admin.locationManagement.province.fields.code")}
+                  {isEditing && <span className="text-red-600">*</span>}
+                </FormLabel>
                 <FormControl>
-                  <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+                  <Input
+                    {...field}
+                    disabled={!isEditing}
+                    className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+                  />
                 </FormControl>
-                {form.formState.errors.code ? <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.code.message}</p> : <p className="text-sm min-h-[15px]"> </p>}
+                {form.formState.errors.code ? (
+                  <p className="text-red-600 text-sm min-h-[15px]">
+                    {form.formState.errors.code.message}
+                  </p>
+                ) : (
+                  <p className="text-sm min-h-[15px]"> </p>
+                )}
               </FormItem>
             )}
           />
@@ -191,13 +252,22 @@ export default function ProvinceDetails({ province }: { province: Province }) {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the province "{province.name}" and all associated industries.</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("admin.locationManagement.province.deleteDialog.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.locationManagement.province.deleteDialog.description")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel>
+              {t("admin.locationManagement.province.deleteDialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("admin.locationManagement.province.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

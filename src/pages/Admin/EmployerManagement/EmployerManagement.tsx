@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, MoreVertical, Edit, Trash2, Eye, XIcon } from "lucide-react";
 import { admin_routes } from "@/routes/routes.const";
 import {
@@ -20,39 +30,95 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
-import { CompanySize, CompanySizeLabelEN, CompanySizeLabelVN, RowsPerPageOptions, UserStatusColors, UserStatusLabelEN, type RowsPerPage } from "@/constants";
+import {
+  CompanySize,
+  CompanySizeLabelEN,
+  CompanySizeLabelVN,
+  RowsPerPageOptions,
+  UserStatusColors,
+  UserStatusLabelEN,
+  type RowsPerPage,
+} from "@/constants";
 import Pagination from "@/components/Pagination";
 import MultiSortButton from "@/components/MultiSortButton";
 import { employerService, industryService, provinceService } from "@/services";
 import CreateEmployerModal from "@/pages/Admin/EmployerManagement/CreateEmployerModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getNameInitials } from "@/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
-type SortField = "companyName" | "status" | "companySize" | "email" | "district.name" | "province.name" | "createdAt" | "updatedAt";
+type SortField =
+  | "companyName"
+  | "status"
+  | "companySize"
+  | "email"
+  | "district.name"
+  | "province.name"
+  | "createdAt"
+  | "updatedAt";
 type SortDirection = "asc" | "desc";
 
 export default function EmployerManagement() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-
   const queryClient = useQueryClient();
 
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState<RowsPerPage>(10);
-  const [keyword, setKeyword] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [sorts, setSorts] = useState<{ field: SortField; direction: SortDirection }[]>([]);
-  const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
-  // const [companySize, setCompanySize] = useState<CompanySize | undefined>(undefined);
+  // Initialize state from URL params
+  const [pageNumber, setPageNumber] = useState(
+    Number(searchParams.get("pageNumber")) || 1
+  );
+  const [pageSize, setPageSize] = useState<RowsPerPage>(
+    (Number(searchParams.get("pageSize")) as RowsPerPage) || 10
+  );
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("keyword") || ""
+  );
+  const [sorts, setSorts] = useState<
+    { field: SortField; direction: SortDirection }[]
+  >(() => {
+    const sortsParam = searchParams.get("sorts");
+    if (!sortsParam) return [];
+    return sortsParam.split(",").map((s) => {
+      const [field, direction] = s.split(":");
+      return {
+        field: field as SortField,
+        direction: direction as SortDirection,
+      };
+    });
+  });
+  const [provinceId, setProvinceId] = useState<number | undefined>(
+    searchParams.get("provinceId")
+      ? Number(searchParams.get("provinceId"))
+      : undefined
+  );
 
   const [searchProvince, setSearchProvince] = useState("");
 
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  // Sync state to URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("pageNumber", String(pageNumber));
+    params.set("pageSize", String(pageSize));
+    if (keyword) params.set("keyword", keyword);
+    if (sorts.length > 0) {
+      params.set(
+        "sorts",
+        sorts.map((s) => `${s.field}:${s.direction}`).join(",")
+      );
+    }
+    if (provinceId) params.set("provinceId", String(provinceId));
+    setSearchParams(params, { replace: true });
+  }, [pageNumber, pageSize, keyword, sorts, provinceId, setSearchParams]);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const [provincesOptions, setProvincesOptions] = useState<{ id: number; name: string }[]>([]);
+  const [provincesOptions, setProvincesOptions] = useState<
+    { id: number; name: string }[]
+  >([]);
 
   useEffect(() => {
     if (location.state?.refresh) {
@@ -64,14 +130,21 @@ export default function EmployerManagement() {
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
   const { data: employersData, isLoading: isLoadingEmployers } = useQuery({
-    queryKey: ["employers", pageNumber, pageSize, keyword, sortsString,provinceId],
+    queryKey: [
+      "employers",
+      pageNumber,
+      pageSize,
+      keyword,
+      sortsString,
+      provinceId,
+    ],
     queryFn: () =>
-      employerService.getEmployersWithSearchParam({
+      employerService.getEmployersForAdmin({
         pageNumber,
         pageSize,
         keyword: keyword || undefined,
         sorts: sortsString || undefined,
-        provinceId
+        provinceId,
       }),
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
@@ -80,13 +153,15 @@ export default function EmployerManagement() {
   const deleteMutation = useMutation({
     mutationFn: employerService.deleteEmployer,
     onSuccess: () => {
-      toast.success("Employer deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["employers", pageNumber, pageSize, keyword, sortsString] });
+      toast.success(t("toast.success.employerDeleted"));
+      queryClient.invalidateQueries({
+        queryKey: ["employers", pageNumber, pageSize, keyword, sortsString],
+      });
       setDeleteDialogOpen(false);
       setDeletingId(null);
     },
     onError: () => {
-      toast.error("An error occurred while deleting the employer");
+      toast.error(t("toast.error.deleteEmployerFailed"));
     },
   });
 
@@ -96,7 +171,11 @@ export default function EmployerManagement() {
       const res = await provinceService.getProvinces();
       return res.data;
     },
-    select: (data) => data?.map((province: { id: number; name: string }) => ({ id: province.id, name: province.name })),
+    select: (data) =>
+      data?.map((province: { id: number; name: string }) => ({
+        id: province.id,
+        name: province.name,
+      })),
     staleTime: 60 * 60 * 1000,
   });
 
@@ -106,20 +185,25 @@ export default function EmployerManagement() {
     }
   }, [provinces]);
 
-  const handleSortChange = useCallback((field: SortField, newDirection: SortDirection | null) => {
-    setSorts((prev) => {
-      if (newDirection === null) {
-        return prev.filter((s) => s.field !== field);
-      }
-      const existing = prev.find((s) => s.field === field);
-      if (existing) {
-        return prev.map((s) => (s.field === field ? { ...s, direction: newDirection } : s));
-      }
-      return [...prev, { field, direction: newDirection }];
-    });
+  const handleSortChange = useCallback(
+    (field: SortField, newDirection: SortDirection | null) => {
+      setSorts((prev) => {
+        if (newDirection === null) {
+          return prev.filter((s) => s.field !== field);
+        }
+        const existing = prev.find((s) => s.field === field);
+        if (existing) {
+          return prev.map((s) =>
+            s.field === field ? { ...s, direction: newDirection } : s
+          );
+        }
+        return [...prev, { field, direction: newDirection }];
+      });
 
-    setPageNumber(1);
-  }, []);
+      setPageNumber(1);
+    },
+    []
+  );
 
   const handleSearch = () => {
     setKeyword(searchInput);
@@ -144,22 +228,6 @@ export default function EmployerManagement() {
     setSorts([]);
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(employersData?.data.items.map((item) => item.id) || []);
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: number, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-    }
-  };
-
   const handleView = (id: number) => {
     navigate(`${admin_routes.BASE}/${admin_routes.EMPLOYERS}/${id}`);
   };
@@ -182,8 +250,12 @@ export default function EmployerManagement() {
   return (
     <div className="p-6 bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Employer Management</h1>
-        <p className="text-muted-foreground mt-1">Manage all employers in the system</p>
+        <h1 className="text-3xl font-bold text-foreground">
+          {t("admin.employerManagement.title")}
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          {t("admin.employerManagement.description")}
+        </p>
       </div>
 
       {/* Search and Actions */}
@@ -193,27 +265,42 @@ export default function EmployerManagement() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search by title, content, or author..."
+                placeholder={t("admin.employerManagement.searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
               />
             </div>
-            <Button onClick={handleSearch} variant="secondary" className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all">
-              Search
+            <Button
+              onClick={handleSearch}
+              variant="secondary"
+              className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all"
+            >
+              {t("admin.employerManagement.search")}
             </Button>
 
-            <Select value={provinceId ? String(provinceId) : ""} onValueChange={(value) => setProvinceId(Number(value) || undefined)}>
+            <Select
+              value={provinceId ? String(provinceId) : ""}
+              onValueChange={(value) => {
+                setProvinceId(Number(value) || undefined);
+                setPageNumber(1);
+              }}
+            >
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Select Province" />
+                <SelectValue
+                  placeholder={t("admin.employerManagement.selectProvince")}
+                />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" color="#1967d2" />
+                    <Search
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                      color="#1967d2"
+                    />
                     <Input
-                      placeholder="Search"
+                      placeholder={t("admin.jobManagement.filters.search")}
                       className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                       value={searchProvince}
                       onChange={(event) => {
@@ -222,7 +309,11 @@ export default function EmployerManagement() {
                           setProvincesOptions(provinces || []);
                           return;
                         }
-                        const filtered = provinces?.filter((option) => option.name.toLowerCase().includes(event.target.value.toLowerCase()));
+                        const filtered = provinces?.filter((option) =>
+                          option.name
+                            .toLowerCase()
+                            .includes(event.target.value.toLowerCase())
+                        );
                         setProvincesOptions(filtered || []);
                       }}
                     />
@@ -240,12 +331,18 @@ export default function EmployerManagement() {
                   <div className="max-h-64 overflow-y-auto">
                     {provincesOptions.length > 0 ? (
                       provincesOptions.map((province) => (
-                        <SelectItem key={province.id} value={String(province.id)} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                        <SelectItem
+                          key={province.id}
+                          value={String(province.id)}
+                          className="focus:bg-sky-200 focus:text-[#1967d2]"
+                        >
                           {province.name}
                         </SelectItem>
                       ))
                     ) : (
-                      <div className="text-sm text-gray-500">No province found.</div>
+                      <div className="text-sm text-gray-500">
+                        {t("admin.employerManagement.noProvinceFound")}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -280,17 +377,8 @@ export default function EmployerManagement() {
             size="sm"
             onClick={ClearFilters}
           >
-            Clear filters
+            {t("admin.employerManagement.clearFilters")}
           </Button>
-
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{selectedIds.length} selected</Badge>
-              <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-600/10">
-                Delete selected
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -306,72 +394,125 @@ export default function EmployerManagement() {
           {/* Table Header */}
           <thead>
             <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
-              <th className="px-4 py-3 w-[20px]">
-                <Checkbox checked={selectedIds.length === employers.length && employers.length > 0} onCheckedChange={handleSelectAll} />
-              </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[170px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Name</span>
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.companyName")}
+                  </span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "companyName")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("companyName", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "companyName")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("companyName", newDirection)
+                    }
                   />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[80px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Status</span>
-                  <MultiSortButton direction={sorts.find((s) => s.field === "status")?.direction ?? null} onChange={(newDirection) => handleSortChange("status", newDirection)} />
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.status")}
+                  </span>
+                  <MultiSortButton
+                    direction={
+                      sorts.find((s) => s.field === "status")?.direction ?? null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("status", newDirection)
+                    }
+                  />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Size</span>
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.companySize")}
+                  </span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "companySize")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("companySize", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "companySize")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("companySize", newDirection)
+                    }
                   />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Email</span>
-                  <MultiSortButton direction={sorts.find((s) => s.field === "email")?.direction ?? null} onChange={(newDirection) => handleSortChange("email", newDirection)} />
-                </div>
-              </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">
-                <div className="flex items-center justify-start gap-2">
-                  <span>District</span>
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.email")}
+                  </span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "district.name")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("district.name", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "email")?.direction ?? null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("email", newDirection)
+                    }
                   />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Province</span>
+                  <span>{t("admin.userManagement.tableHeaders.district")}</span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "province.name")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("province.name", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "district.name")
+                        ?.direction ?? null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("district.name", newDirection)
+                    }
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[100px]">
+                <div className="flex items-center justify-start gap-2">
+                  <span>{t("admin.userManagement.tableHeaders.province")}</span>
+                  <MultiSortButton
+                    direction={
+                      sorts.find((s) => s.field === "province.name")
+                        ?.direction ?? null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("province.name", newDirection)
+                    }
                   />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Created At</span>
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.createdAt")}
+                  </span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "createdAt")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("createdAt", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "createdAt")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("createdAt", newDirection)
+                    }
                   />
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[90px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Updated At</span>
+                  <span>
+                    {t("admin.employerManagement.tableHeaders.updatedAt")}
+                  </span>
                   <MultiSortButton
-                    direction={sorts.find((s) => s.field === "updatedAt")?.direction ?? null}
-                    onChange={(newDirection) => handleSortChange("updatedAt", newDirection)}
+                    direction={
+                      sorts.find((s) => s.field === "updatedAt")?.direction ??
+                      null
+                    }
+                    onChange={(newDirection) =>
+                      handleSortChange("updatedAt", newDirection)
+                    }
                   />
                 </div>
               </th>
@@ -383,63 +524,106 @@ export default function EmployerManagement() {
           <tbody>
             {isLoadingEmployers ? (
               <tr>
-                <td colSpan={8} className="text-center py-10 text-muted-foreground italic">
-                  Loading...
+                <td
+                  colSpan={9}
+                  className="text-center py-10 text-muted-foreground italic"
+                >
+                  {t("admin.employerManagement.loading")}
                 </td>
               </tr>
             ) : employers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-10 text-muted-foreground">
-                  <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
-                  <p className="mt-2 text-sm text-gray-500">No employers found</p>
+                <td
+                  colSpan={9}
+                  className="text-center py-10 text-muted-foreground"
+                >
+                  <img
+                    src="/empty-folder.png"
+                    alt="Empty"
+                    className="mx-auto w-20 opacity-70"
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    {t("admin.employerManagement.noEmployersFound")}
+                  </p>
                 </td>
               </tr>
             ) : (
               employers.map((employer) => (
-                <tr key={employer.id} className="hover:bg-muted/30 border-b last:border-none transition-colors">
-                  <td className="px-4 py-3 w-[20px]">
-                    <Checkbox checked={selectedIds.includes(employer.id)} onCheckedChange={(checked) => handleSelectOne(employer.id, checked as boolean)} />
-                  </td>
+                <tr
+                  key={employer.id}
+                  className="hover:bg-muted/30 border-b last:border-none transition-colors"
+                >
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 w-[170px] truncate">
                     <div className="w-full flex items-center gap-1.5">
                       {/* Avatar */}
                       <Avatar className="w-9 h-9">
-                        <AvatarImage src={employer.avatarUrl || ""} alt={employer.companyName || "user"} />
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">{getNameInitials(employer?.companyName)}</AvatarFallback>
+                        <AvatarImage
+                          src={employer.avatarUrl || ""}
+                          alt={employer.companyName || "user"}
+                        />
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                          {getNameInitials(employer?.companyName)}
+                        </AvatarFallback>
                       </Avatar>
                       <p>{employer.companyName}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3 w-[80px]">
-                    <Badge variant="outline" className={UserStatusColors[employer.status]}>
+                    <Badge
+                      variant="outline"
+                      className={UserStatusColors[employer.status]}
+                    >
                       {UserStatusLabelEN[employer.status]}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 w-[90px]">{CompanySizeLabelEN[employer.companySize]}</td>
-                  <td className="px-4 py-3 w-[160px] truncate">{employer.email}</td>
-                  <td className="px-4 py-3 w-[100px]">{employer.district?.name}</td>
-                  <td className="px-4 py-3 w-[100px]">{employer.province?.name}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(employer.createdAt).toLocaleDateString("vi-VN")}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">{new Date(employer.updatedAt).toLocaleDateString("vi-VN")}</td>
+                  <td className="px-4 py-3 w-[90px]">
+                    {CompanySizeLabelEN[employer.companySize]}
+                  </td>
+                  <td className="px-4 py-3 w-[160px] truncate">
+                    {employer.email}
+                  </td>
+                  <td className="px-4 py-3 w-[100px]">
+                    {employer.district?.name}
+                  </td>
+                  <td className="px-4 py-3 w-[100px]">
+                    {employer.province?.name}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">
+                    {new Date(employer.createdAt).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[90px]">
+                    {new Date(employer.updatedAt).toLocaleDateString("vi-VN")}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="hover:bg-muted rounded-full">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-muted rounded-full"
+                        >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => handleView(employer.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleView(employer.id)}
+                        >
                           <Eye className="w-4 h-4 mr-2 text-blue-500" />
-                          View details
+                          {t("admin.employerManagement.actions.viewDetails")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(employer.id)}>
+                        <DropdownMenuItem
+                          onClick={() => handleEdit(employer.id)}
+                        >
                           <Edit className="w-4 h-4 mr-2 text-green-500" />
-                          Edit
+                          {t("admin.employerManagement.actions.edit")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(employer.id)} className="text-red-600 focus:text-red-700">
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(employer.id)}
+                          className="text-red-600 focus:text-red-700"
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
+                          {t("admin.employerManagement.actions.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -453,12 +637,14 @@ export default function EmployerManagement() {
         {totalEmployers > 0 && (
           <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
             {(() => {
-              const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
+              const minOption = Math.min(
+                ...RowsPerPageOptions.map((opt) => Number(opt.value))
+              );
               if (totalEmployers < minOption) return null;
 
               return (
                 <div className="flex self-start items-center space-x-2 text-sm text-gray-600">
-                  <span>Shows:</span>
+                  <span>{t("admin.employerManagement.pagination.shows")}</span>
                   <Select
                     value={pageSize.toString()}
                     onValueChange={(value) => {
@@ -471,19 +657,26 @@ export default function EmployerManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       {RowsPerPageOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value.toString()}>
+                        <SelectItem
+                          key={option.value}
+                          value={option.value.toString()}
+                        >
                           {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <span>Rows</span>
+                  <span>{t("admin.employerManagement.pagination.rows")}</span>
                 </div>
               );
             })()}
 
             <div className="w-full sm:w-auto flex justify-center">
-              <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
+              <Pagination
+                currentPage={pageNumber}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           </div>
         )}
@@ -492,13 +685,22 @@ export default function EmployerManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete confirmation</AlertDialogTitle>
-            <AlertDialogDescription> Are you sure you want to delete this employer? This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("admin.employerManagement.deleteDialog.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.employerManagement.deleteDialog.description")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <AlertDialogCancel>
+              {t("admin.employerManagement.deleteDialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {t("admin.employerManagement.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

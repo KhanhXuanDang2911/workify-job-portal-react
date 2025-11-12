@@ -17,10 +17,7 @@ export default function CategoriesSidebar({
       <h3 className="text-lg font-semibold text-[#1967d2] mb-4">Categories</h3>
       <div className="space-y-3">
         {categories.map((category, index) => (
-          <div
-            key={index}
-            className="text-sm"
-          >
+          <div key={index} className="text-sm">
             <span
               className="text-gray-600 hover:text-[#1967d2] cursor-pointer transition-colors"
               onClick={() => onCategoryClick?.(category.name)}

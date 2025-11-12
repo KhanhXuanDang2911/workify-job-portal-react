@@ -10,6 +10,8 @@ import { JobTypeLabelVN } from "@/constants";
 import { Link } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
 import { mockSavedJobs } from "@/pages/User/MySavedJobs/MySavedJobsMockData";
+import { formatSalaryCompact } from "@/utils/formatSalary";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Job {
   id: number;
@@ -34,44 +36,42 @@ interface Job {
   backgroundUrl?: string;
 }
 
-// Format salary
+// Format salary (using compact format)
 const formatSalary = (job: any): string => {
-  try {
-    if (job.salaryType === "RANGE") {
-      const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
-      const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
-      return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
-    }
-    if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
-      return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
-    }
-    if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
-    if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
+  // Tạo translation function đơn giản cho các trường hợp không có i18n
+  const t = (key: string) => {
+    if (key.includes("Negotiable") || key.includes("negotiable"))
+      return "Thỏa thuận";
+    if (key.includes("Competitive") || key.includes("competitive"))
+      return "Cạnh tranh";
     return "Thỏa thuận";
-  } catch (e) {
-    return "Thỏa thuận";
-  }
+  };
+  return formatSalaryCompact(job, t);
 };
 
 // Map type to color
 const mapTypeColor = (jobType?: string): string => {
   if (!jobType) return "bg-gray-400";
-  if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+  if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
+    return "bg-green-500";
   if (jobType.includes("PART")) return "bg-orange-500";
   if (jobType.includes("CONTRACT")) return "bg-purple-500";
   return "bg-blue-500";
 };
 
 export default function MyApplyJobs() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
-  
+
   // Use mock data for now (static)
   const jobs: Job[] = useMemo(() => {
     return mockSavedJobs.map((job) => ({
       ...job,
       companyWebsite: "",
-      backgroundUrl: job.image || "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
+      backgroundUrl:
+        job.image ||
+        "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
     }));
   }, []);
 
@@ -90,11 +90,15 @@ export default function MyApplyJobs() {
       title: job.jobTitle || "",
       company: job.companyName || job.author?.companyName || "",
       salary: formatSalary(job),
-      type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+      type:
+        JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
+        job.jobType,
       typeColor: mapTypeColor(job.jobType),
-      logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      logo:
+        job.author?.avatarUrl ||
+        "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
     }));
-  }, [topAttractiveResponse]);
+  }, [topAttractiveResponse, t]);
 
   const totalPages = Math.ceil(jobs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -116,7 +120,8 @@ export default function MyApplyJobs() {
       <div
         className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
         style={{
-          backgroundImage: "linear-gradient(#00000080, #00000080), url('/work1.jpg')",
+          backgroundImage:
+            "linear-gradient(#00000080, #00000080), url('/work1.jpg')",
           fontFamily: "'Poppins', sans-serif",
         }}
       >
@@ -130,7 +135,7 @@ export default function MyApplyJobs() {
               fontSize: "40px",
             }}
           >
-            Tìm việc làm nhanh 24h mới nhất trên toàn quốc
+            {t("myApplyJobs.heroTitle")}
           </h1>
           <p
             className="text-white mt-4"
@@ -142,11 +147,16 @@ export default function MyApplyJobs() {
               opacity: 0.95,
             }}
           >
-            Tiếp cận 60.000+ tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam
+            {t("myApplyJobs.heroDescription")}
           </p>
         </div>
       </div>
-      <div style={{ background: "linear-gradient(90deg, #fafcfb 0%, #f5faf7 30%, #f0f7f5 60%, #f0f7fc 100%)" }}>
+      <div
+        style={{
+          background:
+            "linear-gradient(90deg, #fafcfb 0%, #f5faf7 30%, #f0f7f5 60%, #f0f7fc 100%)",
+        }}
+      >
         <div className="flex main-layout relative z-10 pt-20 pb-8">
           {/* Left Sidebar - Suggested Jobs */}
           <div className="w-96 flex-shrink-0">
@@ -159,14 +169,20 @@ export default function MyApplyJobs() {
               {/* Content */}
               {jobs.length === 0 ? (
                 <div className="text-center py-20">
-                  <p className="text-gray-600">Bạn chưa ứng tuyển việc làm nào</p>
+                  <p className="text-gray-600">
+                    {t("myApplyJobs.noApplications")}
+                  </p>
                 </div>
               ) : (
                 <>
                   <TableView jobs={currentJobs} onDelete={handleDeleteJob} />
                   {totalPages > 1 && (
                     <div className="mt-8">
-                      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                      />
                     </div>
                   )}
                 </>
@@ -180,15 +196,22 @@ export default function MyApplyJobs() {
 }
 
 // Table View Component
-function TableView({ jobs, onDelete }: { jobs: Job[]; onDelete: (id: number) => void }) {
+function TableView({
+  jobs,
+  onDelete,
+}: {
+  jobs: Job[];
+  onDelete: (id: number) => void;
+}) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       {/* Table Header */}
       <div className="grid grid-cols-[5fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg shadow-lg">
-        <div>JOBS</div>
-        <div>LOCATION</div>
-        <div>EXPIRE</div>
-        <div className="text-right">ACTION</div>
+        <div>{t("myApplyJobs.tableHeaders.job")}</div>
+        <div>{t("employerSearch.location")}</div>
+        <div>{t("jobDetail.expirationDate")}</div>
+        <div className="text-right">{t("myApplyJobs.tableHeaders.action")}</div>
       </div>
 
       {/* Table Rows */}
@@ -201,12 +224,26 @@ function TableView({ jobs, onDelete }: { jobs: Job[]; onDelete: (id: number) => 
             {/* Job Info */}
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
+                <img
+                  src={job.logo || "/placeholder.svg"}
+                  alt={job.company}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3 mb-1">
-                  <h3 className="font-semibold text-gray-900 truncate">{job.title}</h3>
-                  <Badge variant="secondary" className={cn("text-xs shrink-0", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {job.title}
+                  </h3>
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "text-xs shrink-0",
+                      job.type === "Remote"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    )}
+                  >
                     {job.type}
                   </Badge>
                 </div>
@@ -224,7 +261,9 @@ function TableView({ jobs, onDelete }: { jobs: Job[]; onDelete: (id: number) => 
             </div>
 
             {/* Expire Date */}
-            <div className="text-sm text-gray-600 truncate">{job.expireDate}</div>
+            <div className="text-sm text-gray-600 truncate">
+              {job.expireDate}
+            </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2 justify-end">

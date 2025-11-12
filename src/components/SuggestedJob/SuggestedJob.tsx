@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TrendingUp } from "lucide-react";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface SuggestedJob {
   id: number;
@@ -23,6 +24,7 @@ interface SuggestedJobsProps {
 }
 
 const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
+  const { t } = useTranslation();
   const getCompanyInitials = (companyName: string) => {
     return companyName
       .split(" ")
@@ -38,46 +40,56 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Việc Làm Hấp Dẫn</h3>
+            <h3 className="font-semibold text-gray-900">
+              {t("suggestedJobs.title")}
+            </h3>
           </div>
 
-          <div className="space-y-3">
-            {jobs.map((job) => (
-              <Link
-                key={job.id}
-                to={`/${routes.JOB_DETAIL}/${job.id}`}
-                className="block p-4 bg-gray-50 border-2 border-blue-200 rounded-lg shadow-md hover:bg-blue-50 hover:shadow-xl transition-all cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Avatar + Badge */}
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <Avatar className="w-12 h-12 border-2 border-gray-300">
-                      <AvatarImage src={job.logo} alt={job.company} />
-                      <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-medium">
-                        {getCompanyInitials(job.company)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-[10px] px-2 py-0.5 rounded mt-1 font-medium">
-                      {job.type}
-                    </Badge>
-                  </div>
+          {jobs.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">
+                {t("suggestedJobs.noJobs")}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {jobs.map((job) => (
+                <Link
+                  key={job.id}
+                  to={`/${routes.JOB_DETAIL}/${job.id}`}
+                  className="block p-4 bg-gray-50 border-2 border-blue-200 rounded-lg shadow-md hover:bg-blue-50 hover:shadow-xl transition-all cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Avatar + Badge */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <Avatar className="w-12 h-12 border-2 border-gray-300">
+                        <AvatarImage src={job.logo} alt={job.company} />
+                        <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-medium">
+                          {getCompanyInitials(job.company)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-[10px] px-2 py-0.5 rounded mt-1 font-medium">
+                        {job.type}
+                      </Badge>
+                    </div>
 
-                  {/* Job Info */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-gray-900 leading-tight mb-1">
-                      {job.title}
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-1 truncate">
-                      {job.company}
-                    </p>
-                    <p className="text-sm font-semibold text-blue-600">
-                      {job.salary}/month
-                    </p>
+                    {/* Job Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-gray-900 leading-tight mb-1">
+                        {job.title}
+                      </h4>
+                      <p className="text-xs text-gray-600 mb-1 truncate">
+                        {job.company}
+                      </p>
+                      <p className="text-sm font-semibold text-blue-600">
+                        {job.salary}/{t("suggestedJobs.month")}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* <Button
             variant="outline"

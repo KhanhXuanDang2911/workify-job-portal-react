@@ -9,8 +9,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { employerService } from "@/services";
 import { toast } from "react-toastify";
 import type { CompanyInformationModalFormData } from "@/schemas/employer/companyInformationModal.schema";
+import { useTranslation } from "@/hooks/useTranslation";
 
 function AboutCompanyModal() {
+  const { t } = useTranslation();
   const [aboutContent, setAboutContent] = useState("");
   const queryClient = useQueryClient();
 
@@ -33,11 +35,11 @@ function AboutCompanyModal() {
     mutationFn: (data: CompanyInformationModalFormData) =>
       employerService.updateEmployerProfile(data),
     onSuccess: () => {
-      toast.success("About company updated successfully");
+      toast.success(t("toast.success.aboutCompanyUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
     },
     onError: () => {
-      toast.error("Failed to update about company");
+      toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
@@ -46,9 +48,7 @@ function AboutCompanyModal() {
     if (employerData) {
       // Validate phoneNumber before sending
       if (!employerData.phoneNumber || employerData.phoneNumber.trim() === "") {
-        toast.error(
-          "Phone number is required. Please update your profile information first."
-        );
+        toast.error(t("toast.error.updateProfileFailed"));
         return;
       }
 

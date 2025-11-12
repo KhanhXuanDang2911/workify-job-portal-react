@@ -5,7 +5,16 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Mail, Phone, MapPin, Calendar, GraduationCap, MoreVertical, Send } from "lucide-react";
+import {
+  Star,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  MoreVertical,
+  Send,
+} from "lucide-react";
 import TabsAnimation from "@/components/TabsAnimation";
 import ResumeTab from "@/components/CandidateSheet/tabs/ResumeTab";
 import InterviewTab from "@/components/CandidateSheet/tabs/InterviewTab";
@@ -33,7 +42,11 @@ const tabs = [
   { id: "interview", label: "Interview", icon: null },
 ];
 
-export function CandidateSheet({ candidate, children, className }: CandidateSheetProps) {
+export function CandidateSheet({
+  candidate,
+  children,
+  className,
+}: CandidateSheetProps) {
   const [activeTab, setActiveTab] = useState("job-application");
 
   const renderTabContent = () => {
@@ -58,20 +71,33 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
           <div className="flex items-start gap-4">
             {/* Avatar */}
             <Avatar className="w-16 h-16">
-              <AvatarImage src={candidate?.avatar || candidate?.avatarUrl || "/placeholder.svg"} alt={candidate?.name || "Candidate"} />
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-semibold">{candidate?.name?.charAt(0) || "C"}</AvatarFallback>
+              <AvatarImage
+                src={
+                  candidate?.avatar ||
+                  candidate?.avatarUrl ||
+                  "/placeholder.svg"
+                }
+                alt={candidate?.name || "Candidate"}
+              />
+              <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-semibold">
+                {candidate?.name?.charAt(0) || "C"}
+              </AvatarFallback>
             </Avatar>
 
             {/* Candidate Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold text-gray-900">{candidate?.name || "Kristi Sipes"}</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {candidate?.name || "Kristi Sipes"}
+                </h2>
                 <div className="flex items-center gap-1 text-sm">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold">3.5</span>
                   <span className="text-gray-500">Overall</span>
                 </div>
-                <Badge className="bg-green-500 text-white hover:bg-green-600">Active</Badge>
+                <Badge className="bg-green-500 text-white hover:bg-green-600">
+                  Active
+                </Badge>
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
@@ -85,7 +111,9 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                 </div>
                 <div>
                   <span className="text-gray-500">Job Applied</span>
-                  <p className="font-medium text-gray-900">Senior Frontend Developer</p>
+                  <p className="font-medium text-gray-900">
+                    Senior Frontend Developer
+                  </p>
                 </div>
               </div>
             </div>
@@ -105,7 +133,13 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
 
         {/* Tabs Navigation */}
         <div className="px-6 py-4 bg-gray-50 border-b">
-          <TabsAnimation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} indicatorClassName="!bg-orange-400" tabsBoxPadding="3.5" />
+          <TabsAnimation
+            tabs={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            indicatorClassName="!bg-orange-400"
+            tabsBoxPadding="3.5"
+          />
         </div>
 
         {/* Content Area */}
@@ -117,12 +151,16 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
           <div className="w-80 space-y-6">
             {/* Personal Information */}
             <div className="bg-white rounded-lg border p-4">
-              <h3 className="font-semibold text-gray-900 mb-4">Personal Information</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">
+                Personal Information
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2">
                   <Mail className="w-4 h-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-gray-500 text-xs mb-0.5">Email Address</p>
+                    <p className="text-gray-500 text-xs mb-0.5">
+                      Email Address
+                    </p>
                     <p className="text-blue-600">kristisipes@gmail.com</p>
                   </div>
                 </div>
@@ -134,7 +172,12 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <svg className="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 text-gray-400 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -157,8 +200,12 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-gray-500 text-xs mb-0.5">Living Address</p>
-                    <p className="text-gray-900">New York, NY, 10001, United States</p>
+                    <p className="text-gray-500 text-xs mb-0.5">
+                      Living Address
+                    </p>
+                    <p className="text-gray-900">
+                      New York, NY, 10001, United States
+                    </p>
                   </div>
                 </div>
               </div>
@@ -166,17 +213,26 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
 
             {/* Education Information */}
             <div className="bg-white rounded-lg border p-4">
-              <h3 className="font-semibold text-gray-900 mb-4">Education Information</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">
+                Education Information
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2">
                   <GraduationCap className="w-4 h-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-gray-500 text-xs mb-0.5">University</p>
-                    <p className="text-gray-900">Da Nang University of Science and Technology</p>
+                    <p className="text-gray-900">
+                      Da Nang University of Science and Technology
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <svg className="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 text-gray-400 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -185,19 +241,28 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                     />
                   </svg>
                   <div className="flex-1">
-                    <p className="text-gray-500 text-xs mb-0.5">Qualification Held</p>
+                    <p className="text-gray-500 text-xs mb-0.5">
+                      Qualification Held
+                    </p>
                     <p className="text-gray-900">Bachelor of Engineering</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-gray-500 text-xs mb-0.5">Year Graduation</p>
+                    <p className="text-gray-500 text-xs mb-0.5">
+                      Year Graduation
+                    </p>
                     <p className="text-gray-900">2014</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <svg className="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 text-gray-400 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -223,17 +288,42 @@ export function CandidateSheet({ candidate, children, className }: CandidateShee
                 />
                 <div className="flex items-center gap-2 mt-2">
                   <button className="p-1.5 hover:bg-gray-100 rounded">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </button>
                   <button className="p-1.5 hover:bg-gray-100 rounded">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    <svg
+                      className="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                      />
                     </svg>
                   </button>
                   <button className="p-1.5 hover:bg-gray-100 rounded">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import "./i18n/config";
 import "./index.css";
 import "./global.css";
 import "./utils/debugToken";

@@ -22,7 +22,10 @@ const tabTitles: Record<string, string> = {
   cv_sample: "Thư viện CV",
 };
 
-export default function TabNavigationAction({ activeTab, onClose }: TabNavigationActionProps) {
+export default function TabNavigationAction({
+  activeTab,
+  onClose,
+}: TabNavigationActionProps) {
   const [isClosing, setIsClosing] = useState(false);
   const elRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,28 +34,32 @@ export default function TabNavigationAction({ activeTab, onClose }: TabNavigatio
     setIsClosing(true);
     console.log(elRef.current);
     gsap.to(elRef.current, {
-      x: -400, 
-      opacity: 0, 
+      x: -400,
+      opacity: 0,
       duration: 1,
       ease: "power2.inOut",
       onComplete: () => {
-        onClose(); 
-        setIsClosing(false); 
+        onClose();
+        setIsClosing(false);
       },
     });
   };
 
- useLayoutEffect(() => {
-   if (!elRef.current) return;
+  useLayoutEffect(() => {
+    if (!elRef.current) return;
 
-   const ctx = gsap.context(() => {
-     gsap.fromTo(elRef.current, { x: -400, opacity: 0 }, { x: 0, opacity: 1, duration: 1, ease: "power2.out" });
-   }, elRef);
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        elRef.current,
+        { x: -400, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1, ease: "power2.out" }
+      );
+    }, elRef);
 
-   return () => {
-     ctx.revert();
-   };
- }, []); 
+    return () => {
+      ctx.revert();
+    };
+  }, []);
 
   if (!activeTab) return null;
 
@@ -80,7 +87,10 @@ export default function TabNavigationAction({ activeTab, onClose }: TabNavigatio
       {/* header-close */}
       <div className="sticky top-0 bg-background border-b border-border rounded-t-sm px-6 py-3 flex items-center justify-between z-10">
         <h2 className="text-xl font-semibold">{tabTitles[activeTab]}</h2>
-        <button onClick={handleClose} className="p-2 hover:bg-accent rounded-full bg-gray-300 transition-colors">
+        <button
+          onClick={handleClose}
+          className="p-2 hover:bg-accent rounded-full bg-gray-300 transition-colors"
+        >
           <X className="w-5 h-5" />
         </button>
       </div>

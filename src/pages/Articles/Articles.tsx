@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
 import { routes } from "@/routes/routes.const";
 import type { PostResponse, PostCategory } from "@/types/post.type";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Article = {
   id?: number;
@@ -22,6 +23,7 @@ type Article = {
 };
 
 export default function Articles() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read from URL params on mount
@@ -34,7 +36,9 @@ export default function Articles() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     categoryIdFromUrl ? Number(categoryIdFromUrl) : null
   );
-  const [currentPage, setCurrentPage] = useState(pageFromUrl ? Number(pageFromUrl) : 1);
+  const [currentPage, setCurrentPage] = useState(
+    pageFromUrl ? Number(pageFromUrl) : 1
+  );
 
   // Temp search term (before applying)
   const [tempSearchTerm, setTempSearchTerm] = useState(keywordFromUrl);
@@ -87,15 +91,30 @@ export default function Articles() {
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
   // Fetch latest articles for Recent Articles section
-  const { data: latestPostsResponse, isLoading: isLoadingRecent, isError: isErrorRecent, error: errorRecent } = useQuery({
+  const {
+    data: latestPostsResponse,
+    isLoading: isLoadingRecent,
+    isError: isErrorRecent,
+    error: errorRecent,
+  } = useQuery({
     queryKey: ["latest-public-posts", 6],
     queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
   });
 
   // Fetch articles from API
-  const { data: apiResponse, isLoading, isError } = useQuery({
-    queryKey: ["public-posts", currentPage, pageSize, appliedKeyword, selectedCategoryId],
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [
+      "public-posts",
+      currentPage,
+      pageSize,
+      appliedKeyword,
+      selectedCategoryId,
+    ],
     queryFn: () =>
       postService.getPublicPosts({
         pageNumber: currentPage,
@@ -114,10 +133,10 @@ export default function Articles() {
     author: post.author?.fullName || post.author?.email || "",
     date: post.createdAt
       ? new Date(post.createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
       : "",
     excerpt: post.excerpt || post.contentText || "",
     image: post.thumbnailUrl || "/placeholder.svg",
@@ -130,10 +149,9 @@ export default function Articles() {
     category: post.category?.title || "",
   });
 
-  const allArticles: Article[] =
-    Array.isArray(apiResponse?.data?.items)
-      ? apiResponse.data.items.map(mapPostToArticle)
-      : [];
+  const allArticles: Article[] = Array.isArray(apiResponse?.data?.items)
+    ? apiResponse.data.items.map(mapPostToArticle)
+    : [];
 
   const totalPages = apiResponse?.data?.totalPages || 0;
 
@@ -153,23 +171,20 @@ export default function Articles() {
   };
 
   // Map latest posts to recent articles format
-  const recentArticles =
-    Array.isArray(latestPostsResponse?.data)
-      ? latestPostsResponse.data.map((post: PostResponse) => ({
+  const recentArticles = Array.isArray(latestPostsResponse?.data)
+    ? latestPostsResponse.data.map((post: PostResponse) => ({
         id: post.id,
         title: post.title,
         date: post.createdAt
           ? new Date(post.createdAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
           : "",
         image: post.thumbnailUrl || "/placeholder.svg",
       }))
-      : [];
-
-
+    : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
@@ -222,23 +237,23 @@ export default function Articles() {
             style={{
               marginBottom: 0,
               fontWeight: 500,
-              lineHeight: '60px',
-              fontSize: '40px',
+              lineHeight: "60px",
+              fontSize: "40px",
             }}
           >
-            Tìm việc làm nhanh 24h mới nhất trên toàn quốc
+            {t("articles.heroTitle")}
           </h1>
           <p
             className="text-white mt-4"
             style={{
-              color: '#fff',
-              fontSize: '18px',
-              lineHeight: '28px',
+              color: "#fff",
+              fontSize: "18px",
+              lineHeight: "28px",
               fontWeight: 400,
               opacity: 0.95,
             }}
           >
-            Tiếp cận 60.000+ tin tuyển dụng việc làm mỗi ngày từ hàng nghìn doanh nghiệp uy tín tại Việt Nam
+            {t("articles.heroDescription")}
           </p>
         </div>
       </div>
@@ -247,7 +262,6 @@ export default function Articles() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main content */}
           <div className="lg:col-span-3">
-
             {/* Loading state */}
             {isLoading && (
               <div className="flex items-center justify-center py-12">
@@ -259,7 +273,7 @@ export default function Articles() {
             {isError && (
               <div className="text-center py-12">
                 <p className="text-red-600">
-                  Không thể tải danh sách bài viết. Vui lòng thử lại sau.
+                  {t("articles.loadArticlesError")}
                 </p>
               </div>
             )}
@@ -286,9 +300,7 @@ export default function Articles() {
                   </>
                 ) : (
                   <div className="text-center py-12">
-                    <p className="text-gray-600">
-                      Không có bài viết nào
-                    </p>
+                    <p className="text-gray-600">{t("articles.noArticles")}</p>
                   </div>
                 )}
               </>
@@ -303,7 +315,7 @@ export default function Articles() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Search articles..."
+                  placeholder={t("articles.searchPlaceholder")}
                   value={tempSearchTerm}
                   onChange={(e) => setTempSearchTerm(e.target.value)}
                   onKeyDown={(e) => {
@@ -319,25 +331,27 @@ export default function Articles() {
             {/* Categories */}
             <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Categories
+                {t("articles.categories")}
               </h3>
               <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                 <div
-                  className={`text-sm cursor-pointer transition-colors ${selectedCategoryId === null
+                  className={`text-sm cursor-pointer transition-colors ${
+                    selectedCategoryId === null
                       ? "text-[#1967d2] font-medium"
                       : "text-gray-600 hover:text-[#1967d2]"
-                    }`}
+                  }`}
                   onClick={() => handleCategoryClick(null)}
                 >
-                  All Categories
+                  {t("articles.allCategories")}
                 </div>
                 {categories.map((category) => (
                   <div
                     key={category.id}
-                    className={`text-sm cursor-pointer transition-colors ${selectedCategoryId === category.id
+                    className={`text-sm cursor-pointer transition-colors ${
+                      selectedCategoryId === category.id
                         ? "text-[#1967d2] font-medium"
                         : "text-gray-600 hover:text-[#1967d2]"
-                      }`}
+                    }`}
                     onClick={() => handleCategoryClick(category.id)}
                   >
                     {category.title}
@@ -349,7 +363,7 @@ export default function Articles() {
             {/* Recent Articles */}
             <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Recent Article
+                {t("articles.recentArticle")}
               </h3>
               {isLoadingRecent ? (
                 <div className="flex items-center justify-center py-8">
@@ -358,13 +372,14 @@ export default function Articles() {
               ) : isErrorRecent ? (
                 <div className="text-center py-8">
                   <p className="text-red-600 text-sm">
-                    {(errorRecent as any)?.message || "Không thể tải bài viết"}
+                    {(errorRecent as any)?.message ||
+                      t("articles.loadPostError")}
                   </p>
                 </div>
               ) : recentArticles.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 text-sm">
-                    Không có bài viết nào
+                    {t("articles.noArticles")}
                   </p>
                 </div>
               ) : (

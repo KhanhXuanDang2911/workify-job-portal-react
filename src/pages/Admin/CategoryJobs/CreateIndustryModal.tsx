@@ -10,7 +10,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { categoryJobService } from "@/services/categoryJobs.service";
 import { useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const createIndustrySchema = z.object({
   name: z.string().min(1, "Required"),
@@ -21,15 +28,22 @@ const createIndustrySchema = z.object({
 
 type CreateIndustryForm = z.infer<typeof createIndustrySchema>;
 
-export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobId }: { categoryJobId?: number }) {
+export default function CreateIndustryModal({
+  categoryJobId: defaultCategoryJobId,
+}: {
+  categoryJobId?: number;
+}) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: categoryJobsData, isLoading: isLoadingCategoryJobs } = useQuery({
-    queryKey: ["categoryJobs", "all"],
-    queryFn: () => categoryJobService.getAllCategoryJobs(),
-    select: (data) => data.data,
-    refetchOnWindowFocus: false,
-  });
+  const { data: categoryJobsData, isLoading: isLoadingCategoryJobs } = useQuery(
+    {
+      queryKey: ["categoryJobs", "all"],
+      queryFn: () => categoryJobService.getAllCategoryJobs(),
+      select: (data) => data.data,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const {
     register,
@@ -47,13 +61,16 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
   });
 
   const createIndustryMutation = useMutation({
-    mutationFn: (data: CreateIndustryForm) => industryService.createIndustry(data),
+    mutationFn: (data: CreateIndustryForm) =>
+      industryService.createIndustry(data),
     onSuccess: () => {
-      toast.success("Tạo Industry thành công!");
-      queryClient.invalidateQueries({ queryKey: ["industries", getValues("categoryJobId")] });
+      toast.success(t("toast.success.industryCreated"));
+      queryClient.invalidateQueries({
+        queryKey: ["industries", getValues("categoryJobId")],
+      });
     },
     onError: () => {
-      toast.error("Tạo Industry thất bại!");
+      toast.error(t("toast.error.createIndustryFailed"));
     },
   });
 
@@ -75,13 +92,20 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
   return (
     <BaseModal
       title="Tạo Industry mới"
-      trigger={<Button className="bg-teal-500 text-white hover:bg-teal-500">+ Add</Button>}
+      trigger={
+        <Button className="bg-teal-500 text-white hover:bg-teal-500">
+          + Add
+        </Button>
+      }
       footer={(onClose) => (
         <>
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button onClick={handleSubmit((data) => onSubmit(data, onClose))} disabled={createIndustryMutation.isPending}>
+          <Button
+            onClick={handleSubmit((data) => onSubmit(data, onClose))}
+            disabled={createIndustryMutation.isPending}
+          >
             {createIndustryMutation.isPending ? "Đang tạo..." : "Tạo mới"}
           </Button>
         </>
@@ -92,21 +116,39 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
           <label className="text-sm font-medium">
             Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("name")} placeholder="Tên ngành nghề" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          <Input
+            {...register("name")}
+            placeholder="Tên ngành nghề"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">
             Eng Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("engName")} placeholder="English name" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.engName && <p className="text-red-500 text-sm mt-1">{errors.engName.message}</p>}
+          <Input
+            {...register("engName")}
+            placeholder="English name"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.engName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.engName.message}
+            </p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">Mô tả</label>
-          <Textarea {...register("description")} placeholder="Mô tả ngắn" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <Textarea
+            {...register("description")}
+            placeholder="Mô tả ngắn"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         {/* Category Job Select */}
@@ -117,7 +159,14 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
           {isLoadingCategoryJobs ? (
             <p className="text-gray-500 text-sm mt-1">Đang tải...</p>
           ) : (
-            <Select onValueChange={(value) => setValue("categoryJobId", Number(value))} defaultValue={defaultCategoryJobId ? String(defaultCategoryJobId) : undefined}>
+            <Select
+              onValueChange={(value) =>
+                setValue("categoryJobId", Number(value))
+              }
+              defaultValue={
+                defaultCategoryJobId ? String(defaultCategoryJobId) : undefined
+              }
+            >
               <SelectTrigger className="w-full mt-2">
                 <SelectValue placeholder="Chọn Category Job" />
               </SelectTrigger>
@@ -130,7 +179,11 @@ export default function CreateIndustryModal({ categoryJobId: defaultCategoryJobI
               </SelectContent>
             </Select>
           )}
-          {errors.categoryJobId && <p className="text-red-500 text-sm mt-1">{errors.categoryJobId.message}</p>}
+          {errors.categoryJobId && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.categoryJobId.message}
+            </p>
+          )}
         </div>
       </form>
     </BaseModal>

@@ -14,4 +14,3 @@ export interface NotificationResponse {
   readFlag: boolean;
   createdAt: string;
 }
-

@@ -28,7 +28,10 @@ export function JobApplicationTab({ candidate }: JobApplicationTabProps) {
       <div className="bg-white rounded-lg border p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">Hiring Process</h3>
-          <Button size="sm" className="bg-gray-800 hover:bg-gray-900 text-white">
+          <Button
+            size="sm"
+            className="bg-gray-800 hover:bg-gray-900 text-white"
+          >
             Move Stage →
           </Button>
         </div>
@@ -38,12 +41,19 @@ export function JobApplicationTab({ candidate }: JobApplicationTabProps) {
           <div className="flex justify-between mb-2">
             {hiringStages.map((stage, index) => (
               <div key={stage.id} className="flex-1 text-center">
-                <span className={`text-xs ${stage.active ? "text-gray-900 font-medium" : "text-gray-400"}`}>{stage.label}</span>
+                <span
+                  className={`text-xs ${stage.active ? "text-gray-900 font-medium" : "text-gray-400"}`}
+                >
+                  {stage.label}
+                </span>
               </div>
             ))}
           </div>
           <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="absolute h-full bg-blue-500 rounded-full" style={{ width: "20%" }} />
+            <div
+              className="absolute h-full bg-blue-500 rounded-full"
+              style={{ width: "20%" }}
+            />
           </div>
         </div>
       </div>
@@ -73,9 +83,17 @@ export function JobApplicationTab({ candidate }: JobApplicationTabProps) {
               <div key={item.stage} className="flex items-center gap-3">
                 <span className="text-sm text-gray-600 w-24">{item.stage}</span>
                 <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${item.color}`} style={{ width: item.score > 0 ? `${(item.score / 5) * 100}%` : "0%" }} />
+                  <div
+                    className={`h-full ${item.color}`}
+                    style={{
+                      width:
+                        item.score > 0 ? `${(item.score / 5) * 100}%` : "0%",
+                    }}
+                  />
                 </div>
-                <span className="text-sm text-gray-500 w-8 text-right">{item.score}</span>
+                <span className="text-sm text-gray-500 w-8 text-right">
+                  {item.score}
+                </span>
               </div>
             ))}
           </div>
@@ -86,12 +104,16 @@ export function JobApplicationTab({ candidate }: JobApplicationTabProps) {
       <div className="bg-white rounded-lg border p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">Jobs Applied</h3>
-          <button className="text-sm text-blue-600 hover:underline">View details →</button>
+          <button className="text-sm text-blue-600 hover:underline">
+            View details →
+          </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <h4 className="font-medium text-gray-900 mb-3">Research and Development Officer</h4>
+            <h4 className="font-medium text-gray-900 mb-3">
+              Research and Development Officer
+            </h4>
 
             <div className="flex gap-2 mb-3 text-sm text-gray-600">
               <span className="flex items-center gap-1">
@@ -141,11 +163,21 @@ export function JobApplicationTab({ candidate }: JobApplicationTabProps) {
         <div className="space-y-3">
           <div className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
             <div className="flex-1">
-              <h4 className="font-medium text-gray-900 mb-1">Relevant Education</h4>
-              <p className="text-sm text-gray-600">Assess the candidate's educational background and qualifications that are candidate possesses</p>
+              <h4 className="font-medium text-gray-900 mb-1">
+                Relevant Education
+              </h4>
+              <p className="text-sm text-gray-600">
+                Assess the candidate's educational background and qualifications
+                that are candidate possesses
+              </p>
             </div>
             <button className="text-blue-600 hover:text-blue-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

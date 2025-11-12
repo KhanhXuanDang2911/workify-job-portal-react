@@ -60,4 +60,34 @@ export const userService = {
     const response = await userHttp.delete<ApiResponse>(`/users/${id}`);
     return response.data;
   },
+
+  // User: Update current user profile
+  updateUserProfile: async (data: {
+    fullName: string;
+    phoneNumber?: string | null;
+    birthDate?: string | null;
+    gender?: "MALE" | "FEMALE" | "OTHER" | null;
+    provinceId?: number | null;
+    districtId?: number | null;
+    detailAddress?: string | null;
+  }): Promise<ApiResponse<User>> => {
+    const response = await userHttp.put<ApiResponse<User>>("/users/me", data);
+    return response.data;
+  },
+
+  // User: Update current user avatar
+  updateUserAvatar: async (avatarFile: File): Promise<ApiResponse<User>> => {
+    const formData = new FormData();
+    formData.append("avatar", avatarFile);
+    const response = await userHttp.patch<ApiResponse<User>>(
+      "/users/me/avatar",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
 };

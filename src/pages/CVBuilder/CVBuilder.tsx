@@ -1,7 +1,19 @@
 import TabNavigationAction from "@/components/CV/TabNavigationAction";
 import TabNavigationTool from "@/components/CV/TabNavigationTool/TabNavigationTool";
 import { CVProvider } from "@/context";
-import { BookOpenText, Plus, Eye, FileText, GalleryHorizontalEnd, LayoutGrid, Palette, PenTool, Redo2, Save, Undo2 } from "lucide-react";
+import {
+  BookOpenText,
+  Plus,
+  Eye,
+  FileText,
+  GalleryHorizontalEnd,
+  LayoutGrid,
+  Palette,
+  PenTool,
+  Redo2,
+  Save,
+  Undo2,
+} from "lucide-react";
 import { useState } from "react";
 
 const tabs = [
@@ -17,7 +29,13 @@ function CVBuilder() {
   const [activeTab, setActiveTab] = useState("design_and_font");
   return (
     <CVProvider>
-      <div className="flex flex-col h-screen" style={{ background: "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)" }}>
+      <div
+        className="flex flex-col h-screen"
+        style={{
+          background:
+            "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
+        }}
+      >
         {/*Header */}
         <div className="px-10 py-1.5 flex items-center justify-between bg-white text-sm">
           {/*Header Title*/}
@@ -57,8 +75,17 @@ function CVBuilder() {
         {/* Main Content */}
         <div className="mt-5 px-4 flex flex-row">
           <div className="flex flex-row gap-4">
-            <TabNavigationTool activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
-            {activeTab && <TabNavigationAction activeTab={activeTab} onClose={() => setActiveTab("")} />}
+            <TabNavigationTool
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              tabs={tabs}
+            />
+            {activeTab && (
+              <TabNavigationAction
+                activeTab={activeTab}
+                onClose={() => setActiveTab("")}
+              />
+            )}
           </div>
         </div>
       </div>

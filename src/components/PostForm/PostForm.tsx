@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { PostResponse } from "@/types/post.type";
 import { Upload, X, ImageIcon } from "lucide-react";
 import TiptapEditor from "@/components/TiptapEditor";
@@ -15,18 +21,20 @@ import { cn } from "@/lib/utils";
 import { postSchema, type PostFormData } from "@/schemas/admin/post.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { postService } from "@/services";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { admin_routes } from "@/routes/routes.const";
 interface PostFormProps {
   isEditing: boolean;
 }
 
 export default function PostForm({ isEditing }: PostFormProps) {
   const { id } = useParams();
-  
-    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-    const [banner, setBanner] = useState<File | null>(null);
-    const [bannerError, setBannerError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [banner, setBanner] = useState<File | null>(null);
+  const [bannerError, setBannerError] = useState<string | null>(null);
 
   const { data: post } = useQuery({
     queryKey: ["post", id],
@@ -36,16 +44,18 @@ export default function PostForm({ isEditing }: PostFormProps) {
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: postCategoriesData, isLoading: isLoadingPostCategories } = useQuery({
-    queryKey: ["post-categories", "all"],
-    queryFn: () => postService.getAllCategories(),
-    staleTime: 60 * 60 * 1000,
-  });
+  const { data: postCategoriesData, isLoading: isLoadingPostCategories } =
+    useQuery({
+      queryKey: ["post-categories", "all"],
+      queryFn: () => postService.getAllCategories(),
+      staleTime: 60 * 60 * 1000,
+    });
 
   const createPostMutation = useMutation({
     mutationFn: (data: FormData) => postService.createPost(data),
     onSuccess: () => {
       toast.success("Post created successfully");
+      navigate(`${admin_routes.BASE}/${admin_routes.POSTS}`);
     },
     onError: () => {
       toast.error("An error occurred while creating the post");
@@ -53,9 +63,11 @@ export default function PostForm({ isEditing }: PostFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: FormData }) => postService.updatePost(id, data),
+    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
+      postService.updatePost(id, data),
     onSuccess: () => {
       toast.success("Post updated successfully");
+      navigate(`${admin_routes.BASE}/${admin_routes.POSTS}`);
     },
     onError: () => {
       toast.error("An error occurred while updating the post");
@@ -165,7 +177,10 @@ export default function PostForm({ isEditing }: PostFormProps) {
       status: data.status,
     };
 
-    formData.append("post", new Blob([JSON.stringify(postRequest)], { type: "application/json" }));
+    formData.append(
+      "post",
+      new Blob([JSON.stringify(postRequest)], { type: "application/json" })
+    );
 
     if (isEditing && id) {
       updateMutation.mutate({ id: Number(id), data: formData });
@@ -185,9 +200,14 @@ export default function PostForm({ isEditing }: PostFormProps) {
           id="title"
           placeholder="Enter post title"
           {...register("title")}
-          className={cn("focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]", errors.title && "border-red-500")}
+          className={cn(
+            "focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]",
+            errors.title && "border-red-500"
+          )}
         />
-        {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
+        {errors.title && (
+          <p className="text-sm text-red-500">{errors.title.message}</p>
+        )}
       </div>
 
       {/* Excerpt */}
@@ -205,7 +225,9 @@ export default function PostForm({ isEditing }: PostFormProps) {
             errors.excerpt && "border-red-500"
           )}
         />
-        {errors.excerpt && <p className="text-sm text-red-500">{errors.excerpt.message}</p>}
+        {errors.excerpt && (
+          <p className="text-sm text-red-500">{errors.excerpt.message}</p>
+        )}
       </div>
 
       {/* Content */}
@@ -217,10 +239,17 @@ export default function PostForm({ isEditing }: PostFormProps) {
           name="content"
           control={control}
           render={({ field }) => (
-            <TiptapEditor content={field.value} onChange={field.onChange} placeholder="Enter post content..." className={errors.content ? "border-red-500" : ""} />
+            <TiptapEditor
+              content={field.value}
+              onChange={field.onChange}
+              placeholder="Enter post content..."
+              className={errors.content ? "border-red-500" : ""}
+            />
           )}
         />
-        {errors.content && <p className="text-sm text-red-500">{errors.content.message}</p>}
+        {errors.content && (
+          <p className="text-sm text-red-500">{errors.content.message}</p>
+        )}
       </div>
 
       {/* Category and Status */}
@@ -239,12 +268,20 @@ export default function PostForm({ isEditing }: PostFormProps) {
                   field.onChange(Number(value));
                 }}
               >
-                <SelectTrigger className={cn("w-full", errors.categoryId && "border-red-500")}>
+                <SelectTrigger
+                  className={cn(
+                    "w-full",
+                    errors.categoryId && "border-red-500"
+                  )}
+                >
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   {postCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
                       {category.title}
                     </SelectItem>
                   ))}
@@ -252,7 +289,9 @@ export default function PostForm({ isEditing }: PostFormProps) {
               </Select>
             )}
           />
-          {errors.categoryId && <p className="text-sm text-red-500">{errors.categoryId.message}</p>}
+          {errors.categoryId && (
+            <p className="text-sm text-red-500">{errors.categoryId.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -263,8 +302,13 @@ export default function PostForm({ isEditing }: PostFormProps) {
             name="status"
             control={control}
             render={({ field }) => (
-              <Select value={field.value ?? undefined} onValueChange={field.onChange}>
-                <SelectTrigger className={cn("w-full", errors.status && "border-red-500")}>
+              <Select
+                value={field.value ?? undefined}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger
+                  className={cn("w-full", errors.status && "border-red-500")}
+                >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -277,7 +321,9 @@ export default function PostForm({ isEditing }: PostFormProps) {
               </Select>
             )}
           />
-          {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+          {errors.status && (
+            <p className="text-sm text-red-500">{errors.status.message}</p>
+          )}
         </div>
       </div>
 
@@ -326,16 +372,30 @@ export default function PostForm({ isEditing }: PostFormProps) {
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
           {thumbnailPreview ? (
             <div className="relative">
-              <img src={thumbnailPreview} alt="Thumbnail preview" className="max-h-64 mx-auto rounded-lg mb-5" />
-              <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={removeThumbnail}>
+              <img
+                src={thumbnailPreview}
+                alt="Thumbnail preview"
+                className="max-h-64 mx-auto rounded-lg mb-5"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={removeThumbnail}
+              >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           ) : (
             <>
               <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">Upload a banner for the post</p>
-              <p className="text-xs text-gray-500 mb-4">Supports JPG, PNG formats under 5MB</p>
+              <p className="text-sm text-gray-600 mb-2">
+                Upload a banner for the post
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                Supports JPG, PNG formats under 5MB
+              </p>
             </>
           )}
           <input
@@ -348,7 +408,12 @@ export default function PostForm({ isEditing }: PostFormProps) {
             className="hidden"
           />
           <label htmlFor="thumbnail">
-            <Button type="button" variant="outline" className="cursor-pointer bg-transparent" asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="cursor-pointer bg-transparent"
+              asChild
+            >
               <span>
                 <Upload className="w-4 h-4 mr-2" />
                 Choose Image
@@ -366,7 +431,11 @@ export default function PostForm({ isEditing }: PostFormProps) {
           disabled={createPostMutation.isPending || updateMutation.isPending}
           className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all min-w-[120px]"
         >
-          {createPostMutation.isPending || updateMutation.isPending ? "Processing..." : isEditing ? "Update" : "Create"}
+          {createPostMutation.isPending || updateMutation.isPending
+            ? "Processing..."
+            : isEditing
+              ? "Update"
+              : "Create"}
         </Button>
       </div>
     </form>

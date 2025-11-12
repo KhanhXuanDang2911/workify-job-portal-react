@@ -12,6 +12,8 @@ import Loading from "@/components/Loading";
 import { Link } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
 import JobApplicationModal from "@/components/JobApplicationModal/JobApplicationModal";
+import { useTranslation } from "@/hooks/useTranslation";
+import { formatSalaryCompact } from "@/utils/formatSalary";
 
 interface Job {
   id: number;
@@ -36,29 +38,24 @@ interface Job {
   companyWebsite?: string;
 }
 
-// Format salary
+// Format salary (using compact format)
 const formatSalary = (job: JobResponse): string => {
-  try {
-    if (job.salaryType === "RANGE") {
-      const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
-      const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
-      return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
-    }
-    if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
-      return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
-    }
-    if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
-    if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
+  // Tạo translation function đơn giản cho các trường hợp không có i18n
+  const t = (key: string) => {
+    if (key.includes("Negotiable") || key.includes("negotiable"))
+      return "Thỏa thuận";
+    if (key.includes("Competitive") || key.includes("competitive"))
+      return "Cạnh tranh";
     return "Thỏa thuận";
-  } catch (e) {
-    return "Thỏa thuận";
-  }
+  };
+  return formatSalaryCompact(job, t);
 };
 
 // Map type to color
 const mapTypeColor = (jobType?: string): string => {
   if (!jobType) return "bg-gray-400";
-  if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+  if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
+    return "bg-green-500";
   if (jobType.includes("PART")) return "bg-orange-500";
   if (jobType.includes("CONTRACT")) return "bg-purple-500";
   return "bg-blue-500";
@@ -94,25 +91,38 @@ const getDaysUntilExpiration = (expirationDate?: string): number | null => {
 };
 
 // Relative time
-const relativePosted = (dateString?: string): string => {
-  if (!dateString) return "";
+const relativePosted = (
+  dateString?: string,
+  t?: (key: string, options?: any) => string
+): string => {
+  if (!dateString || !t) return "";
   try {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Hôm nay";
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
-    return `${Math.floor(diffDays / 365)} năm trước`;
+    if (diffDays === 0) return t("mySavedJobs.relativeTime.today");
+    if (diffDays === 1) return t("mySavedJobs.relativeTime.yesterday");
+    if (diffDays < 7)
+      return t("mySavedJobs.relativeTime.daysAgo", { count: diffDays });
+    if (diffDays < 30)
+      return t("mySavedJobs.relativeTime.weeksAgo", {
+        count: Math.floor(diffDays / 7),
+      });
+    if (diffDays < 365)
+      return t("mySavedJobs.relativeTime.monthsAgo", {
+        count: Math.floor(diffDays / 30),
+      });
+    return t("mySavedJobs.relativeTime.yearsAgo", {
+      count: Math.floor(diffDays / 365),
+    });
   } catch (e) {
     return "";
   }
 };
 
 export default function MySavedJobs() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const queryClient = useQueryClient();
@@ -128,28 +138,36 @@ export default function MySavedJobs() {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-
   // Map saved jobs from API to Job interface
   const jobs = useMemo(() => {
     if (!savedJobsResponse?.data?.items) return [];
     return savedJobsResponse.data.items.map((job: JobResponse) => {
       const firstLocation = job.jobLocations?.[0];
       const locationString = firstLocation
-        ? `${firstLocation.detailAddress || ""}, ${firstLocation.district?.name || ""}, ${firstLocation.province?.name || ""}`.replace(/^,\s*|,\s*$/g, "").trim()
-        : "Chưa cập nhật địa chỉ";
+        ? `${firstLocation.detailAddress || ""}, ${
+            firstLocation.district?.name || ""
+          }, ${firstLocation.province?.name || ""}`
+            .replace(/^,\s*|,\s*$/g, "")
+            .trim()
+        : t("mySavedJobs.locationNotUpdated");
 
       return {
         id: job.id,
         title: job.jobTitle || "",
         company: job.companyName || job.author?.companyName || "",
         location: locationString,
-        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType || "",
-        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        type:
+          JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
+          job.jobType ||
+          "",
+        logo:
+          job.author?.avatarUrl ||
+          "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
         expireDate: job.expirationDate ? formatDate(job.expirationDate) : "",
         expirationDate: job.expirationDate || "", // Raw expiration date for calculation
-        savedDate: job.createdAt ? relativePosted(job.createdAt) : "",
+        savedDate: job.createdAt ? relativePosted(job.createdAt, t) : "",
         salary: formatSalary(job),
-        posted: job.createdAt ? relativePosted(job.createdAt) : "",
+        posted: job.createdAt ? relativePosted(job.createdAt, t) : "",
         applications: (job as any).numberOfApplications?.toString() || "0",
         description: job.jobDescription || "",
         requirements: job.requirement ? [job.requirement] : [],
@@ -159,11 +177,12 @@ export default function MySavedJobs() {
         },
         image: job.author?.backgroundUrl || "",
         companyWebsite: job.companyWebsite || "",
-        backgroundUrl: job.author?.backgroundUrl || "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
+        backgroundUrl:
+          job.author?.backgroundUrl ||
+          "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
       };
     });
-  }, [savedJobsResponse]);
-
+  }, [savedJobsResponse, t]);
 
   const totalPages = savedJobsResponse?.data?.totalPages || 0;
   const currentJobs = jobs;
@@ -175,14 +194,15 @@ export default function MySavedJobs() {
       // Invalidate both saved-jobs list and saved-job status for this specific job
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
-      toast.success("Đã bỏ lưu việc làm");
+      toast.success(t("toast.success.jobUnsaved"));
       // Adjust page if needed
       if (currentPage > 1 && currentJobs.length === 1) {
         setCurrentPage(currentPage - 1);
       }
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      const errorMessage =
+        error?.response?.data?.message || t("toast.error.unknownError");
       toast.error(errorMessage);
     },
   });
@@ -193,24 +213,26 @@ export default function MySavedJobs() {
     toggleSaveMutation.mutate(jobId);
   };
 
-const handlePageChange = (page: number) => {
-  setCurrentPage(page);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <>
-      <div className="w-full bg-white border-b border-gray-200 py-8">
-        <div className="max-w-7xl mx-auto px-5">
-          <h1 className="text-3xl font-bold text-[#0A2E5C] mb-1">
-            Công việc đã lưu ({savedJobsResponse?.data?.numberOfElements || 0})
+      <div className="w-full bg-white border-b border-gray-200 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-5">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0A2E5C] mb-1">
+            {t("mySavedJobs.title", {
+              count: savedJobsResponse?.data?.numberOfElements || 0,
+            })}
           </h1>
-          <p className="text-gray-500 text-sm">Hôm nay</p>
+          <p className="text-gray-500 text-sm">{t("mySavedJobs.today")}</p>
         </div>
       </div>
       <div className="bg-gray-50 min-h-screen">
-        <div className="main-layout relative z-10 pt-8 pb-8">
-          <div className="max-w-7xl mx-auto px-5">
+        <div className="main-layout relative z-10 pt-4 md:pt-8 pb-8">
+          <div className="max-w-7xl mx-auto px-4 md:px-5">
             {/* Content */}
             {isLoadingSavedJobs ? (
               <div className="flex justify-center items-center py-20">
@@ -218,11 +240,11 @@ const handlePageChange = (page: number) => {
               </div>
             ) : isErrorSavedJobs ? (
               <div className="text-center py-20">
-                <p className="text-gray-600">Có lỗi xảy ra khi tải danh sách việc làm đã lưu</p>
+                <p className="text-gray-600">{t("mySavedJobs.errorLoading")}</p>
               </div>
             ) : jobs.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-600">Bạn chưa lưu việc làm nào</p>
+                <p className="text-gray-600">{t("mySavedJobs.noSavedJobs")}</p>
               </div>
             ) : (
               <>
@@ -253,6 +275,7 @@ function ListView({
   jobs: Job[];
   onUnsave: (jobId: number, e: React.MouseEvent) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {jobs.map((job, index) => {
@@ -270,7 +293,7 @@ function ListView({
             <button
               onClick={(e) => onUnsave(job.id, e)}
               className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#0A2E5C] hover:opacity-80 transition-opacity"
-              title="Bỏ lưu"
+              title={t("mySavedJobs.unsave")}
             >
               <Heart className="w-6 h-6 fill-[#0A2E5C]" />
             </button>
@@ -301,10 +324,12 @@ function ListView({
             <div className="flex-shrink-0 text-right">
               {daysUntilExpiration !== null && daysUntilExpiration >= 0 ? (
                 <p className="text-green-600 font-medium text-sm">
-                  Hết hạn: {daysUntilExpiration} ngày tới
+                  {t("mySavedJobs.expiresIn", { count: daysUntilExpiration })}
                 </p>
               ) : (
-                <p className="text-gray-400 text-sm">Đã hết hạn</p>
+                <p className="text-gray-400 text-sm">
+                  {t("mySavedJobs.expired")}
+                </p>
               )}
             </div>
 
@@ -326,4 +351,3 @@ function ListView({
     </div>
   );
 }
-

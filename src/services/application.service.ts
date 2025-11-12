@@ -6,18 +6,24 @@ import { ApplicationStatus } from "@/types";
 
 export const applicationService = {
   // Apply with file CV (multipart/form-data)
-  applyWithFileCV: async (data: ApplicationRequest, cvFile: File): Promise<ApiResponse<ApplicationResponse>> => {
+  applyWithFileCV: async (
+    data: ApplicationRequest,
+    cvFile: File
+  ): Promise<ApiResponse<ApplicationResponse>> => {
     const formData = new FormData();
-    
+
     // Append application data as Blob with application/json type
     // Backend Spring Boot expects JSON in multipart form with proper Content-Type
     const applicationJson = JSON.stringify(data);
     console.log("Application JSON:", applicationJson);
     console.log("Application data:", data);
-    
+
     // Append JSON as Blob with application/json Content-Type
-    formData.append("application", new Blob([applicationJson], { type: "application/json" }));
-    
+    formData.append(
+      "application",
+      new Blob([applicationJson], { type: "application/json" })
+    );
+
     // Append CV file
     formData.append("cv", cvFile);
     console.log("CV File:", cvFile.name, cvFile.type, cvFile.size);
@@ -27,7 +33,9 @@ export const applicationService = {
     for (const [key, value] of formData.entries()) {
       const val = value as any;
       if (val instanceof File) {
-        console.log(`  ${key}: File(${val.name}, ${val.type}, ${val.size} bytes)`);
+        console.log(
+          `  ${key}: File(${val.name}, ${val.type}, ${val.size} bytes)`
+        );
       } else if (val instanceof Blob) {
         console.log(`  ${key}: Blob(${val.type}, ${val.size} bytes)`);
       } else {
@@ -36,29 +44,46 @@ export const applicationService = {
     }
 
     // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
-    const response = await userHttp.post<ApiResponse<ApplicationResponse>>("/applications", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await userHttp.post<ApiResponse<ApplicationResponse>>(
+      "/applications",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   },
 
   // Apply with link CV (application/json)
-  applyWithLinkCV: async (data: ApplicationRequest): Promise<ApiResponse<ApplicationResponse>> => {
-    const response = await userHttp.post<ApiResponse<ApplicationResponse>>("/applications/link", data);
+  applyWithLinkCV: async (
+    data: ApplicationRequest
+  ): Promise<ApiResponse<ApplicationResponse>> => {
+    const response = await userHttp.post<ApiResponse<ApplicationResponse>>(
+      "/applications/link",
+      data
+    );
     return response.data;
   },
 
   // Get latest application by job ID
-  getLatestApplicationByJob: async (jobId: number): Promise<ApiResponse<ApplicationResponse | null>> => {
-    const response = await userHttp.get<ApiResponse<ApplicationResponse | null>>(`/applications/latest/${jobId}`);
+  getLatestApplicationByJob: async (
+    jobId: number
+  ): Promise<ApiResponse<ApplicationResponse | null>> => {
+    const response = await userHttp.get<
+      ApiResponse<ApplicationResponse | null>
+    >(`/applications/latest/${jobId}`);
     return response.data;
   },
 
   // Get application by ID
-  getApplicationById: async (id: number): Promise<ApiResponse<ApplicationResponse>> => {
-    const response = await userHttp.get<ApiResponse<ApplicationResponse>>(`/applications/${id}`);
+  getApplicationById: async (
+    id: number
+  ): Promise<ApiResponse<ApplicationResponse>> => {
+    const response = await userHttp.get<ApiResponse<ApplicationResponse>>(
+      `/applications/${id}`
+    );
     return response.data;
   },
 
@@ -66,10 +91,9 @@ export const applicationService = {
   getMyApplications: async (
     params?: SearchParams
   ): Promise<ApiResponse<PageResponse<ApplicationResponse>>> => {
-    const response = await userHttp.get<ApiResponse<PageResponse<ApplicationResponse>>>(
-      "/applications/me",
-      { params }
-    );
+    const response = await userHttp.get<
+      ApiResponse<PageResponse<ApplicationResponse>>
+    >("/applications/me", { params });
     return response.data;
   },
 
@@ -83,15 +107,17 @@ export const applicationService = {
       status?: string; // ApplicationStatus
     }
   ): Promise<ApiResponse<PageResponse<ApplicationResponse>>> => {
-    const response = await employerHttp.get<ApiResponse<PageResponse<ApplicationResponse>>>(
-      `/applications/job/${jobId}`,
-      { params }
-    );
+    const response = await employerHttp.get<
+      ApiResponse<PageResponse<ApplicationResponse>>
+    >(`/applications/job/${jobId}`, { params });
     return response.data;
   },
 
   // Change application status (EMPLOYER)
-  changeApplicationStatus: async (id: number, status: ApplicationStatus): Promise<ApiResponse<ApplicationResponse>> => {
+  changeApplicationStatus: async (
+    id: number,
+    status: ApplicationStatus
+  ): Promise<ApiResponse<ApplicationResponse>> => {
     const response = await employerHttp.patch<ApiResponse<ApplicationResponse>>(
       `/applications/${id}/status`,
       null,
@@ -100,4 +126,3 @@ export const applicationService = {
     return response.data;
   },
 };
-

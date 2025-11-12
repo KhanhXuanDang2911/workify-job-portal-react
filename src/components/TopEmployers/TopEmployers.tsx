@@ -9,20 +9,29 @@ import Loading from "../Loading";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TopEmployers() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
-  
+
   // Fetch top hiring employers with limit = 8
-  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error: queryError,
+  } = useQuery({
     queryKey: ["top-hiring-employers", 8],
     queryFn: () => employerService.getTopHiringEmployers(8),
     staleTime: 5 * 60 * 1000,
     // staleTime: 0,
   });
 
-  const itemsFromApi: any[] = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data)
+    ? apiResponse.data
+    : [];
 
   const mapApiToCard = (item: any) => {
     const provinceName = item.province?.name || "";
@@ -31,8 +40,12 @@ export default function TopEmployers() {
     return {
       id: item.id,
       name: item.companyName || item.email || "",
-      logo: item.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
-      coverImage: item.backgroundUrl || "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
+      logo:
+        item.avatarUrl ||
+        "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      coverImage:
+        item.backgroundUrl ||
+        "https://marketplace.canva.com/EAGZ0XPzFoE/1/0/1600w/canva-blue-and-white-line-modern-corporate-business-banner-Cvux46kBPZ8.jpg",
       openJobs: item.openJobs ?? 0,
       numberOfHiringJobs: item.numberOfHiringJobs ?? item.openJobs ?? 0,
       location: location,
@@ -44,7 +57,10 @@ export default function TopEmployers() {
   };
 
   const mappedEmployers = itemsFromApi.map(mapApiToCard);
-  const totalSlides = Math.max(1, Math.ceil(mappedEmployers.length / itemsPerSlide));
+  const totalSlides = Math.max(
+    1,
+    Math.ceil(mappedEmployers.length / itemsPerSlide)
+  );
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -75,17 +91,17 @@ export default function TopEmployers() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100/50 rounded-full mb-4">
             <Award className="w-4 h-4 text-[#1967d2]" />
             <p className="text-[#1967d2] font-semibold text-sm">
-              Top Hiring Employers
+              {t("topEmployers.badge")}
             </p>
           </div>
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Featured{" "}
+            {t("topEmployers.title")}{" "}
             <span className="text-[#1967d2]">
-              Employers
+              {t("topEmployers.titleHighlight")}
             </span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Connect with leading companies actively hiring. Explore opportunities with top employers.
+            {t("topEmployers.description")}
           </p>
         </div>
 
@@ -100,7 +116,8 @@ export default function TopEmployers() {
                 <span className="text-2xl">⚠️</span>
               </div>
               <p className="text-red-600 font-medium">
-                {(queryError as any)?.message || "Không thể tải danh sách nhà tuyển dụng"}
+                {(queryError as any)?.message ||
+                  t("topEmployers.loadEmployersError")}
               </p>
             </div>
           ) : mappedEmployers.length === 0 ? (
@@ -108,7 +125,9 @@ export default function TopEmployers() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                 <span className="text-2xl">🏢</span>
               </div>
-              <p className="text-gray-600 font-medium">Không có nhà tuyển dụng nào</p>
+              <p className="text-gray-600 font-medium">
+                {t("topEmployers.noEmployers")}
+              </p>
             </div>
           ) : (
             <>
@@ -183,7 +202,7 @@ export default function TopEmployers() {
               className="border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white bg-transparent px-8 py-3 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Link to={`/${routes.EMPLOYER_SEARCH}`}>
-                View All Employers
+                {t("topEmployers.viewAllEmployers")}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

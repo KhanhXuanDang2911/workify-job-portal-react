@@ -8,23 +8,53 @@ export type SortDirection = "asc" | "desc";
 
 export interface UseTableQueryOptions<T> {
   queryKey: string[];
-  fetchFn: (params: { pageNumber: number; pageSize: number; sortField: string; sortDirection: SortDirection; keyword?: string }) => Promise<ApiResponse<PageResponse<T>>>;
+  fetchFn: (params: {
+    pageNumber: number;
+    pageSize: number;
+    sortField: string;
+    sortDirection: SortDirection;
+    keyword?: string;
+  }) => Promise<ApiResponse<PageResponse<T>>>;
   defaultSortField?: string;
   defaultSortDirection?: SortDirection;
 }
 
-export function useTableQuery<T>({ queryKey, fetchFn, defaultSortField = "createdAt", defaultSortDirection = "desc" }: UseTableQueryOptions<T>) {
+export function useTableQuery<T>({
+  queryKey,
+  fetchFn,
+  defaultSortField = "createdAt",
+  defaultSortDirection = "desc",
+}: UseTableQueryOptions<T>) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("keyword") || "");
-  const [searchInput, setSearchInput] = useState(searchParams.get("keyword") || "");
-  const [sortField, setSortField] = useState(searchParams.get("sortField") || defaultSortField);
-  const [sortDirection, setSortDirection] = useState<SortDirection>((searchParams.get("sortDirection") as SortDirection) || defaultSortDirection);
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
-  const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>((Number(searchParams.get("size")) as RowsPerPage) || 10);
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("keyword") || ""
+  );
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("keyword") || ""
+  );
+  const [sortField, setSortField] = useState(
+    searchParams.get("sortField") || defaultSortField
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    (searchParams.get("sortDirection") as SortDirection) || defaultSortDirection
+  );
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get("page")) || 1
+  );
+  const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(
+    (Number(searchParams.get("size")) as RowsPerPage) || 10
+  );
 
   const { data, isLoading } = useQuery({
-    queryKey: [...queryKey, currentPage, rowsPerPage, sortField, sortDirection, searchTerm],
+    queryKey: [
+      ...queryKey,
+      currentPage,
+      rowsPerPage,
+      sortField,
+      sortDirection,
+      searchTerm,
+    ],
     queryFn: async () => {
       const res = await fetchFn({
         pageNumber: currentPage,
@@ -48,7 +78,14 @@ export function useTableQuery<T>({ queryKey, fetchFn, defaultSortField = "create
     };
     if (searchTerm) params.keyword = searchTerm;
     setSearchParams(params);
-  }, [currentPage, rowsPerPage, sortField, sortDirection, searchTerm, setSearchParams]);
+  }, [
+    currentPage,
+    rowsPerPage,
+    sortField,
+    sortDirection,
+    searchTerm,
+    setSearchParams,
+  ]);
 
   const handleSearch = () => {
     setSearchTerm(searchInput);
@@ -56,7 +93,8 @@ export function useTableQuery<T>({ queryKey, fetchFn, defaultSortField = "create
   };
 
   const handleSort = (field: string) => {
-    if (sortField === field) setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    if (sortField === field)
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     else {
       setSortField(field);
       setSortDirection("asc");

@@ -1,4 +1,3 @@
-
 export const PostStatus = {
   PENDING: "PENDING",
   PUBLIC: "PUBLIC",

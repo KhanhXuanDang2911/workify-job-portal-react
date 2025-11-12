@@ -7,6 +7,7 @@ import BaseModal from "@/components/BaseModal/BaseModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { employerService } from "@/services";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface CompanyBannerModalProps {
   currentBanner: string;
@@ -20,7 +21,12 @@ const defaultBanners = [
   "https://plus.unsplash.com/premium_photo-1673197406917-546fd8675a27?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 ];
 
-export default function CompanyBannerModal({ currentBanner, onBannerChange, trigger }: CompanyBannerModalProps) {
+export default function CompanyBannerModal({
+  currentBanner,
+  onBannerChange,
+  trigger,
+}: CompanyBannerModalProps) {
+  const { t } = useTranslation();
   const [userBanners, setUserBanners] = useState<string[]>([currentBanner]);
   const [selectedBanner, setSelectedBanner] = useState<string>(currentBanner);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -35,11 +41,11 @@ export default function CompanyBannerModal({ currentBanner, onBannerChange, trig
       setUserBanners([...userBanners, newBackgroundUrl]);
       setSelectedBanner(newBackgroundUrl);
       setSelectedFile(null);
-      toast.success("Background uploaded successfully");
+      toast.success(t("toast.success.companyBannerUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
     },
     onError: () => {
-      toast.error("Failed to upload background");
+      toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
@@ -103,7 +109,11 @@ export default function CompanyBannerModal({ currentBanner, onBannerChange, trig
           >
             Cancel
           </Button>
-          <Button className="bg-[#1967d2] w-28 hover:bg-[#1251a3]" onClick={() => handleUpdate(onClose)} disabled={updateBackgroundMutation.isPending}>
+          <Button
+            className="bg-[#1967d2] w-28 hover:bg-[#1251a3]"
+            onClick={() => handleUpdate(onClose)}
+            disabled={updateBackgroundMutation.isPending}
+          >
             {updateBackgroundMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -131,7 +141,13 @@ export default function CompanyBannerModal({ currentBanner, onBannerChange, trig
               </div>
               <span className="text-sm text-gray-600">Add new photo</span>
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
 
             {/* User Uploaded Banners */}
             {userBanners.map((banner, index) => (
@@ -140,7 +156,11 @@ export default function CompanyBannerModal({ currentBanner, onBannerChange, trig
                 className={`relative w-48 h-32 rounded-lg overflow-hidden cursor-pointer border-2 ${selectedBanner === banner ? "border-[#1967d2]" : "border-transparent"}`}
                 onClick={() => setSelectedBanner(banner)}
               >
-                <img src={banner || "/placeholder.svg"} alt={`Banner ${index + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={banner || "/placeholder.svg"}
+                  alt={`Banner ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -166,7 +186,11 @@ export default function CompanyBannerModal({ currentBanner, onBannerChange, trig
                 className={`relative w-48 h-32 rounded-lg overflow-hidden cursor-pointer border-2 ${selectedBanner === banner ? "border-[#1967d2]" : "border-transparent"}`}
                 onClick={() => setSelectedBanner(banner)}
               >
-                <img src={banner || "/placeholder.svg"} alt={`Default Banner ${index + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={banner || "/placeholder.svg"}
+                  alt={`Default Banner ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
             ))}
           </div>

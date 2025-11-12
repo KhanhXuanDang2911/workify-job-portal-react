@@ -1,4 +1,4 @@
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import PostForm from "@/components/PostForm";
@@ -11,7 +11,15 @@ export default function EditPost() {
     <div className="p-6 bg-background min-h-screen">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate(`${admin_routes.BASE}/${admin_routes.POSTS}`, { state: { refresh: true } })} className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() =>
+              navigate(`${admin_routes.BASE}/${admin_routes.POSTS}`, {
+                state: { refresh: true },
+              })
+            }
+            className="mb-4"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>

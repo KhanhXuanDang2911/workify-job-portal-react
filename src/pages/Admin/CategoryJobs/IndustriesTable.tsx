@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { industryService } from "@/services";
 import { toast } from "react-toastify";
 import type { With } from "@/types/common";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ export default function IndustriesTable({
 }: {
   categoryJobId: number;
 }) {
+  const { t } = useTranslation();
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sorts, setSorts] = useState<
@@ -93,7 +95,7 @@ export default function IndustriesTable({
   const deleteMutation = useMutation({
     mutationFn: (id: number) => industryService.deleteIndustry(id),
     onSuccess: () => {
-      toast.success("Delete successful");
+      toast.success(t("toast.success.industryDeleted"));
       setDeleteIndustryId(null);
       queryClient.invalidateQueries({
         queryKey: [
@@ -107,7 +109,7 @@ export default function IndustriesTable({
       });
     },
     onError: () => {
-      toast.error("Delete failed");
+      toast.error(t("toast.error.deleteIndustryFailed"));
     },
   });
 
@@ -170,7 +172,9 @@ export default function IndustriesTable({
               "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
           }}
         >
-          <span className="font-semibold">Industries</span>
+          <span className="font-semibold">
+            {t("admin.categoryJobManagement.industries.title")}
+          </span>
         </div>
 
         <div className="">
@@ -183,7 +187,9 @@ export default function IndustriesTable({
         <div className="flex-1 flex gap-2">
           <Input
             type="text"
-            placeholder="Search by name or eng name, created at, updated at..."
+            placeholder={t(
+              "admin.categoryJobManagement.industries.searchPlaceholder"
+            )}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -192,8 +198,9 @@ export default function IndustriesTable({
           <Button
             variant="secondary"
             className="bg-gray-800 text-white hover:bg-gray-900"
+            onClick={handleSearch}
           >
-            Search
+            {t("admin.categoryJobManagement.industries.search")}
           </Button>
         </div>
         {keyword && (
@@ -203,7 +210,7 @@ export default function IndustriesTable({
             size="sm"
             onClick={ClearFilters}
           >
-            Clear filters
+            {t("admin.jobManagement.clearFilters")}
           </Button>
         )}
       </div>
@@ -215,7 +222,11 @@ export default function IndustriesTable({
             <tr className="bg-gray-100 border-b text-sm border-gray-200 ">
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <span>Name</span>
+                  <span>
+                    {t(
+                      "admin.categoryJobManagement.industries.tableHeaders.name"
+                    )}
+                  </span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "name")?.direction ?? null
@@ -228,7 +239,11 @@ export default function IndustriesTable({
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <span>Eng Name</span>
+                  <span>
+                    {t(
+                      "admin.categoryJobManagement.industries.tableHeaders.engName"
+                    )}
+                  </span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "engName")?.direction ??
@@ -242,7 +257,11 @@ export default function IndustriesTable({
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <span>Created At</span>
+                  <span>
+                    {t(
+                      "admin.categoryJobManagement.industries.tableHeaders.createdAt"
+                    )}
+                  </span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "createdAt")?.direction ??
@@ -256,7 +275,11 @@ export default function IndustriesTable({
               </th>
               <th className="px-4 py-3 text-left">
                 <div className="flex items-center gap-2">
-                  <span>Updated At</span>
+                  <span>
+                    {t(
+                      "admin.categoryJobManagement.industries.tableHeaders.updatedAt"
+                    )}
+                  </span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "updatedAt")?.direction ??
@@ -278,7 +301,7 @@ export default function IndustriesTable({
                   colSpan={5}
                   className="text-center py-10 text-muted-foreground italic"
                 >
-                  Loading...
+                  {t("admin.categoryJobManagement.industries.loading")}
                 </td>
               </tr>
             ) : industries.length === 0 ? (
@@ -293,7 +316,9 @@ export default function IndustriesTable({
                     className="mx-auto w-20 opacity-70"
                   />
                   <p className="mt-2 text-sm text-gray-500">
-                    No industries found
+                    {t(
+                      "admin.categoryJobManagement.industries.noIndustriesFound"
+                    )}
                   </p>
                 </td>
               </tr>
@@ -346,7 +371,9 @@ export default function IndustriesTable({
 
             return (
               <div className="flex items-center self-start space-x-2 text-sm text-gray-600">
-                <span>Shows:</span>
+                <span>
+                  {t("admin.categoryJobManagement.industries.pagination.shows")}
+                </span>
                 <Select
                   value={pageSize.toString()}
                   onValueChange={(value) => {
@@ -368,7 +395,9 @@ export default function IndustriesTable({
                     ))}
                   </SelectContent>
                 </Select>
-                <span>Rows</span>
+                <span>
+                  {t("admin.categoryJobManagement.industries.pagination.rows")}
+                </span>
               </div>
             );
           })()}
@@ -403,19 +432,24 @@ export default function IndustriesTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("admin.categoryJobManagement.industries.deleteDialog.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this industry. This action cannot be
-              undone.
+              {t(
+                "admin.categoryJobManagement.industries.deleteDialog.description"
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("admin.categoryJobManagement.industries.deleteDialog.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteIndustryId && handleDelete(deleteIndustryId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("admin.categoryJobManagement.industries.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

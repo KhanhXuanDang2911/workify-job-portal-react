@@ -1,1 +1,1 @@
-export {default} from "./MenuSheet";
+export { default } from "./MenuSheet";

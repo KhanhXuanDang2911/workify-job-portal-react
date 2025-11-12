@@ -1,5 +1,12 @@
 import React from "react";
-import { AlertTriangle, RefreshCw, Home, Sparkles, Zap, ArrowRight } from "lucide-react";
+import {
+  AlertTriangle,
+  RefreshCw,
+  Home,
+  Sparkles,
+  Zap,
+  ArrowRight,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 type Props = {
@@ -34,8 +41,14 @@ function ErrorFallback() {
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-400/15 via-purple-400/15 to-pink-400/15 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-indigo-400/15 via-blue-400/15 to-cyan-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-purple-400/10 via-pink-400/10 to-orange-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-indigo-400/15 via-blue-400/15 to-cyan-400/15 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-purple-400/10 via-pink-400/10 to-orange-400/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "0.5s" }}
+        ></div>
       </div>
 
       {/* Main content card */}
@@ -50,7 +63,10 @@ function ErrorFallback() {
             <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
           </div>
           <div className="absolute -bottom-1 -left-1">
-            <Zap className="w-4 h-4 text-orange-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
+            <Zap
+              className="w-4 h-4 text-orange-400 animate-pulse"
+              style={{ animationDelay: "0.3s" }}
+            />
           </div>
         </div>
 
@@ -60,7 +76,8 @@ function ErrorFallback() {
             Oops! Có lỗi xảy ra
           </h1>
           <p className="text-gray-600 leading-relaxed text-base sm:text-lg">
-            Đừng lo lắng, đây chỉ là lỗi tạm thời. Chúng tôi đang khắc phục vấn đề này.
+            Đừng lo lắng, đây chỉ là lỗi tạm thời. Chúng tôi đang khắc phục vấn
+            đề này.
           </p>
           <p className="text-sm text-gray-500">
             Vui lòng thử lại sau hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.
@@ -94,7 +111,10 @@ function ErrorFallback() {
           <span className="font-mono text-gray-600">
             Mã lỗi: ERR_{Date.now().toString().slice(-6)}
           </span>
-          <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+          <div
+            className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"
+            style={{ animationDelay: "0.5s" }}
+          ></div>
         </div>
       </div>
     </div>

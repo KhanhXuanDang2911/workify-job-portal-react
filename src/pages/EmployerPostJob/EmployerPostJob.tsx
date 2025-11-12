@@ -83,6 +83,7 @@ import type {
   JobProp,
 } from "@/components/JobInformation/JobInformation";
 import { employer_routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type SectionType =
   | "header"
@@ -94,6 +95,7 @@ type SectionType =
   | "companyInformation";
 
 function EmployerPostJob() {
+  const { t } = useTranslation();
   const renderCount = useRef(0);
 
   const { jobId } = useParams<{ jobId?: string }>();
@@ -104,8 +106,13 @@ function EmployerPostJob() {
 
   const queryClient = useQueryClient();
 
-  const { data: industries, isFetching: isFetchingIndustries } =
+  const { data: industriesResponse, isFetching: isFetchingIndustries } =
     useIndustries();
+
+  // Ensure industries is always an array
+  const industries = Array.isArray(industriesResponse)
+    ? industriesResponse
+    : industriesResponse?.data || [];
 
   const { data: provinces, isFetching: isFetchingProvinces } = useProvinces({
     enabled: false,
@@ -645,17 +652,18 @@ function EmployerPostJob() {
                 {/* Company Information */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
-                    Company Information
+                    {t("employer.postJob.companyInformation")}
                   </label>
                   {/*  Company Name */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Company Name <span className="text-red-500">*</span>
+                      {t("employer.postJob.companyName")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Input
                       {...mainForm.register("companyName")}
                       // disabled
-                      placeholder="Company Name"
+                      placeholder={t("employer.postJob.companyNamePlaceholder")}
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("companyInformation")}
                     />
@@ -668,7 +676,8 @@ function EmployerPostJob() {
                   {/*  Company Size */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Company Size <span className="text-red-500">*</span>
+                      {t("employer.postJob.companySize")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="companySize"
@@ -686,7 +695,11 @@ function EmployerPostJob() {
                               handleFieldFocus("companyInformation")
                             }
                           >
-                            <SelectValue placeholder="Select company size" />
+                            <SelectValue
+                              placeholder={t(
+                                "employer.postJob.selectCompanySize"
+                              )}
+                            />
                           </SelectTrigger>
                           <SelectContent className="">
                             {Object.entries(CompanySize).map(([key, value]) => (
@@ -729,7 +742,8 @@ function EmployerPostJob() {
                   {/* About Company */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      About Company <span className="text-red-500">*</span>
+                      {t("employer.postJob.aboutCompany")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="aboutCompany"
@@ -756,16 +770,17 @@ function EmployerPostJob() {
                 {/* Job Information */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
-                    Job Information
+                    {t("employer.postJob.jobInformation")}
                   </label>
                   {/*Job title */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Job title <span className="text-red-500">*</span>
+                      {t("employer.postJob.jobTitle")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Input
                       {...mainForm.register("jobTitle")}
-                      placeholder="Job title"
+                      placeholder={t("employer.postJob.jobTitlePlaceholder")}
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("header")}
                     />
@@ -778,15 +793,16 @@ function EmployerPostJob() {
                   {/* Location */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Location <span className="text-red-500">*</span>
+                      {t("employer.postJob.location")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <div className="p-3 space-y-5 border rounded">
                       <div>
                         <div className="mb-2 text-xs text-gray-500">
-                          Choose work locations
+                          {t("employer.postJob.chooseWorkLocations")}
                         </div>
                         <BaseModal
-                          title="Edit job locations"
+                          title={t("employer.postJob.editJobLocations")}
                           trigger={
                             <Button
                               type="button"
@@ -820,7 +836,7 @@ function EmployerPostJob() {
                                 )
                               ) : (
                                 <span className="text-gray-400">
-                                  Job location
+                                  {t("employer.postJob.jobLocation")}
                                 </span>
                               )}
                             </Button>
@@ -832,7 +848,7 @@ function EmployerPostJob() {
                                 onClick={onClose}
                                 className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
                               >
-                                Cancel
+                                {t("common.cancel")}
                               </Button>
                               <Button
                                 className="bg-[#1967d2] w-28 hover:bg-[#1251a3]"
@@ -840,7 +856,7 @@ function EmployerPostJob() {
                                   handleSaveModalJobLocations(onClose)
                                 }
                               >
-                                Save
+                                {t("common.save")}
                               </Button>
                             </>
                           )}
@@ -848,7 +864,7 @@ function EmployerPostJob() {
                         >
                           <div className="!w-[800px]">
                             <Label htmlFor="modal-location" className="mb-3">
-                              Work Location
+                              {t("employer.postJob.workLocation")}
                             </Label>
                             {jobLocationsFieldArray.fields.map((loc, idx) => (
                               <div
@@ -894,7 +910,11 @@ function EmployerPostJob() {
                                           className="min-w-[200px] bg-gray-100"
                                           arrowStyle="text-[#1967d2] font-bold size-5"
                                         >
-                                          <SelectValue placeholder="Select province" />
+                                          <SelectValue
+                                            placeholder={t(
+                                              "employer.postJob.selectProvince"
+                                            )}
+                                          />
                                         </SelectTrigger>
                                         <SelectContent>
                                           {isFetchingProvinces ? (
@@ -902,7 +922,7 @@ function EmployerPostJob() {
                                               value="loading"
                                               disabled
                                             >
-                                              Loading...
+                                              {t("employer.postJob.loading")}
                                             </SelectItem>
                                           ) : (
                                             provinces?.map(
@@ -974,7 +994,11 @@ function EmployerPostJob() {
                                             className="min-w-[200px] bg-gray-100"
                                             arrowStyle="text-[#1967d2] font-bold size-5"
                                           >
-                                            <SelectValue placeholder="Select district" />
+                                            <SelectValue
+                                              placeholder={t(
+                                                "employer.postJob.selectDistrict"
+                                              )}
+                                            />
                                           </SelectTrigger>
                                           <SelectContent>
                                             {isLoading ? (
@@ -982,7 +1006,7 @@ function EmployerPostJob() {
                                                 value="loading"
                                                 disabled
                                               >
-                                                Loading...
+                                                {t("employer.postJob.loading")}
                                               </SelectItem>
                                             ) : currentDistricts.length === 0 &&
                                               currentProvinceId > 0 ? (
@@ -990,7 +1014,9 @@ function EmployerPostJob() {
                                                 value="no-data"
                                                 disabled
                                               >
-                                                No districts
+                                                {t(
+                                                  "employer.postJob.noDistricts"
+                                                )}
                                               </SelectItem>
                                             ) : (
                                               currentDistricts.map(
@@ -1025,7 +1051,9 @@ function EmployerPostJob() {
                                     <div className="flex flex-col flex-1 gap-2">
                                       <Input
                                         {...field}
-                                        placeholder="Detail address"
+                                        placeholder={t(
+                                          "employer.postJob.detailAddress"
+                                        )}
                                         className="bg-gray-100 !w-[330px] focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                                       />
                                       {fieldState.error && (
@@ -1066,7 +1094,8 @@ function EmployerPostJob() {
                                 jobLocationsFieldArray.fields.length >= 5
                               }
                             >
-                              <Plus strokeWidth={3} /> Add new location
+                              <Plus strokeWidth={3} />{" "}
+                              {t("employer.postJob.addNewLocation")}
                             </Button>
                           </div>
                         </BaseModal>
@@ -1081,7 +1110,8 @@ function EmployerPostJob() {
                   {/* Salary */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Salary <span className="text-red-500">*</span>
+                      {t("employer.postJob.salary")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="salaryType"
@@ -1124,14 +1154,18 @@ function EmployerPostJob() {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="RANGE" id="salary-input" />
-                            <Label htmlFor="salary-input">Input</Label>
+                            <Label htmlFor="salary-input">
+                              {t("employer.postJob.salaryInput")}
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem
                               value="GREATER_THAN"
                               id="salary-more"
                             />
-                            <Label htmlFor="salary-more">More than</Label>
+                            <Label htmlFor="salary-more">
+                              {t("employer.postJob.salaryMoreThan")}
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem
@@ -1140,7 +1174,7 @@ function EmployerPostJob() {
                               className=""
                             ></RadioGroupItem>
                             <Label htmlFor="salary-negotiable">
-                              Negotiable
+                              {t("employer.postJob.salaryNegotiable")}
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -1149,7 +1183,7 @@ function EmployerPostJob() {
                               id="salary-competitive"
                             />
                             <Label htmlFor="salary-competitive">
-                              Competitive
+                              {t("employer.postJob.salaryCompetitive")}
                             </Label>
                           </div>
                         </RadioGroup>
@@ -1165,7 +1199,9 @@ function EmployerPostJob() {
                               {...mainForm.register("minSalary", {
                                 valueAsNumber: true,
                               })}
-                              placeholder="Ex: 10"
+                              placeholder={t(
+                                "employer.postJob.salaryMinExample"
+                              )}
                               className="rounded-none min-w-32 focus-visible:ring-0"
                               type="number"
                               onBlur={() => {
@@ -1180,7 +1216,7 @@ function EmployerPostJob() {
                                 ) {
                                   mainForm.setError("minSalary", {
                                     type: "manual",
-                                    message: "Invalid range",
+                                    message: t("employer.postJob.invalidRange"),
                                   });
                                 } else {
                                   mainForm.clearErrors("minSalary");
@@ -1200,7 +1236,11 @@ function EmployerPostJob() {
                                     className="rounded-none min-w-36 focus-visible:ring-0"
                                     arrowStyle="text-[#1967d2] font-bold size-5"
                                   >
-                                    <SelectValue placeholder="Select Unit" />
+                                    <SelectValue
+                                      placeholder={t(
+                                        "employer.postJob.selectUnit"
+                                      )}
+                                    />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {Object.entries(SalaryUnit).map(
@@ -1242,7 +1282,9 @@ function EmployerPostJob() {
                               {...mainForm.register("maxSalary", {
                                 valueAsNumber: true,
                               })}
-                              placeholder="Ex: 20"
+                              placeholder={t(
+                                "employer.postJob.salaryMaxExample"
+                              )}
                               className="rounded-none min-w-32 focus-visible:ring-0"
                               type="number"
                               onBlur={() => {
@@ -1257,7 +1299,7 @@ function EmployerPostJob() {
                                 ) {
                                   mainForm.setError("minSalary", {
                                     type: "manual",
-                                    message: "Invalid range",
+                                    message: t("employer.postJob.invalidRange"),
                                   });
                                 } else {
                                   mainForm.clearErrors("minSalary");
@@ -1279,7 +1321,11 @@ function EmployerPostJob() {
                                     className="rounded-none min-w-36 focus-visible:ring-0"
                                     arrowStyle="text-[#1967d2] font-bold size-5"
                                   >
-                                    <SelectValue placeholder="Select Unit" />
+                                    <SelectValue
+                                      placeholder={t(
+                                        "employer.postJob.selectUnit"
+                                      )}
+                                    />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {Object.entries(SalaryUnit).map(
@@ -1323,7 +1369,9 @@ function EmployerPostJob() {
                             {...mainForm.register("minSalary", {
                               valueAsNumber: true,
                             })}
-                            placeholder="Ex: 10 or 10.5"
+                            placeholder={t(
+                              "employer.postJob.salaryMoreThanExample"
+                            )}
                             className="rounded-none focus-visible:ring-0"
                             type="number"
                           />
@@ -1342,7 +1390,11 @@ function EmployerPostJob() {
                                   className="rounded-none min-w-40 focus-visible:ring-0"
                                   arrowStyle="text-[#1967d2] font-bold size-5"
                                 >
-                                  <SelectValue placeholder="Select Unit" />
+                                  <SelectValue
+                                    placeholder={t(
+                                      "employer.postJob.selectUnit"
+                                    )}
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {Object.entries(SalaryUnit).map(
@@ -1387,7 +1439,7 @@ function EmployerPostJob() {
                   {/* Job Description */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Job Description Detail{" "}
+                      {t("employer.postJob.jobDescriptionDetail")}{" "}
                       <span className="text-red-500">*</span>
                     </label>
                     <Controller
@@ -1412,7 +1464,8 @@ function EmployerPostJob() {
                   {/* Job Requirement */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Job Requirement <span className="text-red-500">*</span>
+                      {t("employer.postJob.jobRequirement")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Controller
                       name="requirement"
@@ -1436,7 +1489,8 @@ function EmployerPostJob() {
                   {/* Benefits */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Benefits <span className="text-red-500">*</span>
+                      {t("employer.postJob.benefits")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <div>
                       {main_benefits.length > 0 && (
@@ -1470,7 +1524,7 @@ function EmployerPostJob() {
                         </ul>
                       )}
                       <BaseModal
-                        title="Job benefit"
+                        title={t("employer.postJob.jobBenefit")}
                         trigger={
                           <Button
                             type="button"
@@ -1479,7 +1533,7 @@ function EmployerPostJob() {
                             onClick={handleOpenBenefitModal}
                             onFocus={() => handleFieldFocus("benefits")}
                           >
-                            + Add more (max 10 benefits)
+                            {t("employer.postJob.addMoreBenefits")}
                           </Button>
                         }
                         footer={(onClose) => (
@@ -1489,13 +1543,13 @@ function EmployerPostJob() {
                               onClick={onClose}
                               className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
                             >
-                              Cancel
+                              {t("common.cancel")}
                             </Button>
                             <Button
                               className="bg-[#1967d2] w-28 hover:bg-[#1251a3]"
                               onClick={() => handleSaveBenefits(onClose)}
                             >
-                              Save
+                              {t("common.save")}
                             </Button>
                           </>
                         )}
@@ -1591,7 +1645,9 @@ function EmployerPostJob() {
                                     <div className="flex flex-col flex-1 gap-2">
                                       <Input
                                         {...field}
-                                        placeholder="Ex: A chance to travel 2-3 times a year"
+                                        placeholder={t(
+                                          "employer.postJob.benefitDescriptionExample"
+                                        )}
                                         className=" bg-gray-100 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                                       />
                                       {fieldState.error && (
@@ -1651,8 +1707,8 @@ function EmployerPostJob() {
                                 )
                             }
                           >
-                            <Plus size={18} strokeWidth={3} /> Add another
-                            benefit
+                            <Plus size={18} strokeWidth={3} />{" "}
+                            {t("employer.postJob.addAnotherBenefit")}
                           </Button>
                         </div>
                       </BaseModal>
@@ -1667,14 +1723,15 @@ function EmployerPostJob() {
                 {/* Job Details */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
-                    Job Details
+                    {t("employer.postJob.jobDetails")}
                   </label>
 
                   {/* Education Level */}
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Education Level <span className="text-red-500">*</span>
+                        {t("employer.postJob.educationLevel")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1695,7 +1752,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Please select" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.pleaseSelect"
+                                  )}
+                                />
                               </SelectTrigger>
 
                               <SelectContent
@@ -1729,7 +1790,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Experience Level <span className="text-red-500">*</span>
+                        {t("employer.postJob.experienceLevel")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1749,7 +1811,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Please select" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.pleaseSelect"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(ExperienceLevel).map(
@@ -1779,7 +1845,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Job Level <span className="text-red-500">*</span>
+                        {t("employer.postJob.jobLevel")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1799,7 +1866,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Please  " />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.pleaseSelect"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobLevel).map(
@@ -1829,7 +1900,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Job Type <span className="text-red-500">*</span>
+                        {t("employer.postJob.jobType")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1849,7 +1921,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Please select" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.pleaseSelect"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobType).map(([key, value]) => (
@@ -1878,7 +1954,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Gender <span className="text-red-500">*</span>
+                        {t("employer.postJob.gender")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1898,7 +1975,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Please select" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.pleaseSelect"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(JobGender).map(
@@ -1929,12 +2010,12 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Job Code
+                        {t("employer.postJob.jobCode")}
                       </label>
                       <div className="flex-1">
                         <Input
                           {...mainForm.register("jobCode")}
-                          placeholder="Enter job code"
+                          placeholder={t("employer.postJob.enterJobCode")}
                           onFocus={() => handleFieldFocus("jobDetails")}
                           className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                         />
@@ -1946,7 +2027,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Industries <span className="text-red-500">*</span>
+                        {t("employer.postJob.industries")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -1963,7 +2045,7 @@ function EmployerPostJob() {
                                         className="bg-sky-100 text-[#1967d2] px-3 py-1 rounded-full text-sm flex items-center gap-2"
                                       >
                                         {industryItem?.name ||
-                                          `Industry ${industryItem.id}`}
+                                          `${t("employer.postJob.industry")} ${industryItem.id}`}
                                         <button
                                           type="button"
                                           onClick={() =>
@@ -2011,12 +2093,16 @@ function EmployerPostJob() {
                                     handleFieldFocus("jobDetails")
                                   }
                                 >
-                                  <SelectValue placeholder="Select industries" />
+                                  <SelectValue
+                                    placeholder={t(
+                                      "employer.postJob.selectIndustries"
+                                    )}
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {isFetchingIndustries ? (
                                     <SelectItem value="loading" disabled>
-                                      Loading...
+                                      {t("employer.postJob.loading")}
                                     </SelectItem>
                                   ) : (
                                     industries?.map((industry) => (
@@ -2050,7 +2136,8 @@ function EmployerPostJob() {
                   <div className="mb-4">
                     <div className="flex items-center gap-4">
                       <label className="self-start block w-48 mb-1 text-sm font-medium">
-                        Age <span className="text-red-500">*</span>
+                        {t("employer.postJob.age")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="flex-1">
                         <Controller
@@ -2070,7 +2157,11 @@ function EmployerPostJob() {
                                   handleFieldFocus("jobDetails")
                                 }
                               >
-                                <SelectValue placeholder="Select age type" />
+                                <SelectValue
+                                  placeholder={t(
+                                    "employer.postJob.selectAgeType"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(AgeType).map(([key, value]) => (
@@ -2101,7 +2192,8 @@ function EmployerPostJob() {
                     <div className="mb-4">
                       <div className="flex items-center gap-4">
                         <label className="self-start block w-48 mb-1 text-sm font-medium">
-                          Min Age <span className="text-red-500">*</span>
+                          {t("employer.postJob.minAge")}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1">
                           <Input
@@ -2109,7 +2201,7 @@ function EmployerPostJob() {
                               valueAsNumber: true,
                             })}
                             type="number"
-                            placeholder="Enter minimum age"
+                            placeholder={t("employer.postJob.enterMinAge")}
                             onFocus={() => handleFieldFocus("jobDetails")}
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                           />
@@ -2129,7 +2221,8 @@ function EmployerPostJob() {
                     <div className="mb-4">
                       <div className="flex items-center gap-4">
                         <label className="self-start block w-48 mb-1 text-sm font-medium">
-                          Max Age <span className="text-red-500">*</span>
+                          {t("employer.postJob.maxAge")}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1">
                           <Input
@@ -2137,7 +2230,7 @@ function EmployerPostJob() {
                               valueAsNumber: true,
                             })}
                             type="number"
-                            placeholder="Enter maximum age"
+                            placeholder={t("employer.postJob.enterMaxAge")}
                             onFocus={() => handleFieldFocus("jobDetails")}
                             className="w-full focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                           />
@@ -2154,17 +2247,20 @@ function EmployerPostJob() {
                 {/* Contact information */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
-                    Contact information
+                    {t("employer.postJob.contactInformation")}
                   </label>
 
                   {/* Contact Person */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Contact Person <span className="text-red-500">*</span>
+                      {t("employer.postJob.contactPerson")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Input
                       {...mainForm.register("contactPerson")}
-                      placeholder="Contact Person Name"
+                      placeholder={t(
+                        "employer.postJob.contactPersonPlaceholder"
+                      )}
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("contact")}
                     />
@@ -2178,11 +2274,12 @@ function EmployerPostJob() {
                   {/* Phone Number */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Phone Number <span className="text-red-500">*</span>
+                      {t("employer.postJob.phoneNumber")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <Input
                       {...mainForm.register("phoneNumber")}
-                      placeholder="Contact Phone"
+                      placeholder={t("employer.postJob.phoneNumberPlaceholder")}
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("contact")}
                     />
@@ -2196,10 +2293,11 @@ function EmployerPostJob() {
                   {/* Contact Location */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Contact Location <span className="text-red-500">*</span>
+                      {t("employer.postJob.contactLocation")}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <BaseModal
-                      title="Edit contact location"
+                      title={t("employer.postJob.editContactLocation")}
                       trigger={
                         <Button
                           type="button"
@@ -2233,8 +2331,7 @@ function EmployerPostJob() {
                             </div>
                           ) : (
                             <span className="text-gray-400">
-                              {" "}
-                              Select contact location
+                              {t("employer.postJob.selectContactLocation")}
                             </span>
                           )}
                         </Button>
@@ -2246,7 +2343,7 @@ function EmployerPostJob() {
                             onClick={onClose}
                             className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
                           >
-                            Cancel
+                            {t("common.cancel")}
                           </Button>
                           <Button
                             className="bg-[#1967d2] w-28 hover:bg-[#1251a3]"
@@ -2254,7 +2351,7 @@ function EmployerPostJob() {
                               handleSaveModalContactLocation(onClose)
                             }
                           >
-                            Save
+                            {t("common.save")}
                           </Button>
                         </>
                       )}
@@ -2263,7 +2360,8 @@ function EmployerPostJob() {
                         <div className="flex gap-4 mb-4">
                           <div className="flex-1">
                             <label className="block mb-1 text-sm font-medium">
-                              Province <span className="text-red-500">*</span>
+                              {t("employer.postJob.province")}{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <Controller
                               name="contactLocation.provinceId"
@@ -2301,12 +2399,16 @@ function EmployerPostJob() {
                                       className="w-full bg-gray-100"
                                       arrowStyle="text-[#1967d2] font-bold size-5"
                                     >
-                                      <SelectValue placeholder="Select province" />
+                                      <SelectValue
+                                        placeholder={t(
+                                          "employer.postJob.selectProvince"
+                                        )}
+                                      />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {isFetchingProvinces ? (
                                         <SelectItem value="loading" disabled>
-                                          Loading...
+                                          {t("employer.postJob.loading")}
                                         </SelectItem>
                                       ) : (
                                         provinces?.map((province: Province) => (
@@ -2332,7 +2434,8 @@ function EmployerPostJob() {
                           </div>
                           <div className="flex-1">
                             <label className="block mb-1 text-sm font-medium">
-                              District <span className="text-red-500">*</span>
+                              {t("employer.postJob.district")}{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <Controller
                               name="contactLocation.districtId"
@@ -2369,7 +2472,11 @@ function EmployerPostJob() {
                                       className="w-full bg-gray-100"
                                       arrowStyle="text-[#1967d2] font-bold size-5"
                                     >
-                                      <SelectValue placeholder="Select district" />
+                                      <SelectValue
+                                        placeholder={t(
+                                          "employer.postJob.selectDistrict"
+                                        )}
+                                      />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {districtsByContactProvince?.map(
@@ -2397,7 +2504,8 @@ function EmployerPostJob() {
                         </div>
                         <div className="mb-4">
                           <label className="block mb-1 text-sm font-medium">
-                            Address <span className="text-red-500">*</span>
+                            {t("employer.postJob.address")}{" "}
+                            <span className="text-red-500">*</span>
                           </label>
                           <Controller
                             name="contactLocation.detailAddress"
@@ -2408,7 +2516,9 @@ function EmployerPostJob() {
                                 <Input
                                   {...field}
                                   className="bg-gray-100 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
-                                  placeholder="Enter address"
+                                  placeholder={t(
+                                    "employer.postJob.enterAddress"
+                                  )}
                                 />
                                 {fieldState.error && (
                                   <span className="text-xs text-red-500">
@@ -2431,7 +2541,7 @@ function EmployerPostJob() {
                   {/* Description */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Description
+                      {t("employer.postJob.description")}
                     </label>
                     <Controller
                       name="description"
@@ -2451,13 +2561,14 @@ function EmployerPostJob() {
                 {/* Expiration Date */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
-                    Expiration Date
+                    {t("employer.postJob.expirationDate")}
                   </label>
 
                   {/* Expiration Date */}
                   <div className="mb-4">
                     <Label htmlFor="date" className="px-1">
-                      Expiration Date <span className="text-red-500">*</span>
+                      {t("employer.postJob.expirationDate")}{" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <div className="flex flex-col gap-2">
                       <Controller
@@ -2481,8 +2592,7 @@ function EmployerPostJob() {
                         </span>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
-                        Expiration date is automatically set to 2 months from
-                        today
+                        {t("employer.postJob.expirationDateNote")}
                       </p>
                     </div>
                   </div>
@@ -2499,7 +2609,7 @@ function EmployerPostJob() {
         >
           <div className="p-4 mb-4 bg-white border-b flex-shrink-0">
             <h2 className="text-xl font-semibold text-center text-gray-900 ">
-              Preview
+              {t("employer.postJob.preview")}
             </h2>
           </div>
           <div className="overflow-y-auto job-information-preview flex-1 px-2 overflow-x-hidden pb-4">
@@ -2522,7 +2632,7 @@ function EmployerPostJob() {
             }
           }}
         >
-          {isEditMode ? "Cancel" : "Save Job"}
+          {isEditMode ? t("common.cancel") : t("employer.postJob.saveJob")}
         </Button>
         <Button
           className="w-[60%]  bg-[#1967d2] hover:bg-[#1251a3] disabled:opacity-50"
@@ -2540,18 +2650,18 @@ function EmployerPostJob() {
             updateJobMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Updating...
+                {t("employer.postJob.updating")}
               </>
             ) : (
-              "Update Job"
+              t("employer.postJob.updateJob")
             )
           ) : createJobMutation.isPending ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Posting...
+              {t("employer.postJob.posting")}
             </>
           ) : (
-            "Post Job"
+            t("employer.postJob.postJob")
           )}
         </Button>
       </div>

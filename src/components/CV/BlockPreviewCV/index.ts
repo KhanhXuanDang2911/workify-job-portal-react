@@ -1,1 +1,1 @@
-export {default} from './BlockPreviewCV';
+export { default } from "./BlockPreviewCV";

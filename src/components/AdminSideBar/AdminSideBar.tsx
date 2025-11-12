@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import {
   ChevronRight,
   LogOut,
   User,
+  Home,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
@@ -24,54 +24,55 @@ import { authService } from "@/services";
 import { useUserAuth } from "@/context/user-auth";
 import { toast } from "react-toastify";
 import { admin_routes } from "@/routes/routes.const";
-import { getNameInitials } from "@/utils/string";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const menuItems = [
+const getMenuItems = (t: (key: string) => string) => [
   {
     id: "dashboard",
-    label: "Dashboard",
+    label: t("admin.dashboard"),
     icon: LayoutDashboard,
     href: `${admin_routes.BASE}/${admin_routes.DASHBOARD}`,
   },
   {
     id: "jobs",
-    label: "Jobs",
+    label: t("admin.jobs"),
     icon: BriefcaseBusiness,
     href: `${admin_routes.BASE}/${admin_routes.JOBS}`,
   },
   {
     id: "posts",
-    label: "Posts",
+    label: t("admin.posts"),
     icon: BookHeart,
     href: `${admin_routes.BASE}/${admin_routes.POSTS}`,
   },
   {
     id: "post-categories",
-    label: "Post Categories",
+    label: t("admin.postCategories"),
     icon: FolderOpen,
     href: `${admin_routes.BASE}/${admin_routes.POST_CATEGORIES}`,
   },
   {
     id: "companies",
-    label: "Companies",
+    label: t("admin.companies"),
     icon: Building,
     href: `${admin_routes.BASE}/${admin_routes.EMPLOYERS}`,
   },
   {
     id: "industries",
-    label: "Industries",
+    label: t("admin.industries"),
     icon: Factory,
     href: `${admin_routes.BASE}/${admin_routes.CATEGORY_JOBS_INDUSTRIES}`,
   },
   {
     id: "locations",
-    label: "Locations",
+    label: t("admin.locations"),
     icon: MapPinPen,
     href: `${admin_routes.BASE}/${admin_routes.LOCATION}`,
   },
   {
     id: "users",
-    label: "Users",
+    label: t("admin.users"),
     icon: Users,
     href: `${admin_routes.BASE}/${admin_routes.USERS}`,
   },
@@ -86,6 +87,7 @@ export default function AdminSidebar({
   setIsCollapsed: (v: boolean) => void;
   device?: string;
 }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const { state, dispatch } = useUserAuth();
   const queryClient = useQueryClient();
@@ -101,7 +103,7 @@ export default function AdminSidebar({
       dispatch({ type: "CLEAR_USER" });
       userTokenUtils.clearAuth();
       queryClient.removeQueries();
-      toast.success("Signed out successfully");
+      toast.success(t("header.signedOutSuccess"));
     },
   });
 
@@ -118,13 +120,17 @@ export default function AdminSidebar({
     >
       {/* Collapse Toggle Button - Desktop only */}
       {device === "desktop" && (
-        <div className="p-2 border-b border-gray-200">
+        <div className="p-2 border-b border-gray-200 space-y-2">
           <Button
             variant="ghost"
             size="sm"
             className="w-full p-2 bg-white/50 hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-            onClick={() => setIsCollapsed((v) => !v)}
-            aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={
+              isCollapsed
+                ? t("admin.expandSidebar")
+                : t("admin.collapseSidebar")
+            }
           >
             {isCollapsed ? (
               <ChevronRight className="w-5 h-5 text-gray-600" strokeWidth={2} />
@@ -132,13 +138,64 @@ export default function AdminSidebar({
               <ChevronLeft className="w-5 h-5 text-gray-600" strokeWidth={2} />
             )}
           </Button>
+          <div className={isCollapsed ? "flex justify-center" : ""}>
+            <LanguageSwitcher />
+          </div>
+        </div>
+      )}
+
+      {/* Language Switcher for Mobile */}
+      {device !== "desktop" && (
+        <div className="p-2 border-b border-gray-200">
+          <LanguageSwitcher />
         </div>
       )}
 
       {/* Navigation */}
       <nav className="overflow-y-auto p-2 flex-1">
         <ul className="space-y-1">
-          {menuItems.map((item) => {
+          {/* Home Button */}
+          <li>
+            <Link to="/">
+              {!isCollapsed ? (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-left font-normal text-blue-600 hover:bg-blue-50"
+                >
+                  <Home
+                    className="size-5 shrink-0"
+                    strokeWidth={2}
+                    color="#1967d2"
+                  />
+                  <span className="ml-3">{t("admin.backToHome")}</span>
+                </Button>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-left font-normal text-[15px] text-blue-600 hover:bg-blue-50"
+                    >
+                      <Home
+                        className="size-5 shrink-0"
+                        strokeWidth={2}
+                        color="#1967d2"
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    sideOffset={10}
+                    className="bg-[#1967d2] text-white"
+                  >
+                    {t("admin.backToHome")}
+                    <TooltipArrow className="fill-[#1967d2]" />
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </Link>
+          </li>
+          {getMenuItems(t).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
             return (
@@ -201,7 +258,7 @@ export default function AdminSidebar({
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
-                  alt={user.fullName || "Admin"}
+                  alt={user.fullName || t("admin.dashboard")}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
@@ -224,7 +281,7 @@ export default function AdminSidebar({
             disabled={signOutMutation.isPending}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Đăng xuất
+            {t("admin.signOut")}
           </Button>
         </div>
       )}
@@ -248,7 +305,7 @@ export default function AdminSidebar({
               sideOffset={10}
               className="bg-red-600 text-white"
             >
-              Đăng xuất
+              {t("admin.signOut")}
               <TooltipArrow className="fill-red-600" />
             </TooltipContent>
           </Tooltip>

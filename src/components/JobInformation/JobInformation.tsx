@@ -15,6 +15,7 @@ import {
 import { useUserAuth } from "@/context/user-auth";
 import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   MapPin,
   Heart,
@@ -76,7 +77,12 @@ export interface JobProp {
     detailAddress: string;
   }[];
   companyWebsite: string;
-  salary: { salaryType: SalaryType; minSalary?: number; maxSalary?: number; salaryUnit?: SalaryUnit };
+  salary: {
+    salaryType: SalaryType;
+    minSalary?: number;
+    maxSalary?: number;
+    salaryUnit?: SalaryUnit;
+  };
   expirationDate: string;
 
   // Description
@@ -133,7 +139,13 @@ export interface JobInformationRef {
   scrollToCompanyInformation: () => void;
 }
 
-function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationProps) {
+function JobInformation({
+  job,
+  jobId,
+  hideActionButtons,
+  ref,
+}: JobInformationProps) {
+  const { t, currentLanguage } = useTranslation();
   const headerRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
@@ -154,11 +166,15 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
     retry: false,
     placeholderData: () => {
       // Check if job exists in saved-jobs cache
-      const savedJobsQueries = queryClient.getQueriesData({ queryKey: ["saved-jobs"] });
+      const savedJobsQueries = queryClient.getQueriesData({
+        queryKey: ["saved-jobs"],
+      });
       for (const [, data] of savedJobsQueries) {
         const savedJobsData = data as any;
         if (savedJobsData?.data?.items) {
-          const isInSavedList = savedJobsData.data.items.some((job: any) => job.id === jobId);
+          const isInSavedList = savedJobsData.data.items.some(
+            (job: any) => job.id === jobId
+          );
           if (isInSavedList) {
             return { status: 200, message: "", data: true };
           }
@@ -177,17 +193,20 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
       // Invalidate both saved-job status and saved-jobs list
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
-      toast.success(isSaved ? "Đã bỏ lưu việc làm" : "Đã lưu việc làm");
+      toast.success(
+        isSaved ? t("toast.success.jobUnsaved") : t("toast.success.jobSaved")
+      );
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra";
+      const errorMessage =
+        error?.response?.data?.message || t("toast.error.unknownError");
       toast.error(errorMessage);
     },
   });
 
   const handleToggleSave = () => {
     if (!jobId) {
-      toast.error("Không tìm thấy ID công việc");
+      toast.error(t("toast.error.notFound"));
       return;
     }
     if (!isAuthenticated) {
@@ -213,27 +232,32 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
     tempDiv.innerHTML = job.jobDescription || "";
     const textContent = tempDiv.textContent || tempDiv.innerText || "";
     // Limit to 200 characters for share
-    return textContent.length > 200 ? textContent.substring(0, 200) + "..." : textContent;
+    return textContent.length > 200
+      ? textContent.substring(0, 200) + "..."
+      : textContent;
   };
 
   const handleShareFacebook = () => {
     const url = getJobUrl();
     const title = getShareTitle();
     const description = getShareDescription();
-    
+
     // Facebook doesn't support pre-filling text via URL parameters
     // It only uses Open Graph meta tags from the page
     // We'll share the URL and copy the text to clipboard for user to paste
     const shareText = `${title}\n\n${description}\n\n${url}`;
-    
+
     // Copy text to clipboard
-    navigator.clipboard.writeText(shareText).then(() => {
-      toast.success("Đã sao chép nội dung! Mở Facebook và paste vào.");
-    }).catch(() => {
-      // Fallback: just open share dialog
-      toast.info("Mở Facebook share...");
-    });
-    
+    navigator.clipboard
+      .writeText(shareText)
+      .then(() => {
+        toast.success(t("jobInformation.shareContentCopied"));
+      })
+      .catch(() => {
+        // Fallback: just open share dialog
+        toast.info(t("jobInformation.openingFacebook"));
+      });
+
     // Open Facebook share dialog
     const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
@@ -243,7 +267,7 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
     const url = getJobUrl();
     const title = getShareTitle();
     const summary = getShareDescription();
-    
+
     // LinkedIn shareArticle with mini=true supports title and summary parameters
     // Format: title, summary, source are all required for pre-filling
     const shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}&source=${encodeURIComponent(window.location.origin)}`;
@@ -254,9 +278,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
     const url = getJobUrl();
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("Đã sao chép link!");
+      toast.success(t("jobInformation.linkCopied"));
     } catch (err) {
-      toast.error("Không thể sao chép link");
+      toast.error(t("jobInformation.copyLinkFailed"));
     }
   };
 
@@ -273,11 +297,13 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
     const elementRect = ref.current.getBoundingClientRect();
 
     const containerScrollTop = previewContainer.scrollTop;
-    const elementOffsetTop = elementRect.top - containerRect.top + containerScrollTop;
+    const elementOffsetTop =
+      elementRect.top - containerRect.top + containerScrollTop;
     const containerHeight = containerRect.height;
     const elementHeight = elementRect.height;
 
-    const targetScrollTop = elementOffsetTop - (containerHeight - elementHeight) / 2;
+    const targetScrollTop =
+      elementOffsetTop - (containerHeight - elementHeight) / 2;
 
     previewContainer.scrollTo({
       top: Math.max(0, targetScrollTop),
@@ -307,76 +333,115 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/10"></div>
 
         {/* New Badge - Repositioned */}
-        {job.isNew && <Badge className="absolute top-4 left-4 bg-green-500 text-white text-xs px-3 py-1 font-medium">New</Badge>}
+        {job.isNew && (
+          <Badge className="absolute top-4 left-4 bg-green-500 text-white text-xs px-3 py-1 font-medium">
+            {t("jobInformation.new")}
+          </Badge>
+        )}
       </div>
 
       {/* Job Header */}
-      <div ref={headerRef} className="p-6 bg-gradient-to-br from-blue-50/50 to-purple-50/50">
+      <div
+        ref={headerRef}
+        className="p-6 bg-gradient-to-br from-blue-50/50 to-purple-50/50"
+      >
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           {/* Company Logo */}
           <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white -mt-10 relative z-10">
-            <img src={job.companyLogo} alt={job.companyName} className="w-16 h-16 object-contain" />
+            <img
+              src={job.companyLogo}
+              alt={job.companyName}
+              className="w-16 h-16 object-contain"
+            />
           </div>
 
           {/* Job Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">{job.jobTitle}</h1>
+                <h1 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">
+                  {job.jobTitle}
+                </h1>
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-[#1967d2]" />
-                  <p className="text-lg font-medium text-gray-800">{job.companyName}</p>
+                  <p className="text-lg font-medium text-gray-800">
+                    {job.companyName}
+                  </p>
                 </div>
                 <div className="flex flex-col text-gray-600 mb-2">
-                  {job.jobLocation && Array.isArray(job.jobLocation) && job.jobLocation.length > 0 ? (
+                  {job.jobLocation &&
+                  Array.isArray(job.jobLocation) &&
+                  job.jobLocation.length > 0 ? (
                     job.jobLocation.map((location, index) => (
                       <div className="flex gap-1" key={index}>
                         <MapPin className="w-4 h-4" />
                         <span>
-                          {location.detailAddress}, {location.province?.name || ""}, {location.district?.name || ""}
+                          {location.detailAddress},{" "}
+                          {location.province?.name || ""},{" "}
+                          {location.district?.name || ""}
                         </span>
                       </div>
                     ))
                   ) : (
                     <div className="flex gap-1">
                       <MapPin className="w-4 h-4" />
-                      <span>Chưa cập nhật địa chỉ</span>
+                      <span>{t("jobInformation.addressNotUpdated")}</span>
                     </div>
                   )}
                 </div>
                 <div className="flex items-center text-[#1967d2] text-sm">
                   <Globe className="w-4 h-4 mr-2" />
-                  <span className="hover:underline cursor-pointer">{job.companyWebsite}</span>
+                  <span className="hover:underline cursor-pointer">
+                    {job.companyWebsite}
+                  </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className={cn("flex items-center gap-3", hideActionButtons && "hidden")}>
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  hideActionButtons && "hidden"
+                )}
+              >
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent"
+                    >
                       <Share2 className="w-4 h-4 mr-2" />
-                      Share
+                      {t("jobInformation.share")}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={handleShareFacebook} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={handleShareFacebook}
+                      className="cursor-pointer"
+                    >
                       <Facebook className="w-4 h-4 mr-2 text-[#1967d2]" />
-                      Share on Facebook
+                      {t("jobInformation.shareOnFacebook")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleShareLinkedIn} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={handleShareLinkedIn}
+                      className="cursor-pointer"
+                    >
                       <Linkedin className="w-4 h-4 mr-2 text-[#1967d2]" />
-                      Share on LinkedIn
+                      {t("jobInformation.shareOnLinkedIn")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={handleCopyLink}
+                      className="cursor-pointer"
+                    >
                       <Copy className="w-4 h-4 mr-2 text-gray-600" />
-                      Copy Link
+                      {t("jobInformation.copyLink")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleToggleSave}
                   disabled={!jobId || toggleSaveMutation.isPending}
                   className={cn(
@@ -384,11 +449,20 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                     isSaved ? "text-red-600 bg-red-50" : "text-red-600"
                   )}
                 >
-                  <Heart className={cn("w-4 h-4 mr-2", isSaved && "fill-current")} />
-                  {isSaved ? "Đã lưu" : "Lưu"}
+                  <Heart
+                    className={cn("w-4 h-4 mr-2", isSaved && "fill-current")}
+                  />
+                  {isSaved
+                    ? t("jobInformation.saved")
+                    : t("jobInformation.save")}
                 </Button>
-                <JobApplicationModal jobTitle={job.jobTitle} companyName={job.companyName}>
-                  <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">Nộp đơn ngay</Button>
+                <JobApplicationModal
+                  jobTitle={job.jobTitle}
+                  companyName={job.companyName}
+                >
+                  <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-6 shadow-lg hover:shadow-xl transition-all duration-300 font-medium">
+                    {t("jobInformation.applyNow")}
+                  </Button>
                 </JobApplicationModal>
               </div>
             </div>
@@ -398,21 +472,45 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
               <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Salary</p>
+                  <p className="text-sm text-gray-600">
+                    {t("jobInformation.salary")}
+                  </p>
                   <p className="font-semibold text-gray-900">
-                    {job.salary.salaryType === "RANGE" && job.salary.minSalary && job.salary.maxSalary && job.salary.salaryUnit && (
-                      <>
-                        <span className="font-semibold">{job.salary.minSalary}</span> - <span className="font-semibold">{job.salary.maxSalary}</span>{" "}
-                        <span>{job.salary.salaryUnit}</span>
-                      </>
-                    )}
-                    {job.salary.salaryType === "GREATER_THAN" && job.salary.minSalary && job.salary.salaryUnit && (
-                      <>
-                        Hơn <span className="font-semibold">{job.salary.minSalary}</span> {job.salary.salaryUnit}
-                      </>
-                    )}
-                    {(job.salary.salaryType === "COMPETITIVE" || job.salary.salaryType === "NEGOTIABLE") && (
-                      <span className="capitalize">{SalaryTypeLabelEN[job.salary.salaryType]}</span>
+                    {job.salary.salaryType === "RANGE" &&
+                      job.salary.minSalary &&
+                      job.salary.maxSalary &&
+                      job.salary.salaryUnit && (
+                        <>
+                          <span className="font-semibold">
+                            {job.salary.minSalary}
+                          </span>{" "}
+                          -{" "}
+                          <span className="font-semibold">
+                            {job.salary.maxSalary}
+                          </span>{" "}
+                          <span>{job.salary.salaryUnit}</span>
+                        </>
+                      )}
+                    {job.salary.salaryType === "GREATER_THAN" &&
+                      job.salary.minSalary &&
+                      job.salary.salaryUnit && (
+                        <>
+                          {t("jobInformation.moreThan")}{" "}
+                          <span className="font-semibold">
+                            {job.salary.minSalary}
+                          </span>{" "}
+                          {job.salary.salaryUnit}
+                        </>
+                      )}
+                    {(job.salary.salaryType === "COMPETITIVE" ||
+                      job.salary.salaryType === "NEGOTIABLE") && (
+                      <span className="capitalize">
+                        {currentLanguage === "vi"
+                          ? job.salary.salaryType === "NEGOTIABLE"
+                            ? t("jobDetail.negotiable")
+                            : t("jobDetail.competitive")
+                          : SalaryTypeLabelEN[job.salary.salaryType]}
+                      </span>
                     )}
                   </p>
                 </div>
@@ -421,8 +519,12 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
               <div className="flex items-center gap-3">
                 <CalendarDays className="w-5 h-5 text-red-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Ngày hết hạn</p>
-                  <p className="font-semibold text-red-600">{job.expirationDate}</p>
+                  <p className="text-sm text-gray-600">
+                    {t("jobInformation.expirationDate")}
+                  </p>
+                  <p className="font-semibold text-red-600">
+                    {job.expirationDate}
+                  </p>
                 </div>
               </div>
             </div>
@@ -437,37 +539,37 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
             onClick={() => scrollToSection(descriptionRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Mô tả
+            {t("jobInformation.navigation.description")}
           </button>
           <button
             onClick={() => scrollToSection(benefitsRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Quyền lợi
+            {t("jobInformation.navigation.benefits")}
           </button>
           <button
             onClick={() => scrollToSection(requirementsRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Kỹ năng yêu cầu
+            {t("jobInformation.navigation.requirements")}
           </button>
           <button
             onClick={() => scrollToSection(jobDetailsRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Chi tiết công việc
+            {t("jobInformation.navigation.jobDetails")}
           </button>
           <button
             onClick={() => scrollToSection(contactRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Liên hệ
+            {t("jobInformation.navigation.contact")}
           </button>
           <button
             onClick={() => scrollToSection(companyInformationRef)}
             className="text-sm font-medium text-gray-600 hover:text-[#1967d2] whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-[#1967d2] transition-colors"
           >
-            Về công ty
+            {t("jobInformation.navigation.companyInfo")}
           </button>
         </div>
       </div>
@@ -478,11 +580,16 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={descriptionRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Target className="w-6 h-6 text-[#1967d2]" />
-            <h3 className="text-xl font-semibold text-[#1967d2]">Mô tả công việc</h3>
+            <h3 className="text-xl font-semibold text-[#1967d2]">
+              {t("jobInformation.sections.jobDescription")}
+            </h3>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-lg p-6 border border-blue-100">
-            <div className="prose prose-gray max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: job.jobDescription }} />
+            <div
+              className="prose prose-gray max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ __html: job.jobDescription }}
+            />
           </div>
         </div>
 
@@ -492,24 +599,37 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={benefitsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Gift className="w-6 h-6 text-green-600" />
-            <h3 className="text-xl font-semibold text-green-600">Phúc lợi</h3>
+            <h3 className="text-xl font-semibold text-green-600">
+              {t("jobInformation.sections.benefits")}
+            </h3>
           </div>
           <div className="space-y-4">
-            {job.jobBenefits && Array.isArray(job.jobBenefits) && job.jobBenefits.length > 0 ? (
+            {job.jobBenefits &&
+            Array.isArray(job.jobBenefits) &&
+            job.jobBenefits.length > 0 ? (
               job.jobBenefits.map((benefit, index) => {
                 const benefitInfo = benefitMapVN[benefit.type];
                 if (!benefitInfo) return null;
                 const Icon = benefitInfo.icon;
                 return (
-                  <div key={index} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100"
+                  >
                     <div className="w-2 h-2 bg-blue-500 rounded-full  flex-shrink-0"></div>
-                    <Icon size={28} strokeWidth={1.8} color="#1967d2 w-[28px]! h-[28px]!" />
+                    <Icon
+                      size={28}
+                      strokeWidth={1.8}
+                      color="#1967d2 w-[28px]! h-[28px]!"
+                    />
                     <span className="text-gray-700">{benefit.description}</span>
                   </div>
                 );
               })
             ) : (
-              <p className="text-gray-600">Chưa cập nhật phúc lợi</p>
+              <p className="text-gray-600">
+                {t("jobInformation.benefitsNotUpdated")}
+              </p>
             )}
           </div>
         </div>
@@ -520,7 +640,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={requirementsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <GraduationCap className="w-6 h-6 text-orange-600" />
-            <h3 className="text-xl font-semibold text-orange-600">Kỹ năng yêu cầu</h3>
+            <h3 className="text-xl font-semibold text-orange-600">
+              {t("jobInformation.sections.requirements")}
+            </h3>
           </div>
           <div className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 rounded-lg p-6 border border-orange-100">
             <div
@@ -538,7 +660,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={jobDetailsRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <UserCheck className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-semibold text-purple-600">Chi tiết công việc</h3>
+            <h3 className="text-xl font-semibold text-purple-600">
+              {t("jobInformation.sections.jobDetails")}
+            </h3>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50/50 to-indigo-50/50 rounded-lg p-6 border border-purple-100">
@@ -547,24 +671,36 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                 <div className="flex items-start gap-4">
                   <Briefcase className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Loại công việc</p>
-                    <p className="font-semibold text-gray-900">{JobTypeLabelVN[job.jobType]}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.jobType")}
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {JobTypeLabelVN[job.jobType]}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <Layers className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Cấp bậc</p>
-                    <p className="font-semibold text-gray-900">{JobLevelLabelVN[job.jobLevel]}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.jobLevel")}
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {JobLevelLabelVN[job.jobLevel]}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <GraduationCap className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Học vấn</p>
-                    <p className="font-semibold text-gray-900">{EducationLevelLabelVN[job.educationLevel]}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.education")}
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {EducationLevelLabelVN[job.educationLevel]}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -573,40 +709,58 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                 <div className="flex items-start gap-4">
                   <Briefcase className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Kinh nghiệm</p>
-                    <p className="font-semibold text-gray-900">{ExperienceLevelLabelVN[job.experienceLevel]}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.experience")}
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {ExperienceLevelLabelVN[job.experienceLevel]}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <Users className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Giới tính</p>
-                    <p className="font-semibold text-gray-900">{JobGenderLabelVN[job.gender]}</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.gender")}
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {JobGenderLabelVN[job.gender]}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <User className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Tuổi</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.age")}
+                    </p>
                     <p className="font-semibold text-gray-900">
                       {job.age.ageType === "INPUT" && (
                         <>
-                          Từ <span>{job.age.minAge}</span> đến <span>{job.age.maxAge}</span> tuổi
+                          {t("jobInformation.age.fromTo", {
+                            min: job.age.minAge,
+                            max: job.age.maxAge,
+                          })}
                         </>
                       )}
                       {job.age.ageType === "ABOVE" && (
                         <>
-                          Trên <span>{job.age.minAge}</span>
+                          {t("jobInformation.age.above", {
+                            min: job.age.minAge,
+                          })}
                         </>
                       )}
                       {job.age.ageType === "BELOW" && (
                         <>
-                          Dưới <span>{job.age.maxAge}</span>
+                          {t("jobInformation.age.below", {
+                            max: job.age.maxAge,
+                          })}
                         </>
                       )}
-                      {job.age.ageType === "NONE" && "Không yêu cầu độ tuổi"}
+                      {job.age.ageType === "NONE" &&
+                        t("jobInformation.age.noRequirement")}
                     </p>
                   </div>
                 </div>
@@ -614,16 +768,25 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
                 <div className="flex items-start gap-4">
                   <Grid3X3 className="w-6 h-6 text-gray-600 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-gray-600 font-medium">Ngành nghề</p>
-                    {job.industries && Array.isArray(job.industries) && job.industries.length > 0 ? (
+                    <p className="text-sm text-gray-600 font-medium">
+                      {t("jobInformation.fields.industries")}
+                    </p>
+                    {job.industries &&
+                    Array.isArray(job.industries) &&
+                    job.industries.length > 0 ? (
                       job.industries.map((industry, index) => (
-                        <span key={industry.id} className="font-semibold text-gray-900">
+                        <span
+                          key={industry.id}
+                          className="font-semibold text-gray-900"
+                        >
                           {industry.name}
                           {index < job.industries.length - 1 && ", "}
                         </span>
                       ))
                     ) : (
-                      <span className="font-semibold text-gray-900">Chưa cập nhật</span>
+                      <span className="font-semibold text-gray-900">
+                        {t("jobInformation.notUpdated")}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -638,31 +801,39 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={contactRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Phone className="w-6 h-6 text-[#1967d2]" />
-            <h3 className="text-xl font-semibold text-[#1967d2]">Thông tin liên hệ</h3>
+            <h3 className="text-xl font-semibold text-[#1967d2]">
+              {t("jobInformation.sections.contactInfo")}
+            </h3>
           </div>
 
           <div className="space-y-6">
             <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
               <div className="flex items-center gap-3 mb-4">
                 <Mail className="w-5 h-5 text-[#1967d2]" />
-                <h4 className="font-medium text-gray-900">Tên liên hệ: {job.contactPerson}</h4>
+                <h4 className="font-medium text-gray-900">
+                  {t("jobInformation.fields.contactName")}: {job.contactPerson}
+                </h4>
               </div>
               <div className="flex items-start gap-3 mb-4">
                 <MapPin className="w-5 h-5 text-[#1967d2] mt-0.5" />
                 <p className="text-gray-700">
-                  <strong>Địa chỉ:</strong>
+                  <strong>{t("jobInformation.fields.address")}:</strong>
                   {job.contactLocation ? (
                     <>
-                      {job.contactLocation.detailAddress || ""}, {job.contactLocation.province?.name || ""}, {job.contactLocation.district?.name || ""}
+                      {job.contactLocation.detailAddress || ""},{" "}
+                      {job.contactLocation.province?.name || ""},{" "}
+                      {job.contactLocation.district?.name || ""}
                     </>
                   ) : (
-                    "Chưa cập nhật"
+                    t("jobInformation.notUpdated")
                   )}
                 </p>
               </div>
               <div className="flex items-center gap-3 mb-4">
                 <Mail className="w-5 h-5 text-[#1967d2]" />
-                <h4 className="font-medium text-gray-900">Số điện thoại: {job.phoneNumber}</h4>
+                <h4 className="font-medium text-gray-900">
+                  {t("jobInformation.fields.phoneNumber")}: {job.phoneNumber}
+                </h4>
               </div>
               <div className="space-y-3">
                 <div
@@ -677,7 +848,8 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
               <p className="text-gray-700 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-gray-600" />
-                <strong>Ngày hết hạn:</strong> {job.expirationDate}
+                <strong>{t("jobInformation.expirationDate")}:</strong>{" "}
+                {job.expirationDate}
               </p>
             </div>
           </div>
@@ -689,21 +861,33 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
         <div ref={companyInformationRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Building2 className="w-6 h-6 text-emerald-600" />
-            <h3 className="text-xl font-semibold text-emerald-600">Về công ty</h3>
+            <h3 className="text-xl font-semibold text-emerald-600">
+              {t("jobInformation.sections.aboutCompany")}
+            </h3>
           </div>
 
           <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/50 rounded-lg p-6 border border-emerald-100">
             <div className="flex items-center gap-3 mb-4">
               <Award className="w-6 h-6 text-emerald-600" />
-              <h4 className="text-lg font-semibold text-gray-900">{job.companyName}</h4>
+              <h4 className="text-lg font-semibold text-gray-900">
+                {job.companyName}
+              </h4>
             </div>
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-5 h-5 text-emerald-600" />
               <p className="text-sm text-gray-600">
-                <strong>Quy mô:</strong> {CompanySizeLabel["vi"][job.companySize]}
+                <strong>{t("jobInformation.fields.companySize")}:</strong>{" "}
+                {
+                  CompanySizeLabel[
+                    currentLanguage as keyof typeof CompanySizeLabel
+                  ][job.companySize]
+                }
               </p>
             </div>
-            <div className="text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: job.aboutCompany }} />
+            <div
+              className="text-gray-700 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: job.aboutCompany }}
+            />
           </div>
         </div>
       </div>
@@ -711,9 +895,9 @@ function JobInformation({ job, jobId, hideActionButtons, ref }: JobInformationPr
       <LoginRequiredModal
         open={showLoginModal}
         onOpenChange={setShowLoginModal}
-        title="Yêu cầu đăng nhập"
-        description="Vui lòng đăng nhập để lưu việc làm và quản lý danh sách việc làm yêu thích của bạn."
-        actionText="Đăng nhập ngay"
+        title={t("loginRequired.title")}
+        description={t("loginRequired.description")}
+        actionText={t("loginRequired.actionText")}
       />
     </div>
   );

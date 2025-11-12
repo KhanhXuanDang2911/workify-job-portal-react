@@ -12,7 +12,6 @@ export const RoleLabelEN: Record<Role, string> = {
   [ROLE.EMPLOYER]: "Employer",
 };
 
-
 export const RoleColors: Record<Role, string> = {
   [ROLE.ADMIN]: "border-red-500 text-red-500",
   [ROLE.JOB_SEEKER]: "border-teal-500 text-teal-500",

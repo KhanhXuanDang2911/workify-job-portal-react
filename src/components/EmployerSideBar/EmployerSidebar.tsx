@@ -18,69 +18,72 @@ import {
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const menuItems = [
-  {
-    id: "jobs",
-    label: "Jobs",
-    icon: Briefcase,
-    expandable: true,
-    children: [
-      {
-        label: "My Jobs",
-        href: `/employer/jobs`,
-        icon: Briefcase,
-      },
-      {
-        label: "Post Jobs",
-        href: `/employer/jobs/add`,
-        icon: FileText,
-      },
-    ],
-  },
-  {
-    id: "candidates",
-    label: "My Candidates",
-    icon: Users,
-    href: `/employer/applications`,
-  },
-  {
-    id: "blog",
-    label: "Blog",
-    icon: MessageSquare,
-    expandable: true,
-    children: [
-      {
-        label: "Hiring Advice",
-        href: `/articles`,
-        icon: HelpCircle,
-      },
-      {
-        label: "Tips for Employers",
-        href: `/articles`,
-        icon: MessageSquare,
-      },
-    ],
-  },
-  {
-    id: "help",
-    label: "Get helps",
-    icon: HelpCircle,
-    href: `#`,
-  },
-  {
-    id: "organization",
-    label: "Organization",
-    icon: Building,
-    href: `/employer/organization`,
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    href: `/employer/settings`,
-  },
-];
+function getMenuItems(t: (key: string) => string) {
+  return [
+    {
+      id: "jobs",
+      label: t("employer.sidebar.jobs"),
+      icon: Briefcase,
+      expandable: true,
+      children: [
+        {
+          label: t("employer.sidebar.myJobs"),
+          href: `/employer/jobs`,
+          icon: Briefcase,
+        },
+        {
+          label: t("employer.sidebar.postJobs"),
+          href: `/employer/jobs/add`,
+          icon: FileText,
+        },
+      ],
+    },
+    {
+      id: "candidates",
+      label: t("employer.sidebar.myCandidates"),
+      icon: Users,
+      href: `/employer/applications`,
+    },
+    {
+      id: "blog",
+      label: t("employer.sidebar.blog"),
+      icon: MessageSquare,
+      expandable: true,
+      children: [
+        {
+          label: t("employer.sidebar.hiringAdvice"),
+          href: `/articles`,
+          icon: HelpCircle,
+        },
+        {
+          label: t("employer.sidebar.tipsForEmployers"),
+          href: `/articles`,
+          icon: MessageSquare,
+        },
+      ],
+    },
+    {
+      id: "help",
+      label: t("employer.sidebar.getHelps"),
+      icon: HelpCircle,
+      href: `#`,
+    },
+    {
+      id: "organization",
+      label: t("employer.sidebar.organization"),
+      icon: Building,
+      href: `/employer/organization`,
+    },
+    {
+      id: "settings",
+      label: t("employer.sidebar.settings"),
+      icon: Settings,
+      href: `/employer/settings`,
+    },
+  ];
+}
 
 export default function EmployerSidebar({
   mobileOpen = false,
@@ -95,11 +98,13 @@ export default function EmployerSidebar({
   setIsCollapsed: (v: boolean) => void;
   device?: string;
 }) {
+  const { t } = useTranslation();
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "jobs",
     "candidates",
   ]);
   const location = useLocation();
+  const menuItems = getMenuItems(t);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -142,7 +147,11 @@ export default function EmployerSidebar({
               size="sm"
               className="w-full p-2 bg-white/50 hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
               onClick={() => setIsCollapsed((v) => !v)}
-              aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+              aria-label={
+                isCollapsed
+                  ? t("employer.sidebar.expandSidebar")
+                  : t("employer.sidebar.collapseSidebar")
+              }
             >
               {isCollapsed ? (
                 <ChevronRight
@@ -301,10 +310,10 @@ export default function EmployerSidebar({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  Employer Name
+                  {t("employer.sidebar.employerName")}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  employer.2025@gmail.com
+                  {t("employer.sidebar.employerEmail")}
                 </p>
               </div>
             </div>

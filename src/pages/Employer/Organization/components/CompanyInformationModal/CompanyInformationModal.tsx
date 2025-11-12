@@ -2,20 +2,31 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Pencil } from "lucide-react";
 import BaseModal from "@/components/BaseModal/BaseModal";
 import type { District } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { districtService, employerService, provinceService } from "@/services";
-import { companyInformationModalSchema, type CompanyInformationModalFormData } from "@/schemas/employer/companyInformationModal.schema";
+import {
+  companyInformationModalSchema,
+  type CompanyInformationModalFormData,
+} from "@/schemas/employer/companyInformationModal.schema";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CompanySize, CompanySizeLabelVN } from "@/constants";
 import ReactQuill from "react-quill-new";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CompanyInformationModal() {
+  const { t } = useTranslation();
   const [districts, setDistricts] = useState<District[]>([]);
   const queryClient = useQueryClient();
 
@@ -115,15 +126,18 @@ export default function CompanyInformationModal() {
         detailAddress: data.detailAddress,
       }),
     onSuccess: () => {
-      toast.success("Thông tin công ty đã được cập nhật thành công");
+      toast.success(t("toast.success.companyProfileUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
     },
     onError: () => {
-      toast.error("Cập nhật thông tin công ty thất bại");
+      toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
-  const onSubmit = (data: CompanyInformationModalFormData, onClose: () => void) => {
+  const onSubmit = (
+    data: CompanyInformationModalFormData,
+    onClose: () => void
+  ) => {
     updateProfileMutation.mutate(data, {
       onSuccess: () => {
         onClose();
@@ -141,7 +155,11 @@ export default function CompanyInformationModal() {
       <BaseModal
         title="Company information"
         trigger={
-          <Button variant="ghost" size="sm" className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]"
+          >
             <Pencil className="h-4 w-4 mr-2" />
             Edit
           </Button>
@@ -157,7 +175,11 @@ export default function CompanyInformationModal() {
             >
               Cancel
             </Button>
-            <Button className="bg-[#1967d2] hover:bg-[#1557b0]" onClick={handleSubmit((data) => onSubmit(data, onClose))} disabled={updateProfileMutation.isPending}>
+            <Button
+              className="bg-[#1967d2] hover:bg-[#1557b0]"
+              onClick={handleSubmit((data) => onSubmit(data, onClose))}
+              disabled={updateProfileMutation.isPending}
+            >
               {updateProfileMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -175,8 +197,16 @@ export default function CompanyInformationModal() {
             <Label htmlFor="companyName">
               Company name <span className="text-red-500">*</span>
             </Label>
-            <Input id="companyName" {...register("companyName")} className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] mt-2" />
-            {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
+            <Input
+              id="companyName"
+              {...register("companyName")}
+              className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] mt-2"
+            />
+            {errors.companyName && (
+              <p className="text-sm text-red-500">
+                {errors.companyName.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -193,15 +223,27 @@ export default function CompanyInformationModal() {
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(CompanySize).map(([key, value]) => (
-                      <SelectItem key={value} value={value} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                        {CompanySizeLabelVN[key as keyof typeof CompanySizeLabelVN]}
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="focus:bg-sky-200 focus:text-[#1967d2]"
+                      >
+                        {
+                          CompanySizeLabelVN[
+                            key as keyof typeof CompanySizeLabelVN
+                          ]
+                        }
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.companySize && <p className="text-sm text-red-500">{errors.companySize.message}</p>}
+            {errors.companySize && (
+              <p className="text-sm text-red-500">
+                {errors.companySize.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="company-profile" className="mb-2 block">
@@ -220,7 +262,11 @@ export default function CompanyInformationModal() {
                 />
               )}
             />
-            {errors.aboutCompany && <span className="text-xs text-red-500">{errors.aboutCompany.message}</span>}
+            {errors.aboutCompany && (
+              <span className="text-xs text-red-500">
+                {errors.aboutCompany.message}
+              </span>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -244,7 +290,10 @@ export default function CompanyInformationModal() {
                     </SelectTrigger>
                     <SelectContent>
                       {provinces?.map((province: any) => (
-                        <SelectItem key={province.id} value={province.id.toString()}>
+                        <SelectItem
+                          key={province.id}
+                          value={province.id.toString()}
+                        >
                           {province.name}
                         </SelectItem>
                       ))}
@@ -257,13 +306,21 @@ export default function CompanyInformationModal() {
                 name="districtId"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={(value) => field.onChange(Number.parseInt(value))} value={field.value ? field.value.toString() : ""}>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(Number.parseInt(value))
+                    }
+                    value={field.value ? field.value.toString() : ""}
+                  >
                     <SelectTrigger className="flex-1 focus:border-[#1967d2] focus:ring-[#1967d2]">
                       <SelectValue placeholder="Select district" />
                     </SelectTrigger>
                     <SelectContent>
                       {districts.map((district: any) => (
-                        <SelectItem key={district.id} value={district.id.toString()}>
+                        <SelectItem
+                          key={district.id}
+                          value={district.id.toString()}
+                        >
                           {district.name}
                         </SelectItem>
                       ))}
@@ -272,29 +329,58 @@ export default function CompanyInformationModal() {
                 )}
               />
             </div>
-            {(errors.provinceId || errors.districtId) && <p className="text-sm text-red-500">{errors.provinceId?.message || errors.districtId?.message}</p>}
+            {(errors.provinceId || errors.districtId) && (
+              <p className="text-sm text-red-500">
+                {errors.provinceId?.message || errors.districtId?.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
-            <Input {...register("detailAddress")} placeholder="Street address" className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
-            {errors.detailAddress && <p className="text-sm text-red-500">{errors.detailAddress.message}</p>}
+            <Input
+              {...register("detailAddress")}
+              placeholder="Street address"
+              className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
+            />
+            {errors.detailAddress && (
+              <p className="text-sm text-red-500">
+                {errors.detailAddress.message}
+              </p>
+            )}
           </div>
 
           <div className="bg-gray-50 p-4 rounded-md text-sm text-gray-600 italic">
-            *The info you fill below will be used as each job entry default contact. You can also modify these contact info per job basis
+            *The info you fill below will be used as each job entry default
+            contact. You can also modify these contact info per job basis
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="contactName">Contact Name</Label>
-            <Input id="contactPerson" {...register("contactPerson")} className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
-            {errors.contactPerson && <p className="text-sm text-red-500">{errors.contactPerson.message}</p>}
+            <Input
+              id="contactPerson"
+              {...register("contactPerson")}
+              className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
+            />
+            {errors.contactPerson && (
+              <p className="text-sm text-red-500">
+                {errors.contactPerson.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="contactPhone">
               Contact Phone <span className="text-red-500">*</span>
             </Label>
-            <Input id="phoneNumber" {...register("phoneNumber")} className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]" />
-            {errors.phoneNumber && <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>}
+            <Input
+              id="phoneNumber"
+              {...register("phoneNumber")}
+              className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
+            />
+            {errors.phoneNumber && (
+              <p className="text-sm text-red-500">
+                {errors.phoneNumber.message}
+              </p>
+            )}
           </div>
         </form>
       </BaseModal>

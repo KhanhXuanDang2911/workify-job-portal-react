@@ -15,7 +15,8 @@ export const sampleJob = {
   remainingDays: "15 ngày",
   applicationDeadline: "30/12/2024",
   logo: "https://thewebmax.org/react/jobzilla/assets/images/jobs-company/pic1.jpg",
-  coverImage: "https://thewebmax.org/react/jobzilla/assets/images/job-detail-bg.jpg",
+  coverImage:
+    "https://thewebmax.org/react/jobzilla/assets/images/job-detail-bg.jpg",
   isNew: true,
   website: "www.techinnovation.com",
   language: "Tiếng Anh, Tiếng Việt",
@@ -40,8 +41,18 @@ export const sampleJobDescription = {
     "Modern office with latest technology",
     "Health insurance and wellness programs",
   ],
-  vietnameseResponsibilities: ["Phát triển và duy trì các ứng dụng web responsive", "Tối ưu hóa hiệu suất ứng dụng", "Tham gia review code và hướng dẫn developer junior"],
-  benefits: ["Lương cạnh tranh với thưởng hiệu suất", "Giờ làm việc linh hoạt", "Bảo hiểm sức khỏe đầy đủ", "Môi trường làm việc hiện đại", "Cơ hội phát triển nghề nghiệp"],
+  vietnameseResponsibilities: [
+    "Phát triển và duy trì các ứng dụng web responsive",
+    "Tối ưu hóa hiệu suất ứng dụng",
+    "Tham gia review code và hướng dẫn developer junior",
+  ],
+  benefits: [
+    "Lương cạnh tranh với thưởng hiệu suất",
+    "Giờ làm việc linh hoạt",
+    "Bảo hiểm sức khỏe đầy đủ",
+    "Môi trường làm việc hiện đại",
+    "Cơ hội phát triển nghề nghiệp",
+  ],
   description: `
     <h4>Nhiệm vụ chính:</h4>
     <ul>
@@ -100,7 +111,6 @@ export const sampleCompanyInfo = {
     "- Thời gian phản hồi: 3-5 ngày làm việc",
   ],
 };
-
 
 export const educationLevels = [
   { value: "high-school", label: "High School" },
@@ -191,5 +201,4 @@ export const languages = [
   { value: "french", label: "French" },
   { value: "german", label: "German" },
   { value: "spanish", label: "Spanish" },
-]
-  
+];

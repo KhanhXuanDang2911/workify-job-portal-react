@@ -40,7 +40,10 @@ const Dots = ({ size = "md" }: { size: LoadingSize }) => (
     {[0, 1, 2].map((i) => (
       <div
         key={i}
-        className={cn("rounded-full bg-primary animate-bounce", dotSizeClasses[size])}
+        className={cn(
+          "rounded-full bg-primary animate-bounce",
+          dotSizeClasses[size]
+        )}
         style={{
           animationDelay: `${i * 0.15}s`,
         }}
@@ -54,7 +57,10 @@ const Bars = ({ size = "md" }: { size: LoadingSize }) => (
     {[0, 1, 2, 3].map((i) => (
       <div
         key={i}
-        className={cn("rounded-full bg-primary animate-pulse", barSizeClasses[size])}
+        className={cn(
+          "rounded-full bg-primary animate-pulse",
+          barSizeClasses[size]
+        )}
         style={{
           animationDelay: `${i * 0.15}s`,
         }}
@@ -70,7 +76,12 @@ const Pulse = ({ size = "md" }: { size: LoadingSize }) => (
   </div>
 );
 
-export const Loading = ({ variant = "spinner", size = "md", className, overlay = false }: LoadingProps) => {
+export const Loading = ({
+  variant = "spinner",
+  size = "md",
+  className,
+  overlay = false,
+}: LoadingProps) => {
   const variantComponents = {
     spinner: <Spinner size={size} />,
     dots: <Dots size={size} />,
@@ -78,10 +89,18 @@ export const Loading = ({ variant = "spinner", size = "md", className, overlay =
     pulse: <Pulse size={size} />,
   };
 
-  const content = <div className={cn("flex items-center justify-center", className)}>{variantComponents[variant]}</div>;
+  const content = (
+    <div className={cn("flex items-center justify-center", className)}>
+      {variantComponents[variant]}
+    </div>
+  );
 
   if (overlay) {
-    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">{content}</div>;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        {content}
+      </div>
+    );
   }
 
   return content;

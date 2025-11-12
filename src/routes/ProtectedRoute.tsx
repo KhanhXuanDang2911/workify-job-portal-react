@@ -67,9 +67,7 @@ export default function ProtectedRoute({
         />
       );
     } else if (requiredRole === ROLE.ADMIN && user?.role !== ROLE.ADMIN) {
-      return (
-        <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />
-      );
+      return <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />;
     } else if (requiredRole === ROLE.JOB_SEEKER) {
       // JOB_SEEKER routes: Allow both JOB_SEEKER and ADMIN
       if (user?.role !== ROLE.JOB_SEEKER && user?.role !== ROLE.ADMIN) {

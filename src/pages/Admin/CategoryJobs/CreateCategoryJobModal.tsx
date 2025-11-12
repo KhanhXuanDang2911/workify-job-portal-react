@@ -8,6 +8,7 @@ import BaseModal from "@/components/BaseModal";
 import { categoryJobService } from "@/services/categoryJobs.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const createCategoryJobSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -18,6 +19,7 @@ const createCategoryJobSchema = z.object({
 type CreateCategoryJobForm = z.infer<typeof createCategoryJobSchema>;
 
 export default function CreateCategoryJobModal() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const {
@@ -33,11 +35,11 @@ export default function CreateCategoryJobModal() {
   const createCategoryJobMutation = useMutation({
     mutationFn: categoryJobService.createCategoryJob,
     onSuccess: () => {
-      toast.success("Tạo Category Job thành công!");
+      toast.success(t("toast.success.categoryCreated"));
       queryClient.invalidateQueries({ queryKey: ["categoryJobs"] });
     },
     onError: () => {
-      toast.error("Tạo Category Job thất bại!");
+      toast.error(t("toast.error.createCategoryFailed"));
     },
   });
 
@@ -53,13 +55,20 @@ export default function CreateCategoryJobModal() {
   return (
     <BaseModal
       title="Tạo Category Job mới"
-      trigger={<Button className="bg-teal-500 text-white hover:bg-teal-500">+ Add</Button>}
+      trigger={
+        <Button className="bg-teal-500 text-white hover:bg-teal-500">
+          + Add
+        </Button>
+      }
       footer={(onClose) => (
         <>
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button onClick={handleSubmit((data) => onSubmit(data, onClose))} disabled={createCategoryJobMutation.isPending}>
+          <Button
+            onClick={handleSubmit((data) => onSubmit(data, onClose))}
+            disabled={createCategoryJobMutation.isPending}
+          >
             {createCategoryJobMutation.isPending ? "Đang tạo..." : "Tạo mới"}
           </Button>
         </>
@@ -70,21 +79,39 @@ export default function CreateCategoryJobModal() {
           <label className="text-sm font-medium">
             Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("name")} placeholder="Tên danh mục" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          <Input
+            {...register("name")}
+            placeholder="Tên danh mục"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">
             Eng Name<span className="text-red-600">*</span>
           </label>
-          <Input {...register("engName")} placeholder="English name" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.engName && <p className="text-red-500 text-sm mt-1">{errors.engName.message}</p>}
+          <Input
+            {...register("engName")}
+            placeholder="English name"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.engName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.engName.message}
+            </p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">Description</label>
-          <Textarea {...register("description")} placeholder="Mô tả ngắn" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <Textarea
+            {...register("description")}
+            placeholder="Mô tả ngắn"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
       </form>
     </BaseModal>

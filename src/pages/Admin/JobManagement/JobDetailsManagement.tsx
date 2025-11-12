@@ -21,6 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import JobAuthor from "@/components/JobAuthor";
 import { JobStatusTooltip } from "@/components/JobStatusTooltip/JobStatusTooltip";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface JobAuthor {
   id: number;
@@ -34,6 +35,7 @@ interface JobAuthor {
 }
 
 export default function JobDetailsManagement() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -123,12 +125,12 @@ export default function JobDetailsManagement() {
       newStatus: JobStatus;
     }) => jobService.updateJobStatusAsAdmin(jobId, newStatus),
     onSuccess: () => {
-      toast.success("Job status updated successfully");
+      toast.success(t("toast.success.jobUpdated"));
       queryClient.invalidateQueries({ queryKey: ["job", Number(id)] });
       queryClient.invalidateQueries({ queryKey: ["jobs", "all"] });
     },
     onError: () => {
-      toast.error("An error occurred while updating the job status");
+      toast.error(t("toast.error.updateJobFailed"));
     },
   });
 

@@ -9,6 +9,7 @@ export const routes = {
   EMPLOYER_DETAIL: "employer-detail",
   ARTICLES: "articles",
   ARTICLES_DETAIL: "article-detail",
+  OVERVIEW: "overview",
   SETTINGS: "settings",
   MY_RESUME: "resumes",
   MY_SAVED_JOBS: "saved-jobs",

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +10,6 @@ import {
   Factory,
   TrendingUp,
 } from "lucide-react";
-import { userService } from "@/services/user.service";
-import { employerService } from "@/services/employer.service";
-import { jobService } from "@/services/job.service";
-import { postService } from "@/services/post.service";
 import { admin_routes } from "@/routes/routes.const";
 import { Link } from "react-router-dom";
 import { useUserAuth } from "@/context/user-auth";
@@ -24,38 +19,12 @@ export default function AdminDashboard() {
   const { state } = useUserAuth();
   const user = state.user;
 
-  // Fetch statistics
-  const { data: usersResponse, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["admin-users-count"],
-    queryFn: () => userService.getUsers({ pageNumber: 1, pageSize: 1 }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const isLoading = false;
 
-  const { data: employersResponse, isLoading: isLoadingEmployers } = useQuery({
-    queryKey: ["admin-employers-count"],
-    queryFn: () => employerService.getEmployersWithSearchParam({ pageNumber: 1, pageSize: 1 }),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: jobsResponse, isLoading: isLoadingJobs } = useQuery({
-    queryKey: ["admin-jobs-count"],
-    queryFn: () => jobService.getAllJobs({ pageNumber: 1, pageSize: 1 }),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: postsResponse, isLoading: isLoadingPosts } = useQuery({
-    queryKey: ["admin-posts-count"],
-    queryFn: () => postService.getPosts({ pageNumber: 1, pageSize: 1 }),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const isLoading =
-    isLoadingUsers || isLoadingEmployers || isLoadingJobs || isLoadingPosts;
-
-  const totalUsers = usersResponse?.data?.totalItems || 0;
-  const totalEmployers = employersResponse?.data?.totalItems || 0;
-  const totalJobs = jobsResponse?.data?.totalItems || 0;
-  const totalPosts = postsResponse?.data?.totalItems || 0;
+  const totalUsers = 0;
+  const totalEmployers = 0;
+  const totalJobs = 0;
+  const totalPosts = 0;
 
   const stats = [
     {

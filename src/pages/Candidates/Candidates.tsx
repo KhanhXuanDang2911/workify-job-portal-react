@@ -2,7 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useContext, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,39 +21,88 @@ import CandidateSheet from "@/components/CandidateSheet";
 import type { ApplicationResponse } from "@/types";
 import { toast } from "react-toastify";
 import { FileText, FileTextIcon, Download } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Map ApplicationStatus to display text and color
-const getStatusInfo = (status: ApplicationStatus): { label: string; color: string } => {
-  const statusMap: Record<ApplicationStatus, { label: string; color: string }> = {
-    [ApplicationStatus.UNREAD]: { label: "Chưa đọc", color: "border-gray-500 text-gray-500" },
-    [ApplicationStatus.VIEWED]: { label: "Đã xem", color: "border-blue-500 text-blue-500" },
-    [ApplicationStatus.EMAILED]: { label: "Đã gửi email", color: "border-purple-500 text-purple-500" },
-    [ApplicationStatus.SCREENING]: { label: "Đang sàng lọc", color: "border-teal-600 text-teal-600" },
-    [ApplicationStatus.SCREENING_PENDING]: { label: "Chờ sàng lọc", color: "border-orange-500 text-orange-500" },
-    [ApplicationStatus.INTERVIEW_SCHEDULING]: { label: "Lên lịch phỏng vấn", color: "border-yellow-500 text-yellow-500" },
-    [ApplicationStatus.INTERVIEWED_PENDING]: { label: "Đã phỏng vấn", color: "border-cyan-500 text-cyan-500" },
-    [ApplicationStatus.OFFERED]: { label: "Đã đề xuất", color: "border-green-500 text-green-500" },
-    [ApplicationStatus.REJECTED]: { label: "Đã từ chối", color: "border-red-500 text-red-500" },
-  };
-  return statusMap[status] || { label: status, color: "border-gray-500 text-gray-500" };
+const getStatusInfo = (
+  status: ApplicationStatus,
+  t: (key: string) => string
+): { label: string; color: string } => {
+  const statusMap: Record<ApplicationStatus, { label: string; color: string }> =
+    {
+      [ApplicationStatus.UNREAD]: {
+        label: t("employer.candidates.status.newApplied"),
+        color: "border-gray-500 text-gray-500",
+      },
+      [ApplicationStatus.VIEWED]: {
+        label: t("employer.candidates.status.viewed"),
+        color: "border-blue-500 text-blue-500",
+      },
+      [ApplicationStatus.EMAILED]: {
+        label: t("employer.candidates.status.emailed"),
+        color: "border-purple-500 text-purple-500",
+      },
+      [ApplicationStatus.SCREENING]: {
+        label: t("employer.candidates.status.screening"),
+        color: "border-teal-600 text-teal-600",
+      },
+      [ApplicationStatus.SCREENING_PENDING]: {
+        label: t("employer.candidates.status.screeningPending"),
+        color: "border-orange-500 text-orange-500",
+      },
+      [ApplicationStatus.INTERVIEW_SCHEDULING]: {
+        label: t("employer.candidates.status.interviewScheduling"),
+        color: "border-yellow-500 text-yellow-500",
+      },
+      [ApplicationStatus.INTERVIEWED_PENDING]: {
+        label: t("employer.candidates.status.interviewedPending"),
+        color: "border-cyan-500 text-cyan-500",
+      },
+      [ApplicationStatus.OFFERED]: {
+        label: t("employer.candidates.status.offered"),
+        color: "border-green-500 text-green-500",
+      },
+      [ApplicationStatus.REJECTED]: {
+        label: t("employer.candidates.status.rejected"),
+        color: "border-red-500 text-red-500",
+      },
+    };
+  return (
+    statusMap[status] || {
+      label: status,
+      color: "border-gray-500 text-gray-500",
+    }
+  );
 };
 
-// Format date
-const formatDate = (dateString?: string): string => {
+// Format date - will be updated inside component to use i18n
+const formatDate = (dateString?: string, locale: string = "vi-VN"): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" });
+    return date.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   } catch (e) {
     return "";
   }
 };
 
 function Candidates() {
+  const { t } = useTranslation();
   const { device } = useContext(ResponsiveContext);
-  const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
+  const [selectedJobId, setSelectedJobId] = useState<number | undefined>(
+    undefined
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -93,11 +148,16 @@ function Candidates() {
     mutationFn: ({ id, status }: { id: number; status: ApplicationStatus }) =>
       applicationService.changeApplicationStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications-by-job", selectedJobId] });
-      toast.success("Cập nhật trạng thái thành công");
+      queryClient.invalidateQueries({
+        queryKey: ["applications-by-job", selectedJobId],
+      });
+      toast.success(t("employer.applications.statusUpdatedSuccess"));
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật trạng thái");
+      toast.error(
+        error?.response?.data?.message ||
+          t("employer.applications.statusUpdateError")
+      );
     },
   });
 
@@ -118,7 +178,10 @@ function Candidates() {
   }
 
   // Handle change status
-  const handleChangeStatus = (applicationId: number, newStatus: ApplicationStatus) => {
+  const handleChangeStatus = (
+    applicationId: number,
+    newStatus: ApplicationStatus
+  ) => {
     changeStatusMutation.mutate({ id: applicationId, status: newStatus });
   };
 
@@ -128,7 +191,7 @@ function Candidates() {
     if (cvUrl) {
       window.open(cvUrl, "_blank");
     } else {
-      toast.error("CV không có sẵn");
+      toast.error(t("employer.applications.cvNotAvailable"));
     }
   };
 
@@ -146,23 +209,28 @@ function Candidates() {
   // Handle export to Excel
   const handleExportToExcel = () => {
     if (filteredApplications.length === 0) {
-      toast.warning("Không có dữ liệu để xuất");
+      toast.warning(t("employer.applications.noDataToExport"));
       return;
     }
 
     try {
       // Prepare data for Excel
       const excelData = filteredApplications.map((application, index) => {
-        const statusInfo = getStatusInfo(application.status);
+        const statusInfo = getStatusInfo(application.status, t);
         return {
-          STT: index + 1,
-          "Họ và tên": application.fullName,
-          "Email": application.email,
-          "Số điện thoại": application.phoneNumber,
-          "Trạng thái": statusInfo.label,
-          "Ngày ứng tuyển": formatDate(application.createdAt),
-          "Link CV": application.cvUrl || "Không có",
-          "Vị trí": application.job.jobTitle,
+          [t("employer.applications.excel.stt")]: index + 1,
+          [t("employer.applications.excel.fullName")]: application.fullName,
+          [t("employer.applications.excel.email")]: application.email,
+          [t("employer.applications.excel.phoneNumber")]:
+            application.phoneNumber,
+          [t("employer.applications.excel.status")]: statusInfo.label,
+          [t("employer.applications.excel.appliedDate")]: formatDate(
+            application.createdAt,
+            i18n.language === "vi" ? "vi-VN" : "en-US"
+          ),
+          [t("employer.applications.excel.cvLink")]:
+            application.cvUrl || t("employer.applications.excel.noCv"),
+          [t("employer.applications.excel.position")]: application.job.jobTitle,
         };
       });
 
@@ -172,33 +240,45 @@ function Candidates() {
 
       // Set column widths
       const colWidths = [
-        { wch: 5 },   // STT
-        { wch: 25 },  // Họ và tên
-        { wch: 30 },  // Email
-        { wch: 15 },  // Số điện thoại
-        { wch: 20 },  // Trạng thái
-        { wch: 20 },  // Ngày ứng tuyển
-        { wch: 50 },  // Link CV
-        { wch: 30 },  // Vị trí
+        { wch: 5 }, // STT
+        { wch: 25 }, // Full Name
+        { wch: 30 }, // Email
+        { wch: 15 }, // Phone Number
+        { wch: 20 }, // Status
+        { wch: 20 }, // Applied Date
+        { wch: 50 }, // CV Link
+        { wch: 30 }, // Position
       ];
       ws["!cols"] = colWidths;
 
       // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Danh sách ứng viên");
+      XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        t("employer.applications.excel.sheetName")
+      );
 
       // Generate filename with current date
-      const currentDate = new Date().toLocaleDateString("vi-VN").replace(/\//g, "-");
+      const currentDate = new Date()
+        .toLocaleDateString("vi-VN")
+        .replace(/\//g, "-");
       const selectedJob = jobs.find((job) => job.id === selectedJobId);
-      const jobTitle = selectedJob ? selectedJob.jobTitle.replace(/[^a-zA-Z0-9]/g, "_") : "All";
-      const filename = `Danh_sach_CV_${jobTitle}_${currentDate}.xlsx`;
+      const jobTitle = selectedJob
+        ? selectedJob.jobTitle.replace(/[^a-zA-Z0-9]/g, "_")
+        : "All";
+      const filename = `${t("employer.applications.excel.filenamePrefix")}_${jobTitle}_${currentDate}.xlsx`;
 
       // Write file
       XLSX.writeFile(wb, filename);
 
-      toast.success(`Đã xuất ${filteredApplications.length} ứng viên ra file Excel`);
+      toast.success(
+        t("employer.applications.exportSuccess", {
+          count: filteredApplications.length,
+        })
+      );
     } catch (error) {
       console.error("Error exporting to Excel:", error);
-      toast.error("Có lỗi xảy ra khi xuất file Excel");
+      toast.error(t("employer.applications.exportError"));
     }
   };
 
@@ -207,17 +287,32 @@ function Candidates() {
       {/* Main Content */}
       <main className="flex-1 p-6">
         {/* Content Header */}
-        <div className={`flex items-center ${device !== "desktop" ? "flex-col items-stretch gap-5" : ""} justify-between mb-6`}>
+        <div
+          className={`flex items-center ${device !== "desktop" ? "flex-col items-stretch gap-5" : ""} justify-between mb-6`}
+        >
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-semibold text-[#084abc]">Received Applications: {totalCandidates}</h2>
+            <h2 className="text-2xl font-semibold text-[#084abc]">
+              {t("employer.applications.receivedApplications", {
+                count: totalCandidates,
+              })}
+            </h2>
             {jobs.length > 0 && (
-              <Select value={selectedJobId ? String(selectedJobId) : ""} onValueChange={(value) => setSelectedJobId(Number(value))}>
+              <Select
+                value={selectedJobId ? String(selectedJobId) : ""}
+                onValueChange={(value) => setSelectedJobId(Number(value))}
+              >
                 <SelectTrigger className="w-[250px] bg-white border-[#e2e7f5]">
-                  <SelectValue placeholder="Chọn công việc" />
+                  <SelectValue
+                    placeholder={t("employer.applications.selectJob")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {jobs.map((job) => (
-                    <SelectItem key={job.id} value={String(job.id)} className="focus:bg-sky-200 focus:text-[#1967d2]">
+                    <SelectItem
+                      key={job.id}
+                      value={String(job.id)}
+                      className="focus:bg-sky-200 focus:text-[#1967d2]"
+                    >
                       {job.jobTitle}
                     </SelectItem>
                   ))}
@@ -226,11 +321,16 @@ function Candidates() {
             )}
           </div>
 
-          <div className={`flex items-center gap-4 ${device === "mobile" ? "flex-col items-stretch gap-5" : ""}`}>
+          <div
+            className={`flex items-center gap-4 ${device === "mobile" ? "flex-col items-stretch gap-5" : ""}`}
+          >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7c8493]" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7c8493]"
+                size={20}
+              />
               <Input
-                placeholder="Tìm kiếm ứng viên"
+                placeholder={t("employer.applications.searchCandidates")}
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 className={`pl-10 ${device === "mobile" ? "w-full" : "w-72"} bg-white border-[#e2e7f5]`}
@@ -243,7 +343,7 @@ function Candidates() {
               disabled={filteredApplications.length === 0}
             >
               <Download className="w-4 h-4" />
-              Xuất danh sách CV
+              {t("employer.applications.exportCvList")}
             </Button>
           </div>
         </div>
@@ -252,8 +352,14 @@ function Candidates() {
         <div className="bg-white rounded-lg border border-[#e2e7f5] overflow-hidden">
           {!selectedJobId ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <img src="/empty-folder.png" alt="No job selected" className="w-48 h-48 mb-4" />
-              <p className="text-[#7c8493] text-lg">Vui lòng chọn công việc để xem ứng viên</p>
+              <img
+                src="/empty-folder.png"
+                alt="No job selected"
+                className="w-48 h-48 mb-4"
+              />
+              <p className="text-[#7c8493] text-lg">
+                {t("employer.applications.pleaseSelectJob")}
+              </p>
             </div>
           ) : isLoadingApplications ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -261,12 +367,20 @@ function Candidates() {
             </div>
           ) : isErrorApplications ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <p className="text-[#7c8493] text-lg">Có lỗi xảy ra khi tải danh sách ứng viên</p>
+              <p className="text-[#7c8493] text-lg">
+                {t("employer.applications.loadCandidatesError")}
+              </p>
             </div>
           ) : filteredApplications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <img src="/empty-folder.png" alt="No candidates" className="w-48 h-48 mb-4" />
-              <p className="text-[#7c8493] text-lg">Hiện chưa có ứng viên nào</p>
+              <img
+                src="/empty-folder.png"
+                alt="No candidates"
+                className="w-48 h-48 mb-4"
+              />
+              <p className="text-[#7c8493] text-lg">
+                {t("employer.applications.noCandidates")}
+              </p>
             </div>
           ) : (
             <>
@@ -277,23 +391,28 @@ function Candidates() {
                   {device === "desktop" && (
                     <div
                       className="hidden md:grid items-center gap-6 px-6 py-4 bg-gradient-to-r from-[#f8f8fd] to-[#f0f4ff] border-b-2 border-[#e2e7f5] text-sm font-semibold text-[#7c8493] uppercase tracking-wide"
-                      style={{ gridTemplateColumns: "80px 220px 180px 200px 180px 180px 320px" }}
+                      style={{
+                        gridTemplateColumns:
+                          "80px 220px 180px 200px 180px 180px 320px",
+                      }}
                     >
-                      <div className="text-center">STT</div>
-                      <div className="flex items-center gap-2">
-                        <span>Họ và tên</span>
+                      <div className="text-center">
+                        {t("employer.applications.table.stt")}
                       </div>
-                      <div>Số điện thoại</div>
-                      <div>Email</div>
-                      <div>Trạng thái</div>
-                      <div>Ngày ứng tuyển</div>
-                      <div>Thao tác</div>
+                      <div className="flex items-center gap-2">
+                        <span>{t("employer.applications.table.fullName")}</span>
+                      </div>
+                      <div>{t("employer.applications.table.phoneNumber")}</div>
+                      <div>{t("employer.applications.table.email")}</div>
+                      <div>{t("employer.applications.table.status")}</div>
+                      <div>{t("employer.applications.table.appliedDate")}</div>
+                      <div>{t("employer.applications.table.action")}</div>
                     </div>
                   )}
 
                   {/* Candidate Rows */}
                   {filteredApplications.map((application, index) => {
-                    const statusInfo = getStatusInfo(application.status);
+                    const statusInfo = getStatusInfo(application.status, t);
                     return (
                       <div key={application.id}>
                         {device === "desktop" ? (
@@ -302,7 +421,10 @@ function Candidates() {
                             <CandidateSheet candidate={application}>
                               <div
                                 className="hidden md:grid items-center gap-6 px-6 py-4 border-b border-[#e2e7f5] hover:bg-gradient-to-r hover:from-[#f8f8fd] hover:to-[#f0f4ff] transition-all cursor-pointer"
-                                style={{ gridTemplateColumns: "80px 220px 180px 200px 180px 180px 320px" }}
+                                style={{
+                                  gridTemplateColumns:
+                                    "80px 220px 180px 200px 180px 180px 320px",
+                                }}
                               >
                                 <div className="text-center text-[#7c8493] font-semibold text-base">
                                   {(currentPage - 1) * itemsPerPage + index + 1}
@@ -314,133 +436,226 @@ function Candidates() {
                                       {application.fullName.charAt(0)}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="font-semibold text-[#202430] text-base truncate">{application.fullName}</span>
+                                  <span className="font-semibold text-[#202430] text-base truncate">
+                                    {application.fullName}
+                                  </span>
                                 </div>
 
-                                <div className="text-[#7c8493] text-sm font-medium truncate">{application.phoneNumber}</div>
+                                <div className="text-[#7c8493] text-sm font-medium truncate">
+                                  {application.phoneNumber}
+                                </div>
 
-                                <div className="text-[#7c8493] text-sm font-medium truncate">{application.email}</div>
+                                <div className="text-[#7c8493] text-sm font-medium truncate">
+                                  {application.email}
+                                </div>
 
-                                <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center"
+                                >
                                   <Select
                                     value={application.status}
-                                    onValueChange={(value) => handleChangeStatus(application.id, value as ApplicationStatus)}
+                                    onValueChange={(value) =>
+                                      handleChangeStatus(
+                                        application.id,
+                                        value as ApplicationStatus
+                                      )
+                                    }
                                   >
-                                    <SelectTrigger className={`h-9 w-full ${statusInfo.color} border-2 font-medium`}>
+                                    <SelectTrigger
+                                      className={`h-9 w-full ${statusInfo.color} border-2 font-medium`}
+                                    >
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {Object.values(ApplicationStatus).map((status) => {
-                                        const info = getStatusInfo(status);
-                                        return (
-                                          <SelectItem key={status} value={status} className="focus:bg-sky-200 focus:text-[#1967d2]">
-                                            {info.label}
-                                          </SelectItem>
-                                        );
-                                      })}
+                                      {Object.values(ApplicationStatus).map(
+                                        (status) => {
+                                          const info = getStatusInfo(status, t);
+                                          return (
+                                            <SelectItem
+                                              key={status}
+                                              value={status}
+                                              className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                            >
+                                              {info.label}
+                                            </SelectItem>
+                                          );
+                                        }
+                                      )}
                                     </SelectContent>
                                   </Select>
                                 </div>
 
-                                <div className="text-[#7c8493] text-sm font-medium">{formatDate(application.createdAt)}</div>
+                                <div className="text-[#7c8493] text-sm font-medium">
+                                  {formatDate(
+                                    application.createdAt,
+                                    i18n.language === "vi" ? "vi-VN" : "en-US"
+                                  )}
+                                </div>
 
-                                <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                                <div
+                                  className="flex items-center gap-3"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-4 py-2 h-auto transition-all shadow-sm hover:shadow-md"
-                                    onClick={(e) => handleViewCV(application.cvUrl, e)}
+                                    onClick={(e) =>
+                                      handleViewCV(application.cvUrl, e)
+                                    }
                                   >
                                     <FileText className="w-4 h-4 mr-2" />
-                                    Xem CV
+                                    {t("employer.applications.viewCv")}
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-4 py-2 h-auto transition-all shadow-sm hover:shadow-md"
-                                    onClick={(e) => handleViewCoverLetter(application.coverLetter, e)}
+                                    onClick={(e) =>
+                                      handleViewCoverLetter(
+                                        application.coverLetter,
+                                        e
+                                      )
+                                    }
                                   >
                                     <FileTextIcon className="w-4 h-4 mr-2" />
-                                    Thư xin việc
+                                    {t("employer.applications.coverLetter")}
                                   </Button>
                                 </div>
                               </div>
                             </CandidateSheet>
                           </>
                         ) : (
-                      <>
-                        {/* Mobile/Tablet Card Layout */}
-                        <CandidateSheet candidate={application}>
-                          <div className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer">
-                            <div className="flex items-start gap-3">
-                              <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">{(currentPage - 1) * itemsPerPage + index + 1}.</div>
-                              <Avatar className="w-12 h-12">
-                                <AvatarImage src={""} />
-                                <AvatarFallback className="bg-purple-200 text-purple-600">{application.fullName.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div>
-                                  <h3 className="font-medium text-[#202430] truncate">{application.fullName}</h3>
-                                  <p className="text-sm text-[#7c8493] mt-1 truncate">{application.job.jobTitle}</p>
-                                </div>
-                                <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                                  <Select
-                                    value={application.status}
-                                    onValueChange={(value) => handleChangeStatus(application.id, value as ApplicationStatus)}
-                                  >
-                                    <SelectTrigger className={`h-7 w-[120px] text-xs ${statusInfo.color} border-2`}>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Object.values(ApplicationStatus).map((status) => {
-                                        const info = getStatusInfo(status);
-                                        return (
-                                          <SelectItem key={status} value={status} className="focus:bg-sky-200 focus:text-[#1967d2] text-xs">
-                                            {info.label}
-                                          </SelectItem>
-                                        );
-                                      })}
-                                    </SelectContent>
-                                  </Select>
-                                  <span className="text-xs text-[#7c8493]">{formatDate(application.createdAt)}</span>
-                                </div>
-                                <div className="mt-2 space-y-1">
-                                  <div className="text-xs text-[#7c8493]">
-                                    <span className="font-medium">SĐT:</span> {application.phoneNumber}
+                          <>
+                            {/* Mobile/Tablet Card Layout */}
+                            <CandidateSheet candidate={application}>
+                              <div className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer">
+                                <div className="flex items-start gap-3">
+                                  <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">
+                                    {(currentPage - 1) * itemsPerPage +
+                                      index +
+                                      1}
+                                    .
                                   </div>
-                                  <div className="text-xs text-[#7c8493] truncate">
-                                    <span className="font-medium">Email:</span> {application.email}
+                                  <Avatar className="w-12 h-12">
+                                    <AvatarImage src={""} />
+                                    <AvatarFallback className="bg-purple-200 text-purple-600">
+                                      {application.fullName.charAt(0)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div>
+                                      <h3 className="font-medium text-[#202430] truncate">
+                                        {application.fullName}
+                                      </h3>
+                                      <p className="text-sm text-[#7c8493] mt-1 truncate">
+                                        {application.job.jobTitle}
+                                      </p>
+                                    </div>
+                                    <div
+                                      className="flex items-center gap-2 mt-2"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Select
+                                        value={application.status}
+                                        onValueChange={(value) =>
+                                          handleChangeStatus(
+                                            application.id,
+                                            value as ApplicationStatus
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger
+                                          className={`h-7 w-[120px] text-xs ${statusInfo.color} border-2`}
+                                        >
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {Object.values(ApplicationStatus).map(
+                                            (status) => {
+                                              const info = getStatusInfo(
+                                                status,
+                                                t
+                                              );
+                                              return (
+                                                <SelectItem
+                                                  key={status}
+                                                  value={status}
+                                                  className="focus:bg-sky-200 focus:text-[#1967d2] text-xs"
+                                                >
+                                                  {info.label}
+                                                </SelectItem>
+                                              );
+                                            }
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                      <span className="text-xs text-[#7c8493]">
+                                        {formatDate(
+                                          application.createdAt,
+                                          i18n.language === "vi"
+                                            ? "vi-VN"
+                                            : "en-US"
+                                        )}
+                                      </span>
+                                    </div>
+                                    <div className="mt-2 space-y-1">
+                                      <div className="text-xs text-[#7c8493]">
+                                        <span className="font-medium">
+                                          {t(
+                                            "employer.applications.phoneLabel"
+                                          )}
+                                          :
+                                        </span>{" "}
+                                        {application.phoneNumber}
+                                      </div>
+                                      <div className="text-xs text-[#7c8493] truncate">
+                                        <span className="font-medium">
+                                          {t(
+                                            "employer.applications.emailLabel"
+                                          )}
+                                          :
+                                        </span>{" "}
+                                        {application.email}
+                                      </div>
+                                    </div>
+                                    <div className="mt-3 flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
+                                        onClick={(e) =>
+                                          handleViewCV(application.cvUrl, e)
+                                        }
+                                      >
+                                        <FileText className="w-3 h-3 mr-1" />
+                                        {t("employer.applications.viewCv")}
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
+                                        onClick={(e) =>
+                                          handleViewCoverLetter(
+                                            application.coverLetter,
+                                            e
+                                          )
+                                        }
+                                      >
+                                        <FileTextIcon className="w-3 h-3 mr-1" />
+                                        {t("employer.applications.coverLetter")}
+                                      </Button>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
-                                    onClick={(e) => handleViewCV(application.cvUrl, e)}
-                                  >
-                                    <FileText className="w-3 h-3 mr-1" />
-                                    Xem CV
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
-                                    onClick={(e) => handleViewCoverLetter(application.coverLetter, e)}
-                                  >
-                                    <FileTextIcon className="w-3 h-3 mr-1" />
-                                    Thư xin việc
-                                  </Button>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </CandidateSheet>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
+                            </CandidateSheet>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -452,7 +667,7 @@ function Candidates() {
             {/* Pagination */}
             <div className="flex items-center justify-between mt-6">
               <div className="flex items-center gap-2 text-[#7c8493]">
-                <span>Hiển thị</span>
+                <span>{t("employer.applications.show")}</span>
                 <select
                   className="border border-[#e2e7f5] rounded px-2 py-1 bg-white"
                   value={itemsPerPage}
@@ -465,22 +680,36 @@ function Candidates() {
                   <option value={15}>15</option>
                   <option value={30}>30</option>
                 </select>
-                <span>Ứng viên mỗi trang</span>
+                <span>{t("employer.applications.candidatesPerPage")}</span>
               </div>
             </div>
-            {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </>
         )}
 
         {/* Cover Letter Dialog */}
-        <Dialog open={coverLetterDialogOpen} onOpenChange={setCoverLetterDialogOpen}>
+        <Dialog
+          open={coverLetterDialogOpen}
+          onOpenChange={setCoverLetterDialogOpen}
+        >
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-[#1967d2] text-xl font-semibold">Thư xin việc</DialogTitle>
+              <DialogTitle className="text-[#1967d2] text-xl font-semibold">
+                {t("employer.applications.coverLetter")}
+              </DialogTitle>
             </DialogHeader>
             <div className="mt-4">
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedCoverLetter || "Không có thư xin việc"}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {selectedCoverLetter ||
+                    t("employer.applications.noCoverLetter")}
+                </p>
               </div>
             </div>
           </DialogContent>

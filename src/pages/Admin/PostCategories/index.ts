@@ -1,1 +1,1 @@
-export {default} from "./PostCategories"
+export { default } from "./PostCategories";

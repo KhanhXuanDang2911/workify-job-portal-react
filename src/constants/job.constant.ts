@@ -1,4 +1,21 @@
-import { Baby, BadgeDollarSign, BookOpen, Building2, Bus, CalendarCheck, Cookie, Gift, HeartPulse, Home, Laptop, Plane, Shield, Sparkles, Users, type LucideProps } from "lucide-react";
+import {
+  Baby,
+  BadgeDollarSign,
+  BookOpen,
+  Building2,
+  Bus,
+  CalendarCheck,
+  Cookie,
+  Gift,
+  HeartPulse,
+  Home,
+  Laptop,
+  Plane,
+  Shield,
+  Sparkles,
+  Users,
+  type LucideProps,
+} from "lucide-react";
 
 export const SalaryType = {
   RANGE: "RANGE",
@@ -119,11 +136,11 @@ export type JobType = keyof typeof JobType;
 
 export const JobTypeLabelVN: Record<JobType, string> = {
   [JobType.FULL_TIME]: "Toàn thời gian",
-   [JobType.TEMPORARY_FULL_TIME]: "Toàn thời gian thời vụ",
-   [JobType.PART_TIME]: "Bán thời gian",
-   [JobType.TEMPORARY_PART_TIME]: "Bán thời gian thời vụ",
-   [JobType.CONTRACT]: "Hợp đồng",
-   [JobType.OTHER]: "Khác",
+  [JobType.TEMPORARY_FULL_TIME]: "Toàn thời gian thời vụ",
+  [JobType.PART_TIME]: "Bán thời gian",
+  [JobType.TEMPORARY_PART_TIME]: "Bán thời gian thời vụ",
+  [JobType.CONTRACT]: "Hợp đồng",
+  [JobType.OTHER]: "Khác",
 };
 export const JobTypeLabelEN: Record<JobType, string> = {
   [JobType.FULL_TIME]: "Full-time",
@@ -241,21 +258,68 @@ export const BenefitTypeLabelVN: Record<BenefitType, string> = {
 
 export const benefitMapVN: Record<
   BenefitType,
-  { label: (typeof BenefitTypeLabelVN)[BenefitType]; icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>> }
+  {
+    label: (typeof BenefitTypeLabelVN)[BenefitType];
+    icon: React.ForwardRefExoticComponent<
+      Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
+    >;
+  }
 > = {
-  [BenefitType.TRAVEL_OPPORTUNITY]: { label: BenefitTypeLabelVN.TRAVEL_OPPORTUNITY, icon: Plane },
-  [BenefitType.BONUS_GIFT]: { label: BenefitTypeLabelVN.BONUS_GIFT, icon: Gift },
-  [BenefitType.SHUTTLE_BUS]: { label: BenefitTypeLabelVN.SHUTTLE_BUS, icon: Bus },
-  [BenefitType.INSURANCE]: { label: BenefitTypeLabelVN.INSURANCE, icon: Shield },
-  [BenefitType.LAPTOP_MONITOR]: { label: BenefitTypeLabelVN.LAPTOP_MONITOR, icon: Laptop },
-  [BenefitType.HEALTH_CARE]: { label: BenefitTypeLabelVN.HEALTH_CARE, icon: HeartPulse },
-  [BenefitType.PAID_LEAVE]: { label: BenefitTypeLabelVN.PAID_LEAVE, icon: CalendarCheck },
-  [BenefitType.FLEXIBLE_REMOTE_WORK]: { label: BenefitTypeLabelVN.FLEXIBLE_REMOTE_WORK, icon: Home },
-  [BenefitType.SALARY_REVIEW]: { label: BenefitTypeLabelVN.SALARY_REVIEW, icon: BadgeDollarSign },
-  [BenefitType.TEAM_BUILDING]: { label: BenefitTypeLabelVN.TEAM_BUILDING, icon: Users },
-  [BenefitType.TRAINING]: { label: BenefitTypeLabelVN.TRAINING, icon: BookOpen },
-  [BenefitType.SNACKS_PANTRY]: { label: BenefitTypeLabelVN.SNACKS_PANTRY, icon: Cookie },
-  [BenefitType.WORK_ENVIRONMENT]: { label: BenefitTypeLabelVN.WORK_ENVIRONMENT, icon: Building2 },
-  [BenefitType.CHILD_CARE]: { label: BenefitTypeLabelVN.CHILD_CARE, icon: Baby },
+  [BenefitType.TRAVEL_OPPORTUNITY]: {
+    label: BenefitTypeLabelVN.TRAVEL_OPPORTUNITY,
+    icon: Plane,
+  },
+  [BenefitType.BONUS_GIFT]: {
+    label: BenefitTypeLabelVN.BONUS_GIFT,
+    icon: Gift,
+  },
+  [BenefitType.SHUTTLE_BUS]: {
+    label: BenefitTypeLabelVN.SHUTTLE_BUS,
+    icon: Bus,
+  },
+  [BenefitType.INSURANCE]: {
+    label: BenefitTypeLabelVN.INSURANCE,
+    icon: Shield,
+  },
+  [BenefitType.LAPTOP_MONITOR]: {
+    label: BenefitTypeLabelVN.LAPTOP_MONITOR,
+    icon: Laptop,
+  },
+  [BenefitType.HEALTH_CARE]: {
+    label: BenefitTypeLabelVN.HEALTH_CARE,
+    icon: HeartPulse,
+  },
+  [BenefitType.PAID_LEAVE]: {
+    label: BenefitTypeLabelVN.PAID_LEAVE,
+    icon: CalendarCheck,
+  },
+  [BenefitType.FLEXIBLE_REMOTE_WORK]: {
+    label: BenefitTypeLabelVN.FLEXIBLE_REMOTE_WORK,
+    icon: Home,
+  },
+  [BenefitType.SALARY_REVIEW]: {
+    label: BenefitTypeLabelVN.SALARY_REVIEW,
+    icon: BadgeDollarSign,
+  },
+  [BenefitType.TEAM_BUILDING]: {
+    label: BenefitTypeLabelVN.TEAM_BUILDING,
+    icon: Users,
+  },
+  [BenefitType.TRAINING]: {
+    label: BenefitTypeLabelVN.TRAINING,
+    icon: BookOpen,
+  },
+  [BenefitType.SNACKS_PANTRY]: {
+    label: BenefitTypeLabelVN.SNACKS_PANTRY,
+    icon: Cookie,
+  },
+  [BenefitType.WORK_ENVIRONMENT]: {
+    label: BenefitTypeLabelVN.WORK_ENVIRONMENT,
+    icon: Building2,
+  },
+  [BenefitType.CHILD_CARE]: {
+    label: BenefitTypeLabelVN.CHILD_CARE,
+    icon: Baby,
+  },
   [BenefitType.OTHER]: { label: BenefitTypeLabelVN.OTHER, icon: Sparkles },
 };

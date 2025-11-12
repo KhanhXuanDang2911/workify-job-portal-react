@@ -59,7 +59,10 @@ class EmployerHttp {
         }
         // Don't set Content-Type for FormData - let browser/axios set it with boundary
         // Only delete if not explicitly set in config
-        if (config.data instanceof FormData && !config.headers["Content-Type"]) {
+        if (
+          config.data instanceof FormData &&
+          !config.headers["Content-Type"]
+        ) {
           delete config.headers["Content-Type"];
         }
         console.log(

@@ -7,8 +7,15 @@ import BaseModal from "@/components/BaseModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { districtService, provinceService } from "@/services";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const createDistrictSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -18,15 +25,20 @@ const createDistrictSchema = z.object({
 
 type CreateDistrictForm = z.infer<typeof createDistrictSchema>;
 
-export default function CreateDistrictModal({ provinceId: defaultProvinceId }: { provinceId?: number }) {
+export default function CreateDistrictModal({
+  provinceId: defaultProvinceId,
+}: {
+  provinceId?: number;
+}) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: provincesData, isLoading: isLoadingProvinces } = useQuery({
     queryKey: ["provinces", "all"],
     queryFn: async () => {
-         const res = await provinceService.getProvinces();
-         return res.data;
-       },
+      const res = await provinceService.getProvinces();
+      return res.data;
+    },
     staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
@@ -48,13 +60,16 @@ export default function CreateDistrictModal({ provinceId: defaultProvinceId }: {
   });
 
   const createDistrictMutation = useMutation({
-    mutationFn: (data: CreateDistrictForm) => districtService.createDistrict(data),
+    mutationFn: (data: CreateDistrictForm) =>
+      districtService.createDistrict(data),
     onSuccess: () => {
-      toast.success("Tạo District thành công!");
-      queryClient.invalidateQueries({ queryKey: ["districts", getValues("provinceId")] });
+      toast.success(t("toast.success.locationCreated"));
+      queryClient.invalidateQueries({
+        queryKey: ["districts", getValues("provinceId")],
+      });
     },
     onError: () => {
-      toast.error("Tạo district thất bại!");
+      toast.error(t("toast.error.createLocationFailed"));
     },
   });
 
@@ -76,13 +91,20 @@ export default function CreateDistrictModal({ provinceId: defaultProvinceId }: {
   return (
     <BaseModal
       title="Tạo District mới"
-      trigger={<Button className="bg-teal-500 text-white hover:bg-teal-500">+ Add</Button>}
+      trigger={
+        <Button className="bg-teal-500 text-white hover:bg-teal-500">
+          + Add
+        </Button>
+      }
       footer={(onClose) => (
         <>
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button onClick={handleSubmit((data) => onSubmit(data, onClose))} disabled={createDistrictMutation.isPending}>
+          <Button
+            onClick={handleSubmit((data) => onSubmit(data, onClose))}
+            disabled={createDistrictMutation.isPending}
+          >
             {createDistrictMutation.isPending ? "Đang tạo..." : "Tạo mới"}
           </Button>
         </>
@@ -93,16 +115,28 @@ export default function CreateDistrictModal({ provinceId: defaultProvinceId }: {
           <label className="text-sm font-medium">
             Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("name")} placeholder="Tên ngành nghề" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          <Input
+            {...register("name")}
+            placeholder="Tên ngành nghề"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">
             Eng Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("code")} placeholder="Code" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>}
+          <Input
+            {...register("code")}
+            placeholder="Code"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.code && (
+            <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
+          )}
         </div>
 
         {/* Province Select */}
@@ -113,7 +147,12 @@ export default function CreateDistrictModal({ provinceId: defaultProvinceId }: {
           {isLoadingProvinces ? (
             <p className="text-gray-500 text-sm mt-1">Đang tải...</p>
           ) : (
-            <Select onValueChange={(value) => setValue("provinceId", Number(value))} defaultValue={defaultProvinceId ? String(defaultProvinceId) : undefined}>
+            <Select
+              onValueChange={(value) => setValue("provinceId", Number(value))}
+              defaultValue={
+                defaultProvinceId ? String(defaultProvinceId) : undefined
+              }
+            >
               <SelectTrigger className="w-full mt-2">
                 <SelectValue placeholder="Chọn Category Job" />
               </SelectTrigger>
@@ -126,7 +165,11 @@ export default function CreateDistrictModal({ provinceId: defaultProvinceId }: {
               </SelectContent>
             </Select>
           )}
-          {errors.provinceId && <p className="text-red-500 text-sm mt-1">{errors.provinceId.message}</p>}
+          {errors.provinceId && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.provinceId.message}
+            </p>
+          )}
         </div>
       </form>
     </BaseModal>

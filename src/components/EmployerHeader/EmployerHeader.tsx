@@ -33,6 +33,8 @@ import { useEmployerAuth } from "@/context/employer-auth";
 import { authService } from "@/services";
 import { toast } from "react-toastify";
 import { getNameInitials } from "@/utils/string";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface EmployerHeaderProps {
   onMobileMenuClick?: () => void;
@@ -47,6 +49,7 @@ export default function EmployerHeader({
   device,
   showSidebar = false,
 }: EmployerHeaderProps) {
+  const { t } = useTranslation();
   const { state, dispatch } = useEmployerAuth();
   const employer = state.employer;
   const queryClient = useQueryClient();
@@ -63,7 +66,7 @@ export default function EmployerHeader({
 
       employerTokenUtils.clearAuth();
       queryClient.removeQueries();
-      toast.success("Signed out successfully");
+      toast.success(t("employerHeader.signedOutSuccess"));
     },
   });
 
@@ -85,7 +88,11 @@ export default function EmployerHeader({
                 size="sm"
                 onClick={onMobileMenuClick}
                 className="lg:hidden p-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all duration-200"
-                aria-label={mobileSidebarOpen ? "Đóng menu" : "Mở menu"}
+                aria-label={
+                  mobileSidebarOpen
+                    ? t("employerHeader.closeMenu")
+                    : t("employerHeader.openMenu")
+                }
               >
                 {mobileSidebarOpen ? (
                   <X className="w-5 h-5 text-gray-600" strokeWidth={2} />
@@ -100,7 +107,11 @@ export default function EmployerHeader({
                 size="sm"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden p-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all duration-200"
-                aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
+                aria-label={
+                  isMobileMenuOpen
+                    ? t("employerHeader.closeMenu")
+                    : t("employerHeader.openMenu")
+                }
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5 text-gray-600" strokeWidth={2} />
@@ -124,7 +135,7 @@ export default function EmployerHeader({
                   Workify
                 </span>
                 <span className="text-xs text-gray-500 font-medium">
-                  Employer Portal
+                  {t("employerHeader.employerPortal")}
                 </span>
               </div>
             </Link>
@@ -138,13 +149,13 @@ export default function EmployerHeader({
                 className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
               >
                 <Home className="w-4 h-4" />
-                Home
+                {t("employerHeader.home")}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2 outline-none">
                   <Briefcase className="w-4 h-4" />
-                  Jobs
+                  {t("employerHeader.jobs")}
                   <ChevronDown className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
                 </DropdownMenuTrigger>
@@ -158,7 +169,7 @@ export default function EmployerHeader({
                       className="flex items-center gap-2"
                     >
                       <Briefcase className="w-4 h-4" />
-                      My Jobs
+                      {t("employerHeader.myJobs")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
@@ -167,7 +178,7 @@ export default function EmployerHeader({
                       className="flex items-center gap-2"
                     >
                       <FileText className="w-4 h-4" />
-                      Post Job
+                      {t("employerHeader.postJob")}
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -175,7 +186,7 @@ export default function EmployerHeader({
               <DropdownMenu>
                 <DropdownMenuTrigger className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2 outline-none">
                   <Users className="w-4 h-4" />
-                  Candidates
+                  {t("employerHeader.candidates")}
                   <ChevronDown className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
                 </DropdownMenuTrigger>
@@ -189,7 +200,7 @@ export default function EmployerHeader({
                       className="flex items-center gap-2"
                     >
                       <FileText className="w-4 h-4" />
-                      Applications
+                      {t("employerHeader.applications")}
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -199,7 +210,7 @@ export default function EmployerHeader({
                 className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
               >
                 <Building className="w-4 h-4" />
-                Organization
+                {t("employerHeader.organization")}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
               </Link>
             </nav>
@@ -207,6 +218,7 @@ export default function EmployerHeader({
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-3">
+            <LanguageSwitcher />
             {state.isAuthenticated ? (
               <>
                 <NotificationDropdown />
@@ -218,7 +230,9 @@ export default function EmployerHeader({
                           employer?.avatarUrl ||
                           `https://api.dicebear.com/7.x/initials/svg?seed=${employer?.companyName}`
                         }
-                        alt={employer?.companyName || "Employer"}
+                        alt={
+                          employer?.companyName || t("employerHeader.employer")
+                        }
                       />
                       <AvatarFallback className="bg-[#1967d2] text-white font-semibold">
                         {getNameInitials(employer?.companyName)}
@@ -226,9 +240,11 @@ export default function EmployerHeader({
                     </Avatar>
                     <div className="flex flex-col items-start">
                       <span className="text-sm font-medium text-gray-900">
-                        {employer?.companyName || "Employer"}
+                        {employer?.companyName || t("employerHeader.employer")}
                       </span>
-                      <span className="text-xs text-gray-500">Employer</span>
+                      <span className="text-xs text-gray-500">
+                        {t("employerHeader.employer")}
+                      </span>
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-500" />
                   </DropdownMenuTrigger>
@@ -239,7 +255,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <User className="w-4 h-4" />
-                        Organization
+                        {t("employerHeader.organization")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -248,7 +264,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <Settings className="w-4 h-4" />
-                        Settings
+                        {t("employerHeader.settings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -257,7 +273,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <Briefcase className="w-4 h-4" />
-                        My Jobs
+                        {t("employerHeader.myJobs")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -266,7 +282,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <FileText className="w-4 h-4" />
-                        Post Job
+                        {t("employerHeader.postJob")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -275,7 +291,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <FileText className="w-4 h-4" />
-                        Applications
+                        {t("employerHeader.applications")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -284,7 +300,7 @@ export default function EmployerHeader({
                       onClick={handleSignOut}
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t("employerHeader.signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -302,7 +318,7 @@ export default function EmployerHeader({
                     className="flex items-center"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Sign Up
+                    {t("employerHeader.signUp")}
                   </Link>
                 </Button>
                 <Button
@@ -315,7 +331,7 @@ export default function EmployerHeader({
                     className="flex items-center"
                   >
                     <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
+                    {t("employerHeader.signIn")}
                   </Link>
                 </Button>
               </>
@@ -330,13 +346,14 @@ export default function EmployerHeader({
             >
               <Link to="/" className="flex items-center space-x-2">
                 <Home className="w-4 h-4" />
-                <span>Job Seeker</span>
+                <span>{t("employerHeader.jobSeeker")}</span>
               </Link>
             </Button>
           </div>
 
           {/* Mobile Actions */}
           <div className="lg:hidden flex items-center space-x-2">
+            <LanguageSwitcher />
             {state.isAuthenticated && (
               <>
                 <NotificationDropdown />
@@ -348,7 +365,9 @@ export default function EmployerHeader({
                           employer?.avatarUrl ||
                           `https://api.dicebear.com/7.x/initials/svg?seed=${employer?.companyName}`
                         }
-                        alt={employer?.companyName || "Employer"}
+                        alt={
+                          employer?.companyName || t("employerHeader.employer")
+                        }
                       />
                       <AvatarFallback className="bg-[#1967d2] text-white text-xs font-semibold">
                         {getNameInitials(employer?.companyName)}
@@ -362,7 +381,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <User className="w-4 h-4" />
-                        Organization
+                        {t("employerHeader.organization")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -371,7 +390,7 @@ export default function EmployerHeader({
                         className="cursor-pointer flex items-center gap-3"
                       >
                         <Settings className="w-4 h-4" />
-                        Settings
+                        {t("employerHeader.settings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -380,7 +399,7 @@ export default function EmployerHeader({
                       onClick={handleSignOut}
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t("employerHeader.signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -401,7 +420,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Home className="w-4 h-4" />
-                    My Workify
+                    {t("employerHeader.myWorkify")}
                   </Link>
                   <Link
                     to={employer_routes.JOBS}
@@ -409,7 +428,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Briefcase className="w-4 h-4" />
-                    My Jobs
+                    {t("employerHeader.myJobs")}
                   </Link>
                   <Link
                     to={employer_routes.JOB_ADD}
@@ -417,7 +436,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <FileText className="w-4 h-4" />
-                    Post Job
+                    {t("employerHeader.postJob")}
                   </Link>
                   <div className="border-t border-gray-100 my-2"></div>
                   <Link
@@ -426,7 +445,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Building className="w-4 h-4" />
-                    Organization
+                    {t("employerHeader.organization")}
                   </Link>
                   <Link
                     to={employer_routes.SETTINGS}
@@ -434,7 +453,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Settings className="w-4 h-4" />
-                    Settings
+                    {t("employerHeader.settings")}
                   </Link>
                   <div className="border-t border-gray-100 my-2"></div>
                   <button
@@ -445,7 +464,7 @@ export default function EmployerHeader({
                     }}
                   >
                     <LogOut className="w-4 h-4" />
-                    Sign Out
+                    {t("employerHeader.signOut")}
                   </button>
                 </>
               ) : (
@@ -456,7 +475,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <LogIn className="w-4 h-4" />
-                    Sign In
+                    {t("employerHeader.signIn")}
                   </Link>
                   <Link
                     to={employer_routes.SIGN_UP}
@@ -464,7 +483,7 @@ export default function EmployerHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <UserPlus className="w-4 h-4" />
-                    Sign Up
+                    {t("employerHeader.signUp")}
                   </Link>
                 </>
               )}
@@ -475,7 +494,7 @@ export default function EmployerHeader({
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Home className="w-4 h-4" />
-                Job Seeker Portal
+                {t("employerHeader.jobSeekerPortal")}
               </Link>
             </nav>
           </div>

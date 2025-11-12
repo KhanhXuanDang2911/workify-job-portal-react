@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { routes, employer_routes } from "@/routes/routes.const";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   const location = useLocation();
   const isEmployer = location.pathname.startsWith("/employer");
 
@@ -26,11 +28,10 @@ export default function NotFound() {
                 404
               </h1>
               <h2 className="text-2xl lg:text-3xl font-semibold text-[#1967d2] text-balance">
-                We Are Sorry, Page Not Found
+                {t("notFound.title")}
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto lg:mx-0 text-pretty">
-                The page you are looking for might have been removed, had its
-                name changed, or is temporarily unavailable.
+                {t("notFound.description")}
               </p>
             </div>
 
@@ -40,7 +41,7 @@ export default function NotFound() {
                 className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3 text-lg rounded-lg"
               >
                 <Link to={isEmployer ? employer_routes.BASE : routes.BASE}>
-                  Go To Home
+                  {t("notFound.goToHome")}
                 </Link>
               </Button>
             </div>

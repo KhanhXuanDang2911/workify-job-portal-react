@@ -1,14 +1,17 @@
-export enum ApplicationStatus {
-  UNREAD = "UNREAD",
-  VIEWED = "VIEWED",
-  EMAILED = "EMAILED",
-  SCREENING = "SCREENING",
-  SCREENING_PENDING = "SCREENING_PENDING",
-  INTERVIEW_SCHEDULING = "INTERVIEW_SCHEDULING",
-  INTERVIEWED_PENDING = "INTERVIEWED_PENDING",
-  OFFERED = "OFFERED",
-  REJECTED = "REJECTED",
-}
+export const ApplicationStatus = {
+  UNREAD: "UNREAD",
+  VIEWED: "VIEWED",
+  EMAILED: "EMAILED",
+  SCREENING: "SCREENING",
+  SCREENING_PENDING: "SCREENING_PENDING",
+  INTERVIEW_SCHEDULING: "INTERVIEW_SCHEDULING",
+  INTERVIEWED_PENDING: "INTERVIEWED_PENDING",
+  OFFERED: "OFFERED",
+  REJECTED: "REJECTED",
+} as const;
+
+export type ApplicationStatus =
+  (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
 
 export interface ApplicationRequest {
   fullName: string;

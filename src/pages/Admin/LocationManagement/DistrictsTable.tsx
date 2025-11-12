@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import Pagination from "@/components/Pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RowsPerPageOptions, type RowsPerPage } from "@/constants";
 import type { District } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { districtService } from "@/services";
 import { toast } from "react-toastify";
 import type { With } from "@/types/common";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,15 +33,17 @@ import DistrictSheet from "@/pages/Admin/LocationManagement/DistrictSheet";
 import CreateDistrictModal from "@/pages/Admin/LocationManagement/CreateDistrictModal";
 
 export default function DistrictsTable({ provinceId }: { provinceId: number }) {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState<RowsPerPage>(10);
   const [filteredDistricts, setFilteredDistricts] = useState<District[]>([]);
 
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const [selectedDistrict, setSelectedDistrict] = useState<With<District, { provinceId: number }> | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<With<
+    District,
+    { provinceId: number }
+  > | null>(null);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -44,7 +52,7 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
   const queryClient = useQueryClient();
 
   const { data: districtsData, isLoading } = useQuery({
-    queryKey: ["districts", provinceId ],
+    queryKey: ["districts", provinceId],
     queryFn: async () => {
       const res = await districtService.getDistrictsByProvinceId(provinceId);
       return res.data;
@@ -53,32 +61,32 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
     placeholderData: (previousData) => previousData,
   });
 
-    useEffect(() => {
-      if (districtsData) {
-        setFilteredDistricts(districtsData);
-      }
-    }, [districtsData]);
-  
-    useEffect(() => {
-      setFilteredDistricts(() => {
-        const startIndex = (pageNumber - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        return districtsData?.slice(startIndex, endIndex) || [];
-      });
-    }, [pageNumber, pageSize, districtsData]);
-  
-   const totalDistricts = districtsData ? districtsData.length : 0;
-   const totalPages = Math.ceil(totalDistricts / pageSize);
-  
+  useEffect(() => {
+    if (districtsData) {
+      setFilteredDistricts(districtsData);
+    }
+  }, [districtsData]);
+
+  useEffect(() => {
+    setFilteredDistricts(() => {
+      const startIndex = (pageNumber - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      return districtsData?.slice(startIndex, endIndex) || [];
+    });
+  }, [pageNumber, pageSize, districtsData]);
+
+  const totalDistricts = districtsData ? districtsData.length : 0;
+  const totalPages = Math.ceil(totalDistricts / pageSize);
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => districtService.deleteDistrict(id),
     onSuccess: () => {
-      toast.success("Delete successful");
+      toast.success(t("toast.success.locationDeleted"));
       setDeleteDistrictId(null);
       queryClient.invalidateQueries({ queryKey: ["districts", provinceId] });
     },
     onError: () => {
-      toast.error("Delete failed");
+      toast.error(t("toast.error.deleteLocationFailed"));
     },
   });
 
@@ -86,22 +94,6 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
     setSearchInput("");
     setPageNumber(1);
     setFilteredDistricts(districtsData || []);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(filteredDistricts?.map((item) => item.id) || []);
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: number, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-    }
   };
 
   const handleSearch = () => {
@@ -115,10 +107,10 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
     const filtered = districtsData?.filter(
       (district) =>
         district.name.toLowerCase().includes(keyword) ||
-        district.code.toLowerCase().includes(keyword) 
+        district.code.toLowerCase().includes(keyword)
     );
     console.log(filtered);
-    setFilteredDistricts(filtered||[]);
+    setFilteredDistricts(filtered || []);
   };
 
   const handlePageChange = (page: number) => {
@@ -140,9 +132,14 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
       <div className="flex items-center justify-between gap-4">
         <div
           className="flex items-center gap-2 px-8 py-2 bg-teal-500 text-white w-fit"
-          style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+          style={{
+            clipPath:
+              "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
+          }}
         >
-          <span className="font-semibold">Districts</span>
+          <span className="font-semibold">
+            {t("admin.locationManagement.district.title")}
+          </span>
         </div>
 
         <div className="">
@@ -155,14 +152,20 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
         <div className="flex-1 flex gap-2">
           <Input
             type="text"
-            placeholder="Search by name or eng name, created at, updated at..."
+            placeholder={t(
+              "admin.categoryJobManagement.industries.searchPlaceholder"
+            )}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="flex-1 focus-visible:border-none bg-white focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
-          <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-900" onClick={handleSearch}>
-            Search
+          <Button
+            variant="secondary"
+            className="bg-gray-800 text-white hover:bg-gray-900"
+            onClick={handleSearch}
+          >
+            {t("admin.categoryJobManagement.industries.search")}
           </Button>
         </div>
         <Button
@@ -171,18 +174,9 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
           size="sm"
           onClick={ClearFilters}
         >
-          Clear filters
+          {t("admin.jobManagement.clearFilters")}
         </Button>
       </div>
-
-      {selectedIds.length > 0 && (
-        <div className="mt-4 flex items-center gap-2">
-          <Badge variant="secondary">{selectedIds.length} selected</Badge>
-          <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-600/10">
-            Delete selected
-          </Button>
-        </div>
-      )}
 
       {/* Table */}
       <div className="border border-gray-200 rounded-lg overflow-x-auto">
@@ -190,19 +184,28 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
           <thead>
             <tr className="bg-gray-100 border-b text-sm border-gray-200 ">
               <th className="px-4 py-3 text-left">
-                <Checkbox checked={selectedIds.length === filteredDistricts.length && filteredDistricts.length > 0} onCheckedChange={handleSelectAll} />
+                <span>
+                  {t("admin.locationManagement.district.tableHeaders.name")}
+                </span>
               </th>
               <th className="px-4 py-3 text-left">
-                <span>Name</span>
+                <span>
+                  {t("admin.locationManagement.district.tableHeaders.code")}
+                </span>
               </th>
               <th className="px-4 py-3 text-left">
-                <span>Code</span>
+                <span>
+                  {t(
+                    "admin.locationManagement.district.tableHeaders.createdAt"
+                  )}
+                </span>
               </th>
               <th className="px-4 py-3 text-left">
-                <span>Created At</span>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <span>Updated At</span>
+                <span>
+                  {t(
+                    "admin.locationManagement.district.tableHeaders.updatedAt"
+                  )}
+                </span>
               </th>
               <th className="px-4 py-3 text-left"></th>
             </tr>
@@ -210,35 +213,51 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="text-center py-10 text-muted-foreground italic">
-                  Loading...
+                <td
+                  colSpan={6}
+                  className="text-center py-10 text-muted-foreground italic"
+                >
+                  {t("admin.locationManagement.district.loading")}
                 </td>
               </tr>
             ) : filteredDistricts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-10 text-muted-foreground">
-                  <img src="/empty-folder.png" alt="Empty" className="mx-auto w-20 opacity-70" />
-                  <p className="mt-2 text-sm text-gray-500">No districts found</p>
+                <td
+                  colSpan={6}
+                  className="text-center py-10 text-muted-foreground"
+                >
+                  <img
+                    src="/empty-folder.png"
+                    alt="Empty"
+                    className="mx-auto w-20 opacity-70"
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    {t("admin.locationManagement.district.noDistrictsFound")}
+                  </p>
                 </td>
               </tr>
             ) : (
               filteredDistricts.map((district) => (
                 <tr
                   key={district.id}
-                  className={cn("border-b border-gray-200 text-[13px] hover:bg-gray-50 cursor-pointer", selectedDistrict?.id === district.id && "bg-green-200")}
+                  className={cn(
+                    "border-b border-gray-200 text-[13px] hover:bg-gray-50 cursor-pointer",
+                    selectedDistrict?.id === district.id && "bg-green-200"
+                  )}
                   onClick={() => handleEdit({ ...district, provinceId })}
                 >
-                  <td className="px-4 py-3">
-                    <Checkbox
-                      onClick={(e) => e.stopPropagation()}
-                      checked={selectedIds.includes(district.id)}
-                      onCheckedChange={(checked) => handleSelectOne(district.id, checked as boolean)}
-                    />
-                  </td>
                   <td className="px-4 py-3">{district.name}</td>
                   <td className="px-4 py-3">{district.code}</td>
-                  <td className="px-4 py-3">{new Date(district?.createdAt as string).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">{new Date(district?.updatedAt as string).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    {new Date(
+                      district?.createdAt as string
+                    ).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    {new Date(
+                      district?.updatedAt as string
+                    ).toLocaleDateString()}
+                  </td>
                   <td className="px-4 py-3">
                     <Button
                       variant="ghost"
@@ -263,12 +282,16 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
       {totalDistricts > 0 && (
         <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
           {(() => {
-            const minOption = Math.min(...RowsPerPageOptions.map((opt) => Number(opt.value)));
+            const minOption = Math.min(
+              ...RowsPerPageOptions.map((opt) => Number(opt.value))
+            );
             if (totalDistricts < minOption) return null;
 
             return (
               <div className="flex items-center self-start space-x-2 text-sm text-gray-600">
-                <span>Shows:</span>
+                <span>
+                  {t("admin.locationManagement.district.pagination.shows")}
+                </span>
                 <Select
                   value={pageSize.toString()}
                   onValueChange={(value) => {
@@ -281,19 +304,28 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
                   </SelectTrigger>
                   <SelectContent>
                     {RowsPerPageOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value.toString()}>
+                      <SelectItem
+                        key={option.value}
+                        value={option.value.toString()}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <span>Rows</span>
+                <span>
+                  {t("admin.locationManagement.district.pagination.rows")}
+                </span>
               </div>
             );
           })()}
 
           <div className="w-full sm:w-auto flex justify-center">
-            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={handlePageChange} />
+            <Pagination
+              currentPage={pageNumber}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
         </div>
       )}
@@ -312,16 +344,28 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDistrictId !== null} onOpenChange={() => setDeleteDistrictId(null)}>
+      <AlertDialog
+        open={deleteDistrictId !== null}
+        onOpenChange={() => setDeleteDistrictId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete this district. This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("admin.locationManagement.district.deleteDialog.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.locationManagement.district.deleteDialog.description")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteDistrictId && handleDelete(deleteDistrictId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel>
+              {t("admin.locationManagement.district.deleteDialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteDistrictId && handleDelete(deleteDistrictId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("admin.locationManagement.district.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

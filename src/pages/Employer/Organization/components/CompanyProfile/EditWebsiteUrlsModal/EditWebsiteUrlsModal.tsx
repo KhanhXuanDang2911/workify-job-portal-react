@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { employerService } from "@/services";
 import { useEffect, useState } from "react";
 import { Edit2, Pencil, PlusIcon, Save, Trash } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const schema = z.object({
   facebookUrl: z.string().optional(),
@@ -22,11 +23,14 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function EditWebsiteUrlsModal() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
 
-  const [editingWebsiteUrlIndex, setEditingWebsiteUrlIndex] = useState<number | null>(null);
+  const [editingWebsiteUrlIndex, setEditingWebsiteUrlIndex] = useState<
+    number | null
+  >(null);
   const [editingWebsiteUrlValue, setEditingWebsiteUrlValue] = useState("");
   useState<string | null>(null);
 
@@ -67,11 +71,11 @@ export default function EditWebsiteUrlsModal() {
         websiteUrls: data.websiteUrls,
       }),
     onSuccess: () => {
-      toast.success("Cập nhật thành công");
+      toast.success(t("toast.success.websiteUrlsUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
     },
     onError: () => {
-      toast.error("Cập nhật thất bại");
+      toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
@@ -93,14 +97,23 @@ export default function EditWebsiteUrlsModal() {
       title="Update Nhà Tuyển Dụng"
       className=""
       trigger={
-        <Button variant="ghost" size="sm" className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="border border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2]"
+        >
           <Pencil className="h-4 w-4 mr-2" />
           Edit
         </Button>
       }
       footer={(onClose) => (
         <>
-          <Button variant="outline" onClick={() => handleCancel(onClose)} disabled={updateWebsiteUrlsMutation.isPending} className="w-28">
+          <Button
+            variant="outline"
+            onClick={() => handleCancel(onClose)}
+            disabled={updateWebsiteUrlsMutation.isPending}
+            className="w-28"
+          >
             Hủy
           </Button>
           <Button
@@ -115,32 +128,62 @@ export default function EditWebsiteUrlsModal() {
     >
       <form className="max-h-[400px] w-[600px] grid grid-cols-2 gap-4 mt-4 overflow-y-scroll px-2">
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">Facebook URL</label>
-          <Input placeholder="https://facebook.com/..." {...form.register("facebookUrl")} className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <label className="block text-sm text-gray-600 mb-1">
+            Facebook URL
+          </label>
+          <Input
+            placeholder="https://facebook.com/..."
+            {...form.register("facebookUrl")}
+            className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">Twitter URL</label>
-          <Input placeholder="https://twitter.com/..." {...form.register("twitterUrl")} className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <label className="block text-sm text-gray-600 mb-1">
+            Twitter URL
+          </label>
+          <Input
+            placeholder="https://twitter.com/..."
+            {...form.register("twitterUrl")}
+            className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">LinkedIn URL</label>
-          <Input placeholder="https://linkedin.com/..." {...form.register("linkedinUrl")} className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <label className="block text-sm text-gray-600 mb-1">
+            LinkedIn URL
+          </label>
+          <Input
+            placeholder="https://linkedin.com/..."
+            {...form.register("linkedinUrl")}
+            className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">Google URL</label>
-          <Input placeholder="https://google.com/..." {...form.register("googleUrl")} className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <Input
+            placeholder="https://google.com/..."
+            {...form.register("googleUrl")}
+            className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">YouTube URL</label>
-          <Input placeholder="https://youtube.com/..." {...form.register("youtubeUrl")} className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+          <label className="block text-sm text-gray-600 mb-1">
+            YouTube URL
+          </label>
+          <Input
+            placeholder="https://youtube.com/..."
+            {...form.register("youtubeUrl")}
+            className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-2">Website URLs</label>
+          <label className="block text-sm text-gray-600 mb-2">
+            Website URLs
+          </label>
 
           <div className="flex items-center gap-2 mb-2">
             <Input
@@ -171,12 +214,16 @@ export default function EditWebsiteUrlsModal() {
                 const isEditing = editingWebsiteUrlIndex === index;
 
                 return (
-                  <li key={index} className="flex items-center justify-between gap-2 bg-gray-50 border rounded-md px-3 py-2 text-sm text-gray-700">
+                  <li
+                    key={index}
+                    className="flex items-center justify-between gap-2 bg-gray-50 border rounded-md px-3 py-2 text-sm text-gray-700"
+                  >
                     <Input
                       type="url"
                       value={isEditing ? editingWebsiteUrlValue : url}
                       onChange={(e) => {
-                        if (isEditing) setEditingWebsiteUrlValue(e.target.value);
+                        if (isEditing)
+                          setEditingWebsiteUrlValue(e.target.value);
                       }}
                       disabled={!isEditing}
                       className="flex-1 focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
@@ -237,7 +284,9 @@ export default function EditWebsiteUrlsModal() {
               })}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400 italic">Chưa có URL nào được thêm</p>
+            <p className="text-sm text-gray-400 italic">
+              Chưa có URL nào được thêm
+            </p>
           )}
         </div>
       </form>

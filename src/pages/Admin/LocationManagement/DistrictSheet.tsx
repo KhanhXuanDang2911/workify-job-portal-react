@@ -3,11 +3,29 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +36,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { District} from "@/types";
+import type { District } from "@/types";
 import { toast } from "react-toastify";
 import { districtService, provinceService } from "@/services";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DistrictSheetProps {
   district: District;
@@ -37,7 +56,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function DistrictSheet({ district, isOpen, onClose, provinceId }: DistrictSheetProps) {
+export default function DistrictSheet({
+  district,
+  isOpen,
+  onClose,
+  provinceId,
+}: DistrictSheetProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -65,9 +90,9 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
   const { data: provincesData, isLoading: isLoadingProvinces } = useQuery({
     queryKey: ["provinces", "all"],
     queryFn: async () => {
-         const res = await provinceService.getProvinces();
-         return res.data;
-       },
+      const res = await provinceService.getProvinces();
+      return res.data;
+    },
     staleTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
@@ -81,24 +106,24 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
         provinceId: data.provinceId,
       }),
     onSuccess: () => {
-      toast.success("District updated successfully");
+      toast.success(t("toast.success.locationUpdated"));
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["districts",provinceId] });
+      queryClient.invalidateQueries({ queryKey: ["districts", provinceId] });
     },
     onError: () => {
-      toast.error("Failed to update district");
+      toast.error(t("toast.error.updateLocationFailed"));
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => districtService.deleteDistrict(district.id),
     onSuccess: () => {
-      toast.success("Xóa thành công");
+      toast.success(t("toast.success.locationDeleted"));
       queryClient.invalidateQueries({ queryKey: ["districts", provinceId] });
       onClose();
     },
     onError: () => {
-      toast.error("Xóa thất bại");
+      toast.error(t("toast.error.deleteLocationFailed"));
     },
   });
 
@@ -121,17 +146,26 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-full max-w-2xl p-0 overflow-y-auto">
+        <SheetContent
+          side="right"
+          className="w-full max-w-2xl p-0 overflow-y-auto"
+        >
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="flex items-center justify-between">
               <span> District Details</span>
               <div className="flex gap-2">
                 {!isEditing ? (
                   <>
-                    <Button onClick={() => setIsEditing(true)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                    >
                       Edit
                     </Button>
-                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
                       Delete
                     </Button>
                   </>
@@ -140,7 +174,11 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
                     <Button variant="outline" onClick={handleCancel}>
                       Cancel
                     </Button>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={updateMutation.isPending} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
+                    <Button
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={updateMutation.isPending}
+                      className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                    >
                       {updateMutation.isPending ? "Saving..." : "Save"}
                     </Button>
                   </>
@@ -157,7 +195,10 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <FormLabel>
+                        Name{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -176,7 +217,10 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
                   name="code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Code {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                      <FormLabel>
+                        Code{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -195,16 +239,33 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
                   name="provinceId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Province {isEditing && <span className="text-red-600">*</span>}</FormLabel>
-                      <Select disabled={!isEditing || isLoadingProvinces} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                      <FormLabel>
+                        Province{" "}
+                        {isEditing && <span className="text-red-600">*</span>}
+                      </FormLabel>
+                      <Select
+                        disabled={!isEditing || isLoadingProvinces}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={field.value?.toString()}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={isLoadingProvinces ? "Loading..." : "Select province"} />
+                            <SelectValue
+                              placeholder={
+                                isLoadingProvinces
+                                  ? "Loading..."
+                                  : "Select province"
+                              }
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {provincesData?.map((province) => (
-                            <SelectItem key={province.id} value={province.id.toString()} className="focus:bg-green-200">
+                            <SelectItem
+                              key={province.id}
+                              value={province.id.toString()}
+                              className="focus:bg-green-200"
+                            >
                               {province.name}
                             </SelectItem>
                           ))}
@@ -225,11 +286,17 @@ export default function DistrictSheet({ district, isOpen, onClose, provinceId }:
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the district "{district.name}". This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will permanently delete the district "{district.name}". This
+              action cannot be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

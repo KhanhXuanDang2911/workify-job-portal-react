@@ -5,7 +5,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   JobLevelLabelEN,
   JobStatus,
@@ -60,19 +61,44 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 export default function JobManagement() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState<RowsPerPage>(10);
-  const [keyword, setKeyword] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const [pageNumber, setPageNumber] = useState(
+    Number(searchParams.get("pageNumber")) || 1
+  );
+  const [pageSize, setPageSize] = useState<RowsPerPage>(
+    (Number(searchParams.get("pageSize")) as RowsPerPage) || 10
+  );
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("keyword") || ""
+  );
   const [sorts, setSorts] = useState<
     { field: SortField; direction: SortDirection }[]
-  >([]);
-  const [provinceId, setProvinceId] = useState<number | undefined>(undefined);
-  const [industryId, setIndustryId] = useState<number | undefined>(undefined);
+  >(() => {
+    const sortsParam = searchParams.get("sorts");
+    if (!sortsParam) return [];
+    return sortsParam.split(",").map((s) => {
+      const [field, direction] = s.split(":");
+      return {
+        field: field as SortField,
+        direction: direction as SortDirection,
+      };
+    });
+  });
+  const [provinceId, setProvinceId] = useState<number | undefined>(
+    searchParams.get("provinceId")
+      ? Number(searchParams.get("provinceId"))
+      : undefined
+  );
+  const [industryId, setIndustryId] = useState<number | undefined>(
+    searchParams.get("industryId")
+      ? Number(searchParams.get("industryId"))
+      : undefined
+  );
 
   const [searchProvince, setSearchProvince] = useState("");
   const [searchIndustry, setSearchIndustry] = useState("");
@@ -88,6 +114,31 @@ export default function JobManagement() {
   >([]);
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
+
+  // Sync state to URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("pageNumber", String(pageNumber));
+    params.set("pageSize", String(pageSize));
+    if (keyword) params.set("keyword", keyword);
+    if (sorts.length > 0) {
+      params.set(
+        "sorts",
+        sorts.map((s) => `${s.field}:${s.direction}`).join(",")
+      );
+    }
+    if (provinceId) params.set("provinceId", String(provinceId));
+    if (industryId) params.set("industryId", String(industryId));
+    setSearchParams(params, { replace: true });
+  }, [
+    pageNumber,
+    pageSize,
+    keyword,
+    sorts,
+    provinceId,
+    industryId,
+    setSearchParams,
+  ]);
 
   const { data: jobsData, isLoading: isLoadingJobsData } = useQuery({
     queryKey: [
@@ -121,7 +172,7 @@ export default function JobManagement() {
   const deleteMutation = useMutation({
     mutationFn: jobService.deleteJobAsAdmin,
     onSuccess: () => {
-      toast.success("Job deleted successfully");
+      toast.success(t("toast.success.jobDeleted"));
       queryClient.invalidateQueries({
         queryKey: [
           "jobs",
@@ -138,7 +189,7 @@ export default function JobManagement() {
       setDeletingId(null);
     },
     onError: () => {
-      toast.error("An error occurred while deleting the job");
+      toast.error(t("toast.error.deleteJobFailed"));
     },
   });
 
@@ -151,7 +202,7 @@ export default function JobManagement() {
       newStatus: JobStatus;
     }) => jobService.updateJobStatusAsAdmin(jobId, newStatus),
     onSuccess: () => {
-      toast.success("Job status updated successfully");
+      toast.success(t("toast.success.jobUpdated"));
       queryClient.invalidateQueries({
         queryKey: [
           "jobs",
@@ -166,7 +217,7 @@ export default function JobManagement() {
       });
     },
     onError: () => {
-      toast.error("An error occurred while updating the job status");
+      toast.error(t("toast.error.updateJobFailed"));
     },
   });
 
@@ -278,9 +329,11 @@ export default function JobManagement() {
   return (
     <div className="p-6 bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Job Management</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          {t("admin.jobManagement.title")}
+        </h1>
         <p className="text-muted-foreground mt-1">
-          Manage all jobs in the system
+          {t("admin.jobManagement.description")}
         </p>
       </div>
 
@@ -291,7 +344,7 @@ export default function JobManagement() {
             <div className="relative flex-1 ">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search by job title, company name, job description, requirement..."
+                placeholder={t("admin.jobManagement.searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -309,17 +362,20 @@ export default function JobManagement() {
               variant="secondary"
               className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all"
             >
-              Search
+              {t("admin.jobManagement.search")}
             </Button>
 
             <Select
               value={provinceId ? String(provinceId) : ""}
-              onValueChange={(value) =>
-                setProvinceId(Number(value) || undefined)
-              }
+              onValueChange={(value) => {
+                setProvinceId(Number(value) || undefined);
+                setPageNumber(1);
+              }}
             >
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Select Province" />
+                <SelectValue
+                  placeholder={t("admin.jobManagement.filters.selectProvince")}
+                />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
@@ -329,7 +385,7 @@ export default function JobManagement() {
                       color="#1967d2"
                     />
                     <Input
-                      placeholder="Search"
+                      placeholder={t("admin.jobManagement.filters.search")}
                       className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                       value={searchProvince}
                       onChange={(event) => {
@@ -370,7 +426,7 @@ export default function JobManagement() {
                       ))
                     ) : (
                       <div className="text-sm text-gray-500">
-                        No province found.
+                        {t("admin.jobManagement.filters.noProvinceFound")}
                       </div>
                     )}
                   </div>
@@ -380,12 +436,15 @@ export default function JobManagement() {
 
             <Select
               value={industryId ? String(industryId) : ""}
-              onValueChange={(value) =>
-                setIndustryId(Number(value) || undefined)
-              }
+              onValueChange={(value) => {
+                setIndustryId(Number(value) || undefined);
+                setPageNumber(1);
+              }}
             >
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Select Industry" />
+                <SelectValue
+                  placeholder={t("admin.jobManagement.filters.selectIndustry")}
+                />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
@@ -395,7 +454,7 @@ export default function JobManagement() {
                       color="#1967d2"
                     />
                     <Input
-                      placeholder="Search"
+                      placeholder={t("admin.jobManagement.filters.search")}
                       className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                       value={searchIndustry}
                       onChange={(event) => {
@@ -436,7 +495,7 @@ export default function JobManagement() {
                       ))
                     ) : (
                       <div className="text-sm text-gray-500">
-                        No province found.
+                        {t("admin.jobManagement.filters.noIndustryFound")}
                       </div>
                     )}
                   </div>
@@ -454,7 +513,7 @@ export default function JobManagement() {
             size="sm"
             onClick={ClearFilters}
           >
-            Clear filters
+            {t("admin.jobManagement.clearFilters")}
           </Button>
         </div>
       </div>
@@ -473,7 +532,7 @@ export default function JobManagement() {
             <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
               <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs truncate">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Job Title</span>
+                  <span>{t("admin.jobManagement.tableHeaders.jobTitle")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "jobTitle")?.direction ??
@@ -487,7 +546,7 @@ export default function JobManagement() {
               </th>
               <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Status</span>
+                  <span>{t("admin.jobManagement.tableHeaders.status")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "status")?.direction ?? null
@@ -499,11 +558,13 @@ export default function JobManagement() {
                 </div>
               </th>
               <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs">
-                Location
+                {t("admin.jobManagement.tableHeaders.location")}
               </th>
               <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Expiration Date</span>
+                  <span>
+                    {t("admin.jobManagement.tableHeaders.expirationDate")}
+                  </span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "expirationDate")
@@ -516,26 +577,26 @@ export default function JobManagement() {
                 </div>
               </th>
               <th className="px-4 py-3 w-[120px] font-semibold uppercase tracking-wide text-xs">
-                Type
+                {t("admin.jobManagement.tableHeaders.type")}
               </th>
               <th className="px-4 py-3 w-[140px] font-semibold uppercase tracking-wide text-xs">
-                Level
+                {t("admin.jobManagement.tableHeaders.level")}
               </th>
               <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">
-                Salary
+                {t("admin.jobManagement.tableHeaders.salary")}
               </th>
               <th className="px-4 py-3 w-[330px] font-semibold uppercase tracking-wide text-xs">
-                Industries
+                {t("admin.jobManagement.tableHeaders.industries")}
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
-                Contact Person
+                {t("admin.jobManagement.tableHeaders.contactPerson")}
               </th>
               <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                Phone Number
+                {t("admin.jobManagement.tableHeaders.phoneNumber")}
               </th>
               <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Created At</span>
+                  <span>{t("admin.jobManagement.tableHeaders.createdAt")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "createdAt")?.direction ??
@@ -549,7 +610,7 @@ export default function JobManagement() {
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[130px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Updated At</span>
+                  <span>{t("admin.jobManagement.tableHeaders.updatedAt")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "updatedAt")?.direction ??
@@ -562,10 +623,10 @@ export default function JobManagement() {
                 </div>
               </th>
               <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs">
-                Author Name
+                {t("admin.jobManagement.tableHeaders.authorName")}
               </th>
               <th className="px-4 py-3 w-[260px] font-semibold uppercase tracking-wide text-xs">
-                Author Email
+                {t("admin.jobManagement.tableHeaders.authorEmail")}
               </th>
               <th className="px-4 py-3 text-right w-[120px]"></th>
             </tr>
@@ -579,7 +640,7 @@ export default function JobManagement() {
                   colSpan={8}
                   className="text-center py-10 text-muted-foreground italic"
                 >
-                  Loading...
+                  {t("admin.jobManagement.loading")}
                 </td>
               </tr>
             ) : jobs.length === 0 ? (
@@ -593,7 +654,9 @@ export default function JobManagement() {
                     alt="Empty"
                     className="mx-auto w-20 opacity-70"
                   />
-                  <p className="mt-2 text-sm text-gray-500">No jobs found</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {t("admin.jobManagement.noJobsFound")}
+                  </p>
                 </td>
               </tr>
             ) : (
@@ -737,7 +800,7 @@ export default function JobManagement() {
 
               return (
                 <div className="flex self-start items-center space-x-2 text-sm text-gray-600">
-                  <span>Shows:</span>
+                  <span>{t("admin.jobManagement.pagination.shows")}</span>
                   <Select
                     value={pageSize.toString()}
                     onValueChange={(value) => {
@@ -759,7 +822,7 @@ export default function JobManagement() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span>Rows</span>
+                  <span>{t("admin.jobManagement.pagination.rows")}</span>
                 </div>
               );
             })()}
@@ -778,20 +841,22 @@ export default function JobManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete confirmation</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("admin.jobManagement.deleteDialog.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {" "}
-              Are you sure you want to delete this job? This action cannot be
-              undone.
+              {t("admin.jobManagement.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("admin.jobManagement.deleteDialog.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t("admin.jobManagement.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

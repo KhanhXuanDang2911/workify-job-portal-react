@@ -1,7 +1,7 @@
 declare module "sockjs-client" {
   interface SockJSOptions {
     server?: string;
-    sessionId?: number | () => number;
+    sessionId?: number | (() => number);
     transports?: string | string[];
     timeout?: number;
     devel?: boolean;
@@ -12,7 +12,11 @@ declare module "sockjs-client" {
   }
 
   class SockJS {
-    constructor(url: string, protocols?: string | string[] | null, options?: SockJSOptions);
+    constructor(
+      url: string,
+      protocols?: string | string[] | null,
+      options?: SockJSOptions
+    );
     url: string;
     protocol: string;
     readyState: number;
@@ -31,4 +35,3 @@ declare module "sockjs-client" {
 
   export = SockJS;
 }
-

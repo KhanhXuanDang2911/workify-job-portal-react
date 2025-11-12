@@ -19,6 +19,8 @@ import { ApplicationStatus } from "@/types";
 import { Link } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
 import Loading from "@/components/Loading";
+import { useTranslation } from "@/hooks/useTranslation";
+import { JobType } from "@/constants/job.constant";
 
 interface ApplicationJob {
   id: number;
@@ -37,38 +39,45 @@ interface ApplicationJob {
 
 // Map application status to label and color
 const getStatusInfo = (
-  status: ApplicationStatus
+  status: ApplicationStatus,
+  t: (key: string) => string
 ): { label: string; color: string } => {
   const statusMap: Record<ApplicationStatus, { label: string; color: string }> =
     {
-      [ApplicationStatus.UNREAD]: { label: "Chưa đọc", color: "bg-gray-500" },
-      [ApplicationStatus.VIEWED]: { label: "Đã xem", color: "bg-blue-500" },
+      [ApplicationStatus.UNREAD]: {
+        label: t("myApplyJobs.status.UNREAD"),
+        color: "bg-gray-500",
+      },
+      [ApplicationStatus.VIEWED]: {
+        label: t("myApplyJobs.status.VIEWED"),
+        color: "bg-blue-500",
+      },
       [ApplicationStatus.EMAILED]: {
-        label: "Đã gửi email",
+        label: t("myApplyJobs.status.EMAILED"),
         color: "bg-purple-500",
       },
       [ApplicationStatus.SCREENING]: {
-        label: "Đang sàng lọc",
+        label: t("myApplyJobs.status.SCREENING"),
         color: "bg-yellow-500",
       },
       [ApplicationStatus.SCREENING_PENDING]: {
-        label: "Chờ sàng lọc",
+        label: t("myApplyJobs.status.SCREENING_PENDING"),
         color: "bg-orange-500",
       },
       [ApplicationStatus.INTERVIEW_SCHEDULING]: {
-        label: "Đang lên lịch phỏng vấn",
+        label: t("myApplyJobs.status.INTERVIEW_SCHEDULING"),
         color: "bg-indigo-500",
       },
       [ApplicationStatus.INTERVIEWED_PENDING]: {
-        label: "Chờ kết quả phỏng vấn",
+        label: t("myApplyJobs.status.INTERVIEWED_PENDING"),
         color: "bg-pink-500",
       },
       [ApplicationStatus.OFFERED]: {
-        label: "Đã nhận offer",
+        label: t("myApplyJobs.status.OFFERED"),
         color: "bg-green-500",
       },
       [ApplicationStatus.REJECTED]: {
-        label: "Đã từ chối",
+        label: t("myApplyJobs.status.REJECTED"),
         color: "bg-red-500",
       },
     };
@@ -76,25 +85,38 @@ const getStatusInfo = (
 };
 
 // Relative time
-const relativePosted = (dateString?: string): string => {
-  if (!dateString) return "";
+const relativePosted = (
+  dateString?: string,
+  t?: (key: string, options?: any) => string
+): string => {
+  if (!dateString || !t) return "";
   try {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Hôm nay";
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
-    return `${Math.floor(diffDays / 365)} năm trước`;
+    if (diffDays === 0) return t("myApplyJobs.relativeTime.today");
+    if (diffDays === 1) return t("myApplyJobs.relativeTime.yesterday");
+    if (diffDays < 7)
+      return t("myApplyJobs.relativeTime.daysAgo", { count: diffDays });
+    if (diffDays < 30)
+      return t("myApplyJobs.relativeTime.weeksAgo", {
+        count: Math.floor(diffDays / 7),
+      });
+    if (diffDays < 365)
+      return t("myApplyJobs.relativeTime.monthsAgo", {
+        count: Math.floor(diffDays / 30),
+      });
+    return t("myApplyJobs.relativeTime.yearsAgo", {
+      count: Math.floor(diffDays / 365),
+    });
   } catch (e) {
     return "";
   }
 };
 
 export default function MyApplyJobs() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -125,18 +147,18 @@ export default function MyApplyJobs() {
   const applications = useMemo(() => {
     if (!applicationsResponse?.data?.items) return [];
     return applicationsResponse.data.items.map((application) => {
-      const statusInfo = getStatusInfo(application.status);
+      const statusInfo = getStatusInfo(application.status, t);
       return {
         id: application.job.id,
         applicationId: application.id,
         title: application.job.jobTitle || "",
         company: application.job.employer.companyName || "",
-        location: "Chưa cập nhật địa chỉ", // ApplicationResponse doesn't include location
+        location: t("myApplyJobs.locationNotUpdated"), // ApplicationResponse doesn't include location
         logo:
           application.job.employer.avatarUrl ||
           "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
         appliedDate: application.createdAt
-          ? relativePosted(application.createdAt)
+          ? relativePosted(application.createdAt, t)
           : "",
         status: application.status,
         statusLabel: statusInfo.label,
@@ -145,7 +167,7 @@ export default function MyApplyJobs() {
         applyCount: application.applyCount,
       };
     });
-  }, [applicationsResponse]);
+  }, [applicationsResponse, t]);
 
   // Map suggested jobs
   const suggestedJobs = useMemo(() => {
@@ -154,7 +176,7 @@ export default function MyApplyJobs() {
       id: job.id,
       title: job.jobTitle || "",
       company: job.companyName || job.author?.companyName || "",
-      salary: "Thỏa thuận", // Simplified for suggested jobs
+      salary: t("jobSearch.salaryNegotiable"), // Simplified for suggested jobs
       type:
         JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
         job.jobType,
@@ -163,7 +185,7 @@ export default function MyApplyJobs() {
         job.author?.avatarUrl ||
         "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
     }));
-  }, [topAttractiveResponse]);
+  }, [topAttractiveResponse, t]);
 
   const totalPages = applicationsResponse?.data?.totalPages || 0;
   const currentApplications = applications;
@@ -188,10 +210,10 @@ export default function MyApplyJobs() {
             "linear-gradient(90deg, #fafcfb 0%, #f5faf7 30%, #f0f7f5 60%, #f0f7fc 100%)",
         }}
       >
-        <div className="flex main-layout relative z-10 pt-20 pb-8 gap-6">
+        <div className="flex flex-col lg:flex-row main-layout relative z-10 pt-8 md:pt-20 pb-8 gap-6">
           {/* Main Content - Danh sách việc làm đã ứng tuyển */}
           <div className="flex-1">
-            <div className="max-w-7xl mx-auto px-5">
+            <div className="max-w-7xl mx-auto px-4 md:px-5">
               {/* Content */}
               {isLoadingApplications ? (
                 <div className="flex justify-center items-center py-20">
@@ -200,13 +222,13 @@ export default function MyApplyJobs() {
               ) : isErrorApplications ? (
                 <div className="text-center py-20">
                   <p className="text-gray-600">
-                    Có lỗi xảy ra khi tải danh sách việc làm đã ứng tuyển
+                    {t("myApplyJobs.errorLoading")}
                   </p>
                 </div>
               ) : applications.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-gray-600">
-                    Bạn chưa ứng tuyển việc làm nào
+                    {t("myApplyJobs.noApplications")}
                   </p>
                 </div>
               ) : (
@@ -227,7 +249,7 @@ export default function MyApplyJobs() {
           </div>
 
           {/* Right Sidebar - Việc làm hấp dẫn */}
-          <div className="w-96 flex-shrink-0">
+          <div className="w-full lg:w-96 flex-shrink-0">
             <SuggestedJobs jobs={suggestedJobs} />
           </div>
         </div>
@@ -238,15 +260,16 @@ export default function MyApplyJobs() {
 
 // Table View Component
 function TableView({ applications }: { applications: ApplicationJob[] }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
-      {/* Table Header */}
-      <div className="grid grid-cols-[4fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg shadow-lg">
-        <div>VIỆC LÀM</div>
-        <div>NGÀY ỨNG TUYỂN</div>
-        <div>TRẠNG THÁI</div>
-        <div>LẦN ỨNG TUYỂN</div>
-        <div className="text-right">HÀNH ĐỘNG</div>
+      {/* Table Header - Hidden on mobile */}
+      <div className="hidden lg:grid grid-cols-[4fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-r from-[#5ba4cf] to-[#7bb8d9] text-white font-semibold text-sm rounded-lg shadow-lg">
+        <div>{t("myApplyJobs.tableHeaders.job")}</div>
+        <div>{t("myApplyJobs.tableHeaders.appliedDate")}</div>
+        <div>{t("myApplyJobs.tableHeaders.status")}</div>
+        <div>{t("myApplyJobs.tableHeaders.applyCount")}</div>
+        <div className="text-right">{t("myApplyJobs.tableHeaders.action")}</div>
       </div>
 
       {/* Table Rows */}
@@ -254,10 +277,10 @@ function TableView({ applications }: { applications: ApplicationJob[] }) {
         {applications.map((application) => (
           <div
             key={application.applicationId}
-            className="grid grid-cols-[4fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 min-h-[100px]"
+            className="lg:grid lg:grid-cols-[4fr_1fr_1fr_1fr_1fr] gap-4 lg:items-center px-4 md:px-6 py-4 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 min-h-[100px]"
           >
             {/* Job Info */}
-            <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-4 min-w-0 mb-3 lg:mb-0">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                 <img
                   src={application.logo || "/placeholder.svg"}
@@ -282,14 +305,35 @@ function TableView({ applications }: { applications: ApplicationJob[] }) {
               </div>
             </div>
 
-            {/* Applied Date */}
-            <div className="flex items-center gap-1 text-sm text-gray-600 min-w-0">
+            {/* Mobile: Combined info row */}
+            <div className="flex flex-wrap items-center gap-3 mb-3 lg:hidden">
+              {/* Applied Date */}
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <Calendar className="w-4 h-4 shrink-0" />
+                <span>{application.appliedDate}</span>
+              </div>
+
+              {/* Status */}
+              <Badge
+                className={cn("text-xs text-white", application.statusColor)}
+              >
+                {application.statusLabel}
+              </Badge>
+
+              {/* Apply Count */}
+              <div className="text-sm text-gray-600">
+                {t("myApplyJobs.applyCount", { count: application.applyCount })}
+              </div>
+            </div>
+
+            {/* Desktop: Applied Date */}
+            <div className="hidden lg:flex items-center gap-1 text-sm text-gray-600 min-w-0">
               <Calendar className="w-4 h-4 shrink-0" />
               <span className="truncate">{application.appliedDate}</span>
             </div>
 
-            {/* Status */}
-            <div className="min-w-0">
+            {/* Desktop: Status */}
+            <div className="hidden lg:block min-w-0">
               <Badge
                 className={cn("text-xs text-white", application.statusColor)}
               >
@@ -297,17 +341,17 @@ function TableView({ applications }: { applications: ApplicationJob[] }) {
               </Badge>
             </div>
 
-            {/* Apply Count */}
-            <div className="text-sm text-gray-600 text-center">
-              Lần {application.applyCount}
+            {/* Desktop: Apply Count */}
+            <div className="hidden lg:block text-sm text-gray-600 text-center">
+              {t("myApplyJobs.applyCount", { count: application.applyCount })}
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 justify-end">
+            <div className="flex items-center gap-2 lg:justify-end">
               <Link
                 to={`/${routes.JOB_DETAIL}/${application.id}`}
                 className="w-8 h-8 rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors bg-white shrink-0"
-                title="Xem chi tiết"
+                title={t("myApplyJobs.viewDetails")}
               >
                 <Eye className="w-4 h-4" />
               </Link>
@@ -317,7 +361,7 @@ function TableView({ applications }: { applications: ApplicationJob[] }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full border-2 border-green-300 flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors bg-white shrink-0"
-                  title="Xem CV đã gửi"
+                  title={t("myApplyJobs.viewCV")}
                 >
                   <FileText className="w-4 h-4" />
                 </a>

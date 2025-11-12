@@ -9,19 +9,28 @@ import Loading from "../Loading";
 import { useQuery } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function FeaturedArticles() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 3;
 
   // Fetch latest posts with limit = 9
-  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error: queryError,
+  } = useQuery({
     queryKey: ["latest-posts", 9],
     queryFn: () => postService.getLatestPosts(9),
     staleTime: 5 * 60 * 1000,
   });
 
-  const itemsFromApi: any[] = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data)
+    ? apiResponse.data
+    : [];
 
   const mapPostToArticle = (post: any) => ({
     id: post.id,
@@ -30,12 +39,20 @@ export default function FeaturedArticles() {
     date: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "",
     excerpt: post.excerpt || post.contentText || "",
     image: post.thumbnailUrl || "/placeholder.svg",
-    tags: typeof post.tags === "string" ? post.tags.split("|") : Array.isArray(post.tags) ? post.tags : [],
+    tags:
+      typeof post.tags === "string"
+        ? post.tags.split("|")
+        : Array.isArray(post.tags)
+          ? post.tags
+          : [],
     category: post.category?.title || "",
   });
 
   const mappedArticles = itemsFromApi.map(mapPostToArticle);
-  const totalSlides = Math.max(1, Math.ceil(mappedArticles.length / itemsPerSlide));
+  const totalSlides = Math.max(
+    1,
+    Math.ceil(mappedArticles.length / itemsPerSlide)
+  );
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -57,13 +74,13 @@ export default function FeaturedArticles() {
         <div className="flex items-center justify-between mb-12">
           <div className="text-center flex-1">
             <h2 className="text-4xl lg:text-5xl font-bold text-[#1e3a5f] mb-3">
-              News and Blog
+              {t("featuredArticles.title")}
             </h2>
             <p className="text-lg text-[#66789c]">
-              Get the latest news, updates and tips
+              {t("featuredArticles.description")}
             </p>
           </div>
-          
+
           {/* Navigation arrows - only show if more than 1 slide */}
           {totalSlides > 1 && (
             <div className="flex gap-2">
@@ -93,11 +110,12 @@ export default function FeaturedArticles() {
               </div>
             ) : isError ? (
               <div className="py-12 text-center text-red-600">
-                {(queryError as any)?.message || "Không thể tải danh sách bài viết"}
+                {(queryError as any)?.message ||
+                  t("featuredArticles.loadArticlesError")}
               </div>
             ) : mappedArticles.length === 0 ? (
               <div className="py-12 text-center text-gray-600">
-                Không có bài viết nào
+                {t("featuredArticles.noArticles")}
               </div>
             ) : (
               <>
@@ -109,15 +127,20 @@ export default function FeaturedArticles() {
                     <div key={slideIndex} className="w-full flex-shrink-0">
                       <div className="grid md:grid-cols-3 gap-8 pb-2">
                         {mappedArticles
-                          .slice(slideIndex * itemsPerSlide, slideIndex * itemsPerSlide + itemsPerSlide)
+                          .slice(
+                            slideIndex * itemsPerSlide,
+                            slideIndex * itemsPerSlide + itemsPerSlide
+                          )
                           .map((article, index) => (
-                            <ArticleCard key={`${slideIndex}-${index}`} article={article} />
+                            <ArticleCard
+                              key={`${slideIndex}-${index}`}
+                              article={article}
+                            />
                           ))}
                       </div>
                     </div>
                   ))}
                 </div>
-
               </>
             )}
           </div>
@@ -127,11 +150,24 @@ export default function FeaturedArticles() {
               asChild
               className="bg-[#1e3a5f] hover:bg-[#152a45] text-white px-8 py-6 h-auto text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
             >
-              <Link to={`/${routes.ARTICLES}`} className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <Link
+                to={`/${routes.ARTICLES}`}
+                className="flex items-center gap-2"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
-                Load More Posts
+                {t("featuredArticles.loadMorePosts")}
               </Link>
             </Button>
           </div>

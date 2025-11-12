@@ -12,10 +12,12 @@ import { authService } from "@/services";
 import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type ResetMethod = "email" | "sms" | null;
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<"select" | "email" | "success">("select");
   const [selectedMethod, setSelectedMethod] = useState<ResetMethod>(null);
   const [email, setEmail] = useState("");
@@ -35,7 +37,9 @@ export default function ForgotPassword() {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: (email: string) => {
-      return isEmployer ? authService.forgotPassword(email, "employers") : authService.forgotPassword(email, "users");
+      return isEmployer
+        ? authService.forgotPassword(email, "employers")
+        : authService.forgotPassword(email, "users");
     },
     onSuccess: (response) => {
       setStep("success");
@@ -47,14 +51,14 @@ export default function ForgotPassword() {
       if (apiError?.status === 404) {
         setError("email", {
           type: "manual",
-          message: "Invalid email. Please enter your registered email",
+          message: t("auth.invalidEmail"),
         });
       } else if (apiError?.status === 411) {
-        toast.error("Tài khoản của bạn đã bị khóa");
+        toast.error(t("auth.accountLocked"));
       } else if (apiError?.status === 429) {
-        toast.error("You've reached the resend limit. Please try again later or use another recovery method.");
+        toast.error(t("auth.resendLimitReached"));
       } else {
-        toast.error(apiError?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+        toast.error(apiError?.message || t("toast.error.unknownError"));
       }
     },
   });
@@ -66,7 +70,7 @@ export default function ForgotPassword() {
 
   const handleResend = () => {
     if (resendCount >= 3) {
-      toast.error("You've reached the resend limit. Please try again later or use another recovery method.");
+      toast.error(t("auth.resendLimitReached"));
       return;
     }
 
@@ -83,7 +87,7 @@ export default function ForgotPassword() {
     if (selectedMethod === "email") {
       setStep("email");
     } else {
-      toast.info("SMS reset is not available yet");
+      toast.info(t("auth.smsNotAvailable"));
     }
   };
 
@@ -98,8 +102,10 @@ export default function ForgotPassword() {
         {/* Right Side - Form */}
         <div className="w-full lg:w-1/2 space-y-6">
           <div className="space-y-5">
-            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">Forgot Your Password?</h1>
-            <p className="text-gray-600 ">Don't worry! Choose how you'd like to reset your password.</p>
+            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
+              {t("auth.forgotPasswordTitle")}
+            </h1>
+            <p className="text-gray-600 ">{t("auth.dontWorry")}</p>
           </div>
 
           <div className="space-y-3">
@@ -107,7 +113,9 @@ export default function ForgotPassword() {
               onClick={() => setSelectedMethod("email")}
               className={cn(
                 "w-full p-4 border-2 rounded-xl flex items-center justify-between transition-all hover:border-blue-500 hover:bg-blue-50",
-                selectedMethod === "email" ? "border-[#1967d2] bg-blue-50" : "border-gray-200"
+                selectedMethod === "email"
+                  ? "border-[#1967d2] bg-blue-50"
+                  : "border-gray-200"
               )}
             >
               <div className="flex items-center gap-4">
@@ -115,8 +123,12 @@ export default function ForgotPassword() {
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-gray-900">Reset via Email</h3>
-                  <p className="text-sm text-gray-500">We'll send a password reset link to your registered email address.</p>
+                  <h3 className="font-semibold text-gray-900">
+                    {t("auth.resetViaEmail")}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {t("auth.resetViaEmailDesc")}
+                  </p>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400" />
@@ -126,7 +138,9 @@ export default function ForgotPassword() {
               onClick={() => setSelectedMethod("sms")}
               className={cn(
                 "w-full p-4 border-2 rounded-xl flex items-center justify-between transition-all hover:border-[#1967d2] hover:bg-blue-50",
-                selectedMethod === "sms" ? "border-blue-500 bg-blue-50" : "border-gray-200"
+                selectedMethod === "sms"
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200"
               )}
             >
               <div className="flex items-center gap-4">
@@ -134,8 +148,12 @@ export default function ForgotPassword() {
                   <MessageSquare className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-gray-900">Reset via SMS</h3>
-                  <p className="text-sm text-gray-500">We'll send a verification code to your phone number.</p>
+                  <h3 className="font-semibold text-gray-900">
+                    {t("auth.resetViaSMS")}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {t("auth.resetViaSMSDesc")}
+                  </p>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400" />
@@ -143,8 +161,11 @@ export default function ForgotPassword() {
           </div>
 
           {selectedMethod && (
-            <Button onClick={handleContinue} className="w-full h-12 bg-[#1967d2] hover:bg-[#1557b0] text-white font-medium rounded-full">
-              Continue
+            <Button
+              onClick={handleContinue}
+              className="w-full h-12 bg-[#1967d2] hover:bg-[#1557b0] text-white font-medium rounded-full"
+            >
+              {t("auth.continue")}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           )}
@@ -163,21 +184,28 @@ export default function ForgotPassword() {
         {/* Right Side - Form */}
         <div className="w-full lg:w-1/2 space-y-6">
           <div className="space-y-5">
-            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">Forgot Your Password?</h1>
-            <p className="text-gray-600">Provide your account's email for which you want to reset your password</p>
+            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
+              {t("auth.forgotPasswordTitle")}
+            </h1>
+            <p className="text-gray-600">{t("auth.provideEmail")}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                Email ID
+                {t("auth.emailID")}
               </Label>
               <Input
                 id="email"
                 type="text"
                 placeholder="user@gmail.com"
                 {...register("email")}
-                className={cn("h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]", errors.email ? "border-red-500 focus-visible:ring-red-500" : "")}
+                className={cn(
+                  "h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]",
+                  errors.email
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : ""
+                )}
               />
               {errors.email && (
                 <div className="flex items-center gap-2 text-sm text-red-500">
@@ -187,14 +215,23 @@ export default function ForgotPassword() {
               )}
             </div>
 
-            <Button type="submit" disabled={forgotPasswordMutation.isPending} className="w-full h-12 bg-indigo-700 hover:bg-indigo-800 text-white font-medium">
-              {forgotPasswordMutation.isPending ? "Sending..." : "Request reset password link"}
+            <Button
+              type="submit"
+              disabled={forgotPasswordMutation.isPending}
+              className="w-full h-12 bg-indigo-700 hover:bg-indigo-800 text-white font-medium"
+            >
+              {forgotPasswordMutation.isPending
+                ? t("auth.sending")
+                : t("auth.requestResetLink")}
             </Button>
           </form>
 
           <div className="text-center">
-            <button onClick={() => setStep("select")} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-              Try another way
+            <button
+              onClick={() => setStep("select")}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              {t("auth.tryAnotherWay")}
             </button>
           </div>
         </div>
@@ -207,43 +244,58 @@ export default function ForgotPassword() {
       <div className="w-full max-w-4xl flex flex-col lg:flex-row items-center gap-12">
         {/* Left Side - Illustration */}
         <div className="hidden lg:flex lg:w-1/2 justify-center">
-          {resendCount >= 3 ? <img src="/sad-image.png" alt="" className="w-full" /> : <img src="/relax-image.png" alt="" className="w-full" />}
+          {resendCount >= 3 ? (
+            <img src="/sad-image.png" alt="" className="w-full" />
+          ) : (
+            <img src="/relax-image.png" alt="" className="w-full" />
+          )}
         </div>
         {/* Right Side - Success Message */}
         <div className="w-full lg:w-1/2 space-y-6">
           <div className="space-y-5">
-            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">Forgot Your Password?</h1>
+            <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
+              {t("auth.forgotPasswordTitle")}
+            </h1>
             {resendCount >= 3 ? (
-              <p className="text-red-600"> You’ve reached the resend limit. Please try again later or use another recovery method.</p>
+              <p className="text-red-600">{t("auth.resendLimitReached")}</p>
             ) : (
               <p className="text-gray-600">
                 {showResendSuccess
-                  ? "The email has been resent. You will receive an email with a link to reset your password."
-                  : "You will receive an email with a link to reset your password. Please check your inbox."}
+                  ? t("auth.emailResent")
+                  : t("auth.checkInbox")}
               </p>
             )}
           </div>
           {resendCount < 3 && (
             <div className="space-y-3">
-              <p className="text-gray-600 font-medium">Can't get email?</p>
+              <p className="text-gray-600 font-medium">
+                {t("auth.cantGetEmail")}
+              </p>
               <div className="flex gap-3">
                 <Button
                   onClick={() => setStep("email")}
                   variant="outline"
                   className="flex-1 h-12 border-2 border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] bg-transparent "
                 >
-                  Change email ID
+                  {t("auth.changeEmailID")}
                 </Button>
-                <Button onClick={handleResend} disabled={resendCount >= 3} className="flex-1 h-12 bg-[#1967d2] w-28 hover:bg-[#1251a3]">
-                  Resend
+                <Button
+                  onClick={handleResend}
+                  disabled={resendCount >= 3}
+                  className="flex-1 h-12 bg-[#1967d2] w-28 hover:bg-[#1251a3]"
+                >
+                  {t("auth.resend")}
                 </Button>
               </div>
             </div>
           )}
 
           <div className="text-center">
-            <button onClick={() => setStep("select")} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-              Try another way
+            <button
+              onClick={() => setStep("select")}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              {t("auth.tryAnotherWay")}
             </button>
           </div>
         </div>

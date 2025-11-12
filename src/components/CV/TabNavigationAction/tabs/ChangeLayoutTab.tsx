@@ -1,7 +1,5 @@
 function ChangeLayoutTab() {
-  return (
-    <div>ChangeLayoutTab</div>
-  )
+  return <div>ChangeLayoutTab</div>;
 }
 
-export default ChangeLayoutTab
+export default ChangeLayoutTab;

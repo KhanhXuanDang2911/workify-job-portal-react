@@ -2,12 +2,20 @@ import type { LucideIcon } from "lucide-react";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-export function createDragFeedback(Icon: LucideIcon, label: string): HTMLDivElement {
+export function createDragFeedback(
+  Icon: LucideIcon,
+  label: string
+): HTMLDivElement {
   const container = document.createElement("div");
-  container.setAttribute("class", "flex items-center gap-3 p-3 bg-accent rounded-lg shadow-lg");
+  container.setAttribute(
+    "class",
+    "flex items-center gap-3 p-3 bg-accent rounded-lg shadow-lg"
+  );
 
   const iconWrapper = document.createElement("div");
-  const iconMarkup = renderToStaticMarkup(React.createElement(Icon, { className: "text-muted-foreground", size: 20 }));
+  const iconMarkup = renderToStaticMarkup(
+    React.createElement(Icon, { className: "text-muted-foreground", size: 20 })
+  );
   iconWrapper.innerHTML = iconMarkup;
 
   const span = document.createElement("span");

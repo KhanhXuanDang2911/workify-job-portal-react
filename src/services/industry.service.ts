@@ -18,9 +18,8 @@ export interface IndustryRequest {
 export const industryService = {
   // GET endpoints are public
   getAllIndustries: async (): Promise<ApiResponse<Industry[]>> => {
-    const response = await publicHttp.get<ApiResponse<Industry[]>>(
-      "/industries/all"
-    );
+    const response =
+      await publicHttp.get<ApiResponse<Industry[]>>("/industries/all");
     return response.data;
   },
 

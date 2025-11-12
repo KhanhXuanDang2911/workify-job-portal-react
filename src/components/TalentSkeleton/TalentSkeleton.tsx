@@ -37,4 +37,4 @@ export default function TalentItemSkeleton() {
       </div>
     </Card>
   );
-};
+}

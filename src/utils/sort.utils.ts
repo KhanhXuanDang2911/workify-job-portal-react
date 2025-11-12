@@ -1,5 +1,7 @@
 export function sortByName<T extends { name: string }>(arr: T[]): T[] {
-  return [...arr].sort((a, b) => a.name.localeCompare(b.name, "vi", { sensitivity: "base" }));
+  return [...arr].sort((a, b) =>
+    a.name.localeCompare(b.name, "vi", { sensitivity: "base" })
+  );
 }
 
 export function sortByKey<T>(arr: T[], key: keyof T): T[] {

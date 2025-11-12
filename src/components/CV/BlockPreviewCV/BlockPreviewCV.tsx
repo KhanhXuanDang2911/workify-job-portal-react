@@ -1,8 +1,5 @@
-
 function BlockPreviewCV() {
-  return (
-    <div>BlockPreviewCV</div>
-  )
+  return <div>BlockPreviewCV</div>;
 }
 
-export default BlockPreviewCV
+export default BlockPreviewCV;

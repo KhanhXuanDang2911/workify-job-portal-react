@@ -1,1 +1,1 @@
-export {default} from "./CVBuilder";
+export { default } from "./CVBuilder";

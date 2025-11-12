@@ -20,31 +20,40 @@ const getHttpClient = () => {
 
 export const notificationService = {
   // Get notifications (JOB_SEEKER, EMPLOYER, ADMIN)
-  getNotifications: async (params?: SearchParams): Promise<ApiResponse<PageResponse<NotificationResponse>>> => {
+  getNotifications: async (
+    params?: SearchParams
+  ): Promise<ApiResponse<PageResponse<NotificationResponse>>> => {
     const http = getHttpClient();
-    const response = await http.get<ApiResponse<PageResponse<NotificationResponse>>>("/notifications", { params });
+    const response = await http.get<
+      ApiResponse<PageResponse<NotificationResponse>>
+    >("/notifications", { params });
     return response.data;
   },
 
   // Mark notification as read
   markAsRead: async (id: number): Promise<ApiResponse<void>> => {
     const http = getHttpClient();
-    const response = await http.post<ApiResponse<void>>(`/notifications/${id}/read`);
+    const response = await http.post<ApiResponse<void>>(
+      `/notifications/${id}/read`
+    );
     return response.data;
   },
 
   // Mark all notifications as read
   markAllAsRead: async (): Promise<ApiResponse<void>> => {
     const http = getHttpClient();
-    const response = await http.post<ApiResponse<void>>("/notifications/read-all");
+    const response = await http.post<ApiResponse<void>>(
+      "/notifications/read-all"
+    );
     return response.data;
   },
 
   // Get unread count
   getUnreadCount: async (): Promise<ApiResponse<number>> => {
     const http = getHttpClient();
-    const response = await http.get<ApiResponse<number>>("/notifications/unread-count");
+    const response = await http.get<ApiResponse<number>>(
+      "/notifications/unread-count"
+    );
     return response.data;
   },
 };
-

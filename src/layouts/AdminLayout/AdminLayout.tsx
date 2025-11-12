@@ -9,8 +9,14 @@ export default function AdminLayout() {
   const { device } = useContext(ResponsiveContext);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const adminPublicRoutes = [admin_routes.FORGOT_PASSWORD, admin_routes.RESET_PASSWORD, admin_routes.VERIFY_EMAIL];
-  const isPublicRoute = adminPublicRoutes.some((route) => location.pathname.includes(route));
+  const adminPublicRoutes = [
+    admin_routes.FORGOT_PASSWORD,
+    admin_routes.RESET_PASSWORD,
+    admin_routes.VERIFY_EMAIL,
+  ];
+  const isPublicRoute = adminPublicRoutes.some((route) =>
+    location.pathname.includes(route)
+  );
 
   return (
     <>

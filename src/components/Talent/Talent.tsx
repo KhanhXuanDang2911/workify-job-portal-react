@@ -1,7 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Briefcase, DollarSign, FileText, Bookmark } from "lucide-react";
+import {
+  MapPin,
+  Briefcase,
+  DollarSign,
+  FileText,
+  Bookmark,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface TalentType {
@@ -25,14 +31,23 @@ interface TalentProps {
   isBookmarked?: boolean;
 }
 
-export default function Talent({ talent, onBookmark, isBookmarked = false }: TalentProps) {
+export default function Talent({
+  talent,
+  onBookmark,
+  isBookmarked = false,
+}: TalentProps) {
   return (
     <Card className="p-4 flex-1 gap-0 shadow-none !block  border bg-white items-stretch justify-stretch">
       <div className="flex gap-4 self-stretch h-full">
         {/* Avatar */}
         <Avatar className="w-12 h-12 flex-shrink-0">
-          <AvatarImage src={talent.avatar || "/placeholder.svg"} alt={talent.name} />
-          <AvatarFallback className="bg-gray-200 text-gray-600">{talent.name.charAt(0)}</AvatarFallback>
+          <AvatarImage
+            src={talent.avatar || "/placeholder.svg"}
+            alt={talent.name}
+          />
+          <AvatarFallback className="bg-gray-200 text-gray-600">
+            {talent.name.charAt(0)}
+          </AvatarFallback>
         </Avatar>
 
         {/* Content */}
@@ -43,7 +58,11 @@ export default function Talent({ talent, onBookmark, isBookmarked = false }: Tal
               <h3 className="text-base font-semibold text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-2">
                 {talent.title}
                 {talent.isVerified && (
-                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-4 h-4 text-blue-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -53,8 +72,15 @@ export default function Talent({ talent, onBookmark, isBookmarked = false }: Tal
                 )}
               </h3>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => onBookmark?.(talent.id)} className="flex-shrink-0 h-8 w-8 p-0">
-              <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-blue-600 text-blue-600" : "text-gray-400"}`} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onBookmark?.(talent.id)}
+              className="flex-shrink-0 h-8 w-8 p-0"
+            >
+              <Bookmark
+                className={`w-4 h-4 ${isBookmarked ? "fill-blue-600 text-blue-600" : "text-gray-400"}`}
+              />
             </Button>
           </div>
 
@@ -92,7 +118,9 @@ export default function Talent({ talent, onBookmark, isBookmarked = false }: Tal
                 {talent.resumeType}
               </Badge>
             </div>
-            <span className="text-green-600 font-medium">{talent.postedDays} days</span>
+            <span className="text-green-600 font-medium">
+              {talent.postedDays} days
+            </span>
           </div>
         </div>
       </div>

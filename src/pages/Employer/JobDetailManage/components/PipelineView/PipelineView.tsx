@@ -6,7 +6,13 @@ import CandidateSheet from "@/components/CandidateSheet";
 import type { ApplicationResponse } from "@/types";
 import { ApplicationStatus } from "@/types";
 import Pagination from "@/components/Pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PipelineViewProps {
   applications: ApplicationResponse[];
@@ -26,19 +32,66 @@ interface PipelineColumn {
 }
 
 // Map ApplicationStatus to pipeline column
-const getPipelineColumn = (status: ApplicationStatus): { id: string; title: string; color: string } => {
-  const columnMap: Record<ApplicationStatus, { id: string; title: string; color: string }> = {
-    [ApplicationStatus.UNREAD]: { id: "new-applied", title: "New Applied", color: "bg-green-500" },
-    [ApplicationStatus.VIEWED]: { id: "viewed", title: "Viewed", color: "bg-blue-500" },
-    [ApplicationStatus.EMAILED]: { id: "emailed", title: "Emailed", color: "bg-purple-500" },
-    [ApplicationStatus.SCREENING]: { id: "screening", title: "Screening", color: "bg-teal-600" },
-    [ApplicationStatus.SCREENING_PENDING]: { id: "screening-pending", title: "Screening Pending", color: "bg-orange-500" },
-    [ApplicationStatus.INTERVIEW_SCHEDULING]: { id: "interview-scheduling", title: "Interview Scheduling", color: "bg-purple-500" },
-    [ApplicationStatus.INTERVIEWED_PENDING]: { id: "interviewed-pending", title: "Interviewed Pending", color: "bg-cyan-500" },
-    [ApplicationStatus.OFFERED]: { id: "offered", title: "Offered", color: "bg-yellow-500" },
-    [ApplicationStatus.REJECTED]: { id: "rejected", title: "Rejected", color: "bg-red-500" },
+const getPipelineColumn = (
+  status: ApplicationStatus
+): { id: string; title: string; color: string } => {
+  const columnMap: Record<
+    ApplicationStatus,
+    { id: string; title: string; color: string }
+  > = {
+    [ApplicationStatus.UNREAD]: {
+      id: "new-applied",
+      title: "New Applied",
+      color: "bg-green-500",
+    },
+    [ApplicationStatus.VIEWED]: {
+      id: "viewed",
+      title: "Viewed",
+      color: "bg-blue-500",
+    },
+    [ApplicationStatus.EMAILED]: {
+      id: "emailed",
+      title: "Emailed",
+      color: "bg-purple-500",
+    },
+    [ApplicationStatus.SCREENING]: {
+      id: "screening",
+      title: "Screening",
+      color: "bg-teal-600",
+    },
+    [ApplicationStatus.SCREENING_PENDING]: {
+      id: "screening-pending",
+      title: "Screening Pending",
+      color: "bg-orange-500",
+    },
+    [ApplicationStatus.INTERVIEW_SCHEDULING]: {
+      id: "interview-scheduling",
+      title: "Interview Scheduling",
+      color: "bg-purple-500",
+    },
+    [ApplicationStatus.INTERVIEWED_PENDING]: {
+      id: "interviewed-pending",
+      title: "Interviewed Pending",
+      color: "bg-cyan-500",
+    },
+    [ApplicationStatus.OFFERED]: {
+      id: "offered",
+      title: "Offered",
+      color: "bg-yellow-500",
+    },
+    [ApplicationStatus.REJECTED]: {
+      id: "rejected",
+      title: "Rejected",
+      color: "bg-red-500",
+    },
   };
-  return columnMap[status] || { id: status.toLowerCase(), title: status, color: "bg-gray-500" };
+  return (
+    columnMap[status] || {
+      id: status.toLowerCase(),
+      title: status,
+      color: "bg-gray-500",
+    }
+  );
 };
 
 // Format relative time
@@ -60,7 +113,14 @@ const relativePosted = (dateString?: string): string => {
   }
 };
 
-export default function PipelineView({ applications, currentPage, pageSize, totalPages, onPageChange, onPageSizeChange }: PipelineViewProps) {
+export default function PipelineView({
+  applications,
+  currentPage,
+  pageSize,
+  totalPages,
+  onPageChange,
+  onPageSizeChange,
+}: PipelineViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -135,7 +195,10 @@ export default function PipelineView({ applications, currentPage, pageSize, tota
     <div className="space-y-4">
       <div
         ref={scrollContainerRef}
-        className={cn("overflow-x-auto pb-4", isDragging ? "cursor-grabbing" : "cursor-grab")}
+        className={cn(
+          "overflow-x-auto pb-4",
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        )}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -143,7 +206,9 @@ export default function PipelineView({ applications, currentPage, pageSize, tota
       >
         <div className="flex gap-4 min-w-max">
           {pipelineColumns.length === 0 ? (
-            <div className="w-full text-center py-20 text-gray-500">Không có ứng viên nào</div>
+            <div className="w-full text-center py-20 text-gray-500">
+              Không có ứng viên nào
+            </div>
           ) : (
             pipelineColumns.map((column) => (
               <div key={column.id} className="w-[280px] flex-shrink-0">
@@ -151,26 +216,45 @@ export default function PipelineView({ applications, currentPage, pageSize, tota
                   <div className={cn("h-1.5", column.color)} />
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-gray-900">{column.title}</h3>
-                      <span className="text-sm text-gray-500 bg-gray-300 rounded-sm min-w-7 text-center p-1">{column.count}</span>
+                      <h3 className="font-medium text-gray-900">
+                        {column.title}
+                      </h3>
+                      <span className="text-sm text-gray-500 bg-gray-300 rounded-sm min-w-7 text-center p-1">
+                        {column.count}
+                      </span>
                     </div>
                     <div className="space-y-3">
                       {column.applications.map((application) => (
-                        <CandidateSheet key={application.id} candidate={application}>
+                        <CandidateSheet
+                          key={application.id}
+                          candidate={application}
+                        >
                           <div className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer">
                             <div className="flex items-center gap-3 mb-2">
                               <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center">
-                                <span className="text-purple-600 font-medium">{application.fullName.charAt(0)}</span>
+                                <span className="text-purple-600 font-medium">
+                                  {application.fullName.charAt(0)}
+                                </span>
                               </div>
-                              <span className="text-sm font-medium text-gray-900 flex-1">{application.fullName}</span>
+                              <span className="text-sm font-medium text-gray-900 flex-1">
+                                {application.fullName}
+                              </span>
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-0.5">
                                 {[...Array(5)].map((_, i) => (
-                                  <Star key={i} className={cn("h-3.5 w-3.5", "fill-gray-200 text-gray-200")} />
+                                  <Star
+                                    key={i}
+                                    className={cn(
+                                      "h-3.5 w-3.5",
+                                      "fill-gray-200 text-gray-200"
+                                    )}
+                                  />
                                 ))}
                               </div>
-                              <span className="text-xs text-gray-500">{relativePosted(application.createdAt)}</span>
+                              <span className="text-xs text-gray-500">
+                                {relativePosted(application.createdAt)}
+                              </span>
                             </div>
                           </div>
                         </CandidateSheet>
@@ -188,18 +272,30 @@ export default function PipelineView({ applications, currentPage, pageSize, tota
         <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">View</span>
-            <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
               <SelectTrigger className="w-[70px] h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="6" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                <SelectItem
+                  value="6"
+                  className="focus:bg-sky-200 focus:text-[#1967d2]"
+                >
                   6
                 </SelectItem>
-                <SelectItem value="10" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                <SelectItem
+                  value="10"
+                  className="focus:bg-sky-200 focus:text-[#1967d2]"
+                >
                   10
                 </SelectItem>
-                <SelectItem value="20" className="focus:bg-sky-200 focus:text-[#1967d2]">
+                <SelectItem
+                  value="20"
+                  className="focus:bg-sky-200 focus:text-[#1967d2]"
+                >
                   20
                 </SelectItem>
               </SelectContent>
@@ -207,7 +303,11 @@ export default function PipelineView({ applications, currentPage, pageSize, tota
             <span className="text-sm text-gray-600">Candidates per page</span>
           </div>
           <div className="flex items-center">
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
           </div>
         </div>
       )}

@@ -62,7 +62,10 @@ class UserHttp {
         }
         // Don't set Content-Type for FormData - let browser/axios set it with boundary
         // Only delete if not explicitly set in config
-        if (config.data instanceof FormData && !config.headers["Content-Type"]) {
+        if (
+          config.data instanceof FormData &&
+          !config.headers["Content-Type"]
+        ) {
           delete config.headers["Content-Type"];
         }
         console.log(
@@ -132,11 +135,13 @@ class UserHttp {
         if (error.response?.status === 401 && !shouldSkipRefresh) {
           // Check if user has refresh token (i.e., was previously authenticated)
           const currentRefreshToken = userTokenUtils.getRefreshToken();
-          
+
           // If no refresh token, user was never authenticated - just reject the error
           // Don't redirect for unauthenticated users accessing public endpoints
           if (!currentRefreshToken) {
-            console.log("[User HTTP] No refresh token found - user not authenticated, skipping redirect");
+            console.log(
+              "[User HTTP] No refresh token found - user not authenticated, skipping redirect"
+            );
             return Promise.reject(error);
           }
 

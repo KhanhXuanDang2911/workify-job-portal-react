@@ -38,38 +38,44 @@ export default function MySavedJobs() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-   const [currentPage, setCurrentPage] = useState(1);
-   const itemsPerPage = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-   const totalPages = Math.ceil(jobs.length / itemsPerPage);
-   const startIndex = (currentPage - 1) * itemsPerPage;
-   const endIndex = startIndex + itemsPerPage;
-   const currentJobs = jobs.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(jobs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = jobs.slice(startIndex, endIndex);
 
-const handleDeleteJob = (jobId: number) => {
-  setJobs(jobs.filter((job) => job.id !== jobId));
-  if (selectedJob?.id === jobId) {
-    setIsSheetOpen(false);
-    setSelectedJob(null);
-  }
-  const newTotalPages = Math.ceil((jobs.length - 1) / itemsPerPage);
-  if (currentPage > newTotalPages && newTotalPages > 0) {
-    setCurrentPage(newTotalPages);
-  }
-};
+  const handleDeleteJob = (jobId: number) => {
+    setJobs(jobs.filter((job) => job.id !== jobId));
+    if (selectedJob?.id === jobId) {
+      setIsSheetOpen(false);
+      setSelectedJob(null);
+    }
+    const newTotalPages = Math.ceil((jobs.length - 1) / itemsPerPage);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    }
+  };
 
-const handleViewJob = (job: Job) => {
-  setSelectedJob(job);
-  setIsSheetOpen(true);
-};
+  const handleViewJob = (job: Job) => {
+    setSelectedJob(job);
+    setIsSheetOpen(true);
+  };
 
-const handlePageChange = (page: number) => {
-  setCurrentPage(page);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="flex" style={{ background: "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)" }}>
+    <div
+      className="flex"
+      style={{
+        background:
+          "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
+      }}
+    >
       {/* Sidebar */}
       <div className="ml-5 my-4 w-64 flex-shrink-0 h-screen">
         <UserSideBar />
@@ -88,9 +94,14 @@ const handlePageChange = (page: number) => {
               onClick={() => setViewMode("table")}
               className={cn(
                 "!px-14 gap-2 rounded-none transition-all duration-300",
-                viewMode === "table" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
+                viewMode === "table"
+                  ? "bg-[#1967d2] text-white hover:bg-[#1557b0]"
+                  : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
               )}
-              style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+              style={{
+                clipPath:
+                  "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
+              }}
             >
               <List className="w-4 h-4" />
               Table View
@@ -99,9 +110,14 @@ const handlePageChange = (page: number) => {
               onClick={() => setViewMode("grid")}
               className={cn(
                 "rounded-none transition-all flex items-center justify-center gap-2 duration-300 !px-14",
-                viewMode === "grid" ? "bg-[#1967d2] text-white hover:bg-[#1557b0]" : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
+                viewMode === "grid"
+                  ? "bg-[#1967d2] text-white hover:bg-[#1557b0]"
+                  : "bg-[#5ba4cf] text-white hover:bg-[#4a93be]"
               )}
-              style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
+              style={{
+                clipPath:
+                  "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)",
+              }}
             >
               <Grid3x3 className="w-4 h-4" />
               <span>Grid View</span>
@@ -117,19 +133,35 @@ const handlePageChange = (page: number) => {
             )
           ) : viewMode === "table" ? (
             <>
-              <TableView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
+              <TableView
+                jobs={currentJobs}
+                onView={handleViewJob}
+                onDelete={handleDeleteJob}
+              />
               {totalPages > 1 && (
                 <div className="mt-8">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               )}
             </>
           ) : (
             <>
-              <GridView jobs={currentJobs} onView={handleViewJob} onDelete={handleDeleteJob} />
+              <GridView
+                jobs={currentJobs}
+                onView={handleViewJob}
+                onDelete={handleDeleteJob}
+              />
               {totalPages > 1 && (
                 <div className="mt-8">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               )}
             </>
@@ -138,13 +170,26 @@ const handlePageChange = (page: number) => {
       </div>
 
       {/* Job Summary Sheet */}
-      <JobSummarySheet job={selectedJob} isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} onDelete={handleDeleteJob} />
+      <JobSummarySheet
+        job={selectedJob}
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        onDelete={handleDeleteJob}
+      />
     </div>
   );
 }
 
 // Table View Component
-function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) => void; onDelete: (id: number) => void }) {
+function TableView({
+  jobs,
+  onView,
+  onDelete,
+}: {
+  jobs: Job[];
+  onView: (job: Job) => void;
+  onDelete: (id: number) => void;
+}) {
   return (
     <div className="space-y-4">
       {/* Table Header */}
@@ -166,12 +211,24 @@ function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job)
             {/* Job Info */}
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
+                <img
+                  src={job.logo || "/placeholder.svg"}
+                  alt={job.company}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-gray-900">{job.title}</h3>
-                  <Badge variant="secondary" className={cn("text-xs", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "text-xs",
+                      job.type === "Remote"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    )}
+                  >
                     {job.type}
                   </Badge>
                 </div>
@@ -196,10 +253,19 @@ function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job)
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <Button size="sm" className="bg-[#1967d2] hover:bg-[#1557b0] text-white" onClick={() => onView(job)}>
+              <Button
+                size="sm"
+                className="bg-[#1967d2] hover:bg-[#1557b0] text-white"
+                onClick={() => onView(job)}
+              >
                 View
               </Button>
-              <Button size="sm" variant="outline" className="border-red-300 text-red-500 hover:bg-red-50 hover:text-red-500 bg-transparent" onClick={() => onDelete(job.id)}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-red-300 text-red-500 hover:bg-red-50 hover:text-red-500 bg-transparent"
+                onClick={() => onDelete(job.id)}
+              >
                 <Trash2 className="w-4 h-4 " />
               </Button>
             </div>
@@ -211,11 +277,22 @@ function TableView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job)
 }
 
 // Grid View Component
-function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) => void; onDelete: (id: number) => void }) {
+function GridView({
+  jobs,
+  onView,
+  onDelete,
+}: {
+  jobs: Job[];
+  onView: (job: Job) => void;
+  onDelete: (id: number) => void;
+}) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <div key={job.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow relative hover:bg-blue-50">
+        <div
+          key={job.id}
+          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow relative hover:bg-blue-50"
+        >
           {/* Delete Button */}
           <button
             onClick={() => onDelete(job.id)}
@@ -226,14 +303,28 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
 
           {/* Job Logo */}
           <div className="w-16 h-16 rounded-lg overflow-hidden bg-pink-500 mb-4">
-            <img src={job.logo || "/placeholder.svg"} alt={job.company} className="w-full h-full object-cover" />
+            <img
+              src={job.logo || "/placeholder.svg"}
+              alt={job.company}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {/* Job Title */}
           <div className="mb-2">
-            <h3 className="font-bold text-gray-900 text-lg mb-1">{job.title}</h3>
+            <h3 className="font-bold text-gray-900 text-lg mb-1">
+              {job.title}
+            </h3>
             {job.type && (
-              <Badge variant="secondary" className={cn("text-xs", job.type === "Remote" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "text-xs",
+                  job.type === "Remote"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-green-100 text-green-700"
+                )}
+              >
                 {job.type}
               </Badge>
             )}
@@ -252,7 +343,10 @@ function GridView({ jobs, onView, onDelete }: { jobs: Job[]; onView: (job: Job) 
           </div>
 
           {/* View Button */}
-          <Button className="w-full bg-transparent border border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white transition-colors" onClick={() => onView(job)}>
+          <Button
+            className="w-full bg-transparent border border-[#1967d2] text-[#1967d2] hover:bg-[#1967d2] hover:text-white transition-colors"
+            onClick={() => onView(job)}
+          >
             View
           </Button>
         </div>
@@ -274,7 +368,10 @@ function TableViewSkeleton() {
       </div>
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white border border-gray-200 rounded-lg">
+          <div
+            key={i}
+            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-4 bg-white border border-gray-200 rounded-lg"
+          >
             <div className="flex items-center gap-4">
               <Skeleton className="w-12 h-12 rounded-lg" />
               <div className="space-y-2 flex-1">

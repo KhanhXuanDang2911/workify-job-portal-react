@@ -13,7 +13,6 @@ import type {
 import { UserAuthProvider } from "@/context/user-auth";
 import { EmployerAuthProvider } from "@/context/employer-auth";
 import { WebSocketProvider } from "@/context/websocket/WebSocketContext";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const getDevice = (): DeviceType => {
   const width = window.innerWidth;
@@ -57,7 +56,6 @@ function AppContent() {
         theme="light"
       />
       <ScrollToTopButton />
-      <ReactQueryDevtools initialIsOpen={false} />
     </ResponsiveContext>
   );
 }
@@ -65,13 +63,13 @@ function AppContent() {
 export default function App() {
   return (
     // BrowserRouter already exists in main.tsx
-    // Wrap with both providers - each checks route internally
-    <UserAuthProvider>
-      <EmployerAuthProvider>
-        <WebSocketProvider>
+    // WebSocketProvider must be outside auth providers to avoid circular dependencies
+    <WebSocketProvider>
+      <UserAuthProvider>
+        <EmployerAuthProvider>
           <AppContent />
-        </WebSocketProvider>
-      </EmployerAuthProvider>
-    </UserAuthProvider>
+        </EmployerAuthProvider>
+      </UserAuthProvider>
+    </WebSocketProvider>
   );
 }

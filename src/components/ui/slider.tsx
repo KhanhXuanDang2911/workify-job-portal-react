@@ -1,9 +1,10 @@
-import * as React from "react"
-import * as SliderPrimitive from "@radix-ui/react-slider"
+import * as React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-interface SliderProps extends React.ComponentProps<typeof SliderPrimitive.Root> {
+interface SliderProps
+  extends React.ComponentProps<typeof SliderPrimitive.Root> {
   rangeColor?: string;
 }
 
@@ -24,7 +25,7 @@ function Slider({
           ? defaultValue
           : [min, max],
     [value, defaultValue, min, max]
-  )
+  );
 
   return (
     <SliderPrimitive.Root
@@ -48,7 +49,8 @@ function Slider({
         <SliderPrimitive.Range
           data-slot="slider-range"
           className={cn(
-            "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full", rangeColor
+            "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+            rangeColor
           )}
         />
       </SliderPrimitive.Track>
@@ -60,7 +62,7 @@ function Slider({
         />
       ))}
     </SliderPrimitive.Root>
-  )
+  );
 }
 
-export { Slider }
+export { Slider };

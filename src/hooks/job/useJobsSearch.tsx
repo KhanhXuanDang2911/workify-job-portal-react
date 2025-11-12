@@ -6,6 +6,6 @@ export const useJobsSearch = (params: JobsAdvancedSearchParams) => {
   return useQuery({
     queryKey: ["jobs-search", params],
     queryFn: () => jobService.searchJobsAdvanced(params),
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 };

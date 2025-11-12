@@ -50,6 +50,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type SortField =
   | "jobTitle"
@@ -60,6 +61,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 export default function Jobs() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -131,14 +133,14 @@ export default function Jobs() {
           updates.provinceId !== undefined
             ? updates.provinceId
             : prevParams.get("provinceId")
-            ? Number(prevParams.get("provinceId"))
-            : null;
+              ? Number(prevParams.get("provinceId"))
+              : null;
         const finalIndustryId =
           updates.industryId !== undefined
             ? updates.industryId
             : prevParams.get("industryId")
-            ? Number(prevParams.get("industryId"))
-            : null;
+              ? Number(prevParams.get("industryId"))
+              : null;
 
         let finalSorts = sorts;
         if (updates.sorts !== undefined) {
@@ -251,13 +253,13 @@ export default function Jobs() {
   const deleteJobsMutation = useMutation({
     mutationFn: (id: number) => jobService.deleteJob(id),
     onSuccess: () => {
-      toast.success("Job(s) deleted successfully");
+      toast.success(t("employer.jobs.jobDeletedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
       setDeleteDialogOpen(false);
       setDeletingId(null);
     },
     onError: () => {
-      toast.error("An error occurred while deleting the job");
+      toast.error(t("employer.jobs.jobDeleteError"));
     },
   });
 
@@ -344,7 +346,7 @@ export default function Jobs() {
       {/* Header */}
       <div className="bg-white flex flex-col border-b py-3 px-5 border-gray-200 sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">
-          My Jobs ({totalMyJobs})
+          {t("employer.jobs.myJobs", { count: totalMyJobs })}
         </h1>
         <Button
           className="bg-[#1967d2] hover:bg-[#1251a3] text-white w-full sm:w-auto"
@@ -353,7 +355,7 @@ export default function Jobs() {
           }
         >
           <Plus className="w-4 h-4 mr-2" />
-          Post New Jobs
+          {t("employer.jobs.postNewJobs")}
         </Button>
       </div>
 
@@ -364,7 +366,7 @@ export default function Jobs() {
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Search jobs"
+              placeholder={t("employer.jobs.searchJobs")}
               value={searchInput}
               onChange={(e) => {
                 setSearchInput(e.target.value);
@@ -379,7 +381,7 @@ export default function Jobs() {
             variant="secondary"
             className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white transition-all"
           >
-            Search
+            {t("common.search")}
           </Button>
 
           {/* Filter buttons - responsive layout */}
@@ -392,7 +394,7 @@ export default function Jobs() {
               }}
             >
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Select Province" />
+                <SelectValue placeholder={t("employer.jobs.selectProvince")} />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
@@ -402,7 +404,7 @@ export default function Jobs() {
                       color="#1967d2"
                     />
                     <Input
-                      placeholder="Search"
+                      placeholder={t("common.search")}
                       className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                       value={searchProvince}
                       onChange={(event) => {
@@ -443,7 +445,7 @@ export default function Jobs() {
                       ))
                     ) : (
                       <div className="text-sm text-gray-500">
-                        No province found.
+                        {t("employer.jobs.noProvinceFound")}
                       </div>
                     )}
                   </div>
@@ -459,7 +461,7 @@ export default function Jobs() {
               }}
             >
               <SelectTrigger className="!text-gray-500 w-64">
-                <SelectValue placeholder="Select Industry" />
+                <SelectValue placeholder={t("employer.jobs.selectIndustry")} />
               </SelectTrigger>
               <SelectContent className="w-64 p-0">
                 <div className="p-4">
@@ -469,7 +471,7 @@ export default function Jobs() {
                       color="#1967d2"
                     />
                     <Input
-                      placeholder="Search"
+                      placeholder={t("common.search")}
                       className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                       value={searchIndustry}
                       onChange={(event) => {
@@ -510,7 +512,7 @@ export default function Jobs() {
                       ))
                     ) : (
                       <div className="text-sm text-gray-500">
-                        No industry found.
+                        {t("employer.jobs.noIndustryFound")}
                       </div>
                     )}
                   </div>
@@ -525,7 +527,7 @@ export default function Jobs() {
               className="text-red-600 hover:text-red-700"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
-              Reset
+              {t("common.reset")}
             </Button>
           </div>
         </div>
@@ -545,7 +547,7 @@ export default function Jobs() {
             <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
               <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs truncate">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Job Title</span>
+                  <span>{t("employer.jobs.table.jobTitle")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "jobTitle")?.direction ??
@@ -559,7 +561,7 @@ export default function Jobs() {
               </th>
               <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Status</span>
+                  <span>{t("employer.jobs.table.status")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "status")?.direction ?? null
@@ -571,11 +573,11 @@ export default function Jobs() {
                 </div>
               </th>
               <th className="px-4 py-3 w-[240px] font-semibold uppercase tracking-wide text-xs">
-                Location
+                {t("employer.jobs.table.location")}
               </th>
               <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Expiration Date</span>
+                  <span>{t("employer.jobs.table.expirationDate")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "expirationDate")
@@ -588,17 +590,17 @@ export default function Jobs() {
                 </div>
               </th>
               <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
-                Type
+                {t("employer.jobs.table.type")}
               </th>
               <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                Level
+                {t("employer.jobs.table.level")}
               </th>
               <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">
-                Salary
+                {t("employer.jobs.table.salary")}
               </th>
               <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Created At</span>
+                  <span>{t("employer.jobs.table.createdAt")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "createdAt")?.direction ??
@@ -612,7 +614,7 @@ export default function Jobs() {
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[130px]">
                 <div className="flex items-center justify-start gap-2">
-                  <span>Updated At</span>
+                  <span>{t("employer.jobs.table.updatedAt")}</span>
                   <MultiSortButton
                     direction={
                       sorts.find((s) => s.field === "updatedAt")?.direction ??
@@ -625,12 +627,14 @@ export default function Jobs() {
                 </div>
               </th>
               <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
-                Contact Person
+                {t("employer.jobs.table.contactPerson")}
               </th>
               <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                Phone Number
+                {t("employer.jobs.table.phoneNumber")}
               </th>
-              <th className="px-4 py-3 text-right w-[120px]"></th>
+              <th className="px-4 py-3 text-right w-[120px]">
+                {t("employer.jobs.table.action")}
+              </th>
             </tr>
           </thead>
 
@@ -642,7 +646,7 @@ export default function Jobs() {
                   colSpan={8}
                   className="text-center py-10 text-muted-foreground italic"
                 >
-                  Loading...
+                  {t("common.loading")}
                 </td>
               </tr>
             ) : myJobs.length === 0 ? (
@@ -656,7 +660,9 @@ export default function Jobs() {
                     alt="Empty"
                     className="mx-auto w-20 opacity-70"
                   />
-                  <p className="mt-2 text-sm text-gray-500">No jobs found</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {t("employer.jobs.noJobsFound")}
+                  </p>
                 </td>
               </tr>
             ) : (
@@ -808,20 +814,20 @@ export default function Jobs() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete confirmation</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("employer.jobs.deleteConfirmation")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {" "}
-              Are you sure you want to delete this job? This action cannot be
-              undone.
+              {t("employer.jobs.deleteConfirmationDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

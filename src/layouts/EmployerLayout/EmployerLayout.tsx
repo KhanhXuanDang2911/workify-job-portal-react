@@ -29,7 +29,7 @@ export default function EmployerLayout() {
     location.pathname.includes(route)
   );
   const isBaseRoute = location.pathname === employer_routes.BASE;
-  
+
   // Only show sidebar menu buttons when authenticated and not on public/base routes
   const showSidebar = isAuthenticated && !isPublicRoute && !isBaseRoute;
 

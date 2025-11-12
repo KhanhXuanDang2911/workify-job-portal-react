@@ -32,8 +32,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ROLE } from "@/constants";
 import { Settings } from "lucide-react";
 import { getNameInitials } from "@/utils/string";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Header() {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const queryClient = useQueryClient();
   const { state, dispatch } = useUserAuth();
@@ -51,7 +54,7 @@ export default function Header() {
 
       userTokenUtils.clearAuth();
       queryClient.removeQueries();
-      toast.success("Signed out successfully");
+      toast.success(t("header.signedOutSuccess"));
     },
   });
 
@@ -60,9 +63,8 @@ export default function Header() {
   };
 
   return (
-    <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-transparent to-indigo-50/50 pointer-events-none"></div>
+    <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-indigo-50/30 pointer-events-none"></div>
 
       <div className="main-layout relative z-10">
         <div className="flex items-center justify-between h-16">
@@ -75,7 +77,7 @@ export default function Header() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent group-hover:from-[#1967d2] group-hover:to-[#1557b8] transition-all duration-300">
+            <span className="text-xl font-semibold text-gray-900 group-hover:text-[#1967d2] transition-colors duration-200">
               Workify
             </span>
           </Link>
@@ -86,7 +88,7 @@ export default function Header() {
               className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
             >
               <Home className="w-4 h-4" />
-              Home
+              {t("header.home")}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
@@ -94,7 +96,7 @@ export default function Header() {
               className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
             >
               <Briefcase className="w-4 h-4" />
-              Jobs
+              {t("header.jobs")}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
@@ -102,7 +104,7 @@ export default function Header() {
               className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
             >
               <BookOpen className="w-4 h-4" />
-              Career Guide
+              {t("header.careerGuide")}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
@@ -110,12 +112,13 @@ export default function Header() {
               className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
             >
               <Building2 className="w-4 h-4" />
-              Companies
+              {t("header.companies")}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
           </nav>
 
           <div className="hidden lg:flex items-center space-x-3">
+            <LanguageSwitcher />
             {state.isAuthenticated ? (
               <>
                 <JobSeekerNotificationDropdown />
@@ -127,7 +130,7 @@ export default function Header() {
                           user?.avatarUrl ||
                           `https://api.dicebear.com/7.x/initials/svg?seed=${user?.fullName}`
                         }
-                        alt={user?.fullName || "User"}
+                        alt={user?.fullName || t("header.user")}
                       />
                       <AvatarFallback className="bg-gradient-to-br from-[#1967d2] to-[#1557b8] text-white">
                         {getNameInitials(user?.fullName)}
@@ -142,7 +145,7 @@ export default function Header() {
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link to={routes.SETTINGS} className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
-                        Profile
+                        {t("header.profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
@@ -151,7 +154,7 @@ export default function Header() {
                         className="flex items-center"
                       >
                         <Briefcase className="w-4 h-4 mr-2" />
-                        Applied Jobs
+                        {t("header.appliedJobs")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
@@ -160,13 +163,13 @@ export default function Header() {
                         className="flex items-center"
                       >
                         <BookmarkIcon className="w-4 h-4 mr-2" />
-                        Saved Jobs
+                        {t("header.savedJobs")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link to={routes.MY_RESUME} className="flex items-center">
                         <File className="w-4 h-4 mr-2" />
-                        My Resumes
+                        {t("header.myResumes")}
                       </Link>
                     </DropdownMenuItem>
                     {user?.role === ROLE.ADMIN && (
@@ -178,7 +181,7 @@ export default function Header() {
                             className="flex items-center"
                           >
                             <Settings className="w-4 h-4 mr-2" />
-                            Tới trang quản trị
+                            {t("header.goToAdmin")}
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -189,7 +192,7 @@ export default function Header() {
                       onClick={handleSignOut}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
+                      {t("header.signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -202,14 +205,14 @@ export default function Header() {
                   size="sm"
                   className="text-gray-700 hover:text-[#1967d2] hover:bg-blue-50/50 transition-all duration-200"
                 >
-                  <Link to={routes.SIGN_IN}>Sign In</Link>
+                  <Link to={routes.SIGN_IN}>{t("header.signIn")}</Link>
                 </Button>
                 <Button
                   asChild
                   size="sm"
                   className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] hover:from-[#1557b8] hover:to-[#1445a0] text-white shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  <Link to={routes.SIGN_UP}>Sign Up</Link>
+                  <Link to={routes.SIGN_UP}>{t("header.signUp")}</Link>
                 </Button>
               </>
             )}
@@ -218,12 +221,13 @@ export default function Header() {
               to={employer_routes.BASE}
               className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-200 rounded-lg hover:bg-blue-50/50"
             >
-              For Employers
+              {t("header.forEmployers")}
             </Link>
           </div>
 
           {/* Mobile menu */}
           <div className="lg:hidden flex items-center space-x-2">
+            <LanguageSwitcher />
             {state.isAuthenticated && <JobSeekerNotificationDropdown />}
             <Button
               variant="ghost"
@@ -249,7 +253,7 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Home className="w-4 h-4" />
-                Home
+                {t("header.home")}
               </Link>
               <Link
                 to={routes.JOB_SEARCH}
@@ -257,7 +261,7 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Briefcase className="w-4 h-4" />
-                Jobs
+                {t("header.jobs")}
               </Link>
               <Link
                 to={routes.ARTICLES}
@@ -265,7 +269,7 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <BookOpen className="w-4 h-4" />
-                Career Guide
+                {t("header.careerGuide")}
               </Link>
               <Link
                 to={routes.EMPLOYER_SEARCH}
@@ -273,7 +277,7 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Building2 className="w-4 h-4" />
-                Companies
+                {t("header.companies")}
               </Link>
               {state.isAuthenticated && (
                 <>
@@ -283,21 +287,21 @@ export default function Header() {
                     className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Profile
+                    {t("header.profile")}
                   </Link>
                   <Link
                     to={routes.MY_APPLIED_JOBS}
                     className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Applied Jobs
+                    {t("header.appliedJobs")}
                   </Link>
                   <Link
                     to={routes.MY_SAVED_JOBS}
                     className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Saved Jobs
+                    {t("header.savedJobs")}
                   </Link>
                   <button
                     className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors text-left"
@@ -306,7 +310,7 @@ export default function Header() {
                       handleSignOut();
                     }}
                   >
-                    Sign Out
+                    {t("header.signOut")}
                   </button>
                 </>
               )}
@@ -318,14 +322,14 @@ export default function Header() {
                     className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign In
+                    {t("header.signIn")}
                   </Link>
                   <Link
                     to={routes.SIGN_UP}
                     className="px-4 py-2 text-sm text-[#1967d2] hover:bg-[#1967d2] hover:text-white rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign Up
+                    {t("header.signUp")}
                   </Link>
                 </>
               )}
@@ -335,7 +339,7 @@ export default function Header() {
                 className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                For Employers
+                {t("header.forEmployers")}
               </Link>
             </nav>
           </div>

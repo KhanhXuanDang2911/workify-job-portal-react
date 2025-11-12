@@ -14,8 +14,10 @@ import { toast } from "react-toastify";
 import { routes } from "@/routes/routes.const";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useUserAuth } from "@/context/user-auth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SignIn() {
+  const { t } = useTranslation();
   const { dispatch } = useUserAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -46,11 +48,13 @@ export default function SignIn() {
         },
       });
 
-      toast.success(`Welcome ${response.data.data.fullName}!`);
+      toast.success(
+        t("auth.welcomeMessage", { name: response.data.data.fullName })
+      );
       navigate("/", { replace: true });
     },
     onError: () => {
-      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
+      toast.error(t("toast.error.signInFailed"));
     },
   });
 
@@ -76,17 +80,19 @@ export default function SignIn() {
           },
         });
 
-        toast.success(`Welcome ${response.data.data.fullName}!`);
+        toast.success(
+          t("auth.welcomeMessage", { name: response.data.data.fullName })
+        );
         navigate("/", { replace: true });
       } else if (response.data.createPasswordToken) {
-        toast.info("Vui lòng tạo mật khẩu để hoàn tất đăng ký");
+        toast.info(t("auth.createPasswordRequired"));
         navigate(
           `/${routes.CREATE_PASSWORD}?token=${response.data.createPasswordToken}`
         );
       }
     },
     onError: () => {
-      toast.error("Đăng nhập Google thất bại. Vui lòng thử lại.");
+      toast.error(t("toast.error.googleLoginFailed"));
     },
   });
 
@@ -97,14 +103,17 @@ export default function SignIn() {
     },
     onError: (error) => {
       console.error(error);
-      toast.error("Đăng nhập Google thất bại");
+      toast.error(t("toast.error.googleLoginFailed"));
     },
     flow: "auth-code",
   });
 
   const handleLinkedInLogin = useCallback(() => {
     const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
-    const redirectUri = encodeURIComponent(import.meta.env.VITE_LINKEDIN_REDIRECT_URI || "http://localhost:5173/linkedin/authenticate");
+    const redirectUri = encodeURIComponent(
+      import.meta.env.VITE_LINKEDIN_REDIRECT_URI ||
+        "http://localhost:5173/linkedin/authenticate"
+    );
     const scope = encodeURIComponent("openid profile email");
     const state = crypto.randomUUID();
 
@@ -127,9 +136,15 @@ export default function SignIn() {
           <div className="w-full max-w-md space-y-6">
             {/* Header */}
             <div className="space-y-3 text-center">
-              <p className="text-sm text-[#0A2E5C] font-medium">Welcome back!</p>
-              <h1 className="text-4xl font-bold text-[#0A2E5C]">Member Login</h1>
-              <p className="text-sm text-gray-500">Access to all features. No credit card required.</p>
+              <p className="text-sm text-[#0A2E5C] font-medium">
+                {t("auth.welcomeBack")}
+              </p>
+              <h1 className="text-4xl font-bold text-[#0A2E5C]">
+                {t("auth.memberLogin")}
+              </h1>
+              <p className="text-sm text-gray-500">
+                {t("auth.accessFeatures")}
+              </p>
             </div>
 
             {/* Social Login Buttons */}
@@ -159,8 +174,8 @@ export default function SignIn() {
                   />
                 </svg>
                 {googleLoginMutation.isPending
-                  ? "Signing in..."
-                  : "Sign in with Google"}
+                  ? t("auth.signingIn")
+                  : t("auth.signInWithGoogle")}
               </Button>
 
               <Button
@@ -168,10 +183,14 @@ export default function SignIn() {
                 onClick={handleLinkedInLogin}
                 className="w-full h-12 text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 bg-white"
               >
-                <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="#0077B5">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                <svg
+                  className="w-5 h-5 mr-3"
+                  viewBox="0 0 24 24"
+                  fill="#0077B5"
+                >
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
-                Sign in with LinkedIn
+                {t("auth.signInWithLinkedIn")}
               </Button>
             </div>
 
@@ -180,7 +199,9 @@ export default function SignIn() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">
+                  {t("auth.orContinueWith")}
+                </span>
               </div>
             </div>
 
@@ -191,19 +212,18 @@ export default function SignIn() {
                   htmlFor="email"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Username or Email address <span className="text-red-500">*</span>
+                  {t("auth.usernameOrEmail")}{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Steven Job"
+                  placeholder={t("auth.emailPlaceholder")}
                   {...register("email")}
                   className="h-12 bg-white border border-gray-300 focus-visible:border-[#0A2E5C] focus-visible:ring-1 focus-visible:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm"
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">
-                    {errors.email.message}
-                  </p>
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
                 )}
               </div>
 
@@ -212,7 +232,7 @@ export default function SignIn() {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Password <span className="text-red-500">*</span>
+                  {t("auth.password")} <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input
@@ -254,14 +274,14 @@ export default function SignIn() {
                     htmlFor="remember"
                     className="text-sm text-gray-700 cursor-pointer"
                   >
-                    Remember me
+                    {t("auth.rememberMe")}
                   </Label>
                 </div>
                 <Link
                   to="/forgot-password"
                   className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  Forgot Password
+                  {t("auth.forgotPassword")}
                 </Link>
               </div>
 
@@ -270,18 +290,20 @@ export default function SignIn() {
                 disabled={signInMutation.isPending}
                 className="w-full h-12 bg-[#0A2E5C] hover:bg-[#082040] text-white font-medium transition-all duration-200 rounded-none text-base"
               >
-                {signInMutation.isPending ? "Signing in..." : "Login"}
+                {signInMutation.isPending
+                  ? t("auth.signingIn")
+                  : t("auth.login")}
               </Button>
             </form>
 
             <div className="text-center">
               <p className="text-gray-700">
-                Don't have an Account?{" "}
+                {t("auth.dontHaveAccount")}{" "}
                 <Link
                   to={`/${routes.SIGN_UP}`}
                   className="text-[#0A2E5C] hover:text-[#082040] font-medium transition-colors"
                 >
-                  Sign up
+                  {t("auth.signUp")}
                 </Link>
               </p>
             </div>
@@ -292,40 +314,49 @@ export default function SignIn() {
         <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/3 pointer-events-none">
           <div className="relative h-full">
             {/* Large hot air balloon */}
-            <div 
+            <div
               className="absolute top-1/4 right-1/4 w-64 h-80 opacity-20"
               style={{
-                animation: 'float 6s ease-in-out infinite'
+                animation: "float 6s ease-in-out infinite",
               }}
             >
               <svg viewBox="0 0 200 240" className="w-full h-full">
                 <ellipse cx="100" cy="180" rx="80" ry="40" fill="#8B9CE8" />
-                <path d="M 100 180 L 100 220 L 90 220 L 90 200 L 110 200 L 110 220 L 100 220" fill="#8B9CE8" />
+                <path
+                  d="M 100 180 L 100 220 L 90 220 L 90 200 L 110 200 L 110 220 L 100 220"
+                  fill="#8B9CE8"
+                />
                 <ellipse cx="100" cy="100" rx="70" ry="90" fill="#8B9CE8" />
               </svg>
             </div>
             {/* Smaller balloons */}
-            <div 
+            <div
               className="absolute top-1/3 right-1/6 w-32 h-40 opacity-15"
               style={{
-                animation: 'float 8s ease-in-out infinite 1s'
+                animation: "float 8s ease-in-out infinite 1s",
               }}
             >
               <svg viewBox="0 0 160 200" className="w-full h-full">
                 <ellipse cx="80" cy="150" rx="60" ry="30" fill="#8B9CE8" />
-                <path d="M 80 150 L 80 180 L 75 180 L 75 165 L 85 165 L 85 180 L 80 180" fill="#8B9CE8" />
+                <path
+                  d="M 80 150 L 80 180 L 75 180 L 75 165 L 85 165 L 85 180 L 80 180"
+                  fill="#8B9CE8"
+                />
                 <ellipse cx="80" cy="80" rx="50" ry="70" fill="#8B9CE8" />
               </svg>
             </div>
-            <div 
+            <div
               className="absolute bottom-1/4 right-1/3 w-40 h-48 opacity-15"
               style={{
-                animation: 'float 7s ease-in-out infinite 0.5s'
+                animation: "float 7s ease-in-out infinite 0.5s",
               }}
             >
               <svg viewBox="0 0 180 220" className="w-full h-full">
                 <ellipse cx="90" cy="170" rx="70" ry="35" fill="#8B9CE8" />
-                <path d="M 90 170 L 90 200 L 85 200 L 85 180 L 95 180 L 95 200 L 90 200" fill="#8B9CE8" />
+                <path
+                  d="M 90 170 L 90 200 L 85 200 L 85 180 L 95 180 L 95 200 L 90 200"
+                  fill="#8B9CE8"
+                />
                 <ellipse cx="90" cy="90" rx="60" ry="80" fill="#8B9CE8" />
               </svg>
             </div>

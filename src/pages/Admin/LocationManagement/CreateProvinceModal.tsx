@@ -7,6 +7,7 @@ import BaseModal from "@/components/BaseModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { provinceService } from "@/services";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const createProvinceSchema = z.object({
   name: z.string().min(1, "Required"),
@@ -17,6 +18,7 @@ const createProvinceSchema = z.object({
 type CreateProvinceForm = z.infer<typeof createProvinceSchema>;
 
 export default function CreateProvinceModal() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const {
@@ -32,11 +34,11 @@ export default function CreateProvinceModal() {
   const createProvinceMutation = useMutation({
     mutationFn: provinceService.createProvince,
     onSuccess: () => {
-      toast.success("Tạo Province thành công!");
+      toast.success(t("toast.success.locationCreated"));
       queryClient.invalidateQueries({ queryKey: ["provinces"] });
     },
     onError: () => {
-      toast.error("Tạo Category Job thất bại!");
+      toast.error(t("toast.error.createLocationFailed"));
     },
   });
 
@@ -51,15 +53,24 @@ export default function CreateProvinceModal() {
 
   return (
     <BaseModal
-      title="Tạo Province mới"
-      trigger={<Button className="bg-teal-500 text-white hover:bg-teal-500">+ Add</Button>}
+      title={t("admin.createProvince")}
+      trigger={
+        <Button className="bg-teal-500 text-white hover:bg-teal-500">
+          + {t("common.create")}
+        </Button>
+      }
       footer={(onClose) => (
         <>
           <Button variant="outline" onClick={onClose}>
-            Hủy
+            {t("common.cancel")}
           </Button>
-          <Button onClick={handleSubmit((data) => onSubmit(data, onClose))} disabled={createProvinceMutation.isPending}>
-            {createProvinceMutation.isPending ? "Đang tạo..." : "Tạo mới"}
+          <Button
+            onClick={handleSubmit((data) => onSubmit(data, onClose))}
+            disabled={createProvinceMutation.isPending}
+          >
+            {createProvinceMutation.isPending
+              ? t("common.loading")
+              : t("common.create")}
           </Button>
         </>
       )}
@@ -69,22 +80,42 @@ export default function CreateProvinceModal() {
           <label className="text-sm font-medium">
             Name <span className="text-red-600">*</span>
           </label>
-          <Input {...register("name")} placeholder="Tên danh mục" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          <Input
+            {...register("name")}
+            placeholder={t("admin.provinceNamePlaceholder")}
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">
             Eng Name<span className="text-red-600">*</span>
           </label>
-          <Input {...register("engName")} placeholder="English name" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.engName && <p className="text-red-500 text-sm mt-1">{errors.engName.message}</p>}
+          <Input
+            {...register("engName")}
+            placeholder="English name"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.engName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.engName.message}
+            </p>
+          )}
         </div>
 
         <div>
           <label className="text-sm font-medium">Code</label>
-          <Input {...register("code")} placeholder="Code" className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
-          {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>}
+          <Input
+            {...register("code")}
+            placeholder="Code"
+            className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+          />
+          {errors.code && (
+            <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
+          )}
         </div>
       </form>
     </BaseModal>

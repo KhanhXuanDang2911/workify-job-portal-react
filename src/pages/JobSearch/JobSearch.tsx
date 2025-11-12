@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Search, ChevronDown, LayoutGrid, List } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import JobCard from "@/components/JobCard";
 import Pagination from "@/components/Pagination";
 import SuggestedJobs from "@/components/SuggestedJob";
@@ -23,6 +23,7 @@ import { jobService } from "@/services/job.service";
 import { industryService } from "@/services/industry.service";
 import { provinceService } from "@/services/location.service";
 import type { JobResponse } from "@/types/job.type";
+import { formatSalaryCompact } from "@/utils/formatSalary";
 import {
   JobLevel,
   JobLevelLabelVN,
@@ -34,95 +35,205 @@ import {
   EducationLevelLabelVN,
 } from "@/constants/job.constant";
 import Loading from "@/components/Loading";
+import { useTranslation } from "@/hooks/useTranslation";
+import {
+  getSearchHistory,
+  removeSearchHistoryItem,
+  clearSearchHistory,
+  saveSearchHistory,
+  type SearchHistoryItem,
+} from "@/utils/searchHistory";
+import { X, Clock } from "lucide-react";
 
 // ===================== MAPPING FUNCTIONS =====================
 
-// Map display labels to enum values
-const mapLevelToEnum = (label: string): string => {
+// Map display labels to enum values (using translation keys)
+const mapLevelToEnum = (label: string, t: (key: string) => string): string => {
   const mapping: Record<string, string> = {
-    "Thực tập": JobLevel.INTERN,
-    "Mới ra trường/Junior": JobLevel.ENTRY_LEVEL,
-    "Nhân viên": JobLevel.STAFF,
-    "Kỹ sư": JobLevel.ENGINEER,
-    "Giám sát": JobLevel.SUPERVISOR,
-    "Quản lý": JobLevel.MANAGER,
-    "Giám đốc": JobLevel.DIRECTOR,
-    "Quản lý cấp cao": JobLevel.SENIOR_MANAGER,
-    "Lãnh đạo cấp cao": JobLevel.EXECUTIVE,
+    [t("jobSearch.enums.jobLevel.INTERN")]: JobLevel.INTERN,
+    [t("jobSearch.enums.jobLevel.ENTRY_LEVEL")]: JobLevel.ENTRY_LEVEL,
+    [t("jobSearch.enums.jobLevel.STAFF")]: JobLevel.STAFF,
+    [t("jobSearch.enums.jobLevel.ENGINEER")]: JobLevel.ENGINEER,
+    [t("jobSearch.enums.jobLevel.SUPERVISOR")]: JobLevel.SUPERVISOR,
+    [t("jobSearch.enums.jobLevel.MANAGER")]: JobLevel.MANAGER,
+    [t("jobSearch.enums.jobLevel.DIRECTOR")]: JobLevel.DIRECTOR,
+    [t("jobSearch.enums.jobLevel.SENIOR_MANAGER")]: JobLevel.SENIOR_MANAGER,
+    [t("jobSearch.enums.jobLevel.EXECUTIVE")]: JobLevel.EXECUTIVE,
   };
   return mapping[label] || label;
 };
 
-const mapExperienceToEnum = (label: string): string => {
+// Reverse mapping: enum to display label
+const mapEnumToLevel = (
+  enumValue: string,
+  t: (key: string) => string
+): string => {
   const mapping: Record<string, string> = {
-    "Dưới 1 năm": ExperienceLevel.LESS_THAN_ONE_YEAR,
-    "1–2 năm": ExperienceLevel.ONE_TO_TWO_YEARS,
-    "2–5 năm": ExperienceLevel.TWO_TO_FIVE_YEARS,
-    "5–10 năm": ExperienceLevel.FIVE_TO_TEN_YEARS,
-    "Trên 10 năm": ExperienceLevel.MORE_THAN_TEN_YEARS,
+    [JobLevel.INTERN]: t("jobSearch.enums.jobLevel.INTERN"),
+    [JobLevel.ENTRY_LEVEL]: t("jobSearch.enums.jobLevel.ENTRY_LEVEL"),
+    [JobLevel.STAFF]: t("jobSearch.enums.jobLevel.STAFF"),
+    [JobLevel.ENGINEER]: t("jobSearch.enums.jobLevel.ENGINEER"),
+    [JobLevel.SUPERVISOR]: t("jobSearch.enums.jobLevel.SUPERVISOR"),
+    [JobLevel.MANAGER]: t("jobSearch.enums.jobLevel.MANAGER"),
+    [JobLevel.DIRECTOR]: t("jobSearch.enums.jobLevel.DIRECTOR"),
+    [JobLevel.SENIOR_MANAGER]: t("jobSearch.enums.jobLevel.SENIOR_MANAGER"),
+    [JobLevel.EXECUTIVE]: t("jobSearch.enums.jobLevel.EXECUTIVE"),
+  };
+  return mapping[enumValue] || enumValue;
+};
+
+const mapExperienceToEnum = (
+  label: string,
+  t: (key: string) => string
+): string => {
+  const mapping: Record<string, string> = {
+    [t("jobSearch.enums.experienceLevel.LESS_THAN_ONE_YEAR")]:
+      ExperienceLevel.LESS_THAN_ONE_YEAR,
+    [t("jobSearch.enums.experienceLevel.ONE_TO_TWO_YEARS")]:
+      ExperienceLevel.ONE_TO_TWO_YEARS,
+    [t("jobSearch.enums.experienceLevel.TWO_TO_FIVE_YEARS")]:
+      ExperienceLevel.TWO_TO_FIVE_YEARS,
+    [t("jobSearch.enums.experienceLevel.FIVE_TO_TEN_YEARS")]:
+      ExperienceLevel.FIVE_TO_TEN_YEARS,
+    [t("jobSearch.enums.experienceLevel.MORE_THAN_TEN_YEARS")]:
+      ExperienceLevel.MORE_THAN_TEN_YEARS,
   };
   return mapping[label] || label;
 };
 
-const mapEducationToEnum = (label: string): string => {
+// Reverse mapping: enum to display label
+const mapEnumToExperience = (
+  enumValue: string,
+  t: (key: string) => string
+): string => {
   const mapping: Record<string, string> = {
-    THPT: EducationLevel.HIGH_SCHOOL,
-    "Cao đẳng": EducationLevel.COLLEGE,
-    "Đại học": EducationLevel.UNIVERSITY,
-    "Sau đại học": EducationLevel.POSTGRADUATE,
-    "Thạc sĩ": EducationLevel.MASTER,
-    "Tiến sĩ": EducationLevel.DOCTORATE,
-    Khác: EducationLevel.OTHER,
+    [ExperienceLevel.LESS_THAN_ONE_YEAR]: t(
+      "jobSearch.enums.experienceLevel.LESS_THAN_ONE_YEAR"
+    ),
+    [ExperienceLevel.ONE_TO_TWO_YEARS]: t(
+      "jobSearch.enums.experienceLevel.ONE_TO_TWO_YEARS"
+    ),
+    [ExperienceLevel.TWO_TO_FIVE_YEARS]: t(
+      "jobSearch.enums.experienceLevel.TWO_TO_FIVE_YEARS"
+    ),
+    [ExperienceLevel.FIVE_TO_TEN_YEARS]: t(
+      "jobSearch.enums.experienceLevel.FIVE_TO_TEN_YEARS"
+    ),
+    [ExperienceLevel.MORE_THAN_TEN_YEARS]: t(
+      "jobSearch.enums.experienceLevel.MORE_THAN_TEN_YEARS"
+    ),
+  };
+  return mapping[enumValue] || enumValue;
+};
+
+const mapEducationToEnum = (
+  label: string,
+  t: (key: string) => string
+): string => {
+  const mapping: Record<string, string> = {
+    [t("jobSearch.enums.educationLevel.HIGH_SCHOOL")]:
+      EducationLevel.HIGH_SCHOOL,
+    [t("jobSearch.enums.educationLevel.COLLEGE")]: EducationLevel.COLLEGE,
+    [t("jobSearch.enums.educationLevel.UNIVERSITY")]: EducationLevel.UNIVERSITY,
+    [t("jobSearch.enums.educationLevel.POSTGRADUATE")]:
+      EducationLevel.POSTGRADUATE,
+    [t("jobSearch.enums.educationLevel.MASTER")]: EducationLevel.MASTER,
+    [t("jobSearch.enums.educationLevel.DOCTORATE")]: EducationLevel.DOCTORATE,
+    [t("jobSearch.enums.educationLevel.OTHER")]: EducationLevel.OTHER,
   };
   return mapping[label] || label;
 };
 
-const mapJobTypeToEnum = (label: string): string => {
+// Reverse mapping: enum to display label
+const mapEnumToEducation = (
+  enumValue: string,
+  t: (key: string) => string
+): string => {
   const mapping: Record<string, string> = {
-    "Toàn thời gian": JobType.FULL_TIME,
-    "Toàn thời gian thời vụ": JobType.TEMPORARY_FULL_TIME,
-    "Bán thời gian": JobType.PART_TIME,
-    "Bán thời gian thời vụ": JobType.TEMPORARY_PART_TIME,
-    "Hợp đồng": JobType.CONTRACT,
-    Khác: JobType.OTHER,
+    [EducationLevel.HIGH_SCHOOL]: t(
+      "jobSearch.enums.educationLevel.HIGH_SCHOOL"
+    ),
+    [EducationLevel.COLLEGE]: t("jobSearch.enums.educationLevel.COLLEGE"),
+    [EducationLevel.UNIVERSITY]: t("jobSearch.enums.educationLevel.UNIVERSITY"),
+    [EducationLevel.POSTGRADUATE]: t(
+      "jobSearch.enums.educationLevel.POSTGRADUATE"
+    ),
+    [EducationLevel.MASTER]: t("jobSearch.enums.educationLevel.MASTER"),
+    [EducationLevel.DOCTORATE]: t("jobSearch.enums.educationLevel.DOCTORATE"),
+    [EducationLevel.OTHER]: t("jobSearch.enums.educationLevel.OTHER"),
+  };
+  return mapping[enumValue] || enumValue;
+};
+
+const mapJobTypeToEnum = (
+  label: string,
+  t: (key: string) => string
+): string => {
+  const mapping: Record<string, string> = {
+    [t("jobSearch.enums.jobType.FULL_TIME")]: JobType.FULL_TIME,
+    [t("jobSearch.enums.jobType.TEMPORARY_FULL_TIME")]:
+      JobType.TEMPORARY_FULL_TIME,
+    [t("jobSearch.enums.jobType.PART_TIME")]: JobType.PART_TIME,
+    [t("jobSearch.enums.jobType.TEMPORARY_PART_TIME")]:
+      JobType.TEMPORARY_PART_TIME,
+    [t("jobSearch.enums.jobType.CONTRACT")]: JobType.CONTRACT,
+    [t("jobSearch.enums.jobType.OTHER")]: JobType.OTHER,
   };
   return mapping[label] || label;
 };
 
-const mapDatePostedToDays = (label: string): number | undefined => {
+// Reverse mapping: enum to display label
+const mapEnumToJobType = (
+  enumValue: string,
+  t: (key: string) => string
+): string => {
+  const mapping: Record<string, string> = {
+    [JobType.FULL_TIME]: t("jobSearch.enums.jobType.FULL_TIME"),
+    [JobType.TEMPORARY_FULL_TIME]: t(
+      "jobSearch.enums.jobType.TEMPORARY_FULL_TIME"
+    ),
+    [JobType.PART_TIME]: t("jobSearch.enums.jobType.PART_TIME"),
+    [JobType.TEMPORARY_PART_TIME]: t(
+      "jobSearch.enums.jobType.TEMPORARY_PART_TIME"
+    ),
+    [JobType.CONTRACT]: t("jobSearch.enums.jobType.CONTRACT"),
+    [JobType.OTHER]: t("jobSearch.enums.jobType.OTHER"),
+  };
+  return mapping[enumValue] || enumValue;
+};
+
+const mapDatePostedToDays = (
+  label: string,
+  t: (key: string) => string
+): number | undefined => {
   const mapping: Record<string, number> = {
-    "Hôm nay": 1,
-    "3 ngày qua": 3,
-    "Tuần qua": 7,
-    "2 tuần qua": 14,
-    "Tháng qua": 30,
+    [t("jobSearch.datePostedToday")]: 1,
+    [t("jobSearch.datePosted3Days")]: 3,
+    [t("jobSearch.datePostedWeek")]: 7,
+    [t("jobSearch.datePosted2Weeks")]: 14,
+    [t("jobSearch.datePostedMonth")]: 30,
   };
   return mapping[label];
 };
 
-// Format salary from JobResponse
-const formatSalary = (job: JobResponse): string => {
-  try {
-    if (job.salaryType === "RANGE") {
-      const min =
-        job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
-      const max =
-        job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
-      return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${
-        job.salaryUnit ?? ""
-      }`.trim();
-    }
-    if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
-      return `${Number(job.minSalary).toLocaleString()} ${
-        job.salaryUnit ?? ""
-      }`;
-    }
-    if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
-    if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
-    return "Thỏa thuận";
-  } catch (e) {
-    return "Thỏa thuận";
-  }
+// Reverse mapping: days to display label
+const mapDaysToDatePosted = (
+  days: number,
+  t: (key: string) => string
+): string | undefined => {
+  const mapping: Record<number, string> = {
+    1: t("jobSearch.datePostedToday"),
+    3: t("jobSearch.datePosted3Days"),
+    7: t("jobSearch.datePostedWeek"),
+    14: t("jobSearch.datePosted2Weeks"),
+    30: t("jobSearch.datePostedMonth"),
+  };
+  return mapping[days];
+};
+
+// Format salary from JobResponse (using compact format)
+const formatSalary = (job: JobResponse, t: (key: string) => string): string => {
+  return formatSalaryCompact(job, t);
 };
 
 // Map type to color
@@ -136,25 +247,28 @@ const mapTypeColor = (jobType?: string): string => {
 };
 
 // Format relative time
-const relativePosted = (createdAt?: string): string => {
-  if (!createdAt) return "";
+const relativePosted = (
+  createdAt?: string,
+  t?: (key: string, options?: any) => string
+): string => {
+  if (!createdAt || !t) return "";
   try {
     const created = new Date(createdAt);
     const diffMs = Date.now() - created.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Hôm nay";
-    if (diffDays === 1) return "1 ngày trước";
-    if (diffDays < 30) return `${diffDays} ngày trước`;
+    if (diffDays === 0) return t("jobSearch.today");
+    if (diffDays === 1) return t("jobSearch.dayAgo");
+    if (diffDays < 30) return t("jobSearch.daysAgo", { count: diffDays });
     const diffMonths = Math.floor(diffDays / 30);
-    if (diffMonths === 1) return "1 tháng trước";
-    return `${diffMonths} tháng trước`;
+    if (diffMonths === 1) return t("jobSearch.monthAgo");
+    return t("jobSearch.monthsAgo", { count: diffMonths });
   } catch (e) {
     return "";
   }
 };
 
 // Transform JobResponse to JobCard format
-const mapJobToCard = (job: JobResponse) => {
+const mapJobToCard = (job: JobResponse, t: (key: string) => string) => {
   const firstLocation =
     Array.isArray(job.jobLocations) && job.jobLocations.length > 0
       ? job.jobLocations[0]
@@ -174,12 +288,11 @@ const mapJobToCard = (job: JobResponse) => {
     title: job.jobTitle || "",
     company: job.companyName || job.author?.companyName || "",
     location: locationParts.join(", ") || "",
-    salary: formatSalary(job),
-    period: job.salaryUnit ?? "",
-    type:
-      JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+    salary: formatSalary(job, t),
+    period: "", // Không cần period vì đã có trong salary
+    type: mapEnumToJobType(job.jobType, t),
     typeColor: mapTypeColor(job.jobType),
-    posted: relativePosted(job.createdAt),
+    posted: relativePosted(job.createdAt, t),
     logo:
       job.author?.avatarUrl ||
       "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
@@ -300,60 +413,197 @@ interface JobSearchFilters {
   provinceId: string[]; // Province IDs
 }
 
+// Sort field display names mapping
+const getSortFieldLabels = (
+  t: (key: string) => string
+): Record<string, string> => ({
+  createdAt: t("jobSearch.newest"),
+  updatedAt: t("jobSearch.newlyUpdated"),
+  expirationDate: t("jobSearch.expiringSoon"),
+});
+
+// Sort order display names
+const getSortOrderLabels = (
+  t: (key: string) => string
+): Record<"asc" | "desc", string> => ({
+  asc: t("jobSearch.ascending"),
+  desc: t("jobSearch.descending"),
+});
+
 const JobSearch = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const historyDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close history dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showHistory &&
+        historyDropdownRef.current &&
+        !historyDropdownRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowHistory(false);
+      }
+    };
+
+    if (showHistory) {
+      // Delay adding listener to avoid immediate close
+      const timeoutId = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 0);
+
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showHistory]);
+
+  // Parse sorts from URL (format: "field:asc|desc")
+  const parseSortsFromUrl = (
+    sortsString: string
+  ): { field: string; direction: "asc" | "desc" } => {
+    if (!sortsString) return { field: "createdAt", direction: "desc" };
+    const [field, direction] = sortsString.split(":");
+    return {
+      field: field || "createdAt",
+      direction: (direction as "asc" | "desc") || "desc",
+    };
+  };
+
+  // Parse filters from URL params
+  const parseFiltersFromUrl = (params: URLSearchParams): JobSearchFilters => {
+    const levelParams = params.getAll("level");
+    const experienceParams = params.getAll("experience");
+    const jobTypeParams = params.getAll("jobType");
+    const datePostedParams = params.getAll("datePosted");
+    const educationParams = params.getAll("education");
+    const salaryMin = params.get("salaryMin");
+    const salaryMax = params.get("salaryMax");
+    const salaryUnit = (params.get("salaryUnit") as "VND" | "USD") || "VND";
+
+    return {
+      industry: params.getAll("industryId"),
+      provinceId: params.getAll("provinceId"),
+      level: levelParams.map((v) => mapEnumToLevel(v, t)),
+      experience: experienceParams.map((v) => mapEnumToExperience(v, t)),
+      jobType: jobTypeParams.map((v) => mapEnumToJobType(v, t)),
+      datePosted: datePostedParams,
+      education: educationParams.map((v) => mapEnumToEducation(v, t)),
+      salaryMin: salaryMin ? Number(salaryMin) : 0,
+      salaryMax: salaryMax ? Number(salaryMax) : 0,
+      salaryUnit,
+    };
+  };
 
   // Read from URL params on mount
   const keywordFromUrl = searchParams.get("keyword") || "";
-  const provinceIdFromUrl = searchParams.get("provinceId") || "";
-  const industryIdFromUrl = searchParams.get("industryId") || "";
-  const sortFromUrl = searchParams.get("sort") || "createdAt";
-  const sortOrderFromUrl =
-    (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+  const sortsFromUrl = searchParams.get("sorts") || "createdAt:desc";
   const pageFromUrl = searchParams.get("page");
+  const initialFilters = parseFiltersFromUrl(searchParams);
+  const initialSort = parseSortsFromUrl(sortsFromUrl);
 
-  // Applied filters (from URL - used for API calls)
+  // Applied filters (from URL - used for API calls) - no temp filters, auto-apply
   const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
-  const [appliedFilters, setAppliedFilters] = useState<JobSearchFilters>({
-    industry: industryIdFromUrl ? [industryIdFromUrl] : [],
-    level: [],
-    experience: [],
-    salaryMin: 0,
-    salaryMax: 0,
-    salaryUnit: "VND",
-    education: [],
-    jobType: [],
-    datePosted: [],
-    provinceId: provinceIdFromUrl ? [provinceIdFromUrl] : [],
-  });
-  const [sort, setSort] = useState<
-    "createdAt" | "updatedAt" | "expirationDate"
-  >(
-    (sortFromUrl === "updatedAt" || sortFromUrl === "expirationDate"
-      ? sortFromUrl
-      : "createdAt") as "createdAt" | "updatedAt" | "expirationDate"
-  );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(sortOrderFromUrl);
+  const [tempKeyword, setTempKeyword] = useState(keywordFromUrl); // Temp state for keyword input
+  const [appliedFilters, setAppliedFilters] =
+    useState<JobSearchFilters>(initialFilters);
+  const [appliedSort, setAppliedSort] = useState<{
+    field: string;
+    direction: "asc" | "desc";
+  }>(initialSort);
   const [currentPage, setCurrentPage] = useState(
     pageFromUrl ? Number(pageFromUrl) : 1
   );
 
-  // Temp filters (before applying - used in UI)
-  const [tempKeyword, setTempKeyword] = useState<string>(keywordFromUrl);
-  const [tempFilters, setTempFilters] = useState<JobSearchFilters>({
-    industry: industryIdFromUrl ? [industryIdFromUrl] : [],
-    level: [],
-    experience: [],
-    salaryMin: 0,
-    salaryMax: 0,
-    salaryUnit: "VND",
-    education: [],
-    jobType: [],
-    datePosted: [],
-    provinceId: provinceIdFromUrl ? [provinceIdFromUrl] : [],
-  });
+  // Temp state for salary inputs (only apply on blur/enter)
+  const [tempSalaryMin, setTempSalaryMin] = useState<string>(
+    initialFilters.salaryMin > 0 ? initialFilters.salaryMin.toString() : ""
+  );
+  const [tempSalaryMax, setTempSalaryMax] = useState<string>(
+    initialFilters.salaryMax > 0 ? initialFilters.salaryMax.toString() : ""
+  );
 
   const pageSize = 10; // Fixed page size
+
+  // Build sorts string for API (format: "field:asc|desc")
+  const sortsString = `${appliedSort.field}:${appliedSort.direction}`;
+
+  // Load search history on mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
+
+  // Refresh search history function
+  const refreshSearchHistory = () => {
+    setSearchHistory(getSearchHistory());
+  };
+
+  const handleSearch = () => {
+    setAppliedKeyword(tempKeyword); // Apply the temp keyword
+    setCurrentPage(1);
+    setShowHistory(false);
+    if (tempKeyword.trim()) {
+      const industryId =
+        appliedFilters.industry.length > 0
+          ? appliedFilters.industry[0]
+          : undefined;
+      const provinceId =
+        appliedFilters.provinceId.length > 0
+          ? appliedFilters.provinceId[0]
+          : undefined;
+      saveSearchHistory(tempKeyword.trim(), industryId, provinceId);
+      refreshSearchHistory();
+    }
+  };
+
+  const handleHistoryItemClick = (item: SearchHistoryItem) => {
+    const keyword = item.keyword || "";
+    setTempKeyword(keyword); // Update temp keyword
+    setAppliedKeyword(keyword); // Apply immediately for history items
+    const newFilters = { ...appliedFilters };
+    if (item.industryId) {
+      newFilters.industry = [item.industryId];
+    } else {
+      newFilters.industry = [];
+    }
+    if (item.provinceId) {
+      newFilters.provinceId = [item.provinceId];
+    } else {
+      newFilters.provinceId = [];
+    }
+    setAppliedFilters(newFilters);
+    setCurrentPage(1);
+    setShowHistory(false);
+    // Trigger query by updating applied filters
+  };
+
+  const handleRemoveHistoryItem = (
+    item: SearchHistoryItem,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeSearchHistoryItem(item.timestamp);
+    refreshSearchHistory();
+    // Keep history open after deleting an item
+    setShowHistory(true);
+  };
+
+  const handleClearHistory = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearSearchHistory();
+    refreshSearchHistory();
+    // Keep history open after clearing
+    setShowHistory(true);
+  };
 
   // Update URL params when applied filters change
   useEffect(() => {
@@ -375,12 +625,52 @@ const JobSearch = () => {
       });
     }
 
-    if (sort !== "createdAt") {
-      params.set("sort", sort);
+    // Set all filter params
+    if (appliedFilters.level.length > 0) {
+      appliedFilters.level.forEach((label) => {
+        params.append("level", mapLevelToEnum(label, t));
+      });
     }
 
-    if (sortOrder !== "desc") {
-      params.set("sortOrder", sortOrder);
+    if (appliedFilters.experience.length > 0) {
+      appliedFilters.experience.forEach((label) => {
+        params.append("experience", mapExperienceToEnum(label, t));
+      });
+    }
+
+    if (appliedFilters.jobType.length > 0) {
+      appliedFilters.jobType.forEach((label) => {
+        params.append("jobType", mapJobTypeToEnum(label, t));
+      });
+    }
+
+    if (appliedFilters.datePosted.length > 0) {
+      appliedFilters.datePosted.forEach((label) => {
+        params.append("datePosted", label);
+      });
+    }
+
+    if (appliedFilters.education.length > 0) {
+      appliedFilters.education.forEach((label) => {
+        params.append("education", mapEducationToEnum(label, t));
+      });
+    }
+
+    if (appliedFilters.salaryMin > 0) {
+      params.set("salaryMin", appliedFilters.salaryMin.toString());
+    }
+
+    if (appliedFilters.salaryMax > 0) {
+      params.set("salaryMax", appliedFilters.salaryMax.toString());
+    }
+
+    if (appliedFilters.salaryUnit !== "VND") {
+      params.set("salaryUnit", appliedFilters.salaryUnit);
+    }
+
+    // Set sorts param (format: "field:asc|desc")
+    if (sortsString !== "createdAt:desc") {
+      params.set("sorts", sortsString);
     }
 
     if (currentPage > 1) {
@@ -391,8 +681,7 @@ const JobSearch = () => {
   }, [
     appliedKeyword,
     appliedFilters,
-    sort,
-    sortOrder,
+    sortsString,
     currentPage,
     setSearchParams,
   ]);
@@ -400,47 +689,37 @@ const JobSearch = () => {
   // Read from URL params when URL changes (only on mount or external navigation)
   useEffect(() => {
     const keywordParam = searchParams.get("keyword") || "";
-    const provinceIdParams = searchParams.getAll("provinceId");
-    const industryIdParams = searchParams.getAll("industryId");
-    const sortParam = searchParams.get("sort") || "createdAt";
-    const sortOrderParam =
-      (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+    const sortsParam = searchParams.get("sorts") || "createdAt:desc";
     const pageParam = searchParams.get("page");
     const pageFromUrl = pageParam ? Number(pageParam) : 1;
 
+    const parsedSort = parseSortsFromUrl(sortsParam);
+    const parsedFilters = parseFiltersFromUrl(searchParams);
+
     setAppliedKeyword(keywordParam);
-    setSort(
-      (sortParam === "updatedAt" || sortParam === "expirationDate"
-        ? sortParam
-        : "createdAt") as "createdAt" | "updatedAt" | "expirationDate"
+    setTempKeyword(keywordParam); // Sync temp keyword with URL
+    setAppliedSort(parsedSort);
+    setAppliedFilters(parsedFilters);
+
+    // Update temp salary values from URL
+    setTempSalaryMin(
+      parsedFilters.salaryMin > 0 ? parsedFilters.salaryMin.toString() : ""
     );
-    setSortOrder(sortOrderParam);
+    setTempSalaryMax(
+      parsedFilters.salaryMax > 0 ? parsedFilters.salaryMax.toString() : ""
+    );
 
     // Only update currentPage if it's different from URL to avoid loop
     if (pageFromUrl !== currentPage) {
       setCurrentPage(pageFromUrl);
     }
-
-    // Update temp values
-    setTempKeyword(keywordParam);
-    setTempFilters((prev) => ({
-      ...prev,
-      provinceId: provinceIdParams,
-      industry: industryIdParams,
-    }));
-    setAppliedFilters((prev) => ({
-      ...prev,
-      provinceId: provinceIdParams,
-      industry: industryIdParams,
-    }));
   }, [searchParams]); // Remove currentPage from dependency to avoid loop
 
   // Reset to page 1 when applied filters change (but not when reading from URL)
   const prevFiltersRef = useRef({
     appliedKeyword,
     appliedFilters,
-    sort,
-    sortOrder,
+    sortsString,
   });
   useEffect(() => {
     const filtersChanged =
@@ -449,19 +728,17 @@ const JobSearch = () => {
         JSON.stringify(appliedFilters.provinceId) ||
       JSON.stringify(prevFiltersRef.current.appliedFilters.industry) !==
         JSON.stringify(appliedFilters.industry) ||
-      prevFiltersRef.current.sort !== sort ||
-      prevFiltersRef.current.sortOrder !== sortOrder;
+      prevFiltersRef.current.sortsString !== sortsString;
 
     if (filtersChanged) {
       setCurrentPage(1);
       prevFiltersRef.current = {
         appliedKeyword,
         appliedFilters,
-        sort,
-        sortOrder,
+        sortsString,
       };
     }
-  }, [appliedKeyword, appliedFilters, sort, sortOrder]);
+  }, [appliedKeyword, appliedFilters, sortsString]);
 
   // Load industries and provinces
   const { data: industriesResponse } = useQuery({
@@ -500,26 +777,31 @@ const JobSearch = () => {
     }
 
     if (appliedFilters.level.length > 0) {
-      params.jobLevels = appliedFilters.level.map(mapLevelToEnum);
+      params.jobLevels = appliedFilters.level.map((v) => mapLevelToEnum(v, t));
     }
 
     if (appliedFilters.experience.length > 0) {
-      params.experienceLevels =
-        appliedFilters.experience.map(mapExperienceToEnum);
+      params.experienceLevels = appliedFilters.experience.map((v) =>
+        mapExperienceToEnum(v, t)
+      );
     }
 
     if (appliedFilters.education.length > 0) {
-      params.educationLevels = appliedFilters.education.map(mapEducationToEnum);
+      params.educationLevels = appliedFilters.education.map((v) =>
+        mapEducationToEnum(v, t)
+      );
     }
 
     if (appliedFilters.jobType.length > 0) {
-      params.jobTypes = appliedFilters.jobType.map(mapJobTypeToEnum);
+      params.jobTypes = appliedFilters.jobType.map((v) =>
+        mapJobTypeToEnum(v, t)
+      );
     }
 
     if (appliedFilters.datePosted.length > 0) {
       // Use the minimum days (most recent)
       const days = appliedFilters.datePosted
-        .map(mapDatePostedToDays)
+        .map((v) => mapDatePostedToDays(v, t))
         .filter((d): d is number => d !== undefined);
       if (days.length > 0) {
         params.postedWithinDays = Math.min(...days);
@@ -538,10 +820,10 @@ const JobSearch = () => {
     }
 
     // Format sort with order: createdAt:desc
-    params.sort = `${sort}:${sortOrder}`;
+    params.sort = sortsString;
 
     return params;
-  }, [appliedKeyword, appliedFilters, sort, sortOrder, currentPage, pageSize]);
+  }, [appliedKeyword, appliedFilters, sortsString, currentPage, pageSize]);
 
   // Fetch jobs
   const {
@@ -557,8 +839,8 @@ const JobSearch = () => {
 
   const jobs = useMemo(() => {
     if (!jobsResponse?.data?.items) return [];
-    return jobsResponse.data.items.map(mapJobToCard);
-  }, [jobsResponse]);
+    return jobsResponse.data.items.map((job) => mapJobToCard(job, t));
+  }, [jobsResponse, t]);
 
   const totalPages = jobsResponse?.data?.totalPages || 0;
   // Calculate total jobs: if on last page, use actual count, otherwise estimate
@@ -595,28 +877,15 @@ const JobSearch = () => {
         id: job.id,
         title: job.jobTitle || "",
         company: job.companyName || job.author?.companyName || "",
-        salary: formatSalary(job),
-        type:
-          JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
-          job.jobType,
+        salary: formatSalary(job, t),
+        type: mapEnumToJobType(job.jobType, t),
         typeColor: mapTypeColor(job.jobType),
         logo:
           job.author?.avatarUrl ||
           "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
       };
     });
-  }, [topAttractiveResponse]);
-
-  const handleSearch = () => {
-    setAppliedKeyword(tempKeyword);
-    setCurrentPage(1);
-  };
-
-  const handleApplyFilters = () => {
-    setAppliedKeyword(tempKeyword);
-    setAppliedFilters(tempFilters);
-    setCurrentPage(1);
-  };
+  }, [topAttractiveResponse, t]);
 
   const handleClearFilters = () => {
     const emptyFilters: JobSearchFilters = {
@@ -631,15 +900,15 @@ const JobSearch = () => {
       datePosted: [],
       provinceId: [],
     };
-    setTempKeyword("");
-    setTempFilters(emptyFilters);
     setAppliedKeyword("");
     setAppliedFilters(emptyFilters);
-    setSort("createdAt");
-    setSortOrder("desc");
+    setAppliedSort({ field: "createdAt", direction: "desc" });
+    setTempSalaryMin("");
+    setTempSalaryMax("");
     setCurrentPage(1);
   };
 
+  // Auto-apply filters when changed
   const handleCheckboxChange = (
     category: keyof Pick<
       JobSearchFilters,
@@ -648,15 +917,16 @@ const JobSearch = () => {
     value: string,
     checked: boolean
   ) => {
-    const currentValues = tempFilters[category] as string[];
+    const currentValues = appliedFilters[category] as string[];
     const newValues = checked
       ? [...currentValues, value]
       : currentValues.filter((item) => item !== value);
 
-    setTempFilters({
-      ...tempFilters,
+    setAppliedFilters({
+      ...appliedFilters,
       [category]: newValues,
     });
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -664,68 +934,100 @@ const JobSearch = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Multi-select handlers
+  // Multi-select handlers - auto-apply
   const handleProvinceToggle = (provinceId: string) => {
-    const isSelected = tempFilters.provinceId.includes(provinceId);
+    const isSelected = appliedFilters.provinceId.includes(provinceId);
     if (isSelected) {
-      setTempFilters({
-        ...tempFilters,
-        provinceId: tempFilters.provinceId.filter((id) => id !== provinceId),
+      setAppliedFilters({
+        ...appliedFilters,
+        provinceId: appliedFilters.provinceId.filter((id) => id !== provinceId),
       });
     } else {
-      setTempFilters({
-        ...tempFilters,
-        provinceId: [...tempFilters.provinceId, provinceId],
+      setAppliedFilters({
+        ...appliedFilters,
+        provinceId: [...appliedFilters.provinceId, provinceId],
       });
     }
+    setCurrentPage(1);
   };
 
   const handleIndustryToggle = (industryId: string) => {
-    const isSelected = tempFilters.industry.includes(industryId);
+    const isSelected = appliedFilters.industry.includes(industryId);
     if (isSelected) {
-      setTempFilters({
-        ...tempFilters,
-        industry: tempFilters.industry.filter((id) => id !== industryId),
+      setAppliedFilters({
+        ...appliedFilters,
+        industry: appliedFilters.industry.filter((id) => id !== industryId),
       });
     } else {
-      setTempFilters({
-        ...tempFilters,
-        industry: [...tempFilters.industry, industryId],
+      setAppliedFilters({
+        ...appliedFilters,
+        industry: [...appliedFilters.industry, industryId],
       });
     }
+    setCurrentPage(1);
+  };
+
+  // Auto-apply sort when changed - auto-set direction based on field
+  const handleSortFieldChange = (field: string) => {
+    // Auto-set direction based on field type
+    let direction: "asc" | "desc" = "desc";
+    if (field === "expirationDate") {
+      direction = "asc"; // Sắp hết hạn = gần nhất = asc
+    } else if (field === "createdAt" || field === "updatedAt") {
+      direction = "desc"; // Mới nhất/Mới cập nhật = desc
+    }
+    setAppliedSort({ field, direction });
+    setCurrentPage(1);
+  };
+
+  // Apply salary filter when user finishes typing (onBlur or Enter)
+  const applySalaryFilter = () => {
+    const min = tempSalaryMin ? Math.max(0, parseFloat(tempSalaryMin) || 0) : 0;
+    const max = tempSalaryMax ? Math.max(0, parseFloat(tempSalaryMax) || 0) : 0;
+    setAppliedFilters({
+      ...appliedFilters,
+      salaryMin: min,
+      salaryMax: max,
+    });
+    setCurrentPage(1);
+  };
+
+  // Handle salary unit change (immediate apply)
+  const handleSalaryUnitChange = (unit: "VND" | "USD") => {
+    setAppliedFilters({
+      ...appliedFilters,
+      salaryUnit: unit,
+    });
+    setCurrentPage(1);
   };
 
   // Filter options
-  const levelOptions = Object.entries(JobLevelLabelVN).map(([key, label]) => ({
-    value: label,
+  const levelOptions = Object.values(JobLevel).map((key) => ({
+    value: mapEnumToLevel(key, t),
     key,
   }));
 
-  const experienceOptions = Object.entries(ExperienceLevelLabelVN).map(
-    ([key, label]) => ({
-      value: label,
-      key,
-    })
-  );
+  const experienceOptions = Object.values(ExperienceLevel).map((key) => ({
+    value: mapEnumToExperience(key, t),
+    key,
+  }));
 
-  const educationOptions = Object.entries(EducationLevelLabelVN).map(
-    ([key, label]) => ({
-      value: label,
-      key,
-    })
-  );
+  const educationOptions = Object.values(EducationLevel).map((key) => ({
+    value: mapEnumToEducation(key, t),
+    key,
+  }));
 
-  const jobTypeOptions = Object.entries(JobTypeLabelVN).map(([key, label]) => ({
-    value: label,
+  const jobTypeOptions = Object.values(JobType).map((key) => ({
+    value: mapEnumToJobType(key, t),
     key,
   }));
 
   const datePostedOptions = [
-    { value: "Hôm nay", days: 1 },
-    { value: "3 ngày qua", days: 3 },
-    { value: "Tuần qua", days: 7 },
-    { value: "2 tuần qua", days: 14 },
-    { value: "Tháng qua", days: 30 },
+    { value: t("jobSearch.datePostedToday"), days: 1 },
+    { value: t("jobSearch.datePosted3Days"), days: 3 },
+    { value: t("jobSearch.datePostedWeek"), days: 7 },
+    { value: t("jobSearch.datePosted2Weeks"), days: 14 },
+    { value: t("jobSearch.datePostedMonth"), days: 30 },
   ];
 
   return (
@@ -750,14 +1052,20 @@ const JobSearch = () => {
           </h1>
         </div>
       </div> */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 overflow-hidden py-12 border-b border-gray-200">
+      <div
+        className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 border-b border-gray-200"
+        style={{ overflow: "visible" }}
+      >
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-5 left-10 w-24 h-24 bg-blue-200/20 rounded-full blur-2xl"></div>
           <div className="absolute bottom-5 right-10 w-32 h-32 bg-indigo-200/20 rounded-full blur-2xl"></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4">
+        <div
+          className="relative max-w-7xl mx-auto px-4"
+          style={{ overflow: "visible" }}
+        >
           <div className="flex items-center justify-between gap-12">
             {/* Left Illustration */}
             <div className="hidden lg:block flex-shrink-0 w-52">
@@ -769,26 +1077,34 @@ const JobSearch = () => {
             </div>
 
             {/* Center Content */}
-            <div className="flex-1">
+            <div className="flex-1" style={{ overflow: "visible" }}>
               <div className="text-center mb-6">
                 <h1 className="text-3xl md:text-4xl font-bold mb-3">
-                  <span className="text-blue-600">{totalJobs || 22} Jobs</span>{" "}
-                  <span className="text-gray-800">Available Now</span>
+                  <span className="text-blue-600">
+                    {t("jobSearch.heroTitle", { count: totalJobs || 22 })}
+                  </span>
                 </h1>
                 <p className="text-gray-600 max-w-2xl mx-auto">
-                  Tiếp cận hàng nghìn tin tuyển dụng việc làm mỗi ngày từ các
-                  doanh nghiệp uy tín tại Việt Nam
+                  {t("jobSearch.heroDescription")}
                 </p>
               </div>
 
               {/* Search Input */}
-              <div className="bg-white rounded-xl shadow-lg p-4 flex gap-3 items-center max-w-4xl mx-auto">
+              <div
+                className="bg-white rounded-xl shadow-lg p-4 flex gap-3 items-center max-w-4xl mx-auto relative"
+                style={{ zIndex: 50 }}
+              >
                 {/* Keyword Input */}
-                <div className="flex-1 relative">
+                <div className="flex-1 relative" style={{ zIndex: 60 }}>
                   <Input
-                    placeholder="Your keyword..."
+                    ref={searchInputRef}
+                    placeholder={t("jobSearch.keywordPlaceholder")}
                     value={tempKeyword}
-                    onChange={(e) => setTempKeyword(e.target.value)}
+                    onChange={(e) => {
+                      setTempKeyword(e.target.value);
+                      setShowHistory(true);
+                    }}
+                    onFocus={() => setShowHistory(true)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         handleSearch();
@@ -796,15 +1112,75 @@ const JobSearch = () => {
                     }}
                     className="h-12 pl-10 border-gray-200"
                   />
-                  <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+
+                  {/* Search History Dropdown */}
+                  {showHistory && (
+                    <div
+                      ref={historyDropdownRef}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-80 overflow-y-auto"
+                      style={{ zIndex: 100 }}
+                    >
+                      {searchHistory.length > 0 ? (
+                        <>
+                          <div className="p-2 border-b border-gray-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock className="w-4 h-4" />
+                              <span>{t("jobSearch.searchHistory.title")}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleClearHistory}
+                              className="h-7 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 relative z-10 cursor-pointer"
+                              type="button"
+                            >
+                              {t("jobSearch.searchHistory.clearAll")}
+                            </Button>
+                          </div>
+                          <div className="py-1">
+                            {searchHistory.map((item) => (
+                              <div
+                                key={item.timestamp}
+                                onClick={() => handleHistoryItemClick(item)}
+                                className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between group"
+                              >
+                                <div className="flex-1 min-w-0 cursor-pointer">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {item.keyword}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveHistoryItem(item, e);
+                                  }}
+                                  className="opacity-70 group-hover:opacity-100 transition-all p-1 hover:bg-red-100 rounded cursor-pointer flex-shrink-0 relative z-10"
+                                  title={t("jobSearch.searchHistory.delete")}
+                                  type="button"
+                                >
+                                  <X className="w-4 h-4 text-gray-500 hover:text-red-600 transition-colors pointer-events-none" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="p-4 text-center text-sm text-gray-500">
+                          {t("jobSearch.searchHistory.noHistory")}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Search Button */}
                 <Button
+                  type="button"
                   onClick={handleSearch}
-                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 w-12 p-0 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 w-12 p-0 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 flex-shrink-0"
                 >
-                  <Search className="w-5 h-5" />
+                  <Search className="w-5 h-5 pointer-events-none" />
                 </Button>
               </div>
             </div>
@@ -822,7 +1198,7 @@ const JobSearch = () => {
       </div>
 
       {/* Search + Filters + Content */}
-      <div className="main-layout relative z-10 pt-20 pb-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <div className="main-layout relative z-10 pt-20 pb-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen overflow-visible">
         <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
           {/* Sidebar Filters */}
           <div className="lg:col-span-2">
@@ -830,7 +1206,7 @@ const JobSearch = () => {
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-200">
                   <h2 className="text-base font-semibold text-gray-900">
-                    Advance Filter
+                    {t("jobSearch.advanceFilter")}
                   </h2>
                   <Button
                     onClick={handleClearFilters}
@@ -838,23 +1214,23 @@ const JobSearch = () => {
                     size="sm"
                     className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-sm px-2 py-1 h-auto"
                   >
-                    Reset
+                    {t("jobSearch.reset")}
                   </Button>
                 </div>
                 <div className="space-y-4">
                   {/* Location Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Location
+                      {t("jobSearch.location")}
                     </h3>
                     <MultiSelectDropdown
                       options={provinces.map((p) => ({
                         id: p.id.toString(),
                         name: p.name,
                       }))}
-                      selectedIds={tempFilters.provinceId}
+                      selectedIds={appliedFilters.provinceId}
                       onToggle={handleProvinceToggle}
-                      placeholder="Chọn địa điểm"
+                      placeholder={t("jobSearch.selectLocation")}
                     />
                     <Separator className="my-4" />
                   </div>
@@ -862,16 +1238,16 @@ const JobSearch = () => {
                   {/* Industry Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Industry
+                      {t("jobSearch.industry")}
                     </h3>
                     <MultiSelectDropdown
                       options={industries.map((i) => ({
                         id: i.id.toString(),
                         name: i.name,
                       }))}
-                      selectedIds={tempFilters.industry}
+                      selectedIds={appliedFilters.industry}
                       onToggle={handleIndustryToggle}
-                      placeholder="Chọn ngành nghề"
+                      placeholder={t("jobSearch.selectIndustry")}
                     />
                     <Separator className="my-4" />
                   </div>
@@ -879,7 +1255,7 @@ const JobSearch = () => {
                   {/* Level Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Position
+                      {t("jobSearch.position")}
                     </h3>
                     <div className="space-y-3">
                       {levelOptions.map((option) => (
@@ -889,7 +1265,9 @@ const JobSearch = () => {
                         >
                           <Checkbox
                             id={`level-${option.key}`}
-                            checked={tempFilters.level.includes(option.value)}
+                            checked={appliedFilters.level.includes(
+                              option.value
+                            )}
                             onCheckedChange={(checked) =>
                               handleCheckboxChange(
                                 "level",
@@ -913,7 +1291,7 @@ const JobSearch = () => {
                   {/* Experience Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Experience Level
+                      {t("jobSearch.experienceLevel")}
                     </h3>
                     <div className="space-y-3">
                       {experienceOptions.map((option) => (
@@ -923,7 +1301,7 @@ const JobSearch = () => {
                         >
                           <Checkbox
                             id={`experience-${option.key}`}
-                            checked={tempFilters.experience.includes(
+                            checked={appliedFilters.experience.includes(
                               option.value
                             )}
                             onCheckedChange={(checked) =>
@@ -949,7 +1327,7 @@ const JobSearch = () => {
                   {/* Salary Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Salary Range
+                      {t("jobSearch.salaryRange")}
                     </h3>
                     <div className="space-y-2">
                       <div className="flex items-center gap-4">
@@ -958,22 +1336,20 @@ const JobSearch = () => {
                             htmlFor="min-salary"
                             className="text-xs text-gray-600 uppercase"
                           >
-                            MIN
+                            {t("jobSearch.min")}
                           </Label>
                           <div className="relative">
                             <Input
                               id="min-salary"
                               type="number"
-                              value={tempFilters.salaryMin || ""}
-                              onChange={(e) =>
-                                setTempFilters({
-                                  ...tempFilters,
-                                  salaryMin: Math.max(
-                                    0,
-                                    parseFloat(e.target.value) || 0
-                                  ),
-                                })
-                              }
+                              value={tempSalaryMin}
+                              onChange={(e) => setTempSalaryMin(e.target.value)}
+                              onBlur={applySalaryFilter}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.currentTarget.blur();
+                                }
+                              }}
                               className="text-sm"
                               min="0"
                               step="0.01"
@@ -989,22 +1365,20 @@ const JobSearch = () => {
                             htmlFor="max-salary"
                             className="text-xs text-gray-600 uppercase"
                           >
-                            MAX
+                            {t("jobSearch.max")}
                           </Label>
                           <div className="relative">
                             <Input
                               id="max-salary"
                               type="number"
-                              value={tempFilters.salaryMax || ""}
-                              onChange={(e) =>
-                                setTempFilters({
-                                  ...tempFilters,
-                                  salaryMax: Math.max(
-                                    0,
-                                    parseFloat(e.target.value) || 0
-                                  ),
-                                })
-                              }
+                              value={tempSalaryMax}
+                              onChange={(e) => setTempSalaryMax(e.target.value)}
+                              onBlur={applySalaryFilter}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.currentTarget.blur();
+                                }
+                              }}
                               className="text-sm"
                               min="0"
                               step="0.01"
@@ -1018,15 +1392,12 @@ const JobSearch = () => {
                           htmlFor="salary-unit"
                           className="text-xs text-gray-600 uppercase mb-1 block"
                         >
-                          Đơn vị
+                          {t("jobSearch.unit")}
                         </Label>
                         <Select
-                          value={tempFilters.salaryUnit}
+                          value={appliedFilters.salaryUnit}
                           onValueChange={(value) =>
-                            setTempFilters({
-                              ...tempFilters,
-                              salaryUnit: value as "VND" | "USD",
-                            })
+                            handleSalaryUnitChange(value as "VND" | "USD")
                           }
                         >
                           <SelectTrigger className="w-full">
@@ -1034,9 +1405,11 @@ const JobSearch = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="VND">
-                              Việt Nam Đồng (VND)
+                              {t("jobSearch.salaryUnitVND")}
                             </SelectItem>
-                            <SelectItem value="USD">Đô la Mỹ (USD)</SelectItem>
+                            <SelectItem value="USD">
+                              {t("jobSearch.salaryUnitUSD")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1047,7 +1420,7 @@ const JobSearch = () => {
                   {/* Education Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Education
+                      {t("jobSearch.education")}
                     </h3>
                     <div className="space-y-3">
                       {educationOptions.map((option) => (
@@ -1057,7 +1430,7 @@ const JobSearch = () => {
                         >
                           <Checkbox
                             id={`education-${option.key}`}
-                            checked={tempFilters.education.includes(
+                            checked={appliedFilters.education.includes(
                               option.value
                             )}
                             onCheckedChange={(checked) =>
@@ -1083,7 +1456,7 @@ const JobSearch = () => {
                   {/* Job Type Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Onsite/Remote
+                      {t("jobSearch.jobType")}
                     </h3>
                     <div className="space-y-3">
                       {jobTypeOptions.map((option) => (
@@ -1093,7 +1466,9 @@ const JobSearch = () => {
                         >
                           <Checkbox
                             id={`jobType-${option.key}`}
-                            checked={tempFilters.jobType.includes(option.value)}
+                            checked={appliedFilters.jobType.includes(
+                              option.value
+                            )}
                             onCheckedChange={(checked) =>
                               handleCheckboxChange(
                                 "jobType",
@@ -1117,7 +1492,7 @@ const JobSearch = () => {
                   {/* Date Posted Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
-                      Job Posted
+                      {t("jobSearch.datePosted")}
                     </h3>
                     <div className="space-y-3">
                       {datePostedOptions.map((option) => (
@@ -1127,7 +1502,7 @@ const JobSearch = () => {
                         >
                           <Checkbox
                             id={`date-${option.value}`}
-                            checked={tempFilters.datePosted.includes(
+                            checked={appliedFilters.datePosted.includes(
                               option.value
                             )}
                             onCheckedChange={(checked) =>
@@ -1150,14 +1525,31 @@ const JobSearch = () => {
                     <Separator className="my-4" />
                   </div>
 
-                  {/* Action Button */}
-                  <div className="pt-4">
-                    <Button
-                      onClick={handleApplyFilters}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-all duration-300"
+                  {/* Sort Filter */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-[#1a1f36] text-base">
+                      {t("jobSearch.sortBy")}
+                    </h3>
+                    <Select
+                      value={appliedSort.field}
+                      onValueChange={handleSortFieldChange}
                     >
-                      Apply Filters
-                    </Button>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t("jobSearch.sortBy")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="createdAt">
+                          {getSortFieldLabels(t).createdAt}
+                        </SelectItem>
+                        <SelectItem value="updatedAt">
+                          {getSortFieldLabels(t).updatedAt}
+                        </SelectItem>
+                        <SelectItem value="expirationDate">
+                          {getSortFieldLabels(t).expirationDate}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Separator className="my-4" />
                   </div>
                 </div>
               </div>
@@ -1169,62 +1561,17 @@ const JobSearch = () => {
             {/* Results Header */}
             <Card className="bg-white shadow-sm border border-gray-200 p-4 mb-4">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  {totalJobs > 0 ? (
-                    <span className="font-normal">
-                      Showing:{" "}
-                      <span className="font-semibold text-blue-600">
-                        {(currentPage - 1) * pageSize + 1}
-                      </span>{" "}
-                      -{" "}
-                      <span className="font-semibold">
-                        {(currentPage - 1) * pageSize + jobs.length}
-                      </span>{" "}
-                      of <span className="font-semibold">{totalJobs}</span> jobs
+                <div className="text-sm text-gray-600">
+                  {!isLoading && totalJobs > 0 && (
+                    <span className="font-medium">
+                      {t("jobSearch.showingJobsCount", { count: totalJobs })}
                     </span>
-                  ) : (
-                    <span className="font-normal">No jobs found</span>
                   )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600">Sort by:</span>
-                  <Select
-                    value={sort}
-                    onValueChange={(value) => {
-                      setSort(
-                        value as "createdAt" | "updatedAt" | "expirationDate"
-                      );
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-40 h-9 border-gray-300">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="createdAt">Newest Post</SelectItem>
-                      <SelectItem value="updatedAt">Mới cập nhật</SelectItem>
-                      <SelectItem value="expirationDate">
-                        Sắp hết hạn
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="flex items-center gap-1 ml-2 border border-gray-300 rounded-md">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 hover:bg-gray-100"
-                    >
-                      <LayoutGrid className="w-4 h-4 text-gray-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100"
-                    >
-                      <List className="w-4 h-4 text-blue-600" />
-                    </Button>
-                  </div>
+                  {!isLoading && totalJobs === 0 && (
+                    <span className="font-normal">
+                      {t("jobSearch.noJobsFound")}
+                    </span>
+                  )}
                 </div>
               </div>
             </Card>
@@ -1241,11 +1588,11 @@ const JobSearch = () => {
               <div className="text-center py-12">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
                   <p className="text-red-800 font-medium mb-2">
-                    Lỗi tải việc làm
+                    {t("jobSearch.loadJobsError")}
                   </p>
                   <p className="text-red-600 text-sm">
                     {(error as any)?.message ||
-                      "Không thể tải dữ liệu việc làm"}
+                      t("jobSearch.loadJobsDataError")}
                   </p>
                 </div>
               </div>
@@ -1274,8 +1621,7 @@ const JobSearch = () => {
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-600">
-                      Không tìm thấy việc làm nào. Hãy thử điều chỉnh tìm kiếm
-                      hoặc bộ lọc.
+                      {t("jobSearch.noJobsFoundMessage")}
                     </p>
                   </div>
                 )}

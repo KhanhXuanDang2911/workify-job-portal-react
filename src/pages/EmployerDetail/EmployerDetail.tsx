@@ -16,13 +16,16 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { employerService } from "@/services/employer.service";
 import { jobService } from "@/services/job.service";
-import { CompanySizeLabelVN, JobTypeLabelVN } from "@/constants";
+import { CompanySizeLabel, JobTypeLabelVN } from "@/constants";
 import Loading from "@/components/Loading";
 import JobCard from "@/components/JobCard";
 import Pagination from "@/components/Pagination";
 import type { JobResponse } from "@/types/job.type";
+import { useTranslation } from "@/hooks/useTranslation";
+import { formatSalaryCompact } from "@/utils/formatSalary";
 
 export default function EmployerDetail() {
+  const { t, currentLanguage } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
@@ -44,12 +47,10 @@ export default function EmployerDetail() {
   const employer = employerResponse?.data;
 
   // Fetch jobs by employer id
-  const {
-    data: jobsResponse,
-    isLoading: isLoadingJobs,
-  } = useQuery({
+  const { data: jobsResponse, isLoading: isLoadingJobs } = useQuery({
     queryKey: ["employer-jobs", id, currentPage, jobsPerPage],
-    queryFn: () => jobService.getJobsByEmployerId(Number(id), currentPage, jobsPerPage),
+    queryFn: () =>
+      jobService.getJobsByEmployerId(Number(id), currentPage, jobsPerPage),
     enabled: !!id && !isNaN(Number(id)) && !!employer,
     staleTime: 5 * 60 * 1000,
   });
@@ -60,7 +61,10 @@ export default function EmployerDetail() {
   // Scroll to Available Jobs section when page changes
   useEffect(() => {
     if (currentPage > 1 && availableJobsRef.current) {
-      availableJobsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      availableJobsRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [currentPage]);
 
@@ -69,7 +73,10 @@ export default function EmployerDetail() {
     setCurrentPage(page);
     if (availableJobsRef.current) {
       setTimeout(() => {
-        availableJobsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        availableJobsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     }
   };
@@ -82,13 +89,13 @@ export default function EmployerDetail() {
       employer.district?.name,
       employer.province?.name,
     ].filter(Boolean);
-    return parts.join(", ") || "Chưa cập nhật";
+    return parts.join(", ") || t("employerDetail.notUpdated");
   };
 
   // Build Google Maps URL for iframe
   const buildGoogleMapsUrl = () => {
     const address = buildFullAddress();
-    if (!address || address === "Chưa cập nhật") {
+    if (!address || address === t("employerDetail.notUpdated")) {
       return "https://maps.google.com/maps?width=100%25&height=400&hl=en&q=Vietnam&t=&z=6&ie=UTF8&iwloc=B&output=embed";
     }
     const encodedAddress = encodeURIComponent(address);
@@ -97,8 +104,12 @@ export default function EmployerDetail() {
 
   // Get company size label
   const getCompanySizeLabel = () => {
-    if (!employer?.companySize) return "Chưa cập nhật";
-    return CompanySizeLabelVN[employer.companySize as keyof typeof CompanySizeLabelVN] || employer.companySize;
+    if (!employer?.companySize) return t("employerDetail.notUpdated");
+    return (
+      CompanySizeLabel[currentLanguage][
+        employer.companySize as keyof (typeof CompanySizeLabel)["vi"]
+      ] || employer.companySize
+    );
   };
 
   // Parse websiteUrls (can be array or string)
@@ -117,29 +128,16 @@ export default function EmployerDetail() {
   const sortedJobs = useMemo(() => {
     const jobsList = jobsResponse?.data?.items || [];
 
-    // Format salary from JobResponse
+    // Format salary from JobResponse (using compact format)
     const formatSalary = (job: JobResponse): string => {
-      try {
-        if (job.salaryType === "RANGE") {
-          const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
-          const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
-          return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
-        }
-        if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
-          return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
-        }
-        if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
-        if (job.salaryType === "COMPETITIVE") return "Cạnh tranh";
-        return "Thỏa thuận";
-      } catch (e) {
-        return "Thỏa thuận";
-      }
+      return formatSalaryCompact(job, t);
     };
 
     // Map type to color
     const mapTypeColor = (jobType?: string): string => {
       if (!jobType) return "bg-gray-400";
-      if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+      if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
+        return "bg-green-500";
       if (jobType.includes("PART")) return "bg-orange-500";
       if (jobType.includes("CONTRACT")) return "bg-purple-500";
       return "bg-blue-500";
@@ -152,20 +150,20 @@ export default function EmployerDetail() {
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) return "Hôm nay";
-        if (diffDays === 1) return "1 ngày trước";
-        if (diffDays < 7) return `${diffDays} ngày trước`;
+
+        if (diffDays === 0) return t("featuredJobs.today");
+        if (diffDays === 1) return t("featuredJobs.dayAgo", { count: 1 });
+        if (diffDays < 7) return t("featuredJobs.daysAgo", { count: diffDays });
         if (diffDays < 30) {
           const weeks = Math.floor(diffDays / 7);
-          return `${weeks} ${weeks === 1 ? "tuần" : "tuần"} trước`;
+          return t("featuredJobs.weeksAgo", { count: weeks });
         }
         if (diffDays < 365) {
           const months = Math.floor(diffDays / 30);
-          return `${months} ${months === 1 ? "tháng" : "tháng"} trước`;
+          return t("featuredJobs.monthsAgo", { count: months });
         }
         const years = Math.floor(diffDays / 365);
-        return `${years} ${years === 1 ? "năm" : "năm"} trước`;
+        return t("featuredJobs.yearsAgo", { count: years });
       } catch (e) {
         return "";
       }
@@ -173,12 +171,18 @@ export default function EmployerDetail() {
 
     // Transform JobResponse to JobCard format
     const mapJobToCard = (job: JobResponse) => {
-      const firstLocation = Array.isArray(job.jobLocations) && job.jobLocations.length > 0 ? job.jobLocations[0] : null;
+      const firstLocation =
+        Array.isArray(job.jobLocations) && job.jobLocations.length > 0
+          ? job.jobLocations[0]
+          : null;
       const locationParts: string[] = [];
       if (firstLocation) {
-        if (firstLocation.province?.name) locationParts.push(firstLocation.province.name);
-        if (firstLocation.district?.name) locationParts.push(firstLocation.district.name);
-        if (firstLocation.detailAddress) locationParts.push(firstLocation.detailAddress);
+        if (firstLocation.province?.name)
+          locationParts.push(firstLocation.province.name);
+        if (firstLocation.district?.name)
+          locationParts.push(firstLocation.district.name);
+        if (firstLocation.detailAddress)
+          locationParts.push(firstLocation.detailAddress);
       }
 
       return {
@@ -187,25 +191,32 @@ export default function EmployerDetail() {
         company: job.companyName || job.author?.companyName || "",
         location: locationParts.join(", ") || "",
         salary: formatSalary(job),
-        period: job.salaryUnit ?? "",
-        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        period: "", // Không cần period vì đã có trong salary
+        type:
+          JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
+          job.jobType,
         typeColor: mapTypeColor(job.jobType),
         posted: relativePosted(job.createdAt),
-        logo: job.author?.avatarUrl || employer?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        logo:
+          job.author?.avatarUrl ||
+          employer?.avatarUrl ||
+          "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
         companyWebsite: job.companyWebsite,
       };
     };
 
     const mapped = jobsList.map(mapJobToCard);
     return mapped.sort((a, b) => {
-      const jobA = jobsList.find(j => j.id === a.id);
-      const jobB = jobsList.find(j => j.id === b.id);
+      const jobA = jobsList.find((j) => j.id === a.id);
+      const jobB = jobsList.find((j) => j.id === b.id);
       if (!jobA || !jobB) return 0;
-      
+
       // Sort by updatedAt (most recent first)
-      return new Date(jobB.updatedAt).getTime() - new Date(jobA.updatedAt).getTime();
+      return (
+        new Date(jobB.updatedAt).getTime() - new Date(jobA.updatedAt).getTime()
+      );
     });
-  }, [jobsResponse?.data?.items, employer]);
+  }, [jobsResponse?.data?.items, employer, t]);
 
   // Loading state
   if (isLoading) {
@@ -218,25 +229,27 @@ export default function EmployerDetail() {
 
   // Error state
   if (isError || !employer) {
-    let errorMessage = "Không thể tải thông tin nhà tuyển dụng. Vui lòng thử lại sau.";
-    
+    let errorMessage = t("employerDetail.loadError");
+
     if (error && typeof error === "object" && "response" in error) {
       const errorResponse = error.response as { data?: { message?: string } };
       if (errorResponse?.data?.message) {
         errorMessage = errorResponse.data.message;
       }
     } else if (!employer && !isError) {
-      errorMessage = "Không tìm thấy nhà tuyển dụng.";
+      errorMessage = t("employerDetail.notFound");
     }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-            <p className="text-red-800 font-medium mb-2">Lỗi khi tải thông tin nhà tuyển dụng</p>
+            <p className="text-red-800 font-medium mb-2">
+              {t("employerDetail.loadError")}
+            </p>
             <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
             <Button onClick={() => window.history.back()} variant="outline">
-              Quay lại
+              {t("employerDetail.back")}
             </Button>
           </div>
         </div>
@@ -261,7 +274,6 @@ export default function EmployerDetail() {
         <div className="absolute top-0 left-0 w-64 h-24 bg-gradient-to-r from-purple-100 to-transparent opacity-50"></div>
 
         <div className="main-layout relative z-10 py-8">
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Company Image and Info */}
             <div className="lg:col-span-2">
@@ -299,7 +311,6 @@ export default function EmployerDetail() {
               </div>
 
               {/* Action buttons positioned below the image */}
-              
 
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -360,10 +371,10 @@ export default function EmployerDetail() {
                         href={employer.youtubeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
+                        className="text-blue-600 hover:underline"
+                      >
                         <Youtube className="w-5 h-5" />
-                </a>
+                      </a>
                     )}
                   </div>
                 )}
@@ -371,14 +382,18 @@ export default function EmployerDetail() {
 
               {/* About Company Section */}
               {employer.aboutCompany && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-blue-600 mb-4">
-                  About Company
-                </h2>
-                <div className="space-y-4 text-gray-700 leading-relaxed">
-                    <p>{employer.aboutCompany}</p>
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-blue-600 mb-4">
+                    {t("employerDetail.aboutCompany")}
+                  </h2>
+                  <div className="space-y-4 text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: employer.aboutCompany,
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
               )}
             </div>
 
@@ -389,7 +404,7 @@ export default function EmployerDetail() {
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 opacity-60"></div>
                 <div className="relative z-10">
                   <h3 className="text-lg font-semibold text-blue-600 mb-4">
-                    Location
+                    {t("employerDetail.location")}
                   </h3>
                   <div className="mb-3">
                     {employer.district && (
@@ -406,7 +421,7 @@ export default function EmployerDetail() {
                       rel="noopener noreferrer"
                       className="text-blue-600 text-sm hover:underline"
                     >
-                      View larger map
+                      {t("employerDetail.viewLargerMap")}
                     </a>
                   </div>
                   <div className="aspect-square rounded-lg overflow-hidden">
@@ -428,7 +443,7 @@ export default function EmployerDetail() {
                 <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 to-emerald-50/30 opacity-60"></div>
                 <div className="relative z-10">
                   <h3 className="text-lg font-semibold text-blue-600 mb-4">
-                    Profile Info
+                    {t("employerDetail.profileInfo")}
                   </h3>
                   <div className="space-y-4">
                     <div className="flex items-center">
@@ -436,7 +451,9 @@ export default function EmployerDetail() {
                         <Users className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Company Size</p>
+                        <p className="text-sm text-gray-600">
+                          {t("employerDetail.companySize")}
+                        </p>
                         <p className="font-medium text-gray-900">
                           {getCompanySizeLabel()}
                         </p>
@@ -444,45 +461,51 @@ export default function EmployerDetail() {
                     </div>
 
                     {employer.contactPerson && (
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                           <Users className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                          <p className="text-sm text-gray-600">Contact Person</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            {t("employerDetail.contactPerson")}
+                          </p>
                           <p className="font-medium text-gray-900">
                             {employer.contactPerson}
                           </p>
+                        </div>
                       </div>
-                    </div>
                     )}
 
                     {employer.phoneNumber && (
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <PhoneCall className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Phone</p>
-                        <p className="font-medium text-gray-900">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                          <PhoneCall className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            {t("employerDetail.phone")}
+                          </p>
+                          <p className="font-medium text-gray-900">
                             {employer.phoneNumber}
-                        </p>
+                          </p>
+                        </div>
                       </div>
-                    </div>
                     )}
 
                     {employer.email && (
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Email</p>
-                        <p className="font-medium text-gray-900">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                          <Mail className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            {t("employerDetail.email")}
+                          </p>
+                          <p className="font-medium text-gray-900">
                             {employer.email}
-                        </p>
+                          </p>
+                        </div>
                       </div>
-                    </div>
                     )}
                   </div>
                 </div>
@@ -503,7 +526,7 @@ export default function EmployerDetail() {
               <div className="relative z-10">
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-[#1967d2]">
-                    Available Jobs
+                    {t("employerDetail.availableJobs")}
                   </h2>
                 </div>
 
@@ -513,7 +536,7 @@ export default function EmployerDetail() {
                   </div>
                 ) : sortedJobs.length === 0 ? (
                   <div className="py-12 text-center text-gray-600">
-                    Không có công việc nào
+                    {t("employerDetail.noJobs")}
                   </div>
                 ) : (
                   <>
@@ -526,9 +549,11 @@ export default function EmployerDetail() {
                     {totalPages > 1 && (
                       <div className="mt-6 pt-4 border-t">
                         <div className="text-sm text-gray-600 mb-4">
-                          Showing {((currentPage - 1) * jobsPerPage) + 1}-
-                          {Math.min(currentPage * jobsPerPage, totalJobs)}{" "}
-                          of {totalJobs} jobs
+                          {t("employerDetail.showingJobs", {
+                            from: (currentPage - 1) * jobsPerPage + 1,
+                            to: Math.min(currentPage * jobsPerPage, totalJobs),
+                            total: totalJobs,
+                          })}
                         </div>
                         <Pagination
                           currentPage={currentPage}

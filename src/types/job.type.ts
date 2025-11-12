@@ -1,4 +1,14 @@
-import type { SalaryType, SalaryUnit, EducationLevel, ExperienceLevel, JobLevel, JobType, JobGender, AgeType, JobStatus } from "@/constants/job.constant";
+import type {
+  SalaryType,
+  SalaryUnit,
+  EducationLevel,
+  ExperienceLevel,
+  JobLevel,
+  JobType,
+  JobGender,
+  AgeType,
+  JobStatus,
+} from "@/constants/job.constant";
 import type { CompanySize } from "@/constants/company.constant";
 import type { Province, District } from "@/types/location.type";
 import type { JobBenefit } from "@/types/benefit.type";
@@ -11,7 +21,10 @@ export interface Location {
   detailAddress: string;
 }
 
-export type LocationRequest = Pick<Location, "provinceId" | "districtId" | "detailAddress">;
+export type LocationRequest = Pick<
+  Location,
+  "provinceId" | "districtId" | "detailAddress"
+>;
 
 export interface LocationResponse {
   id: number;

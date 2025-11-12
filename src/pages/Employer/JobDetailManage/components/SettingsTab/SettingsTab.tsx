@@ -8,14 +8,21 @@ const tabs = [
   { id: "application-form", label: "Application Form" },
   { id: "hiring-pipeline", label: "Hiring Pipeline" },
   { id: "score-card", label: "Score Card" },
-]
+];
 export default function SettingsTab() {
   const [activeTab, setActiveTab] = useState("application-form");
 
   return (
     <div className="py-6 mx-6">
-      <TabsAnimation activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} tabsBoxPadding="3.5" tabClassName="text-sm" indicatorClassName="!bg-purple-400" />
-        {/* Content */}
+      <TabsAnimation
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        tabs={tabs}
+        tabsBoxPadding="3.5"
+        tabClassName="text-sm"
+        indicatorClassName="!bg-purple-400"
+      />
+      {/* Content */}
       <div className=" mt-3 bg-white ">
         {activeTab === "application-form" && <ApplicationFormSettings />}
         {activeTab === "hiring-pipeline" && <HiringPipelineSettings />}

@@ -17,30 +17,23 @@ import { Link, useLocation } from "react-router-dom";
 import { employer_routes, routes } from "@/routes/routes.const";
 import type { Role } from "@/constants";
 import { authService } from "@/services";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PasswordRequirement {
-  label: string;
+  labelKey: string;
   test: (password: string) => boolean;
 }
 
-const pwdRequirements: PasswordRequirement[] = [
-  { label: "Minimum characters (8)", test: (pwd) => pwd.length >= 8 },
-  { label: "One uppercase character", test: (pwd) => /[A-Z]/.test(pwd) },
-  { label: "One lowercase character", test: (pwd) => /[a-z]/.test(pwd) },
-  { label: "One special character", test: (pwd) => /[^A-Za-z0-9]/.test(pwd) },
-  { label: "One number", test: (pwd) => /\d/.test(pwd) },
-];
 interface ChangePasswordFormProps {
   userType: Role;
   className?: string;
-  passwordRequirements?: PasswordRequirement[];
 }
 
 export default function ChangePasswordForm({
   userType = "JOB_SEEKER",
-  passwordRequirements = pwdRequirements,
   className,
 }: ChangePasswordFormProps) {
+  const { t } = useTranslation();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,7 +43,6 @@ export default function ChangePasswordForm({
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     reset,
     watch,
   } = useForm<ChangePasswordFormData>({
@@ -61,6 +53,29 @@ export default function ChangePasswordForm({
       confirmNewPassword: "",
     },
   });
+
+  const passwordRequirements: PasswordRequirement[] = [
+    {
+      labelKey: "changePassword.requirements.minChars",
+      test: (pwd) => pwd.length >= 8,
+    },
+    {
+      labelKey: "changePassword.requirements.uppercase",
+      test: (pwd) => /[A-Z]/.test(pwd),
+    },
+    {
+      labelKey: "changePassword.requirements.lowercase",
+      test: (pwd) => /[a-z]/.test(pwd),
+    },
+    {
+      labelKey: "changePassword.requirements.special",
+      test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
+    },
+    {
+      labelKey: "changePassword.requirements.number",
+      test: (pwd) => /\d/.test(pwd),
+    },
+  ];
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) => {
@@ -73,7 +88,7 @@ export default function ChangePasswordForm({
       return authService.changePassword(data, "admins");
     },
     onSuccess: (response) => {
-      toast.success(response.message || "Cập nhật mật khẩu thành công");
+      toast.success(response.message || t("changePassword.success"));
       reset();
     },
     onError: (error: any) => {
@@ -81,13 +96,13 @@ export default function ChangePasswordForm({
       const apiError = error.response?.data as ApiError;
 
       if (apiError?.status === 411) {
-        toast.error("Mật khẩu hiện tại không khớp");
+        toast.error(t("changePassword.errors.currentPasswordIncorrect"));
       } else if (apiError?.status === 400 && apiError?.errors) {
         apiError.errors.forEach((err) => {
           toast.error(err.message);
         });
       } else {
-        toast.error(apiError?.message || "Đổi mật khẩu thất bại");
+        toast.error(apiError?.message || t("changePassword.errors.failed"));
       }
     },
   });
@@ -121,7 +136,7 @@ export default function ChangePasswordForm({
           htmlFor="oldPassword"
           className="flex items-center gap-2 text-gray-700 font-semibold"
         >
-          Current Password
+          {t("changePassword.currentPassword")}
         </Label>
         <div className="relative">
           <Input
@@ -154,14 +169,14 @@ export default function ChangePasswordForm({
       {/* New Password */}
       <div className="space-y-2">
         <Label htmlFor="newPassword" className="text-gray-700 font-semibold">
-          New Password
+          {t("changePassword.newPassword")}
         </Label>
         <div className="relative">
           <Input
             id="newPassword"
             type={showNewPassword ? "text" : "password"}
             {...register("newPassword")}
-            placeholder="Enter your new password"
+            placeholder={t("changePassword.newPasswordPlaceholder")}
             className={cn(
               "pr-10 focus-visible:ring-1 focus-visible:border-none  focus-visible:ring-[#1967d2]"
             )}
@@ -186,7 +201,7 @@ export default function ChangePasswordForm({
         {
           <div className="mt-3 space-y-1">
             <p className="text-sm text-green-700 font-medium">
-              Please add all necessary characters to create safe password.
+              {t("changePassword.requirementsTitle")}
             </p>
             <ul className="space-y-1">
               {passwordRequirements.map((requirement, index) => (
@@ -199,7 +214,7 @@ export default function ChangePasswordForm({
                   >
                     <p className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {requirement.label}
+                      {t(requirement.labelKey)}
                       {checkRequirement(requirement) && (
                         <Check color="#1967d2" className="w-5 h-5" />
                       )}
@@ -218,14 +233,14 @@ export default function ChangePasswordForm({
           htmlFor="confirmPassword"
           className="text-gray-700 font-semibold"
         >
-          Confirm New Password
+          {t("changePassword.confirmPassword")}
         </Label>
         <div className="relative">
           <Input
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             {...register("confirmNewPassword")}
-            placeholder="Enter your confirm new password"
+            placeholder={t("changePassword.confirmPasswordPlaceholder")}
             className={cn(
               "pr-10 placeholder:text-gray-300 focus-visible:ring-1 focus-visible:border-none ",
               errors.confirmNewPassword
@@ -246,7 +261,9 @@ export default function ChangePasswordForm({
           </button>
         </div>
         {errors.confirmNewPassword && (
-          <p className="text-sm text-red-500">Passwords do not match</p>
+          <p className="text-sm text-red-500">
+            {t("changePassword.errors.passwordMismatch")}
+          </p>
         )}
       </div>
       {/* Change Password Button */}
@@ -262,7 +279,7 @@ export default function ChangePasswordForm({
             !confirmPassword
           }
         >
-          Change Password
+          {t("changePassword.changePasswordButton")}
         </Button>
       </div>
 
@@ -276,7 +293,7 @@ export default function ChangePasswordForm({
           }
           className="text-blue-500 hover:text-blue-600 text-sm font-medium"
         >
-          Forgot Password?
+          {t("changePassword.forgotPassword")}
         </Link>
       </div>
     </form>

@@ -1,4 +1,4 @@
-export const getNameInitials = (name: string|undefined): string => {
+export const getNameInitials = (name: string | undefined): string => {
   if (!name) return "U";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {

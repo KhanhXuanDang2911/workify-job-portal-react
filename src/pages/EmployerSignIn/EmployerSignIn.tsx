@@ -3,11 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Eye,
-  EyeOff,
-  ArrowLeft,
-} from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { signInSchema, type SignInFormData } from "@/schemas/employer";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,8 +14,10 @@ import type { ApiError } from "@/types";
 import { toast } from "react-toastify";
 import type { AxiosError } from "axios";
 import { useEmployerAuth } from "@/context/employer-auth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function EmployerSignIn() {
+  const { t } = useTranslation();
   const { dispatch } = useEmployerAuth();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -62,13 +60,15 @@ export default function EmployerSignIn() {
         },
       });
 
-      toast.success(`Welcome ${response.data.data.companyName}!`);
+      toast.success(
+        t("auth.welcomeMessage", { name: response.data.data.companyName })
+      );
 
       navigate("/employer/organization", { replace: true });
     },
     onError: (error: AxiosError<ApiError>) => {
       toast.error(
-        error?.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại."
+        error?.response?.data?.message || t("toast.error.unknownError")
       );
     },
   });
@@ -86,9 +86,15 @@ export default function EmployerSignIn() {
           <div className="w-full max-w-md space-y-6">
             {/* Header */}
             <div className="space-y-3 text-center">
-              <p className="text-sm text-[#0A2E5C] font-medium">Welcome back!</p>
-              <h1 className="text-4xl font-bold text-[#0A2E5C]">Employer Login</h1>
-              <p className="text-sm text-gray-500">Access to all features. No credit card required.</p>
+              <p className="text-sm text-[#0A2E5C] font-medium">
+                Welcome back!
+              </p>
+              <h1 className="text-4xl font-bold text-[#0A2E5C]">
+                Employer Login
+              </h1>
+              <p className="text-sm text-gray-500">
+                Access to all features. No credit card required.
+              </p>
             </div>
 
             {/* Back to Job Seeker Link */}
@@ -105,8 +111,12 @@ export default function EmployerSignIn() {
             {/* Login Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Username or Email address <span className="text-red-500">*</span>
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Username or Email address{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -116,14 +126,15 @@ export default function EmployerSignIn() {
                   className="h-12 bg-white border border-gray-300 focus-visible:border-[#0A2E5C] focus-visible:ring-1 focus-visible:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm"
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">
-                    {errors.email.message}
-                  </p>
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Password <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
@@ -217,7 +228,10 @@ export default function EmployerSignIn() {
             <div className="absolute top-1/4 right-1/4 w-64 h-80 opacity-20">
               <svg viewBox="0 0 200 240" className="w-full h-full">
                 <ellipse cx="100" cy="180" rx="80" ry="40" fill="#1967d2" />
-                <path d="M 100 180 L 100 220 L 90 220 L 90 200 L 110 200 L 110 220 L 100 220" fill="#1967d2" />
+                <path
+                  d="M 100 180 L 100 220 L 90 220 L 90 200 L 110 200 L 110 220 L 100 220"
+                  fill="#1967d2"
+                />
                 <ellipse cx="100" cy="100" rx="70" ry="90" fill="#5b8fd7" />
               </svg>
             </div>
@@ -225,14 +239,20 @@ export default function EmployerSignIn() {
             <div className="absolute top-1/3 right-1/6 w-32 h-40 opacity-15">
               <svg viewBox="0 0 160 200" className="w-full h-full">
                 <ellipse cx="80" cy="150" rx="60" ry="30" fill="#1967d2" />
-                <path d="M 80 150 L 80 180 L 75 180 L 75 165 L 85 165 L 85 180 L 80 180" fill="#1967d2" />
+                <path
+                  d="M 80 150 L 80 180 L 75 180 L 75 165 L 85 165 L 85 180 L 80 180"
+                  fill="#1967d2"
+                />
                 <ellipse cx="80" cy="80" rx="50" ry="70" fill="#5b8fd7" />
               </svg>
             </div>
             <div className="absolute bottom-1/4 right-1/3 w-40 h-48 opacity-15">
               <svg viewBox="0 0 180 220" className="w-full h-full">
                 <ellipse cx="90" cy="170" rx="70" ry="35" fill="#1967d2" />
-                <path d="M 90 170 L 90 200 L 85 200 L 85 180 L 95 180 L 95 200 L 90 200" fill="#1967d2" />
+                <path
+                  d="M 90 170 L 90 200 L 85 200 L 85 180 L 95 180 L 95 200 L 90 200"
+                  fill="#1967d2"
+                />
                 <ellipse cx="90" cy="90" rx="60" ry="80" fill="#5b8fd7" />
               </svg>
             </div>

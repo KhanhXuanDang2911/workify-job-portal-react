@@ -9,18 +9,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Bell,
-  Check,
-  X,
-  User,
-  Building2,
-  FileText,
-} from "lucide-react";
+import { Bell, Check, User, FileText } from "lucide-react";
 import { useWebSocket } from "@/context/websocket/WebSocketContext";
 import { notificationService } from "@/services";
-import type { NotificationResponse, NotificationType } from "@/types/notification.type";
+import type { NotificationType } from "@/types/notification.type";
 import { employer_routes, routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Map notification type to icon
 const getNotificationIcon = (type: NotificationType) => {
@@ -34,38 +28,49 @@ const getNotificationIcon = (type: NotificationType) => {
   }
 };
 
-// Format relative time
-const relativeTime = (dateString?: string): string => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
-  } catch (e) {
-    return "";
-  }
-};
-
 export default function NotificationDropdown() {
+  const { t, currentLanguage } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { notifications: wsNotifications, unreadCount: wsUnreadCount, markAsRead: wsMarkAsRead, markAllAsRead: wsMarkAllAsRead } = useWebSocket();
-  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    notifications: wsNotifications,
+    unreadCount: wsUnreadCount,
+    markAsRead: wsMarkAsRead,
+    markAllAsRead: wsMarkAllAsRead,
+  } = useWebSocket();
+
+  // Format relative time
+  const relativeTime = (dateString?: string): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 1) return t("notifications.time.justNow");
+      if (diffMins < 60)
+        return t("notifications.time.minutesAgo", { count: diffMins });
+      if (diffHours < 24)
+        return t("notifications.time.hoursAgo", { count: diffHours });
+      if (diffDays < 7)
+        return t("notifications.time.daysAgo", { count: diffDays });
+      return date.toLocaleDateString(
+        currentLanguage === "vi" ? "vi-VN" : "en-US"
+      );
+    } catch (e) {
+      return "";
+    }
+  };
+  const [currentPage] = useState(1);
   const pageSize = 10;
 
-  // Fetch notifications from API
+  // Fetch notifications from API - Use EMPLOYER-specific cache key
   const { data: notificationsResponse, isLoading } = useQuery({
-    queryKey: ["notifications", currentPage, pageSize],
+    queryKey: ["employer-notifications", currentPage, pageSize],
     queryFn: () =>
       notificationService.getNotifications({
         pageNumber: currentPage,
@@ -74,9 +79,9 @@ export default function NotificationDropdown() {
     staleTime: 30 * 1000, // 30 seconds
   });
 
-  // Fetch unread count
+  // Fetch unread count - Use EMPLOYER-specific cache key
   const { data: unreadCountResponse } = useQuery({
-    queryKey: ["notifications-unread-count"],
+    queryKey: ["employer-notifications-unread-count"],
     queryFn: () => notificationService.getUnreadCount(),
     staleTime: 30 * 1000, // 30 seconds
   });
@@ -88,7 +93,9 @@ export default function NotificationDropdown() {
       const latestNotification = wsNotifications[0];
       if (!latestNotification.readFlag) {
         // Invalidate query to refetch unread count when new unread notification arrives
-        queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+        queryClient.invalidateQueries({
+          queryKey: ["employer-notifications-unread-count"],
+        });
       }
       prevNotificationsLengthRef.current = wsNotifications.length;
     }
@@ -98,8 +105,10 @@ export default function NotificationDropdown() {
   const markAsReadMutation = useMutation({
     mutationFn: (id: number) => notificationService.markAsRead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-notifications"] });
+      queryClient.invalidateQueries({
+        queryKey: ["employer-notifications-unread-count"],
+      });
     },
   });
 
@@ -107,8 +116,10 @@ export default function NotificationDropdown() {
   const markAllAsReadMutation = useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["employer-notifications"] });
+      queryClient.invalidateQueries({
+        queryKey: ["employer-notifications-unread-count"],
+      });
       wsMarkAllAsRead();
     },
   });
@@ -131,7 +142,7 @@ export default function NotificationDropdown() {
     markAllAsReadMutation.mutate();
   };
 
-  const handleNotificationClick = (notification: NotificationResponse) => {
+  const handleNotificationClick = () => {
     // No navigation on click
   };
 
@@ -158,7 +169,7 @@ export default function NotificationDropdown() {
         <div className="border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
-              Thông báo
+              {t("notifications.title")}
             </h3>
             {unreadCount > 0 && (
               <Button
@@ -168,13 +179,15 @@ export default function NotificationDropdown() {
                 disabled={markAllAsReadMutation.isPending}
                 className="text-[#1967d2] hover:text-[#1557b8] text-sm font-medium"
               >
-                Đánh dấu tất cả đã đọc
+                {t("notifications.markAllAsRead")}
               </Button>
             )}
           </div>
           {unreadCount > 0 && (
             <p className="text-sm text-gray-500 mt-1">
-              Bạn có {unreadCount} thông báo chưa đọc
+              {t("notifications.dropdown.unreadMessage", {
+                count: unreadCount,
+              })}
             </p>
           )}
         </div>
@@ -182,13 +195,19 @@ export default function NotificationDropdown() {
         <ScrollArea className="h-96">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <p className="text-gray-500">Đang tải...</p>
+              <p className="text-gray-500">
+                {t("notifications.dropdown.loading")}
+              </p>
             </div>
           ) : allNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Bell className="w-12 h-12 text-gray-300 mb-3" />
-              <p className="text-gray-500 font-medium">Không có thông báo</p>
-              <p className="text-gray-400 text-sm">Bạn đã cập nhật tất cả!</p>
+              <p className="text-gray-500 font-medium">
+                {t("notifications.noNotifications")}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {t("notifications.allCaughtUp")}
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -200,7 +219,7 @@ export default function NotificationDropdown() {
                       ? "bg-blue-50 border-blue-500 shadow-sm hover:bg-blue-100 hover:shadow-md"
                       : "hover:bg-gray-50 border-transparent"
                   }`}
-                  onClick={() => handleNotificationClick(notification)}
+                  onClick={handleNotificationClick}
                 >
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 mt-1">
@@ -236,7 +255,10 @@ export default function NotificationDropdown() {
                             {relativeTime(notification.createdAt)}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="flex items-center space-x-1 ml-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {!notification.readFlag && (
                             <Button
                               variant="ghost"
@@ -244,7 +266,7 @@ export default function NotificationDropdown() {
                               onClick={() => handleMarkAsRead(notification.id)}
                               disabled={markAsReadMutation.isPending}
                               className="p-1 h-auto hover:bg-blue-200"
-                              title="Đánh dấu đã đọc"
+                              title={t("notifications.markAsRead")}
                             >
                               <Check className="w-3 h-3 text-blue-600" />
                             </Button>
@@ -265,14 +287,16 @@ export default function NotificationDropdown() {
               variant="ghost"
               className="w-full text-[#1967d2] hover:text-[#1557b8] hover:bg-blue-50 font-medium"
               onClick={() => {
-                const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
+                const isEmployerRoute = location.pathname.startsWith(
+                  employer_routes.BASE
+                );
                 const notificationsPath = isEmployerRoute
                   ? `${employer_routes.BASE}/${employer_routes.NOTIFICATIONS}`
                   : `/${routes.NOTIFICATIONS}`;
                 navigate(notificationsPath);
               }}
             >
-              Xem tất cả thông báo
+              {t("notifications.dropdown.viewAll")}
             </Button>
           </div>
         )}

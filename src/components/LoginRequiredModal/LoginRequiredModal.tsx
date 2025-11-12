@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogIn, Lock } from "lucide-react";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface LoginRequiredModalProps {
   open: boolean;
@@ -23,10 +24,11 @@ interface LoginRequiredModalProps {
 export default function LoginRequiredModal({
   open,
   onOpenChange,
-  title = "Yêu cầu đăng nhập",
-  description = "Vui lòng đăng nhập để tiếp tục sử dụng tính năng này.",
-  actionText = "Đăng nhập",
+  title,
+  description,
+  actionText,
 }: LoginRequiredModalProps) {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const handleSignIn = () => {
@@ -41,10 +43,10 @@ export default function LoginRequiredModal({
             <Lock className="w-8 h-8 text-[#1967d2]" />
           </div>
           <DialogTitle className="text-center text-2xl font-bold text-gray-900">
-            {title}
+            {title || t("loginRequired.title")}
           </DialogTitle>
           <DialogDescription className="text-center text-gray-600 pt-2">
-            {description}
+            {description || t("loginRequired.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -54,7 +56,7 @@ export default function LoginRequiredModal({
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto"
           >
-            Hủy
+            {t("loginRequired.cancel")}
           </Button>
           <Button
             asChild
@@ -67,7 +69,7 @@ export default function LoginRequiredModal({
               className="flex items-center justify-center gap-2"
             >
               <LogIn className="w-4 h-4" />
-              {actionText}
+              {actionText || t("loginRequired.actionText")}
             </Link>
           </Button>
         </DialogFooter>
@@ -75,4 +77,3 @@ export default function LoginRequiredModal({
     </Dialog>
   );
 }
-

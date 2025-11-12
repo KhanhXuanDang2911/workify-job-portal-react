@@ -1,35 +1,45 @@
-import PersonalTab from "./components/PersonalTab";
 import ProfileTab from "./components/ProfileTab";
-import SocialLinksTab from "./components/SocialLinksTab";
 import AccountSettingTab from "./components/AccountSettingTab";
 import UserSideBar from "@/components/UserSideBar";
 import { useState } from "react";
-import { User, UserCircle, Globe, SettingsIcon } from "lucide-react";
+import { UserCircle, SettingsIcon } from "lucide-react";
 import TabsAnimation from "@/components/TabsAnimation";
-
-const tabs = [
-  { id: "personal", label: "Personal", icon: User },
-  { id: "profile", label: "Profile", icon: UserCircle },
-  { id: "social-links", label: "Social Links", icon: Globe },
-  { id: "account-setting", label: "Account Setting", icon: SettingsIcon },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState("personal");
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState("profile");
+
+  const tabs = [
+    { id: "profile", label: t("settings.tabs.profile"), icon: UserCircle },
+    {
+      id: "account-setting",
+      label: t("settings.tabs.accountSetting"),
+      icon: SettingsIcon,
+    },
+  ];
 
   return (
-    <div className="flex " style={{ background: "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)" }}>
+    <div
+      className="flex flex-col lg:flex-row min-h-screen"
+      style={{
+        background:
+          "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
+      }}
+    >
       {/* Sidebar */}
-      <div className=" ml-5 my-4 w-64 flex-shrink-0">
+      <div className="lg:ml-5 lg:my-4 w-full lg:w-64 flex-shrink-0">
         <UserSideBar />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto my-4">
+        <div className="max-w-6xl mx-auto my-4 px-4 lg:px-0">
           {/* Header */}
           <div className="mb-4 bg-white py-4 rounded-lg px-5">
-            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t("settings.title")}
+            </h1>
           </div>
 
           {/* Tabs */}
@@ -45,9 +55,7 @@ export default function Settings() {
 
           {/* Tab Content */}
           <div className="mt-4">
-            {activeTab === "personal" && <PersonalTab />}
             {activeTab === "profile" && <ProfileTab />}
-            {activeTab === "social-links" && <SocialLinksTab />}
             {activeTab === "account-setting" && <AccountSettingTab />}
           </div>
         </div>

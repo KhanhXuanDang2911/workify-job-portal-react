@@ -7,9 +7,18 @@ interface SortButtonProps {
   onClick: () => void;
 }
 
-export default function SortButton({ isActive, direction, onClick }: SortButtonProps) {
+export default function SortButton({
+  isActive,
+  direction,
+  onClick,
+}: SortButtonProps) {
   return (
-    <Button variant="ghost" size="sm" onClick={onClick} className="h-6 w-6 p-0 hover:bg-gray-200">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className="h-6 w-6 p-0 hover:bg-gray-200"
+    >
       {isActive ? (
         direction === "asc" ? (
           <ChevronUp size={16} className="text-blue-600" />

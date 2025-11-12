@@ -89,7 +89,11 @@ const MyResume = () => {
   const uploadedResumes = resumes.filter((r) => r.type === "uploaded");
 
   const handleFileSelect = (file: File | null) => {
-    if (file && file.type === "application/pdf" && file.size <= 12 * 1024 * 1024) {
+    if (
+      file &&
+      file.type === "application/pdf" &&
+      file.size <= 12 * 1024 * 1024
+    ) {
       setSelectedFile(file);
     } else if (file) {
       alert("Please select a PDF file under 12 MB");
@@ -171,7 +175,9 @@ const MyResume = () => {
           <>
             <div className="w-full h-full bg-white"></div>
             <div className="absolute bottom-0 left-0 right-0 bg-white p-3 border-t">
-              <div className="font-medium text-sm text-gray-800 truncate">{resume.title}</div>
+              <div className="font-medium text-sm text-gray-800 truncate">
+                {resume.title}
+              </div>
               <div className="text-xs text-gray-500 mt-1">{resume.date}</div>
             </div>
 
@@ -185,7 +191,12 @@ const MyResume = () => {
                       className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-sky-400 transition-colors"
                       title="Chỉnh sửa"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -200,8 +211,18 @@ const MyResume = () => {
                     className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-green-400 transition-colors"
                     title="Xem"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -215,7 +236,12 @@ const MyResume = () => {
                     className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-red-500 transition-colors"
                     title="Xóa"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -232,8 +258,18 @@ const MyResume = () => {
                       onClick={() => handleDownload(resume)}
                       className="px-2 py-1.5 bg-white rounded-xl text-[10px] font-medium hover:bg-[#1967d2] transition-colors flex items-center gap-1"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
                       </svg>
                       Download
                     </button>
@@ -241,7 +277,12 @@ const MyResume = () => {
                       onClick={() => handleDuplicate(resume)}
                       className="px-2 bg-white py-1.5 rounded-xl text-[10px] font-medium hover:bg-[#1967d2] transition-colors flex items-center gap-1"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -262,15 +303,21 @@ const MyResume = () => {
   };
 
   return (
-    <div className="flex" style={{ background: "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)" }}>
+    <div
+      className="flex flex-col lg:flex-row min-h-screen"
+      style={{
+        background:
+          "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
+      }}
+    >
       {/* Sidebar */}
-      <div className="ml-5 my-4 w-64 flex-shrink-0 h-screen">
+      <div className="lg:ml-5 lg:my-4 w-full lg:w-64 flex-shrink-0">
         <UserSideBar />
       </div>
 
       {/* Main Content */}
       <div className="flex-1">
-        <div className="max-w-7xl mx-auto p-5">
+        <div className="max-w-7xl mx-auto p-5 lg:p-5">
           {/* Header */}
           <div className="bg-white rounded-lg shadow-sm p-4 mb-5">
             <h1 className="text-xl font-bold text-gray-800">My Resumes</h1>
@@ -282,12 +329,18 @@ const MyResume = () => {
               <div className="relative">
                 <div
                   className="inline-block text-white font-semibold px-8 py-3 uppercase text-center"
-                  style={{ backgroundColor: "#4eb0c6", clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
+                  style={{
+                    backgroundColor: "#4eb0c6",
+                    clipPath:
+                      "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)",
+                  }}
                 >
                   Created CV
                 </div>
               </div>
-              <Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-6">Create New CV</Button>
+              <Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-6">
+                Create New CV
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -296,7 +349,9 @@ const MyResume = () => {
                 style={{ aspectRatio: "3/4" }}
               >
                 <div className="w-full h-full flex flex-col items-center justify-center">
-                  <div className="text-6xl group-hover:text-[#1967d2] text-gray-600 mb-4">+</div>
+                  <div className="text-6xl group-hover:text-[#1967d2] text-gray-600 mb-4">
+                    +
+                  </div>
                   <div className="text-gray-700 font-medium">Create New CV</div>
                 </div>
               </div>
@@ -309,13 +364,21 @@ const MyResume = () => {
               <div className="relative">
                 <div
                   className="inline-block text-white font-semibold px-8 py-3 uppercase text-center"
-                  style={{ backgroundColor: "#4eb0c6", clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)" }}
+                  style={{
+                    backgroundColor: "#4eb0c6",
+                    clipPath:
+                      "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%,20px 50%)",
+                  }}
                 >
                   Uploaded CV
                 </div>
               </div>
               <UploadNewCVModal
-                trigger={<Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-6">Upload New CV</Button>}
+                trigger={
+                  <Button className="bg-[#1967d2] hover:bg-[#1557b0] text-white px-6">
+                    Upload New CV
+                  </Button>
+                }
                 cvName={cvName}
                 setCvName={setCvName}
                 fileInputRef={fileInputRef}
@@ -333,8 +396,12 @@ const MyResume = () => {
                     style={{ aspectRatio: "3/4" }}
                   >
                     <div className="w-full h-full flex flex-col items-center justify-center">
-                      <div className="text-6xl text-gray-600 group-hover:text-[#1967d2] mb-4">+</div>
-                      <div className="text-gray-700 font-medium">Upload New CV</div>
+                      <div className="text-6xl text-gray-600 group-hover:text-[#1967d2] mb-4">
+                        +
+                      </div>
+                      <div className="text-gray-700 font-medium">
+                        Upload New CV
+                      </div>
                     </div>
                   </div>
                 }

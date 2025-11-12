@@ -1,7 +1,5 @@
 function ChangeTemplateTab() {
-  return (
-    <div>ChangeTemplateTab</div>
-  )
+  return <div>ChangeTemplateTab</div>;
 }
 
-export default ChangeTemplateTab
+export default ChangeTemplateTab;

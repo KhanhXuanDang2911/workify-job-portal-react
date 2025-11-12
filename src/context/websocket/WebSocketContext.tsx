@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import type { NotificationResponse } from "@/types/notification.type";
@@ -17,8 +24,11 @@ interface WebSocketContextType {
   markAllAsRead: () => void;
 }
 
-const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
+const WebSocketContext = createContext<WebSocketContextType | undefined>(
+  undefined
+);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
@@ -31,14 +41,19 @@ interface WebSocketProviderProps {
   children: React.ReactNode;
 }
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children,
+}) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    []
+  );
   const [unreadCount, setUnreadCount] = useState(0);
   const stompClientRef = useRef<Client | null>(null);
   const location = useLocation();
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
+  const BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
   // Extract base URL without /api/v1
   const baseUrlWithoutApi = BASE_URL.replace("/api/v1", "");
   const WS_URL = `${baseUrlWithoutApi}/ws`;
@@ -63,20 +78,45 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   // Mark notification as read
   const markAsRead = useCallback((id: number) => {
     setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, readFlag: true } : notif))
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, readFlag: true } : notif
+      )
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
   }, []);
 
   // Mark all as read
   const markAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, readFlag: true })));
+    setNotifications((prev) =>
+      prev.map((notif) => ({ ...notif, readFlag: true }))
+    );
     setUnreadCount(0);
   }, []);
+
+  // Track current route type to detect switches
+  const isEmployerRouteRef = useRef(
+    location.pathname.startsWith(employer_routes.BASE)
+  );
 
   // Initialize WebSocket connection
   useEffect(() => {
     const token = getToken();
+    const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
+
+    // Check if route type changed (user <-> employer)
+    if (isEmployerRouteRef.current !== isEmployerRoute) {
+      console.log("[WebSocket] Route type changed, clearing notifications");
+      // Clear notifications when switching between user and employer
+      setNotifications([]);
+      setUnreadCount(0);
+      isEmployerRouteRef.current = isEmployerRoute;
+
+      // Disconnect old connection
+      if (stompClientRef.current?.active) {
+        stompClientRef.current.deactivate();
+      }
+    }
+
     if (!token) {
       // No token, disconnect if connected
       if (stompClientRef.current?.active) {
@@ -97,16 +137,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         Authorization: `Bearer ${token}`,
       },
       onConnect: () => {
-        console.log("[WebSocket] Connected");
+        console.log(
+          `[WebSocket] Connected as ${isEmployerRoute ? "EMPLOYER" : "USER"}`
+        );
         setIsConnected(true);
 
         // Subscribe to notifications
         client.subscribe("/user/queue/notifications", (message) => {
           try {
             const notification: NotificationResponse = JSON.parse(message.body);
-            console.log("[WebSocket] Received notification:", notification);
+            console.log(
+              `[WebSocket] Received notification (${
+                isEmployerRoute ? "EMPLOYER" : "USER"
+              }):`,
+              notification
+            );
             addNotification(notification);
-            
+
             // Show toast notification
             if (!notification.readFlag) {
               toast.info(
@@ -121,8 +168,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm mb-1">{notification.title}</p>
-                    <p className="text-gray-700 text-sm">{notification.content}</p>
+                    <p className="font-semibold text-gray-900 text-sm mb-1">
+                      {notification.title}
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      {notification.content}
+                    </p>
                   </div>
                 </div>,
                 {
@@ -163,19 +214,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         client.deactivate();
       }
     };
-  }, [getToken, WS_URL, addNotification]);
-
-  // Update token when it changes
-  useEffect(() => {
-    const token = getToken();
-    if (token && stompClientRef.current && !stompClientRef.current.active) {
-      // Reconnect if token is available but not connected
-      stompClientRef.current.activate();
-    } else if (!token && stompClientRef.current?.active) {
-      // Disconnect if token is removed
-      stompClientRef.current.deactivate();
-    }
-  }, [getToken]);
+  }, [getToken, WS_URL, addNotification, location.pathname]);
 
   const value: WebSocketContextType = {
     isConnected,
@@ -186,6 +225,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     markAllAsRead,
   };
 
-  return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
+  return (
+    <WebSocketContext.Provider value={value}>
+      {children}
+    </WebSocketContext.Provider>
+  );
 };
-

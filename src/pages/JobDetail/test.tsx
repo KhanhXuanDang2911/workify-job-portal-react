@@ -24,7 +24,11 @@ import {
 import { RootStackParamList } from "../../types/navigation";
 import { colors, gradients } from "../../theme/colors";
 import { spacing } from "../../theme/spacing";
-import { actions, RichEditor, RichToolbar } from "react-native-pell-rich-editor";
+import {
+  actions,
+  RichEditor,
+  RichToolbar,
+} from "react-native-pell-rich-editor";
 
 type JobSubmitSuccessNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -65,18 +69,16 @@ const JobSubmitScreen = ({ route }: any) => {
       try {
         const latestApplication = await getLatestApplicationByJob(jobId);
         if (latestApplication?.data === null) {
-          setLatestJob(null)
-        }
-
-        else if (latestApplication) {
+          setLatestJob(null);
+        } else if (latestApplication) {
           setLatestJob(latestApplication);
           setPhoneNumber(latestApplication.phoneNumber);
           setCoverContent(latestApplication.coverLetter);
-          setCvLink(latestApplication.cvUrl)
-          setUseLink(true)
+          setCvLink(latestApplication.cvUrl);
+          setUseLink(true);
         }
       } catch (err: any) {
-        setLatestJob(null)
+        setLatestJob(null);
       }
     };
 
@@ -142,13 +144,19 @@ const JobSubmitScreen = ({ route }: any) => {
           cvFile
         );
       }
-      ToastService.success("Ứng tuyển thành công", "Đơn ứng tuyển đã được gửi!");
+      ToastService.success(
+        "Ứng tuyển thành công",
+        "Đơn ứng tuyển đã được gửi!"
+      );
       navigation.replace("JobSubmitSuccess");
     } catch (error: any) {
-      setCvFileUri("")
-      setFile(null)
+      setCvFileUri("");
+      setFile(null);
       console.error("Lỗi ứng tuyển:", error);
-      ToastService.error("Lỗi ứng tuyển", "Không thể gửi ứng tuyển, thử lại sau.");
+      ToastService.error(
+        "Lỗi ứng tuyển",
+        "Không thể gửi ứng tuyển, thử lại sau."
+      );
     }
   };
   useEffect(() => {
@@ -157,7 +165,6 @@ const JobSubmitScreen = ({ route }: any) => {
       isInitialLoad.current = false;
     }
   }, [isEditorReady, coverContent]);
-
 
   const handleEditorReady = () => {
     setIsEditorReady(true);
@@ -222,7 +229,11 @@ const JobSubmitScreen = ({ route }: any) => {
                   setUseLink(true);
                 }}
               >
-                <MaterialIcons name="link" size={22} color={colors.primary.start} />
+                <MaterialIcons
+                  name="link"
+                  size={22}
+                  color={colors.primary.start}
+                />
                 <Text style={styles.optionText}>Link CV của bạn</Text>
               </TouchableOpacity>
               {useLink == true && (
@@ -240,13 +251,10 @@ const JobSubmitScreen = ({ route }: any) => {
                   </Text>
                 </TouchableOpacity>
               )}
-
             </View>
           )}
 
           {/* 🔗 Chọn cách nộp CV */}
-
-
 
           <TouchableOpacity
             style={[styles.option, !useLink && styles.optionActive]}
@@ -263,15 +271,12 @@ const JobSubmitScreen = ({ route }: any) => {
           </TouchableOpacity>
 
           {!useLink && (
-            <TouchableOpacity
-              style={styles.uploadBtn}
-              onPress={handleUploadCV}
-            >
+            <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadCV}>
               <Text style={styles.uploadText}>Chọn tệp để tải lên</Text>
             </TouchableOpacity>
           )}
 
-          {(cvFileUri != "" && useLink == false) ? (
+          {cvFileUri != "" && useLink == false ? (
             <TouchableOpacity
               style={styles.cvContainer}
               onPress={() => Linking.openURL(latestJob.cvUrl)}
@@ -281,9 +286,7 @@ const JobSubmitScreen = ({ route }: any) => {
                 size={20}
                 color={colors.primary.start}
               />
-              <Text style={styles.cvName}>
-                {cvFileUri.split("/").pop()}
-              </Text>
+              <Text style={styles.cvName}>{cvFileUri.split("/").pop()}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -311,7 +314,10 @@ const JobSubmitScreen = ({ route }: any) => {
               ]}
               iconTint="#555"
               selectedIconTint="#007AFF"
-              selectedButtonStyle={{ backgroundColor: "#EAF2FF", borderRadius: 6 }}
+              selectedButtonStyle={{
+                backgroundColor: "#EAF2FF",
+                borderRadius: 6,
+              }}
               style={styles.toolbar}
               iconSize={18}
             />
@@ -326,7 +332,6 @@ const JobSubmitScreen = ({ route }: any) => {
             />
           </View>
         </View>
-
       </ScrollView>
 
       {/* 🟩 Footer */}
@@ -336,9 +341,7 @@ const JobSubmitScreen = ({ route }: any) => {
             colors={gradients.sunnyYellow as any}
             style={styles.submitButton}
           >
-
             <Text style={styles.submitText}>Nộp đơn ngay</Text>
-
           </LinearGradient>
         </TouchableOpacity>
       </View>

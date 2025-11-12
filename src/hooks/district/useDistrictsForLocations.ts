@@ -13,17 +13,19 @@ interface UseDistrictsForLocationsOptions {
   enabled?: boolean;
 }
 
-export function useDistrictsForLocations({ 
-  locations, 
+export function useDistrictsForLocations({
+  locations,
   sortFn,
-  enabled = true 
+  enabled = true,
 }: UseDistrictsForLocationsOptions) {
   const districtQueries = useQueries({
     queries: (locations || []).map((location) => ({
       queryKey: ["districts", location.provinceId],
       queryFn: async () => {
         if (!location.provinceId || location.provinceId === 0) return [];
-        const response = await districtService.getDistrictsByProvinceId(location.provinceId);
+        const response = await districtService.getDistrictsByProvinceId(
+          location.provinceId
+        );
         const data = response.data;
         return sortFn ? sortFn(data) : data;
       },
@@ -48,8 +50,8 @@ export function useDistrictsForLocations({
   };
 
   // Tổng hợp trạng thái
-  const isAnyLoading = districtQueries.some(query => query.isLoading);
-  const hasAnyError = districtQueries.some(query => query.isError);
+  const isAnyLoading = districtQueries.some((query) => query.isLoading);
+  const hasAnyError = districtQueries.some((query) => query.isError);
 
   return {
     districtQueries,

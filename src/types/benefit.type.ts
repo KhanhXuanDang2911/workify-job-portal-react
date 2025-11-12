@@ -1,6 +1,6 @@
-import type { BenefitType } from "@/constants"
+import type { BenefitType } from "@/constants";
 
 export interface JobBenefit {
-  type: BenefitType
-  description: string
+  type: BenefitType;
+  description: string;
 }

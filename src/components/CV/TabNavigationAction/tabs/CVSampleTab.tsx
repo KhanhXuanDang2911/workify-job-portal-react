@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 function CVSampleTab() {
-  return (
-    <div>CVSampleTab</div>
-  )
+  return <div>CVSampleTab</div>;
 }
 
-export default CVSampleTab
+export default CVSampleTab;

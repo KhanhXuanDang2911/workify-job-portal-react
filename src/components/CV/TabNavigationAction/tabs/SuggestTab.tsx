@@ -1,8 +1,5 @@
-
 function SuggestTab() {
-  return (
-    <div>SuggestTab</div>
-  )
+  return <div>SuggestTab</div>;
 }
 
-export default SuggestTab
+export default SuggestTab;

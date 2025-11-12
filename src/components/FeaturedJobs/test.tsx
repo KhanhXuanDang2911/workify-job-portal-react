@@ -101,9 +101,7 @@ export default function FeaturedJobs() {
                   <button
                     key={index}
                     className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide
-                        ? "bg-[#1967d2]"
-                        : "bg-gray-300"
+                      index === currentSlide ? "bg-[#1967d2]" : "bg-gray-300"
                     }`}
                     onClick={() => setCurrentSlide(index)}
                   />

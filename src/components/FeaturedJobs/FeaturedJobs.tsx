@@ -9,39 +9,42 @@ import Loading from "../Loading";
 import { useQuery } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
 import { routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
+import { JobType, JobLevel } from "@/constants/job.constant";
+import { formatSalaryCompact } from "@/utils/formatSalary";
 
 export default function FeaturedJobs() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
 
   // useQuery to fetch top attractive jobs with limit = 8
-  const { data: apiResponse, isLoading, isError, error: queryError } = useQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error: queryError,
+  } = useQuery({
     queryKey: ["top-attractive-jobs", 8],
     queryFn: () => jobService.getTopAttractiveJobs(8),
     staleTime: 5 * 60 * 1000,
   });
 
-  const itemsFromApi: any[] = Array.isArray(apiResponse?.data) ? apiResponse.data : [];
+  const itemsFromApi: any[] = Array.isArray(apiResponse?.data)
+    ? apiResponse.data
+    : [];
 
   const formatSalary = (item: any) => {
-    try {
-      if (item.salaryType === "RANGE") {
-        const min = item.minSalary != null ? Number(item.minSalary).toLocaleString() : null;
-        const max = item.maxSalary != null ? Number(item.maxSalary).toLocaleString() : null;
-        return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${item.salaryUnit ?? ""}`.trim();
-      }
-      if (item.minSalary != null) return `${Number(item.minSalary).toLocaleString()} ${item.salaryUnit ?? ""}`;
-      return "Negotiable";
-    } catch (e) {
-      return "Negotiable";
-    }
+    return formatSalaryCompact(item, t);
   };
 
   const mapTypeColor = (jobType?: string) => {
     if (!jobType) return "bg-gray-400";
-    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
+      return "bg-green-500";
     if (jobType.includes("PART")) return "bg-orange-500";
-    if (jobType.includes("FREELANCE") || jobType.includes("FREELANCER")) return "bg-teal-500";
+    if (jobType.includes("FREELANCE") || jobType.includes("FREELANCER"))
+      return "bg-teal-500";
     return "bg-purple-500";
   };
 
@@ -51,25 +54,49 @@ export default function FeaturedJobs() {
       const created = new Date(createdAt);
       const diffMs = Date.now() - created.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      if (diffDays === 0) return "Today";
-      if (diffDays === 1) return "1 day ago";
-      if (diffDays < 30) return `${diffDays} days ago`;
+      if (diffDays === 0) return t("featuredJobs.today");
+      if (diffDays === 1) return t("featuredJobs.dayAgo", { count: 1 });
+      if (diffDays < 30) return t("featuredJobs.daysAgo", { count: diffDays });
       const diffMonths = Math.floor(diffDays / 30);
-      if (diffMonths === 1) return "1 month ago";
-      return `${diffMonths} months ago`;
+      if (diffMonths === 1) return t("featuredJobs.monthAgo", { count: 1 });
+      return t("featuredJobs.monthsAgo", { count: diffMonths });
     } catch (e) {
       return "";
     }
   };
 
+  const mapEnumToJobType = (enumValue: string): string => {
+    const mapping: Record<string, string> = {
+      [JobType.FULL_TIME]: t("jobSearch.enums.jobType.FULL_TIME"),
+      [JobType.TEMPORARY_FULL_TIME]: t(
+        "jobSearch.enums.jobType.TEMPORARY_FULL_TIME"
+      ),
+      [JobType.PART_TIME]: t("jobSearch.enums.jobType.PART_TIME"),
+      [JobType.TEMPORARY_PART_TIME]: t(
+        "jobSearch.enums.jobType.TEMPORARY_PART_TIME"
+      ),
+      [JobType.CONTRACT]: t("jobSearch.enums.jobType.CONTRACT"),
+      [JobType.OTHER]: t("jobSearch.enums.jobType.OTHER"),
+    };
+    return mapping[enumValue] || enumValue;
+  };
+
   const mapApiItemToCard = (item: any) => {
-    const firstLocation = Array.isArray(item.jobLocations) && item.jobLocations.length > 0 ? item.jobLocations[0] : null;
+    const firstLocation =
+      Array.isArray(item.jobLocations) && item.jobLocations.length > 0
+        ? item.jobLocations[0]
+        : null;
     const locationParts: string[] = [];
     if (firstLocation) {
-      if (firstLocation.province?.name) locationParts.push(firstLocation.province.name);
-      if (firstLocation.district?.name) locationParts.push(firstLocation.district.name);
-      if (firstLocation.detailAddress) locationParts.push(firstLocation.detailAddress);
+      if (firstLocation.province?.name)
+        locationParts.push(firstLocation.province.name);
+      if (firstLocation.district?.name)
+        locationParts.push(firstLocation.district.name);
+      if (firstLocation.detailAddress)
+        locationParts.push(firstLocation.detailAddress);
     }
+
+    const jobType = item.jobType ? mapEnumToJobType(item.jobType) : "";
 
     return {
       id: item.id,
@@ -77,11 +104,14 @@ export default function FeaturedJobs() {
       company: item.companyName || item.author?.companyName || "",
       location: locationParts.join(", ") || "",
       salary: formatSalary(item),
-      period: item.salaryUnit ?? "",
-      type: item.jobType ?? item.jobLevel ?? "",
+      period: "", // Không cần period vì đã có trong salary
+      type: jobType,
       typeColor: mapTypeColor(item.jobType ?? item.jobLevel),
       posted: relativePosted(item.createdAt),
-      logo: item.author?.avatarUrl || item.companyLogo || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+      logo:
+        item.author?.avatarUrl ||
+        item.companyLogo ||
+        "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
       companyWebsite: item.companyWebsite,
     };
   };
@@ -118,17 +148,17 @@ export default function FeaturedJobs() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/50 rounded-full mb-4">
             <span className="w-2 h-2 bg-[#1967d2] rounded-full animate-pulse"></span>
             <p className="text-[#1967d2] font-semibold text-sm">
-              Top Attractive Jobs
+              {t("featuredJobs.badge")}
             </p>
           </div>
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Find Your{" "}
+            {t("featuredJobs.title")}{" "}
             <span className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] bg-clip-text text-transparent">
-              Dream Career
+              {t("featuredJobs.titleHighlight")}
             </span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the most attractive job opportunities from top companies. Start your journey today.
+            {t("featuredJobs.description")}
           </p>
         </div>
 
@@ -143,7 +173,8 @@ export default function FeaturedJobs() {
                 <span className="text-2xl">⚠️</span>
               </div>
               <p className="text-red-600 font-medium">
-                {(queryError as any)?.message || "Không thể tải danh sách công việc"}
+                {(queryError as any)?.message ||
+                  t("featuredJobs.loadJobsError")}
               </p>
             </div>
           ) : mappedJobs.length === 0 ? (
@@ -151,7 +182,9 @@ export default function FeaturedJobs() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                 <span className="text-2xl">📋</span>
               </div>
-              <p className="text-gray-600 font-medium">Không có công việc nào</p>
+              <p className="text-gray-600 font-medium">
+                {t("featuredJobs.noJobs")}
+              </p>
             </div>
           ) : (
             <>
@@ -223,7 +256,7 @@ export default function FeaturedJobs() {
               className="bg-gradient-to-r from-[#1967d2] to-[#1557b8] hover:from-[#1557b8] hover:to-[#1445a0] text-white px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Link to={`/${routes.JOB_SEARCH}`}>
-                View All Jobs
+                {t("featuredJobs.viewAllJobs")}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

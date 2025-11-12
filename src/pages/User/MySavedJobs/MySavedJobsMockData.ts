@@ -11,7 +11,8 @@ export const mockSavedJobs = [
     salary: "$2000 - $3000 / tháng",
     posted: "2 ngày trước",
     applications: "15 ngày",
-    description: "Phát triển và duy trì các ứng dụng web responsive sử dụng React.js và Next.js",
+    description:
+      "Phát triển và duy trì các ứng dụng web responsive sử dụng React.js và Next.js",
     requirements: [
       "Hiệp tác với team thiết kế để chuyển các giao diện UI/UX thành mã hóa",
       "Tối ưu hóa hiệu suất ứng dụng và đảm bảo tính tương thích trên các trình duyệt",
@@ -25,7 +26,12 @@ export const mockSavedJobs = [
         "Professional development opportunities",
         "Modern office with latest technology",
       ],
-      rights: ["Lương cạnh tranh với thưởng hiệu suất", "Giờ làm việc linh hoạt", "Bảo hiểm sức khỏe đầy đủ", "Môi trường làm việc hiện đại"],
+      rights: [
+        "Lương cạnh tranh với thưởng hiệu suất",
+        "Giờ làm việc linh hoạt",
+        "Bảo hiểm sức khỏe đầy đủ",
+        "Môi trường làm việc hiện đại",
+      ],
     },
     image:
       "https://media.istockphoto.com/id/1224339625/photo/home-office-setup-with-responsive-devices-showing-coronavirus-info.webp?a=1&s=612x612&w=0&k=20&c=yM3I_IEqd-sVx3SIm_l9yGJkGyjxdS4pRryYka2iFJ8=",
@@ -42,7 +48,8 @@ export const mockSavedJobs = [
     salary: "$1800 - $2500 / tháng",
     posted: "3 ngày trước",
     applications: "20 ngày",
-    description: "Create stunning visual designs for web and mobile applications",
+    description:
+      "Create stunning visual designs for web and mobile applications",
     requirements: [
       "Strong portfolio demonstrating design skills",
       "Proficiency in Adobe Creative Suite",
@@ -50,8 +57,18 @@ export const mockSavedJobs = [
       "Ability to work in a fast-paced environment",
     ],
     benefits: {
-      offer: ["Creative work environment", "Latest design tools", "Team collaboration", "Career growth"],
-      rights: ["Competitive salary", "Health insurance", "Paid time off", "Training opportunities"],
+      offer: [
+        "Creative work environment",
+        "Latest design tools",
+        "Team collaboration",
+        "Career growth",
+      ],
+      rights: [
+        "Competitive salary",
+        "Health insurance",
+        "Paid time off",
+        "Training opportunities",
+      ],
     },
     image:
       "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnVzaW5lc3N8ZW58MHx8MHx8fDA%3D",
@@ -69,10 +86,25 @@ export const mockSavedJobs = [
     posted: "1 ngày trước",
     applications: "10 ngày",
     description: "Design innovative products that solve user problems",
-    requirements: ["Experience with product design methodologies", "Strong user research skills", "Prototyping expertise", "Collaborative mindset"],
+    requirements: [
+      "Experience with product design methodologies",
+      "Strong user research skills",
+      "Prototyping expertise",
+      "Collaborative mindset",
+    ],
     benefits: {
-      offer: ["Innovation-focused culture", "Product ownership", "Cross-functional teams", "Impact-driven work"],
-      rights: ["Competitive compensation", "Benefits package", "Work-life balance", "Professional development"],
+      offer: [
+        "Innovation-focused culture",
+        "Product ownership",
+        "Cross-functional teams",
+        "Impact-driven work",
+      ],
+      rights: [
+        "Competitive compensation",
+        "Benefits package",
+        "Work-life balance",
+        "Professional development",
+      ],
     },
     image:
       "https://images.unsplash.com/photo-1480944657103-7fed22359e1d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjV8fGJ1c2luZXNzfGVufDB8fDB8fHww",
@@ -90,10 +122,25 @@ export const mockSavedJobs = [
     posted: "4 ngày trước",
     applications: "25 ngày",
     description: "Create engaging graphics for various marketing materials",
-    requirements: ["Basic design skills", "Knowledge of design software", "Creativity and attention to detail", "Willingness to learn"],
+    requirements: [
+      "Basic design skills",
+      "Knowledge of design software",
+      "Creativity and attention to detail",
+      "Willingness to learn",
+    ],
     benefits: {
-      offer: ["Mentorship program", "Skill development", "Creative freedom", "Team support"],
-      rights: ["Entry-level salary", "Health coverage", "Paid leave", "Training programs"],
+      offer: [
+        "Mentorship program",
+        "Skill development",
+        "Creative freedom",
+        "Team support",
+      ],
+      rights: [
+        "Entry-level salary",
+        "Health coverage",
+        "Paid leave",
+        "Training programs",
+      ],
     },
     image:
       "https://images.unsplash.com/photo-1462556791646-c201b8241a94?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDd8fGJ1c2luZXNzfGVufDB8fDB8fHww",
@@ -111,10 +158,25 @@ export const mockSavedJobs = [
     posted: "2 ngày trước",
     applications: "12 ngày",
     description: "Build modern web applications using latest technologies",
-    requirements: ["Strong JavaScript/TypeScript skills", "React/Next.js experience", "Responsive design expertise", "Problem-solving abilities"],
+    requirements: [
+      "Strong JavaScript/TypeScript skills",
+      "React/Next.js experience",
+      "Responsive design expertise",
+      "Problem-solving abilities",
+    ],
     benefits: {
-      offer: ["Tech-forward environment", "Latest tools and frameworks", "Code quality focus", "Innovation encouraged"],
-      rights: ["Competitive tech salary", "Full benefits", "Remote options", "Career advancement"],
+      offer: [
+        "Tech-forward environment",
+        "Latest tools and frameworks",
+        "Code quality focus",
+        "Innovation encouraged",
+      ],
+      rights: [
+        "Competitive tech salary",
+        "Full benefits",
+        "Remote options",
+        "Career advancement",
+      ],
     },
     image:
       "https://images.unsplash.com/photo-1462899006636-339e08d1844e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NjF8fGJ1c2luZXNzfGVufDB8fDB8fHww",
@@ -132,10 +194,25 @@ export const mockSavedJobs = [
     posted: "5 ngày trước",
     applications: "18 ngày",
     description: "Develop and execute marketing strategies to drive growth",
-    requirements: ["Marketing experience", "Digital marketing skills", "Analytics proficiency", "Creative thinking"],
+    requirements: [
+      "Marketing experience",
+      "Digital marketing skills",
+      "Analytics proficiency",
+      "Creative thinking",
+    ],
     benefits: {
-      offer: ["Dynamic marketing team", "Campaign ownership", "Data-driven approach", "Growth opportunities"],
-      rights: ["Competitive salary", "Performance bonuses", "Health insurance", "Professional development"],
+      offer: [
+        "Dynamic marketing team",
+        "Campaign ownership",
+        "Data-driven approach",
+        "Growth opportunities",
+      ],
+      rights: [
+        "Competitive salary",
+        "Performance bonuses",
+        "Health insurance",
+        "Professional development",
+      ],
     },
     image:
       "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTAwfHxidXNpbmVzc3xlbnwwfHwwfHx8MA%3D%3D",

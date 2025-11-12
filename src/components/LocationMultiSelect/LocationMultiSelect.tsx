@@ -8,14 +8,21 @@ import { initialLocationOptions } from "@/components/TalentSearchSidebar/TalentS
 
 interface LocationMultiSelectProps {
   selectedLocationOptions: { id: string; name: string }[];
-  setSelectedLocationOptions: (selectedLocationOptions: { id: string; name: string }[]) => void;
+  setSelectedLocationOptions: (
+    selectedLocationOptions: { id: string; name: string }[]
+  ) => void;
   placeholder?: string;
   className?: string;
 }
 
 const VIETNAM_LOCATIONS = initialLocationOptions;
 
-export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocationOptions, placeholder = "Cities, provinces", className }: LocationMultiSelectProps) {
+export function LocationMultiSelect({
+  selectedLocationOptions,
+  setSelectedLocationOptions,
+  placeholder = "Cities, provinces",
+  className,
+}: LocationMultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredLocations, setFilterLocations] = useState(() => {
     return VIETNAM_LOCATIONS.map((loc) => ({
@@ -35,7 +42,11 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
       isSelected: selectedLocationOptions.some((s) => s.id === loc.id),
     }));
 
-    const filtered = searchQuery ? normalized.filter((loc) => loc.name.toLowerCase().includes(searchQuery.toLowerCase())) : normalized;
+    const filtered = searchQuery
+      ? normalized.filter((loc) =>
+          loc.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : normalized;
 
     setFilterLocations(filtered);
   }, [selectedLocationOptions, searchQuery]);
@@ -44,9 +55,13 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
     const location = VIETNAM_LOCATIONS.find((loc) => loc.id === locationId);
     if (!location) return;
 
-    const isSelected = selectedLocationOptions.some((loc) => loc.id === locationId);
+    const isSelected = selectedLocationOptions.some(
+      (loc) => loc.id === locationId
+    );
     if (isSelected) {
-      setSelectedLocationOptions(selectedLocationOptions.filter((loc) => loc.id !== locationId));
+      setSelectedLocationOptions(
+        selectedLocationOptions.filter((loc) => loc.id !== locationId)
+      );
     } else {
       setSelectedLocationOptions([...selectedLocationOptions, location]);
     }
@@ -56,19 +71,23 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
 
   const handleRemoveLocation = (locationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedLocationOptions(selectedLocationOptions.filter((loc) => loc.id !== locationId));
+    setSelectedLocationOptions(
+      selectedLocationOptions.filter((loc) => loc.id !== locationId)
+    );
   };
 
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedLocationOptions([]);
-      setSearchQuery("");
-      
+    setSearchQuery("");
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -91,14 +110,25 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
         }}
       >
         {/* Location Icon */}
-        <MapPin className="h-5 w-5 text-gray-400 flex-shrink-0" color="#1967d2" />
+        <MapPin
+          className="h-5 w-5 text-gray-400 flex-shrink-0"
+          color="#1967d2"
+        />
 
         {/* Selected Tags and Input */}
         <div className="flex flex-1 flex-wrap items-center gap-1.5 max-h-16 overflow-y-auto">
           {selectedLocationOptions.map((location) => (
-            <Badge key={location.id} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 px-2 py-1 text-sm font-normal">
+            <Badge
+              key={location.id}
+              variant="secondary"
+              className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 px-2 py-1 text-sm font-normal"
+            >
               {location.name}
-              <button type="button" onClick={(e) => handleRemoveLocation(location.id, e)} className="ml-1 rounded-full hover:bg-blue-200 p-0.5 transition-colors">
+              <button
+                type="button"
+                onClick={(e) => handleRemoveLocation(location.id, e)}
+                className="ml-1 rounded-full hover:bg-blue-200 p-0.5 transition-colors"
+              >
                 <X className="h-3 w-3" />
               </button>
             </Badge>
@@ -108,18 +138,24 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
             type="text"
             value={searchQuery}
             onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsOpen(true);  
+              setSearchQuery(e.target.value);
+              setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
-            placeholder={selectedLocationOptions.length === 0 ? placeholder : ""}
+            placeholder={
+              selectedLocationOptions.length === 0 ? placeholder : ""
+            }
             className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-gray-400"
           />
         </div>
 
         {/* Clear All Button */}
         {selectedLocationOptions.length > 0 && (
-          <button type="button" onClick={handleClearAll} className="flex-shrink-0 rounded-full hover:bg-gray-100 p-1 transition-colors">
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="flex-shrink-0 rounded-full hover:bg-gray-100 p-1 transition-colors"
+          >
             <X className="h-4 w-4 text-gray-500" />
           </button>
         )}
@@ -138,7 +174,9 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
                     onClick={() => handleToggleLocation(location.id)}
                     className={cn(
                       "w-full px-4 py-2.5 text-left text-sm hover:bg-sky-100 transition-colors",
-                      selectedLocationOptions.includes(location) && "bg-blue-50 text-blue-700 font-medium",location.isSelected && "bg-sky-50"
+                      selectedLocationOptions.includes(location) &&
+                        "bg-blue-50 text-blue-700 font-medium",
+                      location.isSelected && "bg-sky-50"
                     )}
                   >
                     {location.name}
@@ -146,7 +184,9 @@ export function LocationMultiSelect({ selectedLocationOptions, setSelectedLocati
                 ))}
               </div>
             ) : (
-              <div className="px-4 py-8 text-center text-sm text-gray-500">No locations found</div>
+              <div className="px-4 py-8 text-center text-sm text-gray-500">
+                No locations found
+              </div>
             )}
           </div>
         </div>

@@ -55,9 +55,8 @@ export const employerService = {
 
   // Get Employer Profile (authenticated employer only)
   getEmployerProfile: async (): Promise<ApiResponse<Employer>> => {
-    const response = await employerHttp.get<ApiResponse<Employer>>(
-      "/employers/me"
-    );
+    const response =
+      await employerHttp.get<ApiResponse<Employer>>("/employers/me");
     return response.data;
   },
 
@@ -140,9 +139,30 @@ export const employerService = {
     return response.data;
   },
 
+  // Admin: Get Employers with Search Params (authenticated - get all statuses)
+  getEmployersForAdmin: async (
+    params: With<SearchParams, { provinceId?: number }>
+  ): Promise<ApiResponse<PageResponse<Employer>>> => {
+    const response = await userHttp.get<ApiResponse<PageResponse<Employer>>>(
+      "/employers",
+      { params }
+    );
+    return response.data;
+  },
+
   // Get Employer by ID (public)
   getEmployerById: async (id: number): Promise<ApiResponse<Employer>> => {
     const response = await publicHttp.get<ApiResponse<Employer>>(
+      `/employers/${id}`
+    );
+    return response.data;
+  },
+
+  // Admin: Get Employer by ID (authenticated - get all statuses)
+  getEmployerByIdForAdmin: async (
+    id: number
+  ): Promise<ApiResponse<Employer>> => {
+    const response = await userHttp.get<ApiResponse<Employer>>(
       `/employers/${id}`
     );
     return response.data;

@@ -1,1 +1,1 @@
-export {default} from './TabNavigationAction';
+export { default } from "./TabNavigationAction";

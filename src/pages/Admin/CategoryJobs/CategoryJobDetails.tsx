@@ -5,10 +5,21 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { categoryJobService, type CategoryJobRequest, type CategoryJobResponse } from "@/services/categoryJobs.service";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
+  categoryJobService,
+  type CategoryJobRequest,
+  type CategoryJobResponse,
+} from "@/services/categoryJobs.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +39,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }) {
+export default function CategoryJobDetails({
+  job,
+}: {
+  job: CategoryJobResponse;
+}) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -52,25 +68,26 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
   }, [job, form]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: CategoryJobRequest) => categoryJobService.updateCategoryJob(job.id, data),
+    mutationFn: (data: CategoryJobRequest) =>
+      categoryJobService.updateCategoryJob(job.id, data),
     onSuccess: () => {
-      toast.success("Update successful");
+      toast.success(t("toast.success.categoryUpdated"));
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["categoryJobs"] });
     },
     onError: () => {
-      toast.error("Update failed");
+      toast.error(t("toast.error.updateCategoryFailed"));
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => categoryJobService.deleteCategoryJob(job.id),
     onSuccess: () => {
-      toast.success("Delete successful");
+      toast.success(t("toast.success.categoryDeleted"));
       queryClient.invalidateQueries({ queryKey: ["categoryJobs"] });
     },
     onError: () => {
-      toast.error("Delete failed");
+      toast.error(t("toast.error.deleteCategoryFailed"));
     },
   });
 
@@ -98,27 +115,49 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
       <div className="flex items-center justify-between">
         <div
           className="flex items-center gap-2 px-8 py-2 bg-teal-500 text-white w-fit"
-          style={{ clipPath: "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)" }}
+          style={{
+            clipPath:
+              "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)",
+          }}
         >
-          <span className="font-semibold">Category Job</span>
+          <span className="font-semibold">
+            {t("admin.categoryJobManagement.categoryJob.title")}
+          </span>
         </div>
         <div className="flex gap-2">
           {!isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(true)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white">
-                Edit
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+              >
+                {t("admin.categoryJobManagement.categoryJob.edit")}
               </Button>
-              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                Delete
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                {t("admin.categoryJobManagement.categoryJob.delete")}
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleCancel} className="border-gray-300 bg-transparent">
-                Cancel
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                className="border-gray-300 bg-transparent"
+              >
+                {t("admin.categoryJobManagement.categoryJob.cancel")}
               </Button>
-              <Button onClick={form.handleSubmit(onSubmit)} className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Saving..." : "Save"}
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                className="bg-[#1967d2] hover:bg-[#1251a3] text-white hover:text-white"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending
+                  ? t("admin.categoryJobManagement.categoryJob.saving")
+                  : t("admin.categoryJobManagement.categoryJob.save")}
               </Button>
             </>
           )}
@@ -134,12 +173,21 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                  <FormLabel>
+                    {t("admin.categoryJobManagement.categoryJob.fields.name")}{" "}
+                    {isEditing && <span className="text-red-600">*</span>}
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+                    />
                   </FormControl>
                   {form.formState.errors.name ? (
-                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.name.message}</p>
+                    <p className="text-red-600 text-sm min-h-[15px]">
+                      {form.formState.errors.name.message}
+                    </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>
                   )}
@@ -152,12 +200,23 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
               name="engName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Eng Name {isEditing && <span className="text-red-600">*</span>}</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "admin.categoryJobManagement.categoryJob.fields.engName"
+                    )}{" "}
+                    {isEditing && <span className="text-red-600">*</span>}
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={!isEditing} className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]" />
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+                    />
                   </FormControl>
                   {form.formState.errors.engName ? (
-                    <p className="text-red-600 text-sm min-h-[15px]">{form.formState.errors.engName.message}</p>
+                    <p className="text-red-600 text-sm min-h-[15px]">
+                      {form.formState.errors.engName.message}
+                    </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>
                   )}
@@ -171,12 +230,18 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>
+                  {t(
+                    "admin.categoryJobManagement.categoryJob.fields.description"
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
                     disabled={!isEditing}
-                    placeholder="Nhâp mô tả..."
+                    placeholder={t(
+                      "admin.categoryJobManagement.categoryJob.descriptionPlaceholder"
+                    )}
                     className="min-h-[100px] bg-white resize-none focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
                   />
                 </FormControl>
@@ -190,13 +255,25 @@ export default function CategoryJobDetails({ job }: { job: CategoryJobResponse }
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the category job "{job.name}" and all associated industries.</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("admin.categoryJobManagement.categoryJob.deleteDialog.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                "admin.categoryJobManagement.categoryJob.deleteDialog.description",
+                { name: job.name }
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel>
+              {t("admin.categoryJobManagement.categoryJob.deleteDialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("admin.categoryJobManagement.categoryJob.deleteDialog.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

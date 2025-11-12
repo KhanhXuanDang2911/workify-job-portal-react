@@ -39,7 +39,12 @@ interface TiptapEditorProps {
   className?: string;
 }
 
-export default function TiptapEditor({ content, onChange, placeholder, className }: TiptapEditorProps) {
+export default function TiptapEditor({
+  content,
+  onChange,
+  placeholder,
+  className,
+}: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -70,7 +75,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
     content: content,
     editorProps: {
       attributes: {
-        class: cn("prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[300px]", className),
+        class: cn(
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[300px]",
+          className
+        ),
       },
     },
     onUpdate: ({ editor }) => {
@@ -115,7 +123,12 @@ export default function TiptapEditor({ content, onChange, placeholder, className
       return;
     }
 
-    editor?.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    editor
+      ?.chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: url })
+      .run();
   };
 
   if (!editor) {
@@ -141,7 +154,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("italic") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("italic") && "is-active"
+          )}
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -150,7 +166,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("underline") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("underline") && "is-active"
+          )}
         >
           <UnderlineIcon className="h-4 w-4" />
         </Button>
@@ -159,7 +178,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("strike") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("strike") && "is-active"
+          )}
         >
           <Strikethrough className="h-4 w-4" />
         </Button>
@@ -180,8 +202,13 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("heading", { level: 1 }) && "is-active")}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("heading", { level: 1 }) && "is-active"
+          )}
         >
           <Heading1 className="h-4 w-4" />
         </Button>
@@ -189,8 +216,13 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("heading", { level: 2 }) && "is-active")}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("heading", { level: 2 }) && "is-active"
+          )}
         >
           <Heading2 className="h-4 w-4" />
         </Button>
@@ -198,8 +230,13 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("heading", { level: 3 }) && "is-active")}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("heading", { level: 3 }) && "is-active"
+          )}
         >
           <Heading3 className="h-4 w-4" />
         </Button>
@@ -212,7 +249,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("bulletList") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("bulletList") && "is-active"
+          )}
         >
           <List className="h-4 w-4" />
         </Button>
@@ -221,7 +261,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("orderedList") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("orderedList") && "is-active"
+          )}
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
@@ -230,7 +273,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={cn("h-8 w-8 p-0", editor.isActive("blockquote") && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive("blockquote") && "is-active"
+          )}
         >
           <Quote className="h-4 w-4" />
         </Button>
@@ -243,7 +289,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          className={cn("h-8 w-8 p-0", editor.isActive({ textAlign: "left" }) && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive({ textAlign: "left" }) && "is-active"
+          )}
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
@@ -252,7 +301,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className={cn("h-8 w-8 p-0", editor.isActive({ textAlign: "center" }) && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive({ textAlign: "center" }) && "is-active"
+          )}
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -261,7 +313,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          className={cn("h-8 w-8 p-0", editor.isActive({ textAlign: "right" }) && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive({ textAlign: "right" }) && "is-active"
+          )}
         >
           <AlignRight className="h-4 w-4" />
         </Button>
@@ -270,7 +325,10 @@ export default function TiptapEditor({ content, onChange, placeholder, className
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-          className={cn("h-8 w-8 p-0", editor.isActive({ textAlign: "justify" }) && "is-active")}
+          className={cn(
+            "h-8 w-8 p-0",
+            editor.isActive({ textAlign: "justify" }) && "is-active"
+          )}
         >
           <AlignJustify className="h-4 w-4" />
         </Button>
@@ -278,20 +336,46 @@ export default function TiptapEditor({ content, onChange, placeholder, className
         <div className="w-px h-8 bg-border mx-1" />
 
         {/* Media & Links */}
-        <Button type="button" variant="ghost" size="sm" onClick={addImage} className="h-8 w-8 p-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={addImage}
+          className="h-8 w-8 p-0"
+        >
           <ImageIcon className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={setLink} className={cn("h-8 w-8 p-0", editor.isActive("link") && "is-active")}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={setLink}
+          className={cn("h-8 w-8 p-0", editor.isActive("link") && "is-active")}
+        >
           <LinkIcon className="h-4 w-4" />
         </Button>
 
         <div className="w-px h-8 bg-border mx-1" />
 
         {/* Undo/Redo */}
-        <Button type="button" variant="ghost" size="sm" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} className="h-8 w-8 p-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          className="h-8 w-8 p-0"
+        >
           <Undo className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} className="h-8 w-8 p-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          className="h-8 w-8 p-0"
+        >
           <Redo className="h-4 w-4" />
         </Button>
       </div>

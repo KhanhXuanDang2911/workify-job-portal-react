@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { routes } from "@/routes/routes.const";
 import { Link } from "react-router-dom";
-import { Briefcase, Clock, Bookmark } from "lucide-react";
+import { Briefcase, Clock, Bookmark, MapPin } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Job = {
   id: number;
@@ -19,6 +20,7 @@ type Job = {
 };
 
 export default function JobCard({ job }: { job: Job }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-gray-50 border-2 border-blue-200 rounded-xl p-6 shadow-md hover:bg-blue-50 hover:shadow-xl transition-all duration-300 group">
       <div className="flex items-start gap-5">
@@ -40,6 +42,12 @@ export default function JobCard({ job }: { job: Job }) {
               >
                 {job.title}
               </Link>
+              {job.location && (
+                <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="line-clamp-1">{job.location}</span>
+                </div>
+              )}
               <div className="flex items-center gap-3 mb-3">
                 <Badge
                   variant="secondary"
@@ -70,9 +78,11 @@ export default function JobCard({ job }: { job: Job }) {
             <div>
               <p className="text-lg font-bold text-blue-600">
                 {job.salary}
-                <span className="text-sm font-normal text-gray-500 ml-1">
-                  /{job.period}
-                </span>
+                {job.period && (
+                  <span className="text-sm font-normal text-gray-500 ml-1">
+                    /{job.period}
+                  </span>
+                )}
               </p>
             </div>
             <Button
@@ -80,7 +90,9 @@ export default function JobCard({ job }: { job: Job }) {
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-10 font-medium rounded-lg shadow-sm"
             >
-              <Link to={`/${routes.JOB_DETAIL}/${job.id}`}>Apply Now</Link>
+              <Link to={`/${routes.JOB_DETAIL}/${job.id}`}>
+                {t("jobCard.applyNow")}
+              </Link>
             </Button>
           </div>
         </div>

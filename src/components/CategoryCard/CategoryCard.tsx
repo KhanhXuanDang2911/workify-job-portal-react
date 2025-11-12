@@ -21,11 +21,15 @@ export default function CategoryCard({ category }: { category: Category }) {
     >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/0 group-hover:from-white/20 group-hover:to-transparent transition-all duration-300 rounded-2xl"></div>
-      
+
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <div className={`w-14 h-14 ${category.bgColor} rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm group-hover:shadow-md border ${borderColor}`}>
-            <IconComponent className={`w-7 h-7 ${category.color} transition-transform duration-300 group-hover:scale-110`} />
+          <div
+            className={`w-14 h-14 ${category.bgColor} rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm group-hover:shadow-md border ${borderColor}`}
+          >
+            <IconComponent
+              className={`w-7 h-7 ${category.color} transition-transform duration-300 group-hover:scale-110`}
+            />
           </div>
           <span className="bg-gradient-to-r from-gray-800 to-gray-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
             {category.jobs}

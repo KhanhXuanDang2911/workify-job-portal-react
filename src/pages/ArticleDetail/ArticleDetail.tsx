@@ -21,6 +21,7 @@ import { routes } from "@/routes/routes.const";
 import type { PostResponse, PostCategory } from "@/types/post.type";
 import type { JobResponse } from "@/types/job.type";
 import { JobTypeLabelVN } from "@/constants/job.constant";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface TOCItem {
   id: string;
@@ -29,6 +30,7 @@ interface TOCItem {
 }
 
 export default function ArticleDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
@@ -48,7 +50,12 @@ export default function ArticleDetail() {
   const articleData: PostResponse | undefined = articleResponse?.data;
 
   // Fetch categories
-  const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isErrorCategories, error: errorCategories } = useQuery({
+  const {
+    data: categoriesResponse,
+    isLoading: isLoadingCategories,
+    isError: isErrorCategories,
+    error: errorCategories,
+  } = useQuery({
     queryKey: ["post-categories"],
     queryFn: () => postService.getAllCategories(),
     staleTime: 10 * 60 * 1000,
@@ -57,7 +64,12 @@ export default function ArticleDetail() {
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
   // Fetch latest articles for Recent Articles section
-  const { data: latestPostsResponse, isLoading: isLoadingRecent, isError: isErrorRecent, error: errorRecent } = useQuery({
+  const {
+    data: latestPostsResponse,
+    isLoading: isLoadingRecent,
+    isError: isErrorRecent,
+    error: errorRecent,
+  } = useQuery({
     queryKey: ["latest-public-posts", 6],
     queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
@@ -73,51 +85,59 @@ export default function ArticleDetail() {
   };
 
   // Map latest posts to recent articles format
-  const recentArticles =
-    Array.isArray(latestPostsResponse?.data)
-      ? latestPostsResponse.data.map((post: PostResponse) => ({
-          id: post.id,
-          title: post.title,
-          date: post.createdAt
-            ? new Date(post.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            : "",
-          image: post.thumbnailUrl || "/placeholder.svg",
-        }))
-      : [];
+  const recentArticles = Array.isArray(latestPostsResponse?.data)
+    ? latestPostsResponse.data.map((post: PostResponse) => ({
+        id: post.id,
+        title: post.title,
+        date: post.createdAt
+          ? new Date(post.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "",
+        image: post.thumbnailUrl || "/placeholder.svg",
+      }))
+    : [];
 
   // Helper functions for job mapping
   const formatSalary = (job: JobResponse): string => {
     try {
       if (job.salaryType === "RANGE") {
-        const min = job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
-        const max = job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
+        const min =
+          job.minSalary != null ? Number(job.minSalary).toLocaleString() : null;
+        const max =
+          job.maxSalary != null ? Number(job.maxSalary).toLocaleString() : null;
         return `${min ?? ""}${min && max ? " - " : ""}${max ?? ""} ${job.salaryUnit ?? ""}`.trim();
       }
       if (job.salaryType === "GREATER_THAN" && job.minSalary != null) {
         return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
       }
-      if (job.salaryType === "NEGOTIABLE") return "Thỏa thuận";
-      if (job.minSalary != null) return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
-      return "Thỏa thuận";
+      if (job.salaryType === "NEGOTIABLE") return t("jobDetail.negotiable");
+      if (job.minSalary != null)
+        return `${Number(job.minSalary).toLocaleString()} ${job.salaryUnit ?? ""}`;
+      return t("jobDetail.negotiable");
     } catch (e) {
-      return "Thỏa thuận";
+      return t("jobDetail.negotiable");
     }
   };
 
   const mapTypeColor = (jobType?: string): string => {
     if (!jobType) return "bg-gray-400";
-    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL")) return "bg-green-500";
+    if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
+      return "bg-green-500";
     if (jobType.includes("PART")) return "bg-orange-500";
     if (jobType.includes("CONTRACT")) return "bg-purple-500";
     return "bg-blue-500";
   };
 
   // Fetch top attractive jobs for suggestions
-  const { data: topAttractiveResponse, isLoading: isLoadingJobs, isError: isErrorJobs, error: errorJobs } = useQuery({
+  const {
+    data: topAttractiveResponse,
+    isLoading: isLoadingJobs,
+    isError: isErrorJobs,
+    error: errorJobs,
+  } = useQuery({
     queryKey: ["top-attractive-jobs", 4],
     queryFn: () => jobService.getTopAttractiveJobs(4),
     staleTime: 5 * 60 * 1000,
@@ -131,9 +151,13 @@ export default function ArticleDetail() {
         title: job.jobTitle || "",
         company: job.companyName || job.author?.companyName || "",
         salary: formatSalary(job),
-        type: JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] || job.jobType,
+        type:
+          JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
+          job.jobType,
         typeColor: mapTypeColor(job.jobType),
-        logo: job.author?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        logo:
+          job.author?.avatarUrl ||
+          "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
       };
     });
   }, [topAttractiveResponse]);
@@ -162,21 +186,23 @@ export default function ArticleDetail() {
 
     // Wait for content to be rendered in DOM
     const timer = setTimeout(() => {
-    const parser = new DOMParser();
+      const parser = new DOMParser();
       const doc = parser.parseFromString(processedContent, "text/html");
-      const headings = doc.querySelectorAll("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
+      const headings = doc.querySelectorAll(
+        "h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]"
+      );
 
       const items: TOCItem[] = Array.from(headings).map((heading) => {
         const id = heading.id || "";
-      const level = Number.parseInt(heading.tagName.charAt(1));
-      return {
-        id,
-        text: heading.textContent || "",
-        level,
-      };
-    });
+        const level = Number.parseInt(heading.tagName.charAt(1));
+        return {
+          id,
+          text: heading.textContent || "",
+          level,
+        };
+      });
 
-    setTocItems(items);
+      setTocItems(items);
     }, 100);
 
     return () => clearTimeout(timer);
@@ -185,18 +211,19 @@ export default function ArticleDetail() {
   const handleTOCClick = (id: string) => {
     // Prevent default if it's a button click
     const scrollToHeading = () => {
-    const element = document.getElementById(id);
-    if (element) {
+      const element = document.getElementById(id);
+      if (element) {
         // Calculate position with offset
-        const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
+        const elementTop =
+          element.getBoundingClientRect().top + window.pageYOffset;
         const offset = 100; // 100px above the heading
         const targetPosition = elementTop - offset;
 
-      window.scrollTo({
+        window.scrollTo({
           top: Math.max(0, targetPosition),
-        behavior: "smooth",
-      });
-      setActiveSection(id);
+          behavior: "smooth",
+        });
+        setActiveSection(id);
         return true;
       }
       return false;
@@ -232,7 +259,7 @@ export default function ArticleDetail() {
               day: "numeric",
             })
           : "",
-        readTime: `${articleData.readingTimeMinutes || 0} min read`,
+        readTime: `${articleData.readingTimeMinutes || 0} ${t("articleDetail.minRead")}`,
         tags: tags,
         category: articleData.category?.title || "",
         content: articleData.content || "",
@@ -253,8 +280,8 @@ export default function ArticleDetail() {
         <div className="text-center">
           <p className="text-red-600 mb-4">
             {isErrorArticle
-              ? "Không thể tải bài viết. Vui lòng thử lại sau."
-              : "Không tìm thấy bài viết."}
+              ? t("articleDetail.loadError")
+              : t("articleDetail.notFound")}
           </p>
           <Button
             variant="outline"
@@ -262,7 +289,7 @@ export default function ArticleDetail() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Quay lại danh sách bài viết
+            {t("articleDetail.backToArticles")}
           </Button>
         </div>
       </div>
@@ -331,7 +358,9 @@ export default function ArticleDetail() {
                       {article.author}
                     </p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>Đăng ngày: {article.date}</span>
+                      <span>
+                        {t("articleDetail.postedOn")}: {article.date}
+                      </span>
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{article.readTime}</span>
@@ -348,7 +377,7 @@ export default function ArticleDetail() {
                     className="flex items-center gap-2 bg-transparent"
                   >
                     <Copy className="w-4 h-4" />
-                    Copy link
+                    {t("articleDetail.copyLink")}
                   </Button>
                   <Button variant="outline" size="sm">
                     <Facebook className="w-4 h-4" />
@@ -366,7 +395,7 @@ export default function ArticleDetail() {
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 mb-8 border border-blue-200 shadow-sm">
                   <h3 className="text-xl font-bold text-[#1967d2] mb-4 text-center flex items-center justify-center gap-2">
                     <div className="w-8 h-1 bg-[#1967d2] rounded"></div>
-                    Mục Lục
+                    {t("articleDetail.tableOfContents")}
                     <div className="w-8 h-1 bg-[#1967d2] rounded"></div>
                   </h3>
                   <div className="space-y-0.5">
@@ -407,13 +436,13 @@ export default function ArticleDetail() {
                 dangerouslySetInnerHTML={{ __html: processedContent }}
               />
             </div>
-            </div>
+          </div>
 
           <div className="space-y-6">
             {/* Categories */}
             <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Categories
+                {t("articleDetail.categories")}
               </h3>
               {isLoadingCategories ? (
                 <div className="flex items-center justify-center py-8">
@@ -422,7 +451,8 @@ export default function ArticleDetail() {
               ) : isErrorCategories ? (
                 <div className="text-center py-8">
                   <p className="text-red-600 text-sm">
-                    {(errorCategories as any)?.message || "Không thể tải danh mục"}
+                    {(errorCategories as any)?.message ||
+                      t("articleDetail.loadCategoriesError")}
                   </p>
                 </div>
               ) : (
@@ -431,7 +461,7 @@ export default function ArticleDetail() {
                     className="text-sm cursor-pointer transition-colors text-gray-600 hover:text-[#1967d2]"
                     onClick={() => handleCategoryClick(null)}
                   >
-                    All Categories
+                    {t("articleDetail.allCategories")}
                   </div>
                   {categories.map((category) => (
                     <div
@@ -449,7 +479,7 @@ export default function ArticleDetail() {
             {/* Recent Articles */}
             <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
-                Recent Article
+                {t("articleDetail.recentArticle")}
               </h3>
               {isLoadingRecent ? (
                 <div className="flex items-center justify-center py-8">
@@ -458,13 +488,14 @@ export default function ArticleDetail() {
               ) : isErrorRecent ? (
                 <div className="text-center py-8">
                   <p className="text-red-600 text-sm">
-                    {(errorRecent as any)?.message || "Không thể tải bài viết"}
+                    {(errorRecent as any)?.message ||
+                      t("articleDetail.loadPostsError")}
                   </p>
                 </div>
               ) : recentArticles.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 text-sm">
-                    Không có bài viết nào
+                    {t("articleDetail.noArticles")}
                   </p>
                 </div>
               ) : (
@@ -512,13 +543,14 @@ export default function ArticleDetail() {
               ) : isErrorJobs ? (
                 <div className="text-center py-8">
                   <p className="text-red-600 text-sm">
-                    {(errorJobs as any)?.message || "Không thể tải danh sách công việc"}
+                    {(errorJobs as any)?.message ||
+                      t("articleDetail.loadJobsError")}
                   </p>
                 </div>
               ) : suggestedJobs.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 text-sm">
-                    Không có công việc nào
+                    {t("articleDetail.noJobs")}
                   </p>
                 </div>
               ) : (

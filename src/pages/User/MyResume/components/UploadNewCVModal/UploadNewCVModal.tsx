@@ -16,7 +16,15 @@ interface UploadNewCVModalProps {
   handleFileSelect: (file: File | null) => void;
 }
 
-function UploadNewCVModal({ trigger, handleUploadCV, cvName, setCvName, fileInputRef, selectedFile, handleFileSelect }: UploadNewCVModalProps) {
+function UploadNewCVModal({
+  trigger,
+  handleUploadCV,
+  cvName,
+  setCvName,
+  fileInputRef,
+  selectedFile,
+  handleFileSelect,
+}: UploadNewCVModalProps) {
   return (
     <BaseModal
       title="Add Cv/Resume"
@@ -34,7 +42,10 @@ function UploadNewCVModal({ trigger, handleUploadCV, cvName, setCvName, fileInpu
           >
             Cancel
           </Button>
-          <Button className="bg-[#1967d2] hover:bg-[#1557b0]" onClick={() => handleUploadCV(onClose)}>
+          <Button
+            className="bg-[#1967d2] hover:bg-[#1557b0]"
+            onClick={() => handleUploadCV(onClose)}
+          >
             Add Cv/Resume
           </Button>
         </>
@@ -43,12 +54,17 @@ function UploadNewCVModal({ trigger, handleUploadCV, cvName, setCvName, fileInpu
     >
       <div className="space-y-4 py-4">
         <div>
-          <Label htmlFor="cv-name" className="text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="cv-name"
+            className="text-sm font-medium text-gray-700"
+          >
             Cv/Resume Name
           </Label>
           <div className="flex gap-2 items-center my-2">
             <Lightbulb className="text-green-400" />
-            <p className="text-xs text-gray-500">Việc đặt tên cho CV sẽ khiến việc quản lý CV trở nên dễ dàng hơn.</p>
+            <p className="text-xs text-gray-500">
+              Việc đặt tên cho CV sẽ khiến việc quản lý CV trở nên dễ dàng hơn.
+            </p>
           </div>
           <Input
             id="cv-name"
@@ -60,22 +76,32 @@ function UploadNewCVModal({ trigger, handleUploadCV, cvName, setCvName, fileInpu
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2 block">Upload your Cv/Resume</Label>
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            Upload your Cv/Resume
+          </Label>
           <div
             className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#1967d2] hover:bg-[#e3eefc] group transition-colors"
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="flex flex-col items-center gap-2">
               <CloudUpload className="w-10 h-10 group-hover:text-[#1967d2]" />
-              <p className="text-sm text-gray-600 font-medium">{selectedFile ? selectedFile.name : "Browse file or drop here"}</p>
-              <p className="text-xs text-gray-400">Only PDF format available. Max file size 12 MB</p>
+              <p className="text-sm text-gray-600 font-medium">
+                {selectedFile ? selectedFile.name : "Browse file or drop here"}
+              </p>
+              <p className="text-xs text-gray-400">
+                Only PDF format available. Max file size 12 MB
+              </p>
             </div>
           </div>
           <input
             ref={fileInputRef}
             type="file"
             accept=".pdf"
-            onChange={(e) => handleFileSelect(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+            onChange={(e) =>
+              handleFileSelect(
+                e.target.files && e.target.files[0] ? e.target.files[0] : null
+              )
+            }
             className="hidden"
           />
         </div>

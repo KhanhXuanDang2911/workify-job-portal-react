@@ -17,8 +17,10 @@ import {
 } from "@/constants";
 import Loading from "@/components/Loading";
 import { useEmployerAuth } from "@/context/employer-auth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function JobDetailsTab() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { jobId } = useParams();
 
@@ -120,14 +122,14 @@ export default function JobDetailsTab() {
     <div className="py-6">
       <div className="px-6 mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">
-          Chi tiết công việc
+          {t("employer.jobDetailManage.jobDetailsTitle")}
         </h2>
         <Button
           onClick={handleEditJob}
           className="bg-[#1967d2] hover:bg-[#1251a3] gap-2"
         >
           <Pencil className="w-4 h-4" />
-          Chỉnh sửa
+          {t("common.edit")}
         </Button>
       </div>
 
