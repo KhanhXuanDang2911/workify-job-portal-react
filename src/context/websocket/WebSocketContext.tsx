@@ -9,6 +9,7 @@ import React, {
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import type { NotificationResponse } from "@/types/notification.type";
+import type { MessageResponse } from "@/types/chat.type";
 import { userTokenUtils, employerTokenUtils } from "@/lib/token";
 import { useLocation } from "react-router-dom";
 import { employer_routes } from "@/routes/routes.const";
@@ -22,6 +23,12 @@ interface WebSocketContextType {
   addNotification: (notification: NotificationResponse) => void;
   markAsRead: (id: number) => void;
   markAllAsRead: () => void;
+  // Chat functions
+  sendChatMessage: (conversationId: number, content: string) => void;
+  subscribeToMessages: (
+    callback: (message: MessageResponse) => void
+  ) => () => void; // Returns unsubscribe function
+  getStompClient: () => Client | null;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(
@@ -50,6 +57,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   );
   const [unreadCount, setUnreadCount] = useState(0);
   const stompClientRef = useRef<Client | null>(null);
+  const messageCallbacksRef = useRef<Set<(message: MessageResponse) => void>>(
+    new Set()
+  );
   const location = useLocation();
 
   const BASE_URL =
@@ -191,6 +201,36 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
             console.error("[WebSocket] Error parsing notification:", error);
           }
         });
+
+        // Subscribe to chat messages
+        client.subscribe("/user/queue/messages", (message) => {
+          try {
+            console.log(
+              `[WebSocket] Raw message received (${
+                isEmployerRoute ? "EMPLOYER" : "USER"
+              }):`,
+              message.body
+            );
+            const messageData: MessageResponse = JSON.parse(message.body);
+            console.log(
+              `[WebSocket] Parsed chat message (${
+                isEmployerRoute ? "EMPLOYER" : "USER"
+              }):`,
+              messageData
+            );
+            console.log(
+              `[WebSocket] Current callbacks count:`,
+              messageCallbacksRef.current.size
+            );
+            // Notify all registered callbacks
+            messageCallbacksRef.current.forEach((callback, index) => {
+              console.log(`[WebSocket] Calling callback #${index + 1}`);
+              callback(messageData);
+            });
+          } catch (error) {
+            console.error("[WebSocket] Error parsing chat message:", error);
+          }
+        });
       },
       onStompError: (frame) => {
         console.error("[WebSocket] STOMP error:", frame);
@@ -216,6 +256,65 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
   }, [getToken, WS_URL, addNotification, location.pathname]);
 
+  // Send chat message via WebSocket
+  const sendChatMessage = useCallback(
+    (conversationId: number, content: string) => {
+      const client = stompClientRef.current;
+      // Check if client exists, is active, and we have connection state
+      if (!client || !client.active || !isConnected) {
+        console.error("[WebSocket] Cannot send message: not connected", {
+          hasClient: !!client,
+          active: client?.active,
+          isConnected,
+        });
+        throw new Error("WebSocket not connected");
+      }
+
+      try {
+        client.publish({
+          destination: "/app/chat.sendMessage",
+          body: JSON.stringify({
+            conversationId,
+            content,
+          }),
+        });
+        console.log(
+          `[WebSocket] Sent chat message to conversation ${conversationId}`
+        );
+      } catch (error) {
+        console.error("[WebSocket] Error sending chat message:", error);
+        throw error;
+      }
+    },
+    [isConnected]
+  );
+
+  // Subscribe to messages with callback
+  const subscribeToMessages = useCallback(
+    (callback: (message: MessageResponse) => void) => {
+      messageCallbacksRef.current.add(callback);
+      console.log(
+        "[WebSocket] Added message callback, total callbacks:",
+        messageCallbacksRef.current.size
+      );
+
+      // Return unsubscribe function
+      return () => {
+        messageCallbacksRef.current.delete(callback);
+        console.log(
+          "[WebSocket] Removed message callback, remaining callbacks:",
+          messageCallbacksRef.current.size
+        );
+      };
+    },
+    []
+  );
+
+  // Get stomp client
+  const getStompClient = useCallback(() => {
+    return stompClientRef.current;
+  }, []);
+
   const value: WebSocketContextType = {
     isConnected,
     notifications,
@@ -223,6 +322,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     addNotification,
     markAsRead,
     markAllAsRead,
+    sendChatMessage,
+    subscribeToMessages,
+    getStompClient,
   };
 
   return (

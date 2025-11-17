@@ -40,7 +40,7 @@ export default function EditWebsiteUrlsModal() {
       const response = await employerService.getEmployerProfile();
       return response.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
   });
 
   const form = useForm<FormData>({

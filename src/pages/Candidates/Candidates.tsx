@@ -20,7 +20,7 @@ import Loading from "@/components/Loading";
 import CandidateSheet from "@/components/CandidateSheet";
 import type { ApplicationResponse } from "@/types";
 import { toast } from "react-toastify";
-import { FileText, FileTextIcon, Download } from "lucide-react";
+import { FileText, FileTextIcon, Download, MessageCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,10 @@ import {
 } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 import { useTranslation } from "@/hooks/useTranslation";
+import ChatModal from "@/components/Chat/ChatModal";
+import { chatService } from "@/services/chat.service";
+import type { ConversationResponse } from "@/types/chat.type";
+import { useEmployerAuth } from "@/context/employer-auth";
 
 // Map ApplicationStatus to display text and color
 const getStatusInfo = (
@@ -98,7 +102,7 @@ const formatDate = (dateString?: string, locale: string = "vi-VN"): string => {
 };
 
 function Candidates() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { device } = useContext(ResponsiveContext);
   const [selectedJobId, setSelectedJobId] = useState<number | undefined>(
     undefined
@@ -139,9 +143,18 @@ function Candidates() {
   });
 
   const queryClient = useQueryClient();
+  const { state: employerAuth } = useEmployerAuth();
   const applications = applicationsResponse?.data?.items || [];
   const totalCandidates = applicationsResponse?.data?.numberOfElements || 0;
   const totalPages = applicationsResponse?.data?.totalPages || 0;
+
+  // Chat modal state
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ConversationResponse | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    number | null
+  >(null);
 
   // Change application status mutation
   const changeStatusMutation = useMutation({
@@ -204,6 +217,47 @@ function Candidates() {
     e.stopPropagation();
     setSelectedCoverLetter(coverLetter);
     setCoverLetterDialogOpen(true);
+  };
+
+  // Handle open chat
+  const handleOpenChat = async (applicationId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const conversationResponse =
+        await chatService.getConversationByApplicationId(applicationId);
+      if (conversationResponse.data) {
+        setSelectedConversation(conversationResponse.data);
+        setSelectedApplicationId(applicationId);
+        setShowChatModal(true);
+      }
+    } catch (error: any) {
+      console.error("Error fetching conversation:", error);
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 404) {
+        toast.error(
+          t("employer.applications.chatNotFound") ||
+            "Chưa có kênh chat cho đơn ứng tuyển này"
+        );
+      } else if (status === 403) {
+        toast.error(
+          t("employer.applications.chatNoPermission") ||
+            "Bạn không có quyền truy cập chat này"
+        );
+      } else if (status === 401) {
+        toast.error(
+          t("employer.applications.chatUnauthorized") ||
+            "Vui lòng đăng nhập lại để sử dụng tính năng chat"
+        );
+      } else {
+        toast.error(
+          message ||
+            t("employer.applications.chatError") ||
+            "Không thể mở chat. Vui lòng thử lại sau."
+        );
+      }
+    }
   };
 
   // Handle export to Excel
@@ -277,7 +331,6 @@ function Candidates() {
         })
       );
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
       toast.error(t("employer.applications.exportError"));
     }
   };
@@ -393,7 +446,7 @@ function Candidates() {
                       className="hidden md:grid items-center gap-6 px-6 py-4 bg-gradient-to-r from-[#f8f8fd] to-[#f0f4ff] border-b-2 border-[#e2e7f5] text-sm font-semibold text-[#7c8493] uppercase tracking-wide"
                       style={{
                         gridTemplateColumns:
-                          "80px 220px 180px 200px 180px 180px 320px",
+                          "80px 220px 150px 200px 180px 150px 380px",
                       }}
                     >
                       <div className="text-center">
@@ -423,7 +476,7 @@ function Candidates() {
                                 className="hidden md:grid items-center gap-6 px-6 py-4 border-b border-[#e2e7f5] hover:bg-gradient-to-r hover:from-[#f8f8fd] hover:to-[#f0f4ff] transition-all cursor-pointer"
                                 style={{
                                   gridTemplateColumns:
-                                    "80px 220px 180px 200px 180px 180px 320px",
+                                    "80px 220px 150px 200px 180px 150px 380px",
                                 }}
                               >
                                 <div className="text-center text-[#7c8493] font-semibold text-base">
@@ -494,13 +547,13 @@ function Candidates() {
                                 </div>
 
                                 <div
-                                  className="flex items-center gap-3"
+                                  className="flex items-center gap-2"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-4 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
                                     onClick={(e) =>
                                       handleViewCV(application.cvUrl, e)
                                     }
@@ -511,7 +564,7 @@ function Candidates() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-4 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
                                     onClick={(e) =>
                                       handleViewCoverLetter(
                                         application.coverLetter,
@@ -521,6 +574,17 @@ function Candidates() {
                                   >
                                     <FileTextIcon className="w-4 h-4 mr-2" />
                                     {t("employer.applications.coverLetter")}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    onClick={(e) =>
+                                      handleOpenChat(application.id, e)
+                                    }
+                                  >
+                                    <MessageCircle className="w-4 h-4 mr-2" />
+                                    {t("employer.applications.chat")}
                                   </Button>
                                 </div>
                               </div>
@@ -620,22 +684,24 @@ function Candidates() {
                                         {application.email}
                                       </div>
                                     </div>
-                                    <div className="mt-3 flex gap-2">
+                                    <div className="mt-3 flex gap-2 flex-wrap">
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
+                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
                                         onClick={(e) =>
                                           handleViewCV(application.cvUrl, e)
                                         }
                                       >
                                         <FileText className="w-3 h-3 mr-1" />
-                                        {t("employer.applications.viewCv")}
+                                        <span className="text-xs sm:text-sm">
+                                          {t("employer.applications.viewCv")}
+                                        </span>
                                       </Button>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1"
+                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
                                         onClick={(e) =>
                                           handleViewCoverLetter(
                                             application.coverLetter,
@@ -644,7 +710,24 @@ function Candidates() {
                                         }
                                       >
                                         <FileTextIcon className="w-3 h-3 mr-1" />
-                                        {t("employer.applications.coverLetter")}
+                                        <span className="text-xs sm:text-sm">
+                                          {t(
+                                            "employer.applications.coverLetter"
+                                          )}
+                                        </span>
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-green-600 border-green-600 hover:bg-green-600/10 bg-transparent flex-1 min-w-[80px]"
+                                        onClick={(e) =>
+                                          handleOpenChat(application.id, e)
+                                        }
+                                      >
+                                        <MessageCircle className="w-3 h-3 mr-1" />
+                                        <span className="text-xs sm:text-sm">
+                                          {t("employer.applications.chat")}
+                                        </span>
                                       </Button>
                                     </div>
                                   </div>
@@ -714,6 +797,18 @@ function Candidates() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Chat Modal */}
+        {selectedConversation && (
+          <ChatModal
+            open={showChatModal}
+            onOpenChange={setShowChatModal}
+            conversation={selectedConversation}
+            applicationId={selectedApplicationId || undefined}
+            currentUserId={employerAuth.employer?.id}
+            currentUserType="EMPLOYER"
+          />
+        )}
       </main>
     </>
   );

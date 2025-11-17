@@ -135,7 +135,7 @@ export default function MySavedJobs() {
   } = useQuery({
     queryKey: ["saved-jobs", currentPage, itemsPerPage],
     queryFn: () => jobService.getSavedJobs(currentPage, itemsPerPage),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0,
   });
 
   // Map saved jobs from API to Job interface

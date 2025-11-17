@@ -110,9 +110,7 @@ function EmployerPostJob() {
     useIndustries();
 
   // Ensure industries is always an array
-  const industries = Array.isArray(industriesResponse)
-    ? industriesResponse
-    : industriesResponse?.data || [];
+  const industries = industriesResponse || [];
 
   const { data: provinces, isFetching: isFetchingProvinces } = useProvinces({
     enabled: false,
@@ -315,7 +313,7 @@ function EmployerPostJob() {
   useLayoutEffect(() => {
     if (isEditMode && jobData) {
       const job = jobData;
-      console.log("RESET FORM with jobData:", jobData);
+
       mainForm.reset({
         companyName: job.companyName,
         companySize: job.companySize,
@@ -366,8 +364,6 @@ function EmployerPostJob() {
   useEffect(() => {
     if (isEditMode) return;
     if (employer) {
-      console.log("createMODE");
-
       mainForm.setValue("companyName", employer.companyName);
       mainForm.setValue("companySize", employer.companySize);
       mainForm.setValue(
@@ -385,7 +381,6 @@ function EmployerPostJob() {
   const jobInfoRef = useRef<JobInformationRef>(null);
 
   const onSubmit = async (data: PostJobFormData) => {
-    console.log("date: ", data.expirationDate);
     const jobRequest: JobRequest = {
       companyName: data.companyName,
       companySize: data.companySize as CompanySize,
@@ -424,7 +419,6 @@ function EmployerPostJob() {
       description: data.description,
       expirationDate: data.expirationDate,
     };
-    console.log("job: ", jobRequest);
 
     if (isEditMode) {
       updateJobMutation.mutate(jobRequest);
@@ -433,10 +427,7 @@ function EmployerPostJob() {
     }
   };
 
-  const onError = (errors: any) => {
-    console.error("Form validation failed!");
-    console.error("Errors:", errors);
-  };
+  const onError = (errors: any) => {};
   const handleOpenModalEditJobLocations = () => {
     modalJobLocationsForm.reset({
       jobLocations: main_jobLocations.length ? main_jobLocations : [],
@@ -822,12 +813,6 @@ function EmployerPostJob() {
                                     >
                                       <MapPin className="self-start text-[#1967d2]" />
                                       <p className="text-sm break-words whitespace-normal leading-relaxed">
-                                        <>
-                                          {console.log(
-                                            "district:",
-                                            loc.districtName
-                                          )}
-                                        </>
                                         {loc.detailAddress}, {loc.districtName},{" "}
                                         {loc.provinceName}
                                       </p>

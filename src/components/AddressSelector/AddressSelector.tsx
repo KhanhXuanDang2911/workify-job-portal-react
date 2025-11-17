@@ -40,7 +40,6 @@ function AddressSelector({
     queryKey: ["provinces"],
     queryFn: provinceService.getProvinces,
   });
-  console.log(queryProvinces);
 
   const queryDistricts = useQuery({
     queryKey: ["districts", provinceId],
@@ -50,7 +49,6 @@ function AddressSelector({
     },
     enabled: provinceId >= 1,
   });
-  console.log(queryDistricts);
 
   const provinces = queryProvinces.data?.data || [];
   const districts = useMemo(

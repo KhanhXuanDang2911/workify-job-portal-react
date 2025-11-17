@@ -7,6 +7,7 @@ import {
   FileText,
   Calendar,
   Briefcase,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
@@ -21,6 +22,11 @@ import { routes } from "@/routes/routes.const";
 import Loading from "@/components/Loading";
 import { useTranslation } from "@/hooks/useTranslation";
 import { JobType } from "@/constants/job.constant";
+import ChatModal from "@/components/Chat/ChatModal";
+import { chatService } from "@/services/chat.service";
+import type { ConversationResponse } from "@/types/chat.type";
+import { useUserAuth } from "@/context/user-auth";
+import { toast } from "react-toastify";
 
 interface ApplicationJob {
   id: number;
@@ -117,8 +123,62 @@ const relativePosted = (
 
 export default function MyApplyJobs() {
   const { t } = useTranslation();
+  const { state: userAuth } = useUserAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Chat modal state
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ConversationResponse | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    number | null
+  >(null);
+
+  // Handle open chat
+  const handleOpenChat = async (
+    applicationId: number,
+    e?: React.MouseEvent
+  ) => {
+    if (e) e.stopPropagation();
+    try {
+      const conversationResponse =
+        await chatService.getConversationByApplicationId(applicationId);
+      if (conversationResponse.data) {
+        setSelectedConversation(conversationResponse.data);
+        setSelectedApplicationId(applicationId);
+        setShowChatModal(true);
+      }
+    } catch (error: any) {
+      if (error.response?.status !== 404) {
+        toast.error(t("toast.error.networkError"));
+      }
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+      if (status === 404) {
+        toast.error(
+          t("myApplyJobs.chatNotFound") ||
+            "Chưa có kênh chat cho đơn ứng tuyển này"
+        );
+      } else if (status === 403) {
+        toast.error(
+          t("myApplyJobs.chatNoPermission") ||
+            "Bạn không có quyền truy cập chat này"
+        );
+      } else if (status === 401) {
+        toast.error(
+          t("myApplyJobs.chatUnauthorized") ||
+            "Vui lòng đăng nhập lại để sử dụng tính năng chat"
+        );
+      } else {
+        toast.error(
+          message ||
+            t("myApplyJobs.chatError") ||
+            "Không thể mở chat. Vui lòng thử lại sau."
+        );
+      }
+    }
+  };
 
   // Fetch my applications
   const {
@@ -133,7 +193,7 @@ export default function MyApplyJobs() {
         pageSize: itemsPerPage,
         sorts: "createdAt:desc",
       }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0,
   });
 
   // Fetch top attractive jobs for suggestions
@@ -233,7 +293,10 @@ export default function MyApplyJobs() {
                 </div>
               ) : (
                 <>
-                  <TableView applications={currentApplications} />
+                  <TableView
+                    applications={currentApplications}
+                    onOpenChat={handleOpenChat}
+                  />
                   {totalPages > 1 && (
                     <div className="mt-8 flex justify-center">
                       <Pagination
@@ -254,12 +317,30 @@ export default function MyApplyJobs() {
           </div>
         </div>
       </div>
+
+      {/* Chat Modal */}
+      {selectedConversation && (
+        <ChatModal
+          open={showChatModal}
+          onOpenChange={setShowChatModal}
+          conversation={selectedConversation}
+          applicationId={selectedApplicationId || undefined}
+          currentUserId={userAuth.user?.id}
+          currentUserType="USER"
+        />
+      )}
     </>
   );
 }
 
 // Table View Component
-function TableView({ applications }: { applications: ApplicationJob[] }) {
+function TableView({
+  applications,
+  onOpenChat,
+}: {
+  applications: ApplicationJob[];
+  onOpenChat: (applicationId: number, e?: React.MouseEvent) => void;
+}) {
   const { t } = useTranslation();
   return (
     <div className="space-y-4">
@@ -366,6 +447,13 @@ function TableView({ applications }: { applications: ApplicationJob[] }) {
                   <FileText className="w-4 h-4" />
                 </a>
               )}
+              <button
+                onClick={(e) => onOpenChat(application.applicationId, e)}
+                className="w-8 h-8 rounded-full border-2 border-purple-300 flex items-center justify-center text-purple-500 hover:bg-purple-50 transition-colors bg-white shrink-0"
+                title={t("myApplyJobs.chat") || "Chat"}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}

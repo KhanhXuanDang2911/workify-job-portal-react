@@ -56,7 +56,7 @@ export default function CategoryJobTable({
         });
         return res.data;
       },
-      refetchOnWindowFocus: false,
+      staleTime: 0,
       placeholderData: (previousData) => previousData,
     });
 

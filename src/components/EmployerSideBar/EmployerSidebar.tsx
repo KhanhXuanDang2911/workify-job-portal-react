@@ -117,7 +117,6 @@ export default function EmployerSidebar({
   useEffect(() => {
     if (mobileOpen) setIsCollapsed(false);
   }, [mobileOpen, setIsCollapsed]);
-  console.log(isCollapsed, mobileOpen);
 
   return (
     <>
@@ -146,7 +145,7 @@ export default function EmployerSidebar({
               variant="ghost"
               size="sm"
               className="w-full p-2 bg-white/50 hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-              onClick={() => setIsCollapsed((v) => !v)}
+              onClick={() => setIsCollapsed(!isCollapsed)}
               aria-label={
                 isCollapsed
                   ? t("employer.sidebar.expandSidebar")

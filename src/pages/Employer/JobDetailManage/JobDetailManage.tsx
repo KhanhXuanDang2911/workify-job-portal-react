@@ -76,7 +76,7 @@ export default function JobDetailManage() {
       const res = await jobService.getJobById(Number(jobId));
       return res.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     enabled: !!jobId,
   });
 

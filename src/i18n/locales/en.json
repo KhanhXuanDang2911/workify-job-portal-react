@@ -905,6 +905,7 @@
       "daysAgo": "{{count}} days ago",
       "noCandidates": "No candidates",
       "viewDetails": "View Details",
+      "chat": "Chat",
       "sendEmail": "Send Email",
       "downloadCV": "Download CV",
       "reject": "Reject",
@@ -955,6 +956,7 @@
       "show": "Show",
       "candidatesPerPage": "Candidates per page",
       "viewCv": "View CV",
+      "chat": "Chat",
       "coverLetter": "Cover Letter",
       "noCoverLetter": "No cover letter",
       "phoneLabel": "Phone",
@@ -1305,6 +1307,7 @@
     "applyCount": "Time {{count}}",
     "viewDetails": "View details",
     "viewCV": "View sent CV",
+    "chat": "Chat",
     "locationNotUpdated": "Location not updated",
     "status": {
       "UNREAD": "Unread",
@@ -1325,6 +1328,15 @@
       "monthsAgo": "{{count}} months ago",
       "yearsAgo": "{{count}} years ago"
     }
+  },
+  "chatModal": {
+    "title": "Chat",
+    "noMessages": "No messages yet",
+    "cannotSendUntilEmployerMessage": "You can only send messages after the employer has sent the first message",
+    "placeholderCanSend": "Type a message...",
+    "placeholderWaiting": "Wait for employer to send the first message...",
+    "errorSendingMessage": "Could not send message",
+    "yesterday": "Yesterday"
   },
   "mySavedJobs": {
     "title": "Saved Jobs ({{count}})",

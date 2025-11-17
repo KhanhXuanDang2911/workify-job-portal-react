@@ -184,7 +184,7 @@ export default function CreateEmployerModal() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function CreateEmployerModal() {
         name: district.name,
       })),
     enabled: !!seletedProvinceId,
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   return (

@@ -146,7 +146,7 @@ export default function EmployerManagement() {
         sorts: sortsString || undefined,
         provinceId,
       }),
-    refetchOnWindowFocus: false,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 
@@ -176,7 +176,7 @@ export default function EmployerManagement() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   useEffect(() => {

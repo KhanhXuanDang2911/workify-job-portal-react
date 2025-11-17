@@ -905,6 +905,7 @@
       "daysAgo": "{{count}} ngày trước",
       "noCandidates": "Không có ứng viên",
       "viewDetails": "Xem chi tiết",
+      "chat": "Nhắn tin",
       "sendEmail": "Gửi email",
       "downloadCV": "Tải CV",
       "reject": "Từ chối",
@@ -955,6 +956,7 @@
       "show": "Hiển thị",
       "candidatesPerPage": "Ứng viên mỗi trang",
       "viewCv": "Xem CV",
+      "chat": "Nhắn tin",
       "coverLetter": "Thư xin việc",
       "noCoverLetter": "Không có thư xin việc",
       "phoneLabel": "SĐT",
@@ -1305,6 +1307,7 @@
     "applyCount": "Lần {{count}}",
     "viewDetails": "Xem chi tiết",
     "viewCV": "Xem CV đã gửi",
+    "chat": "Nhắn tin",
     "locationNotUpdated": "Chưa cập nhật địa chỉ",
     "status": {
       "UNREAD": "Chưa đọc",
@@ -1325,6 +1328,15 @@
       "monthsAgo": "{{count}} tháng trước",
       "yearsAgo": "{{count}} năm trước"
     }
+  },
+  "chatModal": {
+    "title": "Trò chuyện",
+    "noMessages": "Chưa có tin nhắn nào",
+    "cannotSendUntilEmployerMessage": "Bạn chỉ có thể gửi tin nhắn sau khi nhà tuyển dụng đã gửi tin nhắn đầu tiên",
+    "placeholderCanSend": "Nhập tin nhắn...",
+    "placeholderWaiting": "Chờ nhà tuyển dụng gửi tin nhắn đầu tiên...",
+    "errorSendingMessage": "Không thể gửi tin nhắn",
+    "yesterday": "Hôm qua"
   },
   "mySavedJobs": {
     "title": "Công việc đã lưu ({{count}})",

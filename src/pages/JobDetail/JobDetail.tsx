@@ -49,7 +49,7 @@ const mapTypeColor = (jobType?: string): string => {
 // Calculate remaining days
 const calculateRemainingDays = (
   expirationDate: string | undefined,
-  t: (key: string) => string
+  t: (key: string, options?: any) => string
 ): string => {
   if (!expirationDate) return "";
   try {
@@ -159,6 +159,9 @@ const JobDetail = () => {
   const companyHiringJobs = useMemo(() => {
     if (!companyJobsResponse?.data?.items) return [];
     const currentJobId = jobResponse?.data?.id;
+    // Get company logo from the main job response
+    const companyLogo = jobResponse?.data?.author?.avatarUrl;
+
     return companyJobsResponse.data.items
       .filter((job) => job.id !== currentJobId) // Exclude current job
       .slice(0, 5) // Limit to 5 jobs
@@ -183,13 +186,16 @@ const JobDetail = () => {
           salary: formatSalary(job, t),
           type: mapEnumToJobType(job.jobType, t),
           typeColor: mapTypeColor(job.jobType),
-          logo:
-            job.author?.avatarUrl ||
-            "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+          logo: companyLogo || job.author?.avatarUrl || undefined,
           numberOfApplications: job.numberOfApplications || 0,
         };
       });
-  }, [companyJobsResponse, jobResponse?.data?.id, t]);
+  }, [
+    companyJobsResponse,
+    jobResponse?.data?.id,
+    jobResponse?.data?.author?.avatarUrl,
+    t,
+  ]);
 
   // Fetch top 5 attractive jobs for sidebar
   const { data: topAttractiveResponse } = useQuery({
@@ -547,10 +553,7 @@ const JobDetail = () => {
               </Card>
 
               {/* Top 5 Attractive Jobs */}
-              <SuggestedJobs
-                jobs={topAttractiveJobs}
-                onViewAll={() => console.log("View all suggested jobs")}
-              />
+              <SuggestedJobs jobs={topAttractiveJobs} onViewAll={() => {}} />
             </div>
           </div>
         </div>

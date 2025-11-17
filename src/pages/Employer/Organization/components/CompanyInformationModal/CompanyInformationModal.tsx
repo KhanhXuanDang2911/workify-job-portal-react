@@ -36,7 +36,7 @@ export default function CompanyInformationModal() {
       const response = await employerService.getEmployerProfile();
       return response.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
   });
 
   const { data: provinces } = useQuery({
@@ -45,7 +45,7 @@ export default function CompanyInformationModal() {
       const response = await provinceService.getProvinces();
       return response.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   const {

@@ -21,14 +21,25 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Star, MoreHorizontal, ChevronDown, Search } from "lucide-react";
+import {
+  Star,
+  MoreHorizontal,
+  ChevronDown,
+  Search,
+  MessageCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Pagination from "@/components/Pagination";
 import CandidateSheet from "@/components/CandidateSheet";
 import type { ApplicationResponse } from "@/types";
 import { ApplicationStatus } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import ChatModal from "@/components/Chat/ChatModal";
+import { chatService } from "@/services/chat.service";
+import type { ConversationResponse } from "@/types/chat.type";
+import { useEmployerAuth } from "@/context/employer-auth";
+import { toast } from "react-toastify";
 
 interface TableViewProps {
   applications: ApplicationResponse[];
@@ -151,6 +162,51 @@ export default function TableView({
   onReceivedWithinChange,
 }: TableViewProps) {
   const { t } = useTranslation();
+  const { state: employerAuth } = useEmployerAuth();
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ConversationResponse | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    number | null
+  >(null);
+
+  const handleOpenChat = async (applicationId: number) => {
+    try {
+      const conversationResponse =
+        await chatService.getConversationByApplicationId(applicationId);
+      if (conversationResponse.data) {
+        setSelectedConversation(conversationResponse.data);
+        setSelectedApplicationId(applicationId);
+        setShowChatModal(true);
+      }
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 404) {
+        toast.error(
+          t("employer.candidates.chatNotFound") ||
+            "Chưa có kênh chat cho đơn ứng tuyển này"
+        );
+      } else if (status === 403) {
+        toast.error(
+          t("employer.candidates.chatNoPermission") ||
+            "Bạn không có quyền truy cập chat này"
+        );
+      } else if (status === 401) {
+        toast.error(
+          t("employer.candidates.chatUnauthorized") ||
+            "Vui lòng đăng nhập lại để sử dụng tính năng chat"
+        );
+      } else {
+        toast.error(
+          message ||
+            t("employer.candidates.chatError") ||
+            "Không thể mở chat. Vui lòng thử lại sau."
+        );
+      }
+    }
+  };
   const handleStatusFilterChange = (value: string) => {
     if (onStatusFilterChange) {
       onStatusFilterChange(value === "all" ? undefined : value);
@@ -390,6 +446,13 @@ export default function TableView({
                           <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">
                             {t("employer.candidates.viewDetails")}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="focus:bg-sky-200 focus:text-[#1967d2]"
+                            onClick={() => handleOpenChat(application.id)}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            {t("employer.candidates.chat") || "Chat"}
+                          </DropdownMenuItem>
                           <DropdownMenuItem className="focus:bg-sky-200 focus:text-[#1967d2]">
                             {t("employer.candidates.sendEmail")}
                           </DropdownMenuItem>
@@ -457,6 +520,18 @@ export default function TableView({
           </div>
         )}
       </div>
+
+      {/* Chat Modal */}
+      {selectedConversation && (
+        <ChatModal
+          open={showChatModal}
+          onOpenChange={setShowChatModal}
+          conversation={selectedConversation}
+          applicationId={selectedApplicationId || undefined}
+          currentUserId={employerAuth.employer?.id}
+          currentUserType="EMPLOYER"
+        />
+      )}
     </div>
   );
 }

@@ -228,7 +228,7 @@ export default function Jobs() {
       });
       return res.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     placeholderData: keepPreviousData,
   });
 

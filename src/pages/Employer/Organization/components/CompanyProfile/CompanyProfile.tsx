@@ -84,48 +84,21 @@ export default function CompanyProfile() {
     queryKey: ["openingsByEmployer", employerData?.id, pageNumber, pageSize],
     queryFn: async () => {
       if (!employerData?.id) throw new Error("Missing employer id");
-      try {
-        const response = await jobService.getJobsByEmployerId(
-          employerData.id,
-          pageNumber,
-          pageSize
-        );
-        console.log("✅ Openings by employer response:", response);
-        return response.data;
-      } catch (error) {
-        console.error("❌ Error fetching openings by employer:", error);
-        throw error;
-      }
+      const response = await jobService.getJobsByEmployerId(
+        employerData.id,
+        pageNumber,
+        pageSize
+      );
+      return response.data;
     },
     enabled: !!employerData?.id, // Only fetch when employer id is available
   });
 
-  // Debug: log jobs data
   useEffect(() => {
-    if (hiringJobsData) {
-      console.log("📊 Hiring Jobs Data:", hiringJobsData);
-      console.log("📈 Total jobs from API:", hiringJobsData.numberOfElements);
-      console.log("📋 All Jobs items:", hiringJobsData.items);
-      console.log("📄 Total pages:", hiringJobsData.totalPages);
-
-      // Log status of each job
-      hiringJobsData.items.forEach((job, index) => {
-        console.log(
-          `Job ${index + 1}: ${job.jobTitle} - Status: ${job.status}`
-        );
-      });
-
-      const approvedJobs = hiringJobsData.items.filter(
-        (job) => job.status === "APPROVED"
-      );
-      console.log(`✅ Approved jobs count: ${approvedJobs.length}`);
-      console.log("✅ Approved jobs:", approvedJobs);
-    }
     if (jobsError) {
-      console.error("🔴 Jobs Error:", jobsError);
       toast.error(t("toast.error.unknownError"));
     }
-  }, [hiringJobsData, jobsError]);
+  }, [jobsError, t]);
 
   const updateAvatarMutation = useMutation({
     mutationFn: (file: File) => employerService.updateEmployerAvatar(file),

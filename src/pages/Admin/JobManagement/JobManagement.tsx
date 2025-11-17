@@ -162,11 +162,8 @@ export default function JobManagement() {
       });
       return res.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     placeholderData: keepPreviousData,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
   });
 
   const deleteMutation = useMutation({
@@ -239,7 +236,7 @@ export default function JobManagement() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   const { data: industries } = useQuery({
@@ -253,7 +250,7 @@ export default function JobManagement() {
         id: industry.id,
         name: industry.name,
       })),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   useEffect(() => {
