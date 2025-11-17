@@ -118,7 +118,7 @@ export default function UserManagement() {
         keyword: keyword || undefined,
         sorts: sortsString || undefined,
       }),
-    refetchOnWindowFocus: false,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 

@@ -39,7 +39,7 @@ export type SortOption = (typeof SortOption)[keyof typeof SortOption];
 // =========================
 // Format functions
 // =========================
-// eslint-disable-next-line react-refresh/only-export-components
+
 export const formatCompanySize = (size: CompanySize): string => {
   const sizeMap: Record<CompanySize, string> = {
     [CompanySize.STARTUP]: "Startup (1-10)",
@@ -51,7 +51,6 @@ export const formatCompanySize = (size: CompanySize): string => {
   return sizeMap[size];
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const formatCompanyType = (type: CompanyType): string => {
   const typeMap: Record<CompanyType, string> = {
     [CompanyType.PRIVATE]: "Private",
@@ -63,7 +62,6 @@ export const formatCompanyType = (type: CompanyType): string => {
   return typeMap[type];
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const formatFoundedPeriod = (period: FoundedPeriod): string => {
   const periodMap: Record<FoundedPeriod, string> = {
     [FoundedPeriod.LAST_5_YEARS]: "Last 5 years",
@@ -77,7 +75,7 @@ export const formatFoundedPeriod = (period: FoundedPeriod): string => {
 // =========================
 // Mock data for employer search
 // =========================
-// eslint-disable-next-line react-refresh/only-export-components
+
 export const mockEmployerSearchData = {
   totalEmployers: 1850,
   employers: [

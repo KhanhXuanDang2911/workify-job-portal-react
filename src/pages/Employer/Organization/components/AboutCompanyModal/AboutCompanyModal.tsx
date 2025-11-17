@@ -22,7 +22,7 @@ function AboutCompanyModal() {
       const response = await employerService.getEmployerProfile();
       return response.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
   });
 
   useEffect(() => {

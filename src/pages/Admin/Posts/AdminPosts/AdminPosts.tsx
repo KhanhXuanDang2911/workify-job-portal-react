@@ -133,7 +133,7 @@ export default function AdminPosts() {
             : Number(categoryFilter),
         sorts: sortsString || undefined,
       }),
-    refetchOnWindowFocus: false,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 
@@ -141,7 +141,7 @@ export default function AdminPosts() {
     useQuery({
       queryKey: ["post-categories", initialCategoryFilter],
       queryFn: () => postService.getAllCategories(),
-      staleTime: 60 * 60 * 1000,
+      staleTime: 30 * 60 * 1000, // 30 minutes
     });
 
   const deleteMutation = useMutation({

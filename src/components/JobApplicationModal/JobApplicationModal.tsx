@@ -28,6 +28,9 @@ import { useUserAuth } from "@/context/user-auth";
 import type { User } from "@/types";
 import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 import { Textarea } from "@/components/ui/textarea";
+import ChatModal from "@/components/Chat/ChatModal";
+import { chatService } from "@/services/chat.service";
+import type { ConversationResponse } from "@/types/chat.type";
 
 interface JobApplicationModalProps {
   jobId?: number; // Make optional since we can get from URL
@@ -47,15 +50,6 @@ export default function JobApplicationModal({
   const { id } = useParams<{ id: string }>();
   const jobId = jobIdProp || (id ? Number(id) : undefined);
 
-  // Debug: log jobId when component receives it
-  console.log(
-    "JobApplicationModal - jobIdProp:",
-    jobIdProp,
-    "id from URL:",
-    id,
-    "final jobId:",
-    jobId
-  );
   const [isOpen, setIsOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -68,6 +62,10 @@ export default function JobApplicationModal({
   const queryClient = useQueryClient();
   const { state: authState } = useUserAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [conversation, setConversation] = useState<ConversationResponse | null>(
+    null
+  );
 
   // Fetch user profile if not available in auth context
   const { data: profileResponse, isLoading: isLoadingProfile } = useQuery({
@@ -198,12 +196,16 @@ export default function JobApplicationModal({
         );
       }
     },
-    onSuccess: () => {
+    onSuccess: async (response) => {
       toast.success(t("toast.success.applicationSubmitted"), {
         position: "top-right",
         autoClose: 3000,
       });
       queryClient.invalidateQueries({ queryKey: ["latestApplication", jobId] });
+
+      // Don't open chat modal automatically after applying
+      // User can't send message until employer sends first message anyway
+      // Just close the application modal
       handleCancel();
     },
     onError: (error: any) => {
@@ -784,6 +786,16 @@ export default function JobApplicationModal({
         description={t("loginRequired.description")}
         actionText={t("loginRequired.actionText")}
       />
+      {conversation && (
+        <ChatModal
+          open={showChatModal}
+          onOpenChange={setShowChatModal}
+          conversation={conversation}
+          applicationId={conversation.applicationId}
+          currentUserId={profile?.id}
+          currentUserType="USER"
+        />
+      )}
     </>
   );
 }

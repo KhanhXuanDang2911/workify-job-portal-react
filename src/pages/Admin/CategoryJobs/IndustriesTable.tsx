@@ -88,7 +88,7 @@ export default function IndustriesTable({
       });
       return res.data;
     },
-    refetchOnWindowFocus: false,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 

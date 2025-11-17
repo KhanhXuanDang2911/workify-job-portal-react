@@ -57,7 +57,7 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
       const res = await districtService.getDistrictsByProvinceId(provinceId);
       return res.data;
     },
-    refetchOnWindowFocus: false,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 

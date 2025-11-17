@@ -34,7 +34,7 @@ export default function JobDetailsTab() {
       const res = await jobService.getJobById(Number(jobId));
       return res.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     enabled: !!jobId,
   });
 

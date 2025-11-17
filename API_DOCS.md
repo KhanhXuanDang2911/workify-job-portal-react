@@ -51,7 +51,6 @@ Base URL: http://localhost:8080/workify
 
 - JWT Access Token: Authorization: Bearer <token>
 - Header riêng cho một số luồng:
-
   - Y-Token: Refresh Token
   - X-Token: Access Token (sign-out)
   - C-Token: Confirm Email Token
@@ -62,7 +61,6 @@ Base URL: http://localhost:8080/workify
   - User-Agent: Dùng để suy luận thiết bị (mobile/web) trong gửi email. Ví dụ (mobile): ReactNativeApp/1.0 (Android; Mobile)
 
 - Các endpoint permitAll (không yêu cầu JWT):
-
   - /api/v1/auth/\*\*
   - POST /api/v1/users/sign-up
   - POST /api/v1/employers/sign-up
@@ -81,19 +79,16 @@ Base URL: http://localhost:8080/workify
 ## Regex validate chuẩn hóa (Java <-> TypeScript)
 
 - Email
-
   - Java (Annotation string):
     - `^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$`
   - TypeScript (RegExp literal):
     - `/^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/`
 
 - Password (8–160, ≥1 hoa, ≥1 thường, ≥1 ký tự đặc biệt)
-
   - Java: `^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,160}$`
   - TypeScript: `/^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,160}$/`
 
 - Verification Code (OTP 8 chữ số)
-
   - Java: `^[0-9]{8}$`
   - TypeScript: `/^[0-9]{8}$/`
 
@@ -180,6 +175,7 @@ Base: /workify/api/v1/auth
     ]
   }
   ```
+
   - 401 (Email hoặc mật khẩu không hợp lệ)
     ```json
     {
@@ -404,7 +400,6 @@ Base: /workify/api/v1/auth
 - Path: /sign-out
 - Method: POST
 - Headers: X-Token: accessToken, Y-Token: refreshToken
-
   - Success 200
     ```json
     { "status": 200, "message": "Đăng xuất thành công" }
@@ -445,7 +440,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Error responses
-
   - 400 (Thiếu C-Token)
     ```json
     {
@@ -480,7 +474,6 @@ Base: /workify/api/v1/auth
   { "status": 200, "message": "Xác nhận email thành công" }
   ```
 - Error responses (tương tự như mục 1.6)
-
   - 400 (Thiếu C-Token)
   - 401 (Token không hợp lệ/hết hạn)
 
@@ -506,7 +499,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Error responses
-
   - 400 (validate body khi email không hợp lệ)
   - 411 khi tài khoản bị khoá (Lỗi api sẽ là 500 nhưng lỗi back-end trả về sẽ là 411 nha, lưu ý, nhớ lấy status ở back-end trả về, vì lỗi này tự config chứ k phải lỗi của http)
   - 500 (Lỗi hệ thống – xem mục "Lỗi 500 hệ thống (chung)" ở phần 10)
@@ -555,7 +547,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Error responses
-
   - 400 (Thiếu R-Token)
     ```json
     {
@@ -616,7 +607,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Error responses
-
   - 400 (Thiếu R-Token)
     ```json
     {
@@ -669,7 +659,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Validate
-
   - email: regex Email ở trên
   - code: 8 chữ số (`^[0-9]{8}$`)
 
@@ -712,7 +701,6 @@ Base: /workify/api/v1/auth
   ```
 
 - Validate
-
   - email: regex Email
   - code: 8 chữ số
   - newPassword: regex Password
@@ -746,7 +734,6 @@ Base: /workify/api/v1/auth
 - Method: POST
 - Headers: G-Code: authorizationCode
 - Success 200 (TokenResponse<UserResponse>):
-
   - Trường hợp A – đã có mật khẩu (noPassword = false): trả về accessToken, refreshToken và UserResponse
   - Trường hợp B – chưa có mật khẩu (noPassword = true): chỉ trả về data chứa createPasswordToken để gọi API 1.14
 
@@ -832,7 +819,6 @@ Base: /workify/api/v1/auth
 - Method: POST
 - Headers: L-Code: authorizationCode
 - Success 200 (TokenResponse<UserResponse>):
-
   - Trường hợp A – đã có mật khẩu (noPassword = false): trả về accessToken, refreshToken và UserResponse
   - Trường hợp B – chưa có mật khẩu (noPassword = true): chỉ trả về data chứa createPasswordToken để gọi API 1.14
 
@@ -1330,7 +1316,6 @@ Base: /workify/api/v1/users
   }
   ```
 - Error responses
-
   - 400 (thiếu part user; avatar không hợp lệ; body invalid)
   - 400 (id invalid khi id k phải number, id < 1)
   - 401 khi access token k hợp lệ, 403 khi k có quyền admin
@@ -1392,7 +1377,6 @@ Base: /workify/api/v1/users
   }
   ```
 - Phân luồng theo User-Agent
-
   - Web (không phải mobile): hệ thống gửi email kèm link xác nhận. Người dùng xác nhận qua API 1.6 (Header C-Token lấy từ link email).
   - Mobile (User-Agent giữ nguyên: ReactNativeApp/1.0 (Android; Mobile)): hệ thống gửi mã OTP 8 chữ số qua email. Người dùng xác nhận qua API 1.15 (body: email, code).
 
@@ -1850,7 +1834,6 @@ Base: /workify/api/v1/employers
 - Method: POST
 - Headers: User-Agent
 - Body: EmployerRequest (OnCreate):
-
   - email: bắt buộc, validate theo regex trên
   - password: bắt buộc, validate theo regex trên
   - companyName: bắt buộc, không dc rỗng
@@ -1877,7 +1860,6 @@ Base: /workify/api/v1/employers
 ```
 
 - Phân luồng theo User-Agent
-
   - Web (không phải mobile): hệ thống gửi email kèm link xác nhận. Xác nhận qua API 1.7 (Header C-Token lấy từ link email).
   - Mobile (User-Agent giữ nguyên: ReactNativeApp/1.0 (Android; Mobile)): hệ thống gửi mã OTP 8 chữ số qua email. Xác nhận qua API 1.16 (body: email, code).
 
@@ -1948,6 +1930,7 @@ Base: /workify/api/v1/employers
     ]
   }
   ```
+
   - 409 (email đã tồn tại)
     ```json
     {
@@ -2063,7 +2046,6 @@ Base: /workify/api/v1/employers
 - Body (part `employer`) ví dụ request và response tương tự như mục 3.5, nhưng phần password có thể không truyền (truyền null), nhưng nếu truyền thì phải hợp lý (nếu truyền chuỗi rỗng thì sẽ bị validate k hợp lệ)
 
 - Error responses
-
   - 400 (id/parts/body invalid)
   - 401 (token k có, hoặc k hợp lệ), 403 (k có role là admin nên k đủ quyền)
   - 404 (không tìm thấy)
@@ -3484,7 +3466,6 @@ Lưu ý chung:
 - Path: /{id}
 - Method: PUT
 - Body: IndustryRequest
-
   - Lưu ý: từ phiên bản này, cập nhật yêu cầu truyền đầy đủ các trường hợp lệ như khi tạo (không còn OnUpdate bỏ qua null).
   - Các ràng buộc validate giống phần tạo.
 
@@ -3807,7 +3788,6 @@ Base: /workify/api/v1/jobs
 ### 11.0 Enum và mô tả tiếng Việt
 
 - LevelCompanySize
-
   - LESS_THAN_10: Dưới 10 nhân sự
   - FROM_10_TO_24: 10–24 nhân sự
   - FROM_25_TO_99: 25–99 nhân sự
@@ -3820,19 +3800,16 @@ Base: /workify/api/v1/jobs
   - MORE_THAN_50000: Trên 50.000 nhân sự
 
 - SalaryType
-
   - RANGE: Khoảng lương (cần minSalary, maxSalary, salaryUnit)
   - GREATER_THAN: Trên mức (cần minSalary, salaryUnit)
   - NEGOTIABLE: Thỏa thuận
   - COMPETITIVE: Cạnh tranh
 
 - SalaryUnit
-
   - VND: Việt Nam Đồng
   - USD: Đô la Mỹ
 
 - EducationLevel
-
   - HIGH_SCHOOL: THPT
   - COLLEGE: Cao đẳng
   - UNIVERSITY: Đại học
@@ -3842,7 +3819,6 @@ Base: /workify/api/v1/jobs
   - OTHER: Khác
 
 - ExperienceLevel
-
   - LESS_THAN_ONE_YEAR: Dưới 1 năm
   - ONE_TO_TWO_YEARS: 1–2 năm
   - TWO_TO_FIVE_YEARS: 2–5 năm
@@ -3850,7 +3826,6 @@ Base: /workify/api/v1/jobs
   - MORE_THAN_TEN_YEARS: Trên 10 năm
 
 - JobLevel
-
   - INTERN: Thực tập
   - ENTRY_LEVEL: Mới ra trường/Junior
   - STAFF: Nhân viên
@@ -3862,7 +3837,6 @@ Base: /workify/api/v1/jobs
   - EXECUTIVE: Lãnh đạo cấp cao
 
 - JobType
-
   - FULL_TIME: Toàn thời gian
   - TEMPORARY_FULL_TIME: Toàn thời gian thời vụ
   - PART_TIME: Bán thời gian
@@ -3871,13 +3845,11 @@ Base: /workify/api/v1/jobs
   - OTHER: Khác
 
 - JobGender
-
   - MALE: Nam
   - FEMALE: Nữ
   - ANY: Bất kỳ
 
 - AgeType
-
   - NONE: Không yêu cầu độ tuổi
   - ABOVE: Trên một độ tuổi (cần minAge)
   - BELOW: Dưới một độ tuổi (cần maxAge)
@@ -4548,7 +4520,6 @@ Base: /workify/api/v1/jobs
 ```
 
 - Validate JobRequest:
-
   - companyName: notBlank, max 1000
   - companySize: enum LevelCompanySize
   - companyWebsite: max 1000
@@ -4575,13 +4546,11 @@ Base: /workify/api/v1/jobs
   - expirationDate: notNull, Future, format dd/MM/yyyy
 
 - Ràng buộc theo SalaryType (ValidSalary):
-
   - RANGE: bắt buộc minSalary, maxSalary, salaryUnit
   - GREATER_THAN: bắt buộc minSalary, salaryUnit
   - NEGOTIABLE/COMPETITIVE: không bắt buộc min/max/unit
 
 - Ràng buộc theo AgeType (ValidAge):
-
   - ABOVE: bắt buộc minAge
   - BELOW: bắt buộc maxAge
   - INPUT: bắt buộc cả minAge và maxAge, và minAge <= maxAge
@@ -5664,7 +5633,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Auth
 
 - Đăng nhập USER: POST /workify/api/v1/auth/users/sign-in
-
   - Request
     ```json
     { "email": "jobseeker@example.com", "password": "Workify@123" }
@@ -5726,7 +5694,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - Refresh token USER: POST /workify/api/v1/auth/users/refresh-token
-
   - Headers: { "Y-Token": "<refreshToken>" }
   - Response 200
     ```json
@@ -5741,7 +5708,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - Sign-out: POST /workify/api/v1/auth/sign-out
-
   - Headers: { "X-Token": "<accessToken>", "Y-Token": "<refreshToken>" }
   - Response 200
     ```json
@@ -5749,7 +5715,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - Forgot password USER: POST /workify/api/v1/auth/users/forgot-password
-
   - Headers: { "User-Agent": "Mozilla/5.0 ..." }
   - Body
     ```json
@@ -5774,7 +5739,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Users
 
 - GET (ADMIN) /workify/api/v1/users?pageNumber=1&pageSize=10&keyword=
-
   - Response 200
     ```json
     {
@@ -5809,7 +5773,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - POST (ADMIN, multipart) /workify/api/v1/users
-
   - Content-Type: multipart/form-data
   - Parts
     - avatar: (file)
@@ -5851,7 +5814,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Employers
 
 - GET (public) /workify/api/v1/employers?pageNumber=1&pageSize=10&companySize=SMALL&provinceId=1
-
   - Response 200 (PageResponse<EmployerResponse>)
     ```json
     {
@@ -5876,7 +5838,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - POST (public) /workify/api/v1/employers/sign-up
-
   - Body
     ```json
     {
@@ -5923,7 +5884,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Category Posts
 
 - GET (public) /workify/api/v1/categories-post?pageNumber=1&pageSize=10
-
   - Response 200 (PageResponse<CategoryPostResponse>)
 
 - POST (ADMIN) /workify/api/v1/categories-post
@@ -5943,11 +5903,9 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Posts
 
 - GET (public) /workify/api/v1/posts/public?keyword=
-
   - Response 200
 
 - POST (ADMIN, multipart) /workify/api/v1/posts
-
   - Parts
     - post (application/json)
       ```json
@@ -6000,7 +5958,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Provinces
 
 - GET (public) /workify/api/v1/provinces
-
   - Response 200
     ```json
     {
@@ -6032,7 +5989,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
 ### Industries
 
 - GET (public) /workify/api/v1/industries/all
-
   - Response 200
     ```json
     {
@@ -6050,7 +6006,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - GET (public) /workify/api/v1/industries?pageNumber=1&pageSize=10&keyword=công nghệ&sorts=name,asc
-
   - Response 200
     ```json
     {
@@ -6080,7 +6035,6 @@ Các ví dụ này minh hoạ đúng schema thực tế (DTO/Response) trong d�
     ```
 
 - POST (ADMIN) /workify/api/v1/industries
-
   - Body
     ```json
     {
@@ -6230,15 +6184,12 @@ Lỗi thường gặp:
 Các endpoint hỗ trợ `sorts` dưới dạng danh sách tham số lặp lại. Ví dụ:
 
 - Users (ADMIN):
-
   - GET /workify/api/v1/users?pageNumber=1&pageSize=10&sorts=createdAt,desc&sorts=email,asc&keyword=
 
 - Employers (public):
-
   - GET /workify/api/v1/employers?pageNumber=1&pageSize=12&sorts=companyName,asc&sorts=createdAt,desc
 
 - Posts (ADMIN):
-
   - GET /workify/api/v1/posts?pageNumber=1&pageSize=10&sorts=createdAt,desc&sorts=updatedAt,asc
 
 - Industries (public):
@@ -6252,11 +6203,9 @@ Quy ước: mỗi giá trị `sorts` có dạng `field,asc|desc`. Nếu không t
 ### 12.5 Filter nâng cao
 
 - Employers (public): lọc theo nhãn `companySize` (enum `LevelCompanySize`) và `provinceId`.
-
   - Ví dụ: GET /workify/api/v1/employers?pageNumber=1&pageSize=10&keyword=tech&companySize=SMALL&provinceId=1
 
 - Posts (public/admin): lọc theo danh mục và từ khoá.
-
   - Ví dụ (public): GET /workify/api/v1/posts/public?categoryId=2&keyword=workify&sorts=createdAt,desc
   - Ví dụ (admin): GET /workify/api/v1/posts?categoryId=2&keyword=tin%20tuc
 
@@ -6307,7 +6256,6 @@ Ghi chú chung:
 ### Auth
 
 - POST /workify/api/v1/auth/users/sign-in
-
   - Success 200
     ```json
     {
@@ -6365,7 +6313,6 @@ Ghi chú chung:
     ```
 
 - POST /workify/api/v1/auth/employers/sign-in
-
   - Success 200: TokenResponse<EmployerResponse> (tương tự User nhưng data là EmployerResponse)
     ```json
     {
@@ -6404,7 +6351,6 @@ Ghi chú chung:
   - Error 400/401: cùng cấu trúc như trên, path đổi thành "/workify/api/v1/auth/employers/sign-in"
 
 - POST /workify/api/v1/auth/users/refresh-token
-
   - Success 200
     ```json
     {
@@ -6425,12 +6371,10 @@ Ghi chú chung:
     ```
 
 - POST /workify/api/v1/auth/employers/refresh-token
-
   - Success 200: giống users/refresh-token (path đổi)
   - Error 400/401: như trên (path đổi)
 
 - POST /workify/api/v1/auth/sign-out
-
   - Success 200
     ```json
     { "status": 200, "message": "Đăng xuất thành công" }
@@ -6447,7 +6391,6 @@ Ghi chú chung:
     ```
 
 - PATCH /workify/api/v1/auth/users/verify-email
-
   - Success 200
     ```json
     { "status": 200, "message": "Xác nhận email thành công" }
@@ -6455,12 +6398,10 @@ Ghi chú chung:
   - Error 400/401: thiếu C-Token hoặc token không hợp lệ
 
 - PATCH /workify/api/v1/auth/employers/verify-email
-
   - Success 200: như users/verify-email
   - Error 400/401: như trên (path đổi)
 
 - POST /workify/api/v1/auth/users/forgot-password
-
   - Success 200
     ```json
     { "status": 200, "message": "Gửi email đặt lại mật khẩu thành công" }
@@ -6468,12 +6409,10 @@ Ghi chú chung:
   - Error 400/500: validate email hoặc lỗi gửi mail
 
 - POST /workify/api/v1/auth/employers/forgot-password
-
   - Success 200: như users (path đổi)
   - Error 400/500: như trên (path đổi)
 
 - POST /workify/api/v1/auth/users/reset-password
-
   - Success 200
     ```json
     { "status": 200, "message": "Đặt lại mật khẩu thành công" }
@@ -6481,12 +6420,10 @@ Ghi chú chung:
   - Error 400/401/500
 
 - POST /workify/api/v1/auth/employers/reset-password
-
   - Success 200: như users (path đổi)
   - Error 400/401/500
 
 - POST /workify/api/v1/auth/authenticate/google
-
   - Success 200: TokenResponse<UserResponse>
     - Trường hợp A – đã có mật khẩu (noPassword = false)
       ```json
@@ -6520,7 +6457,6 @@ Ghi chú chung:
   - Error 400/500
 
 - POST /workify/api/v1/auth/authenticate/linkedin
-
   - Success 200: TokenResponse<UserResponse>
     - Trường hợp A – đã có mật khẩu (noPassword = false)
       ```json
@@ -6560,7 +6496,6 @@ Ghi chú chung:
 ### Users
 
 - GET /workify/api/v1/users?pageNumber=1&pageSize=10
-
   - Success 200
     ```json
     {
@@ -6596,7 +6531,6 @@ Ghi chú chung:
   - Error 400/401/403
 
 - GET /workify/api/v1/users/13
-
   - Success 200
     ```json
     {
@@ -6624,7 +6558,6 @@ Ghi chú chung:
   - Error 400/401/403/404
 
 - POST /workify/api/v1/users (multipart)
-
   - Success 200
     ```json
     {
@@ -6642,7 +6575,6 @@ Ghi chú chung:
   - Error 400/401/403/409/500
 
 - PUT /workify/api/v1/users/13 (multipart)
-
   - Success 200
     ```json
     {
@@ -6660,7 +6592,6 @@ Ghi chú chung:
   - Error 400/401/403/404
 
 - DELETE /workify/api/v1/users/13
-
   - Success 200
     ```json
     { "status": 200, "message": "Xóa người dùng thành công" }
@@ -6668,7 +6599,6 @@ Ghi chú chung:
   - Error 400/401/403/404
 
 - POST /workify/api/v1/users/sign-up
-
   - Success 200
     ```json
     {
@@ -6680,17 +6610,14 @@ Ghi chú chung:
   - Error 400/409/500
 
 - GET /workify/api/v1/users/me
-
   - Success 200: UserResponse
   - Error 401
 
 - PUT /workify/api/v1/users/me
-
   - Success 200: UserResponse
   - Error 400/401
 
 - PATCH /workify/api/v1/users/me/avatar (multipart)
-
   - Success 200: UserResponse (avatarUrl cập nhật)
   - Error 400/401
 
@@ -6704,7 +6631,6 @@ Ghi chú chung:
 ### Employers
 
 - GET /workify/api/v1/employers?pageNumber=1&pageSize=10
-
   - Success 200
     ```json
     {
@@ -6730,37 +6656,30 @@ Ghi chú chung:
   - Error 400/403
 
 - GET /workify/api/v1/employers/10
-
   - Success 200: EmployerResponse
   - Error 400/403/404
 
 - GET /workify/api/v1/employers/me
-
   - Success 200: EmployerResponse
   - Error 401
 
 - POST /workify/api/v1/employers/sign-up
-
   - Success 200 (đã có ví dụ ở trên)
   - Error 400/409/500
 
 - POST /workify/api/v1/employers (multipart, ADMIN)
-
   - Success 200: EmployerResponse
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/employers/10 (multipart, ADMIN)
-
   - Success 200: EmployerResponse
   - Error 400/401/403/404/409
 
 - PUT /workify/api/v1/employers/me
-
   - Success 200: EmployerResponse
   - Error 400/401
 
 - DELETE /workify/api/v1/employers/10
-
   - Success 200
     ```json
     { "status": 200, "message": "Xóa nhà tuyển dụng thành công" }
@@ -6768,17 +6687,14 @@ Ghi chú chung:
   - Error 400/401/403/404
 
 - PATCH /workify/api/v1/employers/me/avatar (multipart)
-
   - Success 200: EmployerResponse
   - Error 400/401
 
 - PATCH /workify/api/v1/employers/me/background (multipart)
-
   - Success 200: EmployerResponse
   - Error 400/401
 
 - PATCH /workify/api/v1/employers/me/website-urls
-
   - Success 200: EmployerResponse
   - Error 400/401
 
@@ -6792,7 +6708,6 @@ Ghi chú chung:
 ### Category Posts
 
 - GET /workify/api/v1/categories-post?pageNumber=1&pageSize=10
-
   - Success 200
     ```json
     {
@@ -6812,12 +6727,10 @@ Ghi chú chung:
   - Error 400
 
 - GET /workify/api/v1/categories-post/3
-
   - Success 200: CategoryPostResponse
   - Error 400/404
 
 - POST /workify/api/v1/categories-post (ADMIN)
-
   - Success 201
     ```json
     {
@@ -6829,7 +6742,6 @@ Ghi chú chung:
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/categories-post/3 (ADMIN)
-
   - Success 200: CategoryPostResponse
   - Error 400/401/403/404/409
 
@@ -6843,7 +6755,6 @@ Ghi chú chung:
 ### Posts
 
 - GET /workify/api/v1/posts?pageNumber=1&pageSize=10 (ADMIN)
-
   - Success 200
     ```json
     {
@@ -6888,17 +6799,14 @@ Ghi chú chung:
   - Error 400/401/403
 
 - GET /workify/api/v1/posts/public?pageNumber=1&pageSize=10
-
   - Success 200: tương tự cấu trúc trên (không cần quyền)
   - Error 400
 
 - GET /workify/api/v1/posts/100
-
   - Success 200: PostResponse
   - Error 400/404
 
 - POST /workify/api/v1/posts (multipart, ADMIN)
-
   - Success 201
     ```json
     {
@@ -6935,12 +6843,10 @@ Ghi chú chung:
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/posts/100 (multipart, ADMIN)
-
   - Success 200: PostResponse
   - Error 400/401/403/404/409
 
 - DELETE /workify/api/v1/posts/100 (ADMIN)
-
   - Success 200
     ```json
     { "status": 200, "message": "Xóa bài viết thành công" }
@@ -6948,7 +6854,6 @@ Ghi chú chung:
   - Error 400/401/403/404
 
 - GET /workify/api/v1/posts/public/100/related?limit=6
-
   - Success 200
     ```json
     {
@@ -7017,7 +6922,6 @@ Ghi chú chung:
 ### Industries
 
 - GET /workify/api/v1/industries/all
-
   - Success 200
     ```json
     {
@@ -7046,7 +6950,6 @@ Ghi chú chung:
   - Error 500 (hiếm)
 
 - GET /workify/api/v1/industries?pageNumber=1&pageSize=10&keyword=công nghệ&sorts=name,asc
-
   - Success 200
     ```json
     {
@@ -7081,7 +6984,6 @@ Ghi chú chung:
   - Error 400
 
 - GET /workify/api/v1/industries/1
-
   - Success 200: IndustryResponse
     ```json
     {
@@ -7100,7 +7002,6 @@ Ghi chú chung:
   - Error 400/404
 
 - POST /workify/api/v1/industries (ADMIN)
-
   - Success 201
     ```json
     {
@@ -7128,7 +7029,6 @@ Ghi chú chung:
     ```
 
 - PUT /workify/api/v1/industries/1 (ADMIN)
-
   - Success 200: IndustryResponse
     ```json
     {
@@ -7147,7 +7047,6 @@ Ghi chú chung:
   - Error 400/401/403/404/409
 
 - DELETE /workify/api/v1/industries/1 (ADMIN)
-
   - Success 200
     ```json
     { "status": 200, "message": "Xóa ngành nghề thành công" }
@@ -7166,7 +7065,6 @@ Ghi chú chung:
 ### Provinces
 
 - GET /workify/api/v1/provinces
-
   - Success 200
     ```json
     {
@@ -7180,17 +7078,14 @@ Ghi chú chung:
   - Error 500 (hiếm)
 
 - GET /workify/api/v1/provinces/1
-
   - Success 200: ProvinceResponse
   - Error 400/404
 
 - POST /workify/api/v1/provinces (ADMIN)
-
   - Success 201: ProvinceResponse
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/provinces/1 (ADMIN)
-
   - Success 200: ProvinceResponse
   - Error 400/401/403/404/409
 
@@ -7204,7 +7099,6 @@ Ghi chú chung:
 ### Districts
 
 - GET /workify/api/v1/districts
-
   - Success 200
     ```json
     {
@@ -7216,22 +7110,18 @@ Ghi chú chung:
   - Error 500 (hiếm)
 
 - GET /workify/api/v1/districts/province/1
-
   - Success 200: List<DistrictResponse>
   - Error 400/404
 
 - GET /workify/api/v1/districts/10
-
   - Success 200: DistrictResponse
   - Error 400/404
 
 - POST /workify/api/v1/districts (ADMIN)
-
   - Success 201: DistrictResponse
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/districts/10 (ADMIN)
-
   - Success 200: DistrictResponse
   - Error 400/401/403/404/409
 
@@ -7245,7 +7135,6 @@ Ghi chú chung:
 ### Roles
 
 - GET /workify/api/v1/roles
-
   - Success 200
     ```json
     {
@@ -7260,7 +7149,6 @@ Ghi chú chung:
   - Error 401/403
 
 - GET /workify/api/v1/roles/ADMIN
-
   - Success 200
     ```json
     {
@@ -7272,7 +7160,6 @@ Ghi chú chung:
   - Error 401/403/404
 
 - POST /workify/api/v1/roles
-
   - Success 201
     ```json
     {
@@ -7284,7 +7171,6 @@ Ghi chú chung:
   - Error 400/401/403/409
 
 - PUT /workify/api/v1/roles?id=3
-
   - Success 200
     ```json
     {
@@ -7301,3 +7187,484 @@ Ghi chú chung:
     { "status": 200, "message": "Xóa vai trò thành công" }
     ```
   - Error 400/401/403/404
+
+## Chat & Messaging
+
+### Tổng quan
+
+Hệ thống chat cho phép nhà tuyển dụng (EMPLOYER) và người tìm việc (JOB_SEEKER) trao đổi tin nhắn liên quan đến đơn ứng tuyển. Mỗi application sẽ tự động tạo một conversation khi user apply job.
+
+**Quy tắc:**
+
+- 1 application = 1 conversation (unique constraint)
+- Conversation được tạo tự động khi user apply job
+- Chỉ EMPLOYER có thể gửi tin nhắn đầu tiên
+- USER chỉ có thể gửi tin nhắn sau khi EMPLOYER đã gửi ít nhất 1 tin nhắn
+- Hỗ trợ WebSocket cho real-time messaging
+
+### WebSocket Configuration
+
+**Endpoint:** `/ws` (SockJS)
+
+**Connection:**
+
+```javascript
+const socket = new SockJS("http://localhost:8080/workify/ws");
+const stompClient = Stomp.over(socket);
+
+stompClient.connect(
+  {
+    Authorization: "Bearer <accessToken>",
+  },
+  onConnected,
+  onError
+);
+```
+
+**Subscribe để nhận tin nhắn:**
+
+```javascript
+// Subscribe theo user ID (tự động route đến đúng user)
+stompClient.subscribe("/user/queue/messages", onMessageReceived);
+```
+
+**Gửi tin nhắn qua WebSocket:**
+
+```javascript
+stompClient.send(
+  "/app/chat.sendMessage",
+  {},
+  JSON.stringify({
+    conversationId: 1,
+    content: "Xin chào!",
+  })
+);
+```
+
+### REST APIs
+
+#### 1. Lấy danh sách conversations
+
+**GET** `/api/v1/conversations`
+
+**Authentication:** Required (JWT)
+
+**Roles:** JOB_SEEKER, EMPLOYER
+
+**Response:**
+
+```json
+{
+  "status": 200,
+  "message": "Conversations retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "jobId": 10,
+      "jobTitle": "Senior Java Developer",
+      "applicationId": 5,
+      "jobSeekerId": 2,
+      "jobSeekerName": "Nguyễn Văn A",
+      "jobSeekerAvatar": "https://example.com/avatar.jpg",
+      "employerId": 3,
+      "employerName": "Công ty ABC",
+      "employerAvatar": "https://example.com/company.jpg",
+      "lastMessage": "Cảm ơn bạn đã ứng tuyển!",
+      "lastMessageSenderId": 3,
+      "lastMessageSenderType": "EMPLOYER",
+      "hasEmployerMessage": true,
+      "createdAt": "2025-01-15T10:30:00",
+      "updatedAt": "2025-01-15T14:20:00"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+- 401: Token không hợp lệ
+- 403: Không có quyền truy cập
+
+#### 2. Lấy conversation theo application ID
+
+**GET** `/api/v1/conversations/application/{applicationId}`
+
+**Authentication:** Required (JWT)
+
+**Roles:** JOB_SEEKER, EMPLOYER
+
+**Path Parameters:**
+
+- `applicationId` (Long, required): ID của application
+
+**Response:**
+
+```json
+{
+  "status": 200,
+  "message": "Conversation retrieved successfully",
+  "data": {
+    "id": 1,
+    "jobId": 10,
+    "jobTitle": "Senior Java Developer",
+    "applicationId": 5,
+    "jobSeekerId": 2,
+    "jobSeekerName": "Nguyễn Văn A",
+    "jobSeekerAvatar": "https://example.com/avatar.jpg",
+    "employerId": 3,
+    "employerName": "Công ty ABC",
+    "employerAvatar": "https://example.com/company.jpg",
+    "lastMessage": "Cảm ơn bạn đã ứng tuyển!",
+    "lastMessageSenderId": 3,
+    "lastMessageSenderType": "EMPLOYER",
+    "hasEmployerMessage": true,
+    "createdAt": "2025-01-15T10:30:00",
+    "updatedAt": "2025-01-15T14:20:00"
+  }
+}
+```
+
+**Error Responses:**
+
+- 400: Application ID không hợp lệ
+- 401: Token không hợp lệ
+- 403: Không có quyền truy cập conversation này
+- 404: Không tìm thấy application hoặc conversation
+
+#### 3. Lấy lịch sử tin nhắn
+
+**GET** `/api/v1/messages/{conversationId}`
+
+**Authentication:** Required (JWT)
+
+**Roles:** JOB_SEEKER, EMPLOYER
+
+**Path Parameters:**
+
+- `conversationId` (Long, required): ID của conversation
+
+**Response:**
+
+```json
+{
+  "status": 200,
+  "message": "Messages retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "conversationId": 1,
+      "senderId": 3,
+      "senderType": "EMPLOYER",
+      "senderName": "Công ty ABC",
+      "senderAvatar": "https://example.com/company.jpg",
+      "content": "Cảm ơn bạn đã ứng tuyển!",
+      "seen": true,
+      "createdAt": "2025-01-15T10:30:00"
+    },
+    {
+      "id": 2,
+      "conversationId": 1,
+      "senderId": 2,
+      "senderType": "USER",
+      "senderName": "Nguyễn Văn A",
+      "senderAvatar": "https://example.com/avatar.jpg",
+      "content": "Cảm ơn bạn! Tôi rất quan tâm đến vị trí này.",
+      "seen": true,
+      "createdAt": "2025-01-15T10:35:00"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+- 400: Conversation ID không hợp lệ
+- 401: Token không hợp lệ
+- 403: Không phải thành viên của conversation này
+- 404: Không tìm thấy conversation
+
+#### 4. Gửi tin nhắn (REST API)
+
+**POST** `/api/v1/messages`
+
+**Authentication:** Required (JWT)
+
+**Roles:** JOB_SEEKER, EMPLOYER
+
+**Request Body:**
+
+```json
+{
+  "conversationId": 1,
+  "content": "Xin chào! Tôi muốn hỏi về vị trí này."
+}
+```
+
+**Validation:**
+
+- `conversationId`: Required, Long
+- `content`: Required, NotBlank
+
+**Response:**
+
+```json
+{
+  "status": 200,
+  "message": "Message sent successfully",
+  "data": {
+    "id": 3,
+    "conversationId": 1,
+    "senderId": 2,
+    "senderType": "USER",
+    "senderName": "Nguyễn Văn A",
+    "senderAvatar": "https://example.com/avatar.jpg",
+    "content": "Xin chào! Tôi muốn hỏi về vị trí này.",
+    "seen": false,
+    "createdAt": "2025-01-15T15:00:00"
+  }
+}
+```
+
+**Error Responses:**
+
+- 400:
+  - Dữ liệu request không hợp lệ
+  - Conversation ID hoặc content thiếu
+- 401: Token không hợp lệ
+- 403:
+  - Không phải thành viên của conversation
+  - USER chưa được phép gửi tin nhắn (chưa có tin nhắn từ EMPLOYER)
+- 404: Không tìm thấy conversation
+
+#### 5. Đánh dấu tin nhắn đã đọc
+
+**PUT** `/api/v1/messages/{conversationId}/seen`
+
+**Authentication:** Required (JWT)
+
+**Roles:** JOB_SEEKER, EMPLOYER
+
+**Path Parameters:**
+
+- `conversationId` (Long, required): ID của conversation
+
+**Response:**
+
+```json
+{
+  "status": 200,
+  "message": "Messages marked as seen"
+}
+```
+
+**Error Responses:**
+
+- 400: Conversation ID không hợp lệ
+- 401: Token không hợp lệ
+- 403: Không phải thành viên của conversation
+- 404: Không tìm thấy conversation
+
+### Data Models
+
+#### ConversationResponse
+
+```typescript
+interface ConversationResponse {
+  id: number;
+  jobId: number;
+  jobTitle: string;
+  applicationId: number;
+  jobSeekerId: number;
+  jobSeekerName: string;
+  jobSeekerAvatar: string | null;
+  employerId: number;
+  employerName: string;
+  employerAvatar: string | null;
+  lastMessage: string | null;
+  lastMessageSenderId: number | null;
+  lastMessageSenderType: "USER" | "EMPLOYER" | null;
+  hasEmployerMessage: boolean;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+}
+```
+
+#### MessageResponse
+
+```typescript
+interface MessageResponse {
+  id: number;
+  conversationId: number;
+  senderId: number;
+  senderType: "USER" | "EMPLOYER";
+  senderName: string;
+  senderAvatar: string | null;
+  content: string;
+  seen: boolean;
+  createdAt: string; // ISO 8601
+}
+```
+
+#### SendMessageRequest
+
+```typescript
+interface SendMessageRequest {
+  conversationId: number;
+  content: string;
+}
+```
+
+### Flow tích hợp Front-end
+
+#### 1. Khi user apply job
+
+Sau khi gọi API apply job thành công, conversation đã được tạo tự động. Front-end có thể:
+
+**Option A: Lấy conversation ngay sau khi apply**
+
+```javascript
+// Sau khi apply job thành công
+const applicationResponse = await applyJob(jobId, applicationData);
+
+// Lấy conversation theo applicationId
+const conversation = await fetch(
+  `/api/v1/conversations/application/${applicationResponse.data.id}`,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+).then((res) => res.json());
+```
+
+**Option B: Lấy từ danh sách conversations**
+
+```javascript
+// Lấy danh sách conversations (sẽ có conversation mới)
+const conversations = await fetch("/api/v1/conversations", {
+  headers: { Authorization: `Bearer ${token}` },
+}).then((res) => res.json());
+```
+
+#### 2. Setup WebSocket connection
+
+```javascript
+// Khởi tạo WebSocket
+const socket = new SockJS("http://localhost:8080/workify/ws");
+const stompClient = Stomp.over(socket);
+
+// Connect với JWT token
+stompClient.connect(
+  {
+    Authorization: `Bearer ${accessToken}`,
+  },
+  () => {
+    console.log("WebSocket connected");
+
+    // Subscribe để nhận tin nhắn
+    // Backend sẽ tự động route đến đúng user dựa trên JWT
+    stompClient.subscribe("/user/queue/messages", (message) => {
+      const messageData = JSON.parse(message.body);
+      // Xử lý tin nhắn mới
+      handleNewMessage(messageData);
+    });
+  },
+  (error) => {
+    console.error("WebSocket error:", error);
+  }
+);
+```
+
+#### 3. Gửi tin nhắn
+
+**Qua WebSocket (realtime):**
+
+```javascript
+function sendMessage(conversationId, content) {
+  stompClient.send(
+    "/app/chat.sendMessage",
+    {},
+    JSON.stringify({
+      conversationId: conversationId,
+      content: content,
+    })
+  );
+}
+```
+
+**Qua REST API (fallback):**
+
+```javascript
+async function sendMessage(conversationId, content) {
+  const response = await fetch("/api/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      conversationId: conversationId,
+      content: content,
+    }),
+  });
+  return response.json();
+}
+```
+
+#### 4. Load lịch sử tin nhắn
+
+```javascript
+async function loadMessages(conversationId) {
+  const response = await fetch(`/api/v1/messages/${conversationId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  return data.data; // Array of MessageResponse
+}
+```
+
+#### 5. Đánh dấu đã đọc
+
+```javascript
+async function markAsSeen(conversationId) {
+  await fetch(`/api/v1/messages/${conversationId}/seen`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+```
+
+#### 6. Xử lý lỗi
+
+```javascript
+// Lỗi khi USER chưa được phép gửi tin nhắn
+if (error.status === 403 && error.message.includes("wait")) {
+  // Hiển thị thông báo: "Bạn chỉ có thể gửi tin nhắn sau khi nhà tuyển dụng đã gửi tin nhắn đầu tiên"
+}
+
+// Lỗi không phải thành viên
+if (error.status === 403 && error.message.includes("participant")) {
+  // Hiển thị: "Bạn không có quyền truy cập conversation này"
+}
+```
+
+### Best Practices
+
+1. **Reconnect WebSocket:** Implement auto-reconnect khi mất kết nối
+2. **Fallback to REST:** Nếu WebSocket fail, dùng REST API
+3. **Polling backup:** Có thể polling `/api/v1/messages/{conversationId}` định kỳ nếu WebSocket không available
+4. **Mark as seen:** Gọi API mark as seen khi user mở conversation
+5. **Error handling:** Xử lý các lỗi 403, 404 một cách user-friendly
+6. **Loading states:** Hiển thị loading khi gửi tin nhắn
+7. **Real-time sync:** Backend tự động broadcast tin nhắn qua WebSocket đến cả người gửi và người nhận sau khi lưu vào database. Front-end không cần optimistic update, chỉ cần subscribe `/user/queue/messages` và xử lý tin nhắn mới từ WebSocket
+
+### Notes
+
+- Conversation được tạo tự động khi user apply job, không cần gọi API tạo conversation riêng
+- 1 application = 1 conversation (unique constraint)
+- Chỉ EMPLOYER có thể gửi tin nhắn đầu tiên
+- USER phải đợi EMPLOYER gửi tin nhắn đầu tiên mới được phép gửi
+- WebSocket endpoint: `/ws` với SockJS
+- WebSocket destination prefix: `/app` cho gửi, `/user/queue` cho nhận
+- **WebSocket Broadcast:** Khi gửi tin nhắn (qua REST API hoặc WebSocket), backend tự động broadcast tin nhắn đến:
+  - Người nhận: Để hiển thị tin nhắn mới real-time
+  - Người gửi: Để đồng bộ multi-device (nếu user đăng nhập trên nhiều thiết bị)
+- Front-end chỉ cần subscribe `/user/queue/messages` và xử lý tất cả tin nhắn nhận được từ WebSocket

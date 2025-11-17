@@ -50,7 +50,7 @@ export default function JobDetailsManagement() {
       const res = await jobService.getJobByIdWithAuth(Number(id));
       return res.data;
     },
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     enabled: !!id,
   });
 

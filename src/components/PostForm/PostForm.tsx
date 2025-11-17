@@ -152,10 +152,7 @@ export default function PostForm({ isEditing }: PostFormProps) {
   //   field.onChange(field.value.filter((t: string) => t !== tag));
   // }, []);
 
-  const onError = (errors: any) => {
-    console.error("Form validation failed!");
-    console.error("Errors:", errors);
-  };
+  const onError = (errors: any) => {};
 
   const onSubmit = (data: PostFormData) => {
     const formData = new FormData();

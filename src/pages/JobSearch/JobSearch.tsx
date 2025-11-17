@@ -1631,10 +1631,7 @@ const JobSearch = () => {
 
           {/* Job Suggestions Sidebar */}
           <div className="lg:col-span-2">
-            <SuggestedJobs
-              jobs={suggestedJobs}
-              onViewAll={() => console.log("View all suggestions")}
-            />
+            <SuggestedJobs jobs={suggestedJobs} onViewAll={() => {}} />
           </div>
         </div>
       </div>

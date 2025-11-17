@@ -201,7 +201,7 @@ export default function EditEmployer() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   useEffect(() => {
@@ -218,7 +218,7 @@ export default function EditEmployer() {
     },
     select: (data) => data.map((d: any) => ({ id: d.id, name: d.name })),
     enabled: !!selectedProvinceId,
-    staleTime: 60 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
   useEffect(() => {

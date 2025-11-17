@@ -40,8 +40,7 @@ export default function ProvincesTable({
       const res = await provinceService.getProvinces();
       return res.data;
     },
-    staleTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 30 * 60 * 1000, // Keep 30 minutes for provinces
     placeholderData: (previousData) => previousData,
   });
 
