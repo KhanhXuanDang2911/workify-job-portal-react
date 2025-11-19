@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Pagination from "@/components/Pagination";
 import { ResponsiveContext } from "@/context/ResponsiveContext";
@@ -131,6 +131,7 @@ function Candidates() {
     data: applicationsResponse,
     isLoading: isLoadingApplications,
     isError: isErrorApplications,
+    refetch: refetchApplications,
   } = useQuery({
     queryKey: ["applications-by-job", selectedJobId, currentPage, itemsPerPage],
     queryFn: () =>
@@ -139,7 +140,8 @@ function Candidates() {
         pageSize: itemsPerPage,
       }),
     enabled: !!selectedJobId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
   });
 
   const queryClient = useQueryClient();
@@ -186,9 +188,18 @@ function Candidates() {
   });
 
   // Auto-select first job if available
-  if (jobs.length > 0 && !selectedJobId) {
-    setSelectedJobId(jobs[0].id);
-  }
+  useEffect(() => {
+    if (jobs.length > 0 && !selectedJobId) {
+      setSelectedJobId(jobs[0].id);
+    }
+  }, [jobs, selectedJobId]);
+
+  // Refetch applications when job is selected/changed
+  useEffect(() => {
+    if (selectedJobId) {
+      refetchApplications();
+    }
+  }, [selectedJobId, refetchApplications]);
 
   // Handle change status
   const handleChangeStatus = (
