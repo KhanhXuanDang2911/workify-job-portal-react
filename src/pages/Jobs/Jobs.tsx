@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { jobService } from "@/services";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { employer_routes } from "@/routes/routes.const";
 import MultiSortButton from "@/components/MultiSortButton";
 import { toast } from "react-toastify";
@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 type SortField =
   | "jobTitle"
@@ -65,6 +66,9 @@ export default function Jobs() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const { notifications } = useWebSocket();
+  const prevNotificationsLengthRef = useRef(0);
 
   // Get values from URL params
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
@@ -279,6 +283,32 @@ export default function Jobs() {
       setIndustriesOptions(industriesData);
     }
   }, [industriesData]);
+
+  // Refetch jobs when receiving notification about job status change
+  useEffect(() => {
+    // Check if we're on the jobs management page
+    const isOnJobsPage =
+      location.pathname === `${employer_routes.BASE}/${employer_routes.JOBS}`;
+
+    if (!isOnJobsPage) {
+      return;
+    }
+
+    // Check if there are new notifications
+    if (notifications.length > prevNotificationsLengthRef.current) {
+      const latestNotification = notifications[0];
+
+      // Check if notification has jobId (indicates job-related notification)
+      if (latestNotification?.jobId) {
+        // Refetch the jobs query to get updated status
+        queryClient.invalidateQueries({
+          queryKey: ["my-jobs"],
+        });
+      }
+
+      prevNotificationsLengthRef.current = notifications.length;
+    }
+  }, [notifications, location.pathname, queryClient]);
 
   const handleSortChange = useCallback(
     (field: SortField, newDirection: SortDirection | null) => {

@@ -76,6 +76,9 @@ const EmployerSearch = () => {
     direction: "desc",
   };
 
+  // Temporary search input (not applied until search button is clicked)
+  const [searchInput, setSearchInput] = useState(keywordFromUrl);
+
   // Applied filters (from URL - used for API calls) - auto-apply, no temp filters
   const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
   const [appliedProvinceId, setAppliedProvinceId] = useState<number | null>(
@@ -150,6 +153,7 @@ const EmployerSearch = () => {
       direction: "desc",
     };
 
+    setSearchInput(keywordParam);
     setAppliedKeyword(keywordParam);
     setAppliedProvinceId(provinceIdParam ? Number(provinceIdParam) : null);
     setAppliedCompanySize(companySizeParam);
@@ -270,7 +274,13 @@ const EmployerSearch = () => {
     return currentField !== "createdAt" && currentField !== "updatedAt";
   };
 
+  const handleSearch = () => {
+    setAppliedKeyword(searchInput);
+    setCurrentPage(1);
+  };
+
   const handleClearFilters = () => {
+    setSearchInput("");
     setAppliedKeyword("");
     setAppliedProvinceId(null);
     setAppliedCompanySize("");
@@ -351,14 +361,13 @@ const EmployerSearch = () => {
                 <div className="relative">
                   <Input
                     placeholder={t("employerSearch.companyNamePlaceholder")}
-                    value={appliedKeyword}
+                    value={searchInput}
                     onChange={(e) => {
-                      setAppliedKeyword(e.target.value);
-                      setCurrentPage(1);
+                      setSearchInput(e.target.value);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        setCurrentPage(1);
+                        handleSearch();
                       }
                     }}
                     className="pl-10 h-12 text-gray-700 border-gray-200 focus:border-blue-500"
@@ -369,7 +378,7 @@ const EmployerSearch = () => {
 
               {/* Search Button */}
               <Button
-                onClick={() => setCurrentPage(1)}
+                onClick={handleSearch}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Search className="w-5 h-5 mr-2" />

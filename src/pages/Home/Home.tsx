@@ -169,9 +169,9 @@ export default function Home() {
                   animation: "fadeInUp 0.8s ease-out 0.2s both",
                 }}
               >
-                <div className="flex flex-col md:flex-row gap-3 items-center">
+                <div className="flex flex-col md:flex-row gap-3 items-center overflow-hidden">
                   {/* Industry Select */}
-                  <div className="relative w-full md:w-[160px] flex-shrink-0">
+                  <div className="relative w-full md:w-[150px] flex-shrink-0">
                     <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
                     <Select
                       value={selectedIndustryId}
@@ -196,7 +196,7 @@ export default function Home() {
                   </div>
 
                   {/* Location Select */}
-                  <div className="relative w-full md:w-[160px] flex-shrink-0">
+                  <div className="relative w-full md:w-[150px] flex-shrink-0">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
                     <Select
                       value={selectedProvinceId}
@@ -221,7 +221,7 @@ export default function Home() {
                   </div>
 
                   {/* Keyword Input */}
-                  <div className="relative flex-1 min-w-0 w-full">
+                  <div className="relative flex-1 min-w-0 max-w-[400px]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <Input
                       placeholder={t("home.hero.keywordPlaceholder")}
@@ -235,10 +235,10 @@ export default function Home() {
                   {/* Search Button */}
                   <Button
                     onClick={handleSearch}
-                    className="h-12 w-full md:w-[140px] bg-[#4a6cf7] hover:bg-[#3d5ce6] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
+                    size="icon"
+                    className="h-12 w-12 md:w-12 bg-[#4a6cf7] hover:bg-[#3d5ce6] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
                   >
-                    <Search className="w-4 h-4 mr-2" />
-                    {t("home.hero.searchButton")}
+                    <Search className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
