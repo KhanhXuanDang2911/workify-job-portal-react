@@ -6,7 +6,6 @@ import MySavedJobs from "@/pages/User/MySavedJobs";
 import Overview from "@/pages/User/Overview";
 import { routes } from "../routes.const";
 import ProtectedRoute from "@/routes/ProtectedRoute";
-import CVBuilder from "@/pages/CVBuilder";
 import { ROLE } from "@/constants";
 import MyApplyJobs from "@/pages/User/MyApplyJobs";
 import Notifications from "@/pages/Notifications";
@@ -53,14 +52,6 @@ const UserProtectedRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <MyApplyJobs />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: routes.CREATE_CV,
-        element: (
-          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
-            <CVBuilder />
           </ProtectedRoute>
         ),
       },
