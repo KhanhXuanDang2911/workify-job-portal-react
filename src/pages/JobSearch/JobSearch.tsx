@@ -36,6 +36,7 @@ import {
 } from "@/constants/job.constant";
 import Loading from "@/components/Loading";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserAuth } from "@/context/user-auth";
 import {
   getSearchHistory,
   removeSearchHistoryItem,
@@ -432,6 +433,7 @@ const getSortOrderLabels = (
 
 const JobSearch = () => {
   const { t } = useTranslation();
+  const { state: userAuth } = useUserAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -715,6 +717,38 @@ const JobSearch = () => {
     }
   }, [searchParams]); // Remove currentPage from dependency to avoid loop
 
+  // If user has an industry set and no industry filter applied, auto-apply it
+  const autoAppliedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      // Only auto-apply once per mount/session
+      if (autoAppliedRef.current) return;
+
+      const userIndustryId = userAuth?.user?.industry?.id;
+
+      // If URL already contains an industry filter, do not override it
+      const urlIndustryIds = searchParams.getAll("industryId");
+      if (urlIndustryIds.length > 0) {
+        autoAppliedRef.current = true; // respect explicit URL, mark as applied so we don't run again
+        return;
+      }
+
+      if (userIndustryId && appliedFilters.industry.length === 0) {
+        setAppliedFilters((prev) => ({
+          ...prev,
+          industry: [String(userIndustryId)],
+        }));
+        setCurrentPage(1);
+      }
+
+      autoAppliedRef.current = true;
+    } catch (e) {
+      // ignore
+    }
+    // Run when user industry or search params are available on mount
+  }, [userAuth?.user?.industry?.id, searchParams]);
+
   // Reset to page 1 when applied filters change (but not when reading from URL)
   const prevFiltersRef = useRef({
     appliedKeyword,
@@ -852,9 +886,15 @@ const JobSearch = () => {
       : 0;
 
   // Fetch top attractive jobs for suggestions
+  const userIndustryId = userAuth?.user?.industry?.id;
+
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 8],
-    queryFn: () => jobService.getTopAttractiveJobs(8),
+    queryKey: ["top-attractive-jobs", 8, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        8,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

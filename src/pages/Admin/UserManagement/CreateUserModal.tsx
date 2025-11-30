@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { districtService, provinceService, userService } from "@/services";
+import { industryService } from "@/services/industry.service";
 import {
   DATE_REGEX,
   EMAIL_REGEX,
@@ -86,6 +87,7 @@ const schema = z.object({
     ),
   provinceId: z.number().int().positive().optional(),
   districtId: z.number().int().positive().optional(),
+  industryId: z.number().int().positive().optional(),
   detailAddress: z.string().nullable().optional(),
   status: UserStatusEnum,
   role: RoleEnum,
@@ -97,7 +99,7 @@ const defaultAvatar =
 type FormData = z.infer<typeof schema>;
 
 export default function CreateUserModal() {
-  const { t } = useTranslation();
+  const { t, currentLanguage, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -120,6 +122,7 @@ export default function CreateUserModal() {
     defaultValues: {
       status: UserStatus.ACTIVE,
       role: ROLE.JOB_SEEKER,
+      industryId: undefined,
     },
   });
 
@@ -171,6 +174,15 @@ export default function CreateUserModal() {
       setProvincesOptions(provinces);
     }
   }, [provinces]);
+
+  // load industries for select
+  const { data: industriesResponse } = useQuery({
+    queryKey: ["all-industries"],
+    queryFn: () => industryService.getAllIndustries(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const industries = industriesResponse?.data || [];
 
   const { data: districts } = useQuery({
     queryKey: ["districts", seletedProvinceId],
@@ -539,7 +551,51 @@ export default function CreateUserModal() {
           )}
         </div>
 
-        <div className="col-span-2">
+        {/* Industry */}
+        <div className="col-span-2 md:col-span-1">
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createUser.fields.industry")}
+          </label>
+          <Controller
+            name="industryId"
+            control={form.control}
+            render={({ field }) => (
+              <Select
+                value={field.value ? String(field.value) : ""}
+                onValueChange={(val) =>
+                  field.onChange(val ? Number(val) : undefined)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createUser.placeholders.selectIndustry"
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {industries.length > 0 ? (
+                    industries.map((ind: any) => (
+                      <SelectItem key={ind.id} value={String(ind.id)}>
+                        {i18n?.exists(ind.name)
+                          ? t(ind.name)
+                          : currentLanguage === "en"
+                            ? ind.engName || ind.name
+                            : ind.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-gray-500">
+                      {t("admin.createUser.noIndustry")}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+
+        <div className="col-span-2 md:col-span-1">
           <label className="block text-sm text-gray-600 mb-1">
             {t("admin.createUser.fields.detailAddress")}
           </label>

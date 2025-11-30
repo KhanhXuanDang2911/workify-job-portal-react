@@ -16,6 +16,7 @@ import {
   Bookmark,
   FileText,
   Building,
+  MessageSquare,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationDropdown from "@/components/NotificationDropdown";
@@ -30,23 +31,23 @@ import { employer_routes } from "@/routes/routes.const";
 import { employerTokenUtils } from "@/lib/token";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEmployerAuth } from "@/context/employer-auth";
+// Note: header does not query chat unread totals here
 import { authService } from "@/services";
 import { toast } from "react-toastify";
 import { getNameInitials } from "@/utils/string";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 interface EmployerHeaderProps {
   onMobileMenuClick?: () => void;
   mobileSidebarOpen?: boolean;
-  device?: string;
   showSidebar?: boolean; // Only show menu buttons when sidebar is available
 }
 
 export default function EmployerHeader({
   onMobileMenuClick,
   mobileSidebarOpen,
-  device,
   showSidebar = false,
 }: EmployerHeaderProps) {
   const { t } = useTranslation();
@@ -54,6 +55,11 @@ export default function EmployerHeader({
   const employer = state.employer;
   const queryClient = useQueryClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { conversationUnread } = useWebSocket();
+
+  const chatConversationCount = Object.values(conversationUnread ?? {}).filter(
+    (v) => (v ?? 0) > 0
+  ).length;
 
   const signOutMutation = useMutation({
     mutationFn: () => {
@@ -73,6 +79,9 @@ export default function EmployerHeader({
   const handleSignOut = () => {
     signOutMutation.mutate();
   };
+
+  // Header intentionally does not display an aggregate unread count.
+  // Aggregate unread behavior will be re-implemented from a single source of truth.
 
   return (
     <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
@@ -222,6 +231,20 @@ export default function EmployerHeader({
             {state.isAuthenticated ? (
               <>
                 <NotificationDropdown />
+                <Link
+                  to={`${employer_routes.BASE}/messages`}
+                  className="relative p-2 rounded hover:bg-gray-50 transition-colors"
+                  aria-label="Messages"
+                >
+                  <MessageSquare className="w-5 h-5 text-gray-600" />
+                  {chatConversationCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full shadow">
+                      {chatConversationCount > 99
+                        ? "99+"
+                        : chatConversationCount}
+                    </span>
+                  )}
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg p-2 transition-all duration-200 hover:shadow-sm border border-transparent hover:border-gray-200">
                     <Avatar className="h-9 w-9 ring-2 ring-gray-100 hover:ring-[#1967d2]/30 transition-all duration-200">
@@ -357,6 +380,20 @@ export default function EmployerHeader({
             {state.isAuthenticated && (
               <>
                 <NotificationDropdown />
+                <Link
+                  to={`${employer_routes.BASE}/messages`}
+                  className="relative p-2 rounded hover:bg-gray-50 transition-colors"
+                  aria-label="Messages"
+                >
+                  <MessageSquare className="w-5 h-5 text-gray-600" />
+                  {chatConversationCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full shadow">
+                      {chatConversationCount > 99
+                        ? "99+"
+                        : chatConversationCount}
+                    </span>
+                  )}
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <Avatar className="h-8 w-8 ring-2 ring-gray-100">

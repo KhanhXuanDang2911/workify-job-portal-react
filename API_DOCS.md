@@ -1,4 +1,4 @@
-# Workify API Docs (v1) (last updated: 22/10/2025)
+# Workify API Docs (v1) (last updated: 30/11/2025)
 
 Base URL: http://localhost:8080/workify
 
@@ -7,8 +7,6 @@ Base URL: http://localhost:8080/workify
 - Xác thực: gửi Bearer JWT trong header Authorization: Bearer <accessToken> (trừ các endpoint công khai).
 
 ## Mẫu response chung
-
-- Thành công
 
 ```json
 {
@@ -142,13 +140,20 @@ Base: /workify/api/v1/auth
         "code": "1",
         "name": "Hà Nội",
         "engName": "Ha Noi",
-        "provinceSlug": "hà-nội"
-
+        "provinceSlug": "hà-nội",
         "name": "Quận Hoàn Kiếm",
         "districtSlug": "quận-hoàn-kiếm"
       },
       "detailAddress": null,
       "avatarUrl": null,
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "ADMIN",
       "status": "ACTIVE"
@@ -159,6 +164,7 @@ Base: /workify/api/v1/auth
 
 - Error responses
   - 400 (validate body)
+
   ```json
   {
     "timestamp": "2025-10-08T11:03:00.7349508",
@@ -1127,6 +1133,14 @@ Base: /workify/api/v1/users
       },
       "detailAddress": null,
       "avatarUrl": null,
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "ADMIN",
       "status": "ACTIVE"
@@ -1196,6 +1210,7 @@ Base: /workify/api/v1/users
   - birthDate: dd/MM/yyyy (không bắt buộc, có thể null; nếu có phải đúng định dạng và không được lớn hơn ngày hiện tại)
   - gender: MALE|FEMALE|OTHER (có thể null nhưng nếu truyền phải thoả mãn các giá trị gender)
   - provinceId, districtId: >=1 (nếu có)
+  - industryId: >=1 (nếu có)
   - detailAddress: có thể null
   - status: ACTIVE|PENDING|BANNED (bắt buộc)
   - role: ADMIN|JOB_SEEKER (bắt buộc)
@@ -1210,6 +1225,7 @@ Base: /workify/api/v1/users
       "gender": "MALE",
       "provinceId": 1,
       "districtId": 1,
+      "industryId": 1,
       "detailAddress": "123 Đường ABC",
       "status": "ACTIVE",
       "role": "JOB_SEEKER"
@@ -1248,6 +1264,14 @@ Base: /workify/api/v1/users
         },
         "detailAddress": "123 Đường ABC",
         "avatarUrl": "https://cloudclavis.blob.core.windows.net/workify/0e73306c-d948-4ec9-b6f9-941a509d7736-gaucute.jpg",
+        "industry": {
+          "id": 1,
+          "createdAt": "2025-11-29T18:08:24.640686",
+          "updatedAt": "2025-11-29T18:08:24.640686",
+          "name": "Biên phiên dịch / Thông dịch viên",
+          "engName": "Translation / Interpretation",
+          "description": null
+        },
         "noPassword": false,
         "role": "JOB_SEEKER",
         "status": "ACTIVE"
@@ -1309,6 +1333,14 @@ Base: /workify/api/v1/users
       },
       "detailAddress": "123 Đường ABC",
       "avatarUrl": "https://cloudclavis.blob.core.windows.net/workify/8d60d9a5-b81b-4409-8ee2-d05203130bda-avatar.jpg",
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "JOB_SEEKER",
       "status": "ACTIVE"
@@ -1369,6 +1401,7 @@ Base: /workify/api/v1/users
 - Method: POST
 - Headers: User-Agent
 - Body: UserRequest (nhóm OnCreate)
+
   ```json
   {
     "fullName": "Nguyen Van C",
@@ -1376,6 +1409,18 @@ Base: /workify/api/v1/users
     "password": "Workify@123"
   }
   ```
+
+  Tùy chọn: có thể truyền `industryId` để đặt ngành ưu tiên cho người dùng, ví dụ:
+
+  ```json
+  {
+    "fullName": "Nguyen Van C",
+    "email": "user3@example.com",
+    "password": "Workify@123",
+    "industryId": 1
+  }
+  ```
+
 - Phân luồng theo User-Agent
   - Web (không phải mobile): hệ thống gửi email kèm link xác nhận. Người dùng xác nhận qua API 1.6 (Header C-Token lấy từ link email).
   - Mobile (User-Agent giữ nguyên: ReactNativeApp/1.0 (Android; Mobile)): hệ thống gửi mã OTP 8 chữ số qua email. Người dùng xác nhận qua API 1.15 (body: email, code).
@@ -1398,6 +1443,14 @@ Base: /workify/api/v1/users
       "district": null,
       "detailAddress": null,
       "avatarUrl": null,
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "JOB_SEEKER",
       "status": "PENDING"
@@ -1453,6 +1506,14 @@ Base: /workify/api/v1/users
       "district": null,
       "detailAddress": null,
       "avatarUrl": null,
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "ADMIN",
       "status": "ACTIVE"
@@ -1484,6 +1545,7 @@ Base: /workify/api/v1/users
     "birthDate": "2025-10-08",
     "gender": "string",
     "provinceId": 1,
+    "industryId": 1,
     "districtId": 1,
     "detailAddress": "string"
   }
@@ -1507,6 +1569,14 @@ Base: /workify/api/v1/users
       "district": null,
       "detailAddress": null,
       "avatarUrl": null,
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "ADMIN",
       "status": "ACTIVE"
@@ -1549,6 +1619,14 @@ Base: /workify/api/v1/users
       "district": null,
       "detailAddress": null,
       "avatarUrl": "https://cloudclavis.blob.core.windows.net/workify/5147a43f-2c94-4ec8-9269-5fe5baf8ba0d-princess-mononoke-and-wolf-desktop-wallpaper-4k.jpg",
+      "industry": {
+        "id": 1,
+        "createdAt": "2025-11-29T18:08:24.640686",
+        "updatedAt": "2025-11-29T18:08:24.640686",
+        "name": "Biên phiên dịch / Thông dịch viên",
+        "engName": "Translation / Interpretation",
+        "description": null
+      },
       "noPassword": false,
       "role": "ADMIN",
       "status": "ACTIVE"
@@ -1911,6 +1989,7 @@ Base: /workify/api/v1/employers
   ```
 - Error responses
   - 400 (body invalid, tương tự như mấy phần trên)
+
   ```json
   {
     "timestamp": "2025-10-08T15:12:13.3742983",
@@ -2385,11 +2464,15 @@ Base: /workify/api/v1/categories-post
 Base: /workify/api/v1/posts
 
 - Ghi chú chung cho Posts
-  - Trả về PostResponse đầy đủ: xem "PostResponse (đầy đủ)" ở phần 10; các ví dụ bên dưới có thể rút gọn nhưng API thực tế trả đủ các field.
-  - Enum StatusPost: PENDING | PUBLIC | DRAFT
-    - Tạo/Cập nhật (ADMIN): status validate bằng enum StatusPost (khác giá trị sẽ 400)
-    - GET public chỉ trả các bài có status = PUBLIC; GET theo id: nếu bài không phải PUBLIC thì chỉ ADMIN xem được (nếu không sẽ 403)
-  - Sorts whitelist cho Posts: chỉ hỗ trợ createdAt, updatedAt
+- Trả về PostResponse đầy đủ: xem "PostResponse (đầy đủ)" ở phần 10; các ví dụ bên dưới có thể rút gọn nhưng API thực tế trả đủ các field.
+- Enum StatusPost: PENDING | PUBLIC | DRAFT
+  - Tạo/Cập nhật: behavior phụ thuộc vào vai trò caller
+    - ADMIN: khi tạo hoặc cập nhật có thể đặt `status` (validated theo enum StatusPost). Nếu status không hợp lệ sẽ trả 400.
+    - EMPLOYER: khi tạo bài, hệ thống sẽ mặc định `status = PENDING` (trường `status` trong request của employer sẽ bị bỏ qua). Khi cập nhật, employer chỉ được cập nhật bài do chính họ tạo (owner) và **không được** cập nhật `status` (status chỉ có thể thay đổi bởi ADMIN).
+  - GET public chỉ trả các bài có `status = PUBLIC`.
+  - GET theo id: nếu bài không phải `PUBLIC` thì chỉ ADMIN hoặc chính employer tác giả (employerAuthor) xem được; các caller khác (chưa đăng nhập hoặc không phải admin/employer author) sẽ nhận 403.
+- Sorts whitelist cho Posts: chỉ hỗ trợ createdAt, updatedAt
+- Lưu ý về tác giả trả về: trong `PostResponse` chỉ có **một** trong hai trường `userAuthor` hoặc `employerAuthor` tuỳ theo bài được tạo bởi user cá nhân hay employer (frontend phải kiểm tra và hiển thị phù hợp).
 
 ### 5.1 Danh sách (ADMIN)
 
@@ -2431,13 +2514,14 @@ Base: /workify/api/v1/posts
             "description": "Ngữ pháp",
             "slug": "ngữ-pháp"
           },
-          "author": {
+          "userAuthor": {
             "id": 1,
             "fullName": "System Administrator",
             "avatarUrl": null,
             "email": "admin@example.com",
             "role": "ADMIN"
           },
+          "employerAuthor": null,
           "status": "PUBLIC"
         }
       ]
@@ -2494,13 +2578,14 @@ Base: /workify/api/v1/posts
             "description": "Ngữ pháp",
             "slug": "ngữ-pháp"
           },
-          "author": {
+          "userAuthor": {
             "id": 1,
             "fullName": "System Administrator",
             "avatarUrl": null,
             "email": "admin@example.com",
             "role": "ADMIN"
           },
+          "employerAuthor": null,
           "status": "PUBLIC"
         }
       ]
@@ -2515,41 +2600,82 @@ Base: /workify/api/v1/posts
 - Path: /{id}
 - Method: GET
 - Success 200
+
   ```json
   {
     "status": 200,
     "message": "Lấy bài viết thành công",
     "data": {
-      "id": 100,
-      "createdAt": "2025-10-08T12:30:11.000",
-      "updatedAt": "2025-10-08T12:35:05.000",
-      "title": "Giới thiệu Workify",
-      "excerpt": "Nền tảng việc làm...",
-      "content": "<p>Nội dung HTML đã được xử lý...</p>",
-      "contentText": "Noi dung HTML da duoc xu ly...",
-      "thumbnailUrl": "https://cdn.example.com/posts/100/thumbnail.jpg",
-      "tags": "workify|viec-lam",
-      "slug": "gioi-thieu-workify",
-      "readingTimeMinutes": 3,
+      "id": 101,
+      "createdAt": "2025-11-30T10:00:00.000",
+      "updatedAt": "2025-11-30T10:00:00.000",
+      "title": "Thông báo tuyển dụng",
+      "excerpt": "Công ty cần tuyển...",
+      "content": "<p>Nội dung...</p>",
+      "contentText": "Nội dung...",
+      "thumbnailUrl": "https://cdn.example.com/posts/101/thumbnail.jpg",
+      "tags": "tuyen-dung|nhatuyendung",
+      "slug": "thong-bao-tuyen-dung",
+      "readingTimeMinutes": 2,
       "category": {
-        "id": 1,
-        "createdAt": "2025-10-08T19:20:11.929921",
-        "updatedAt": "2025-10-08T19:20:11.929921",
-        "title": "Ngữ pháp",
-        "description": "Ngữ pháp",
-        "slug": "ngữ-pháp"
+        "id": 2,
+        "title": "Tin tức",
+        "description": "Danh mục tin tức"
       },
-      "author": {
-        "id": 1,
-        "fullName": "System Administrator",
+      "userAuthor": null,
+      "employerAuthor": {
+        "id": 10,
+        "email": "hr@example.com",
+        "backgroundUrl": null,
         "avatarUrl": null,
-        "email": "admin@example.com",
-        "role": "ADMIN"
+        "companyName": "ABC Corp",
+        "createdAt": "2025-10-01T08:00:00.000",
+        "updatedAt": "2025-10-01T08:00:00.000",
+        "employerSlug": "abc-corp"
       },
       "status": "PUBLIC"
     }
   }
   ```
+
+  - Ví dụ 2 (bài do User tạo — `userAuthor` xuất hiện, `employerAuthor` = null):
+    ```json
+    {
+      "status": 200,
+      "message": "Lấy bài viết thành công",
+      "data": {
+        "id": 100,
+        "createdAt": "2025-10-08T12:30:11.000",
+        "updatedAt": "2025-10-08T12:35:05.000",
+        "title": "Giới thiệu Workify",
+        "excerpt": "Nền tảng việc làm...",
+        "content": "<p>Nội dung HTML đã được xử lý...</p>",
+        "contentText": "Noi dung HTML da duoc xu ly...",
+        "thumbnailUrl": "https://cdn.example.com/posts/100/thumbnail.jpg",
+        "tags": "workify|viec-lam",
+        "slug": "gioi-thieu-workify",
+        "readingTimeMinutes": 3,
+        "category": {
+          "id": 1,
+          "createdAt": "2025-10-08T19:20:11.929921",
+          "updatedAt": "2025-10-08T19:20:11.929921",
+          "title": "Ngữ pháp",
+          "description": "Ngữ pháp",
+          "slug": "ngữ-pháp"
+        },
+        "userAuthor": {
+          "id": 1,
+          "fullName": "System Administrator",
+          "avatarUrl": null,
+          "email": "admin@example.com",
+          "role": "ADMIN"
+        },
+        "employerAuthor": null,
+        "status": "PUBLIC"
+      }
+    }
+    ```
+
 - Error responses
   - 400 (id invalid)
     ```json
@@ -2608,13 +2734,14 @@ Base: /workify/api/v1/posts
           "description": "Ngữ pháp",
           "slug": "ngữ-pháp"
         },
-        "author": {
+        "userAuthor": {
           "id": 2,
           "fullName": "Nguyen Van A",
           "avatarUrl": null,
           "email": "user@example.com",
           "role": "JOB_SEEKER"
         },
+        "employerAuthor": null,
         "status": "PUBLIC"
       }
     ]
@@ -2650,13 +2777,14 @@ Base: /workify/api/v1/posts
           "description": "Ngữ pháp",
           "slug": "ngữ-pháp"
         },
-        "author": {
+        "userAuthor": {
           "id": 1,
           "fullName": "System Administrator",
           "avatarUrl": null,
           "email": "admin@example.com",
           "role": "ADMIN"
         },
+        "employerAuthor": null,
         "status": "PUBLIC"
       }
     ]
@@ -2665,19 +2793,22 @@ Base: /workify/api/v1/posts
 - Error responses
   - 400 (limit invalid)
 
-### 5.6 Tạo bài viết (ADMIN, multipart)
+### 5.6 Tạo bài viết (ADMIN hoặc EMPLOYER, multipart)
 
 - Method: POST
+- Roles: `ADMIN` or `EMPLOYER` (public: no)
 - Parts:
-  - post (JSON) – PostRequest (title/excerpt/content/categoryId bắt buộc; status enum StatusPost khi tạo admin)
+  - post (JSON) – PostRequest (title/excerpt/content/categoryId bắt buộc)
+    - Lưu ý: `status` trong `post` chỉ có hiệu lực khi caller là `ADMIN`.
+    - Nếu caller là `EMPLOYER`, hệ thống sẽ tự động đặt `status = PENDING` sau khi tạo (frontend không cần, và giá trị `status` nếu có sẽ bị bỏ qua).
   - thumbnail (file ảnh, bắt buộc)
 - Validate PostRequest:
-  - title: bắt buộc, not blank, max 255 ký tự
-  - excerpt: bắt buộc, not blank, max 1000 ký tự
-  - content: bắt buộc, not blank (có thể chứa HTML; hệ thống sẽ upload ảnh nhúng và chuẩn hóa nội dung)
-  - categoryId: notNull, phải tồn tại (nếu không 404)
-  - status: phải thuộc {PENDING, PUBLIC, DRAFT}
-  - thumbnail: image hợp lệ (jpeg/png/webp...), bắt buộc
+- title: bắt buộc, not blank, max 255 ký tự
+- excerpt: bắt buộc, not blank, max 1000 ký tự
+- content: bắt buộc, not blank (có thể chứa HTML; hệ thống sẽ upload ảnh nhúng và chuẩn hóa nội dung)
+- categoryId: notNull, phải tồn tại (nếu không 404)
+- status: nếu caller là `ADMIN` thì phải thuộc {PENDING, PUBLIC, DRAFT}; nếu caller là `EMPLOYER` trường `status` sẽ bị bỏ qua và mặc định là `PENDING`.
+- thumbnail: image hợp lệ (jpeg/png/webp...), bắt buộc
 - Success 201
   ```json
   {
@@ -2700,13 +2831,14 @@ Base: /workify/api/v1/posts
         "title": "Tin tức",
         "description": "Danh mục tin tức"
       },
-      "author": {
+      "userAuthor": {
         "id": 1,
         "fullName": "System Administrator",
         "avatarUrl": null,
         "email": "admin@example.com",
         "role": "ADMIN"
       },
+      "employerAuthor": null,
       "status": "PUBLIC"
     }
   }
@@ -2743,10 +2875,14 @@ Base: /workify/api/v1/posts
     }
     ```
 
-### 5.7 Cập nhật bài viết (ADMIN, multipart)
+### 5.7 Cập nhật bài viết (ADMIN hoặc EMPLOYER, multipart)
 
 - Path: /{id}
 - Method: PUT
+- Roles: `ADMIN` or `EMPLOYER`
+- Behaviour:
+  - `ADMIN`: có thể cập nhật bất kỳ bài viết nào và có thể cập nhật `status`.
+  - `EMPLOYER`: chỉ được cập nhật bài viết do chính họ tạo (owner). Employer **không được** cập nhật trường `status` (nếu request có `status`, backend sẽ bỏ qua phần này).
 - Parts:
   - post (JSON) – PostRequest (OnUpdate)
   - thumbnail (file ảnh, optional)
@@ -2775,13 +2911,14 @@ Base: /workify/api/v1/posts
         "description": "Ngữ pháp",
         "slug": "ngữ-pháp"
       },
-      "author": {
+      "userAuthor": {
         "id": 1,
         "fullName": "System Administrator",
         "avatarUrl": null,
         "email": "admin@example.com",
         "role": "ADMIN"
       },
+      "employerAuthor": null,
       "status": "PUBLIC"
     }
   }
@@ -2828,35 +2965,140 @@ Base: /workify/api/v1/posts
     }
     ```
 
-### 5.8 Xóa bài viết (ADMIN)
+### 5.8 Xóa bài viết (ADMIN hoặc EMPLOYER)
 
 - Path: /{id}
 - Method: DELETE
+- Roles: `ADMIN` or `EMPLOYER`
+- Behaviour:
+  - `ADMIN`: có thể xóa bất kỳ bài viết nào.
+  - `EMPLOYER`: chỉ được xóa bài viết do chính họ tạo (owner). Nếu cố xóa bài của người khác sẽ trả 403.
 - Success 200
   ```json
   { "status": 200, "message": "Xóa bài viết thành công" }
   ```
 - Error responses
-  - 400 (id invalid)
-    ```json
-    {
-      "timestamp": "2025-10-08T12:42:30.000",
-      "status": 400,
-      "path": "/workify/api/v1/posts/abc",
-      "error": "Bad Request",
-      "message": "Tham số id phải có kiểu Long"
+- - 400 (id invalid)
+  ```json
+  {
+    "timestamp": "2025-10-08T12:42:30.000",
+    "status": 400,
+    "path": "/workify/api/v1/posts/abc",
+    "error": "Bad Request",
+    "message": "Tham số id phải có kiểu Long"
+  }
+  ```
+- 404 (không tìm thấy)
+
+  ```json
+  {
+    "timestamp": "2025-10-08T12:43:00.000",
+    "status": 404,
+    "path": "/workify/api/v1/posts/9999",
+    "error": "Not Found",
+    "message": "Không tìm thấy tài nguyên"
+  }
+  ```
+
+  ### 5.9 Cập nhật trạng thái bài viết (ADMIN)
+
+- Path: `/workify/api/v1/posts/{id}/{status}`
+- Method: `PATCH`
+- Roles: `ADMIN` (EMPLOYER không có quyền cập nhật `status` - backend sẽ bỏ qua nếu caller là employer)
+- Description: Cho phép ADMIN cập nhật `status` của một bài viết. `status` phải là một trong `PENDING`, `PUBLIC`, `DRAFT`.
+
+- Success 200
+
+  ```json
+  { "status": 200, "message": "Cập nhật trạng thái thành công" }
+  ```
+
+- Example curl (ADMIN):
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer <ADMIN_TOKEN>" \
+  https://your-api.example.com/workify/api/v1/posts/123/PUBLIC
+```
+
+- Error responses:
+  - 400 (status không hợp lệ)
+  - 401/403 (không đủ quyền)
+  - 404 (bài viết không tồn tại)
+
+- Frontend recommendation:
+  - Sau khi update status thành công, refetch chi tiết bài `GET /workify/api/v1/posts/{id}` và refetch danh sách (giữ `pageNumber` + `sorts=createdAt:desc`) để giao diện đồng bộ.
+
+---
+
+## 6) Tỉnh thành (Provinces)
+
+### 5.10 Lấy bài viết của chính employer (My posts)
+
+- Path: `/workify/api/v1/posts/my`
+- Method: `GET`
+- Roles: `EMPLOYER` (chỉ trả về các bài do employer đang đăng nhập tạo). `ADMIN` có thể dùng endpoint quản lý chung (`GET /workify/api/v1/posts`).
+- Query params:
+  - `pageNumber` (>=1), `pageSize` (>=1)
+  - `sorts`: cú pháp `field:asc|desc` (whitelist: `createdAt`, `updatedAt`) — khuyến nghị mặc định `sorts=createdAt:desc`
+  - `status` (optional): lọc theo `PENDING|PUBLIC|DRAFT` (nếu cần)
+
+- Example: `/workify/api/v1/posts/my?pageNumber=1&pageSize=10&sorts=createdAt:desc`
+
+- Success 200
+
+  ```json
+  {
+    "status": 200,
+    "message": "Lấy danh sách bài viết thành công",
+    "data": {
+      "pageNumber": 1,
+      "pageSize": 10,
+      "totalPages": 1,
+      "numberOfElements": 1,
+      "items": [
+        {
+          "id": 101,
+          "createdAt": "2025-11-30T10:00:00.000",
+          "updatedAt": "2025-11-30T10:00:00.000",
+          "title": "Thông báo tuyển dụng",
+          "excerpt": "Công ty cần tuyển...",
+          "content": "<p>Nội dung...</p>",
+          "contentText": "Nội dung...",
+          "thumbnailUrl": "https://cdn.example.com/posts/101/thumbnail.jpg",
+          "tags": "tuyen-dung|nhatuyendung",
+          "slug": "thong-bao-tuyen-dung",
+          "readingTimeMinutes": 2,
+          "category": {
+            "id": 2,
+            "title": "Tin tức",
+            "description": "Danh mục tin tức"
+          },
+          "userAuthor": null,
+          "employerAuthor": {
+            "id": 10,
+            "email": "hr@example.com",
+            "backgroundUrl": null,
+            "avatarUrl": null,
+            "companyName": "ABC Corp",
+            "createdAt": "2025-10-01T08:00:00.000",
+            "updatedAt": "2025-10-01T08:00:00.000",
+            "employerSlug": "abc-corp"
+          },
+          "status": "PENDING"
+        }
+      ]
     }
-    ```
-  - 404 (không tìm thấy)
-    ```json
-    {
-      "timestamp": "2025-10-08T12:43:00.000",
-      "status": 404,
-      "path": "/workify/api/v1/posts/9999",
-      "error": "Not Found",
-      "message": "Không tìm thấy tài nguyên"
-    }
-    ```
+  }
+  ```
+
+- Error responses
+  - 400 (params invalid)
+  - 401/403 (không có quyền hoặc token hết hạn)
+
+- Frontend notes:
+  - Sử dụng mặc định `sorts=createdAt:desc` để hiển thị bài mới nhất lên đầu.
+  - Sau khi tạo/cập nhật/xóa bài, refetch trang hiện tại (`/workify/api/v1/posts/my?...`) để đồng bộ giao diện.
 
 ---
 
@@ -4628,7 +4870,8 @@ Ví dụ lỗi 400 (rút gọn):
 
 - Path: /top-attractive
 - Method: GET
-- Query: limit (>=1, mặc định 10)
+- Query: `limit` (>=1, mặc định 10), `industryId` (Long>=1, tùy chọn)
+  - Ví dụ: `/api/v1/jobs/top-attractive?limit=10&industryId=1` sẽ trả các job hấp dẫn trong ngành có id = 1
 - Success 200 (List<JobResponse>) – có trường mới `numberOfApplications`:
 
 ```json
@@ -4696,6 +4939,29 @@ Ví dụ lỗi 400 (rút gọn):
 ```
 
 - Error 400 (limit invalid)
+
+### 11.16 Công việc cá nhân hóa (public)
+
+- Path: /personalized
+- Method: GET
+- Query: `limit` (>=1, mặc định 10)
+- Xác thực: công khai (JWT tùy chọn)
+- Hành vi:
+  - Nếu caller đã xác thực và có role `JOB_SEEKER` hoặc `ADMIN`, và `industry` của user được thiết lập, endpoint trả về các job thuộc ngành đó (tối đa `limit`)
+  - Nếu caller chưa xác thực, hoặc `industry` của user không được thiết lập, endpoint trả về danh sách fallback (jobs top-attractive) tối đa `limit`
+- Success 200 (List<JobResponse>) – cùng cấu trúc như response của `/top-attractive`. Khóa i18n: `job.get.personalized.success`.
+
+```json
+{
+  "status": 200,
+  "message": "Lấy danh sách công việc theo cá nhân hóa thành công",
+  "data": [
+    /* JobResponse[] */
+  ]
+}
+```
+
+- Lỗi 400 (limit không hợp lệ)
 
 ## 12) Ứng tuyển (Applications)
 
@@ -5434,7 +5700,7 @@ stompClient.connectHeaders = {
 
 #### Ví dụ kết nối Client (JavaScript)
 
-```js
+````js
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
@@ -5448,29 +5714,173 @@ const stompClient = new Client({
   connectHeaders: {
     Authorization: `Bearer ${jwtToken}`, // ← Gửi JWT để xác thực
   },
+
+---
+
+## Messaging: Unread counts and real-time updates
+
+This section describes new fields, endpoints and WebSocket events to support per-conversation unread counts and total unread count for the current user.
+
+### DB migration (Postgres)
+
+Run these SQL statements to add columns and backfill existing unread counts. Adjust table names if your schema uses a different name (the project uses `conversation` and `message` tables):
+
+```sql
+ALTER TABLE conversation
+  ADD COLUMN unread_count_job_seeker INT NOT NULL DEFAULT 0,
+  ADD COLUMN unread_count_employer INT NOT NULL DEFAULT 0;
+
+-- Backfill unread counts (messages with seen = false)
+UPDATE conversation c
+SET unread_count_job_seeker = sub.cnt
+FROM (
+  SELECT m.conversation_id, COUNT(*) AS cnt
+  FROM message m
+  WHERE m.seen = false AND m.sender_type = 'EMPLOYER'
+  GROUP BY m.conversation_id
+) sub
+WHERE c.id = sub.conversation_id;
+
+UPDATE conversation c
+SET unread_count_employer = sub.cnt
+FROM (
+  SELECT m.conversation_id, COUNT(*) AS cnt
+  FROM message m
+  WHERE m.seen = false AND m.sender_type = 'USER'
+  GROUP BY m.conversation_id
+) sub
+WHERE c.id = sub.conversation_id;
+
+-- Index for fast counts and seen updates
+CREATE INDEX IF NOT EXISTS idx_message_conv_seen_sender ON message (conversation_id, seen, sender_type);
+````
+
+Run the migration in a maintenance window or via your migration tool (Flyway/Liquibase) to avoid concurrent writes during backfill.
+
+### API changes
+
+- GET `/api/v1/conversations` (existing)
+  - Behavior: each `ConversationResponse` item now contains a new field `unreadCount` which is the number of unread messages for the caller in that conversation.
+  - Example item:
+
+```json
+{
+  "id": 1,
+  "jobId": 10,
+  "applicationId": 5,
+  "jobSeekerId": 2,
+  "employerId": 3,
+  "lastMessage": "Cảm ơn bạn!",
+  "hasEmployerMessage": true,
+  "unreadCount": 2,
+  "createdAt": "2025-01-15T10:30:00",
+  "updatedAt": "2025-01-15T14:20:00"
+}
+```
+
+- GET `/api/v1/messages/unread-count`
+  - Description: returns total unread messages count for the currently authenticated user (job seeker or employer).
+  - Response example:
+
+```json
+{
+  "status": 200,
+  "message": "Unread count retrieved",
+  "data": { "totalUnread": 12 }
+}
+```
+
+- PUT `/api/v1/messages/{conversationId}/seen`
+  - Description: mark messages in a conversation as seen for the caller. Only messages where `sender_type != caller.role` and `seen = false` will be updated.
+  - Behavior: the backend updates `message.seen = true` and atomically decrements the appropriate `conversation.unread_count_job_seeker` or `conversation.unread_count_employer`. The update is performed inside a DB transaction and the `conversation` row is SELECTed FOR UPDATE to prevent races.
+  - Response: 200 with no data (existing response structure) and server publishes a WebSocket `SEEN_UPDATE` event (see below).
+
+### WebSocket (STOMP) events
+
+Publish paths: server sends to `/user/{principal}/queue/messages` and `/user/{principal}/queue/unread`.
+
+1. On send message -> publish to recipient a `MESSAGE` payload with message and unread info:
+
+```json
+{
+  "type": "MESSAGE",
+  "message": {
+    "id": 123,
+    "conversationId": 1,
+    "senderId": 3,
+    "senderType": "EMPLOYER",
+    "content": "Xin chào",
+    "seen": false,
+    "createdAt": "2025-11-23T10:00:00"
+  },
+  "unread": {
+    "conversationId": 1,
+    "unreadForRecipient": 5,
+    "totalUnread": 17
+  }
+}
+```
+
+2. On mark-seen -> publish `SEEN_UPDATE` to both users in conversation:
+
+```json
+{
+  "type": "SEEN_UPDATE",
+  "conversationId": 1,
+  "updatedByUserId": 2,
+  "unread": {
+    "conversationId": 1,
+    "unreadForJobSeeker": 0,
+    "unreadForEmployer": 3
+  },
+  "totalUnread": {
+    "jobSeeker": 4,
+    "employer": 10
+  }
+}
+```
+
+Clients should update UI badges and conversation lists on these events.
+
+### Concurrency & correctness notes
+
+- All changes to `message.seen` and `conversation.unread_count_*` are performed inside a DB transaction. The conversation row is locked with `SELECT ... FOR UPDATE` (PESSIMISTIC_WRITE) to avoid race conditions when multiple clients mark seen or send messages concurrently.
+- The `mark-as-seen` queries are written to update only messages that match the opposite sender type and `seen = false`, and return the number of rows affected; the conversation counters are decremented by that number (bounded to >= 0).
+- Ensure index on `message(conversation_id, seen, sender_type)` for efficient updates and counts.
+
+### Acceptance criteria / tests (summary)
+
+- `GET /api/v1/conversations`: each item contains correct `unreadCount` for caller.
+- `GET /api/v1/messages/unread-count`: returns correct `totalUnread`.
+- When employer sends a message, recipient receives `MESSAGE` event with updated unread counts and conversation list badge updates.
+- When caller calls `PUT /api/v1/messages/{conversationId}/seen`, messages are updated (`seen=true`), conversation unread counter becomes correct, `SEEN_UPDATE` is published and `GET /api/v1/messages/unread-count` decreases accordingly.
+
+If you want, I can add a Flyway migration file with the SQL above and unit tests for the new behavior.
 });
 
 stompClient.onConnect = () => {
-  console.log("Đã kết nối WebSocket");
+console.log("Đã kết nối WebSocket");
 
-  // Subscribe vào hàng đợi thông báo cá nhân
-  // Không cần biết user ID - server tự động route dựa vào Principal
-  stompClient.subscribe("/user/queue/notifications", (message) => {
-    const notification = JSON.parse(message.body);
-    console.log("Nhận được thông báo:", notification);
+// Subscribe vào hàng đợi thông báo cá nhân
+// Không cần biết user ID - server tự động route dựa vào Principal
+stompClient.subscribe("/user/queue/notifications", (message) => {
+const notification = JSON.parse(message.body);
+console.log("Nhận được thông báo:", notification);
 
     // Cập nhật UI: hiện toast, tăng số badge, thêm vào danh sách, v.v.
     showNotificationToast(notification);
     updateUnreadCount();
-  });
+
+});
 };
 
 stompClient.onStompError = (frame) => {
-  console.error("Lỗi STOMP:", frame);
+console.error("Lỗi STOMP:", frame);
 };
 
 stompClient.activate();
-```
+
+````
 
 #### Cấu trúc dữ liệu Notification
 
@@ -5486,7 +5896,7 @@ stompClient.activate();
   "readFlag": false,
   "createdAt": "2025-11-08T10:15:30"
 }
-```
+````
 
 **Các loại thông báo (type):**
 
@@ -6380,6 +6790,7 @@ Ghi chú chung:
     { "status": 200, "message": "Đăng xuất thành công" }
     ```
   - Error 400/401
+
     ```json
     {
       "timestamp": "2025-10-08T11:13:00.000",
@@ -6389,6 +6800,215 @@ Ghi chú chung:
       "message": "Token không hợp lệ"
     }
     ```
+
+    ***
+
+    ## Messaging (Realtime)
+
+    Nội dung này mô tả các API và payload realtime dành cho chức năng chat/messenger.
+
+    Base URL (ví dụ local): `http://localhost:8080/workify`
+    API prefix: `/api/v1`
+
+    Các header chung:
+    - `Authorization: Bearer <accessToken>` (required for secured endpoints)
+
+    ### REST Endpoints (Chat)
+    1. Send message
+    - Path: `POST /api/v1/messages`
+    - Body (JSON) - `SendMessageRequest`:
+
+    ```json
+    {
+      "conversationId": 123,
+      "content": "Hello, I'm interested in this job"
+    }
+    ```
+
+    - Response 200 (`ResponseData<MessageResponse>`):
+
+    ```json
+    {
+      "status": 200,
+      "message": "Message sent successfully",
+      "data": {
+        "id": 1001,
+        "conversationId": 123,
+        "senderId": 45,
+        "senderType": "USER",
+        "senderName": "Nguyen Van A",
+        "senderAvatar": "https://.../avatar.jpg",
+        "content": "Hello, I'm interested in this job",
+        "seen": false,
+        "createdAt": "2025-11-24T10:00:00"
+      }
+    }
+    ```
+
+    2. Get conversations for current user
+    - Path: `GET /api/v1/conversations`
+    - Response 200 (`ResponseData<List<ConversationResponse>>`): each `ConversationResponse` includes `hasUnread` (boolean)
+
+    Sample conversation item:
+
+    ```json
+    {
+      "id": 123,
+      "jobId": 55,
+      "jobTitle": "Backend Developer",
+      "applicationId": 777,
+      "jobSeekerId": 45,
+      "jobSeekerName": "Nguyen Van A",
+      "jobSeekerAvatar": "https://.../avatar.jpg",
+      "employerId": 11,
+      "employerName": "ABC Corp",
+      "employerAvatar": null,
+      "lastMessage": "Thanks for your interest",
+      "lastMessageSenderId": 11,
+      "lastMessageSenderType": "EMPLOYER",
+      "hasEmployerMessage": true,
+      "hasUnread": true,
+      "createdAt": "2025-10-01T08:00:00",
+      "updatedAt": "2025-11-24T09:59:00"
+    }
+    ```
+
+    3. Get messages by conversation
+    - Path: `GET /api/v1/messages/{conversationId}`
+    - Response 200 (`ResponseData<List<MessageResponse>>`)
+
+    Sample message item (same as `MessageResponse` above):
+
+    ```json
+    {
+      "id": 1001,
+      "conversationId": 123,
+      "senderId": 45,
+      "senderType": "USER",
+      "senderName": "Nguyen Van A",
+      "senderAvatar": "https://.../avatar.jpg",
+      "content": "Hello, I'm interested in this job",
+      "seen": false,
+      "createdAt": "2025-11-24T10:00:00"
+    }
+    ```
+
+    4. Mark messages in a conversation as seen
+    - Path: `PUT /api/v1/messages/{conversationId}/seen`
+    - Description: Marks all unseen messages in the conversation as seen for the current authenticated user. Server updates the conversation unread counters accordingly and emits realtime updates.
+    - Response 200: No data (`ResponseData<Void>`)
+    5. Get number of conversations that have unread messages
+    - Path: `GET /api/v1/messages/unread-conversations`
+    - Response 200 (`ResponseData<{"unreadConversations": number}>`)
+
+    Sample:
+
+    ```json
+    {
+      "status": 200,
+      "message": "Unread conversations count retrieved",
+      "data": { "unreadConversations": 5 }
+    }
+    ```
+
+    ### WebSocket (STOMP over SockJS) — Realtime messages & unread updates
+    - STOMP endpoint (SockJS): `ws://<host>/workify/ws`
+    - Subscriptions (per-user destinations)
+      - `/user/queue/messages` — receives `MESSAGE` events when a new message is sent involving the user
+      - `/user/queue/unread` — receives `SEEN_UPDATE` events when unread/seen status changes
+
+    MESSAGE event (new message)
+
+    ```json
+    {
+      "type": "MESSAGE",
+      "message": {
+        /* MessageResponse */
+      },
+      "unread": {
+        "conversationId": 123,
+        "unreadForRecipient": 2,
+        "totalUnreadConversations": 5
+      }
+    }
+    ```
+
+    SEEN_UPDATE event (after mark-as-seen)
+
+    ```json
+    {
+      "type": "SEEN_UPDATE",
+      "conversationId": 123,
+      "updatedByUserId": 45,
+      "unread": {
+        "conversationId": 123,
+        "unreadForJobSeeker": 0,
+        "unreadForEmployer": 0
+      },
+      "totalUnreadConversations": {
+        "jobSeeker": 3,
+        "employer": 2
+      }
+    }
+    ```
+
+    Notes:
+    - `totalUnreadConversations` indicates how many conversations currently have unread messages (per role). Use this to render the global/badge count in the UI.
+    - `unreadForRecipient` and the per-role unread counts are derived from `Conversation.unreadCountJobSeeker` / `Conversation.unreadCountEmployer` maintained by the server.
+
+    ### Front-end integration (quick guide)
+    1. Connect & subscribe (example with StompJS + SockJS)
+
+    ```javascript
+    import SockJS from "sockjs-client";
+    import { Client } from "@stomp/stompjs";
+
+    const socketUrl = "http://localhost:8080/workify/ws";
+    const client = new Client({
+      webSocketFactory: () => new SockJS(socketUrl),
+      connectHeaders: { Authorization: "Bearer " + accessToken },
+    });
+
+    client.onConnect = () => {
+      client.subscribe("/user/queue/messages", (msg) => {
+        const payload = JSON.parse(msg.body);
+        // handle MESSAGE event
+      });
+
+      client.subscribe("/user/queue/unread", (msg) => {
+        const payload = JSON.parse(msg.body);
+        // handle SEEN_UPDATE event
+      });
+    };
+
+    client.activate();
+    ```
+
+    2. Mark conversation as seen when user opens it
+
+    ```javascript
+    await fetch("/workify/api/v1/messages/" + conversationId + "/seen", {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + accessToken },
+    });
+    // rely on SEEN_UPDATE websocket event to update UI consistently
+    ```
+
+    3. Fetch global badge on app load
+
+    ```javascript
+    const res = await fetch("/workify/api/v1/messages/unread-conversations", {
+      headers: { Authorization: "Bearer " + accessToken },
+    });
+    const body = await res.json();
+    const unreadConversations = body.data.unreadConversations;
+    ```
+
+    ### Recommended UI behaviour
+    - Conversation list: use `hasUnread` boolean to show a small dot/badge per conversation.
+    - Global badge (navbar): show `unreadConversations` value. Update it from REST on load and from realtime events.
+
+    ***
 
 - PATCH /workify/api/v1/auth/users/verify-email
   - Success 200
@@ -6905,13 +7525,14 @@ Ghi chú chung:
             "title": "Tin tức",
             "description": "Danh mục tin tức"
           },
-          "author": {
+          "userAuthor": {
             "id": 1,
             "fullName": "System Administrator",
             "avatarUrl": null,
             "email": "admin@example.com",
             "role": "ADMIN"
           },
+          "employerAuthor": null,
           "status": "PUBLIC"
         }
       ]
@@ -7463,6 +8084,129 @@ stompClient.send(
 - 401: Token không hợp lệ
 - 403: Không phải thành viên của conversation
 - 404: Không tìm thấy conversation
+
+### Unread counts (Đếm tin chưa đọc) và cập nhật realtime
+
+Phần này mô tả các thay đổi để hỗ trợ số lượng tin chưa đọc trên mỗi conversation và tổng số tin chưa đọc cho user hiện tại.
+
+1. Cơ sở dữ liệu (Postgres) - migration & backfill
+
+Chạy SQL sau để thêm cột vào bảng `conversation` và backfill từ bảng `message` (chỉ các message có `seen = false`):
+
+```sql
+ALTER TABLE conversation
+  ADD COLUMN unread_count_job_seeker INT NOT NULL DEFAULT 0,
+  ADD COLUMN unread_count_employer INT NOT NULL DEFAULT 0;
+
+-- Backfill unread counts
+UPDATE conversation c
+SET unread_count_job_seeker = sub.cnt
+FROM (
+  SELECT m.conversation_id, COUNT(*) AS cnt
+  FROM message m
+  WHERE m.seen = false AND m.sender_type = 'EMPLOYER'
+  GROUP BY m.conversation_id
+) sub
+WHERE c.id = sub.conversation_id;
+
+UPDATE conversation c
+SET unread_count_employer = sub.cnt
+FROM (
+  SELECT m.conversation_id, COUNT(*) AS cnt
+  FROM message m
+  WHERE m.seen = false AND m.sender_type = 'USER'
+  GROUP BY m.conversation_id
+) sub
+WHERE c.id = sub.conversation_id;
+
+-- Index để tăng tốc các phép đếm và cập nhật
+CREATE INDEX IF NOT EXISTS idx_message_conv_seen_sender ON message (conversation_id, seen, sender_type);
+```
+
+Lưu ý: chạy backfill trong maintenance window hoặc qua tool migration (Flyway/Liquibase) để tránh race với việc ghi mới.
+
+2. Thay đổi API
+
+- GET `/api/v1/conversations` (không đổi path) — mỗi item `ConversationResponse` giờ có thêm trường `unreadCount` là số tin chưa đọc dành cho user đang gọi API (job seeker hoặc employer).
+
+- GET `/api/v1/messages/unread-count` — trả về tổng số tin chưa đọc cho user hiện tại.
+
+  Response ví dụ:
+
+  ```json
+  {
+    "status": 200,
+    "message": "Unread count retrieved",
+    "data": { "totalUnread": 12 }
+  }
+  ```
+
+- PUT `/api/v1/messages/{conversationId}/seen` — hành vi:
+  - Đánh dấu `message.seen = true` cho các message trong conversation nếu `sender_type != caller.role` và `seen = false` (tức là những message chưa đọc của caller).
+  - Trong cùng một transaction, SELECT FOR UPDATE conversation row và giảm `conversation.unread_count_job_seeker` hoặc `conversation.unread_count_employer` tương ứng theo số bản ghi đã cập nhật (bounded >= 0).
+  - Sau commit, backend publish sự kiện WebSocket `SEEN_UPDATE` tới cả hai user của conversation.
+
+3. Sự kiện WebSocket (STOMP)
+
+Server publish tới `/user/{principal}/queue/messages` và `/user/{principal}/queue/unread`.
+
+A) Khi gửi tin nhắn -> gửi `MESSAGE` tới người nhận (và sender):
+
+```json
+{
+  "type": "MESSAGE",
+  "message": {
+    "id": 123,
+    "conversationId": 1,
+    "senderId": 3,
+    "senderType": "EMPLOYER",
+    "content": "Xin chào",
+    "seen": false,
+    "createdAt": "2025-11-23T10:00:00"
+  },
+  "unread": {
+    "conversationId": 1,
+    "unreadForRecipient": 5,
+    "totalUnread": 17
+  }
+}
+```
+
+B) Khi mark-seen -> publish `SEEN_UPDATE` tới cả hai users:
+
+```json
+{
+  "type": "SEEN_UPDATE",
+  "conversationId": 1,
+  "updatedByUserId": 2,
+  "unread": {
+    "conversationId": 1,
+    "unreadForJobSeeker": 0,
+    "unreadForEmployer": 3
+  },
+  "totalUnread": {
+    "jobSeeker": 4,
+    "employer": 10
+  }
+}
+```
+
+Client frontend nên update badge conversation và tổng unread dựa trên các payload này.
+
+4. Ghi chú về transaction / concurrency
+
+- Luôn thực hiện cập nhật `message.seen` và `conversation.unread_count_*` trong cùng 1 DB transaction.
+- Khóa row conversation bằng `SELECT ... FOR UPDATE` (PESSIMISTIC WRITE) trước khi thay đổi counter để tránh race khi nhiều client cùng thao tác.
+- Các câu lệnh UPDATE trả về số dòng đã ảnh hưởng; sử dụng con số này để trừ tương ứng vào counter (và đảm bảo counter >= 0).
+
+5. Acceptance criteria (kiểm thử ngắn)
+
+- Khi gọi `GET /api/v1/conversations`, mỗi item trả về `unreadCount` đúng cho caller.
+- `GET /api/v1/messages/unread-count` trả về tổng số chưa đọc đúng.
+- Khi employer gửi message, recipient nhận event `MESSAGE` có trường `unread` cập nhật và badge conversation được cập nhật.
+- Khi caller gọi `PUT /api/v1/messages/{conversationId}/seen`, messages được đánh `seen=true`, conversation counter được cập nhật chính xác và `SEEN_UPDATE` được publish; tổng unread giảm tương ứng.
+
+Nếu muốn tôi có thể tạo file migration Flyway (ví dụ `V2__add_unread_counts.sql`) trong thư mục migrations.
 
 ### Data Models
 

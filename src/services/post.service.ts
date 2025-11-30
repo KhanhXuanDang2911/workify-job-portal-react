@@ -1,5 +1,6 @@
 import publicHttp from "@/lib/publicHttp";
 import userHttp from "@/lib/userHttp";
+import employerHttp from "@/lib/employerHttp";
 import type { ApiResponse, PageResponse } from "@/types";
 import type {
   PostCategory,
@@ -75,9 +76,35 @@ export const postService = {
     return response.data;
   },
 
+  /**
+   * Employer: Get posts created by the authenticated employer (owner-only list).
+   * Note: the backend exposes the same `/posts` endpoint; when called with an
+   * employer-specific endpoint `/posts/my` is provided to explicitly return
+   * only posts created by the authenticated employer. Use that endpoint here
+   * to avoid any ambiguity.
+   */
+  getEmployerPosts: async (
+    params: PostsSearchParams
+  ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
+    const response = await employerHttp.get<
+      ApiResponse<PageResponse<PostResponse>>
+    >("/posts/my", { params });
+    return response.data;
+  },
+
   // GET /posts/{id} - use userHttp for admin access to all posts including drafts
   getPostById: async (id: number): Promise<ApiResponse<PostResponse>> => {
     const response = await userHttp.get<ApiResponse<PostResponse>>(
+      `/posts/${id}`
+    );
+    return response.data;
+  },
+
+  // Employer-specific fetch for a single post (uses employer token)
+  getPostByIdAsEmployer: async (
+    id: number
+  ): Promise<ApiResponse<PostResponse>> => {
+    const response = await employerHttp.get<ApiResponse<PostResponse>>(
       `/posts/${id}`
     );
     return response.data;
@@ -87,6 +114,26 @@ export const postService = {
   createPost: async (data: FormData): Promise<ApiResponse<PostResponse>> => {
     // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.post<ApiResponse<PostResponse>>(
+      "/posts",
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Convenience wrapper for employers to create posts. If caller is EMPLOYER,
+   * the backend will ignore any `status` field and set the created post to
+   * `PENDING`.
+   */
+  createPostAsEmployer: async (
+    data: FormData
+  ): Promise<ApiResponse<PostResponse>> => {
+    const response = await employerHttp.post<ApiResponse<PostResponse>>(
       "/posts",
       data,
       {
@@ -115,8 +162,44 @@ export const postService = {
     return response.data;
   },
 
+  /**
+   * Convenience wrapper for employers to update their own posts. Employers are
+   * not allowed to change `status`; backend will ignore `status` if present.
+   */
+  updatePostAsEmployer: async (
+    id: number,
+    data: FormData
+  ): Promise<ApiResponse<PostResponse>> => {
+    const response = await employerHttp.put<ApiResponse<PostResponse>>(
+      `/posts/${id}`,
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
+
   deletePost: async (id: number): Promise<ApiResponse> => {
     const response = await userHttp.delete<ApiResponse>(`/posts/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Convenience wrapper for employers to delete their own posts.
+   */
+  deletePostAsEmployer: async (id: number): Promise<ApiResponse> => {
+    const response = await employerHttp.delete<ApiResponse>(`/posts/${id}`);
+    return response.data;
+  },
+
+  // PATCH /posts/{id}/{status} - update only status (ADMIN)
+  patchPostStatus: async (id: number, status: string): Promise<ApiResponse> => {
+    const response = await userHttp.patch<ApiResponse>(
+      `/posts/${id}/${status}`
+    );
     return response.data;
   },
 

@@ -4,6 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services";
@@ -12,6 +19,8 @@ import type { ApiError } from "@/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth.schema";
+import { useQuery } from "@tanstack/react-query";
+import { industryService } from "@/services/industry.service";
 import { toast } from "react-toastify";
 import { routes } from "@/routes/routes.const";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -40,12 +49,17 @@ export default function SignUp() {
       password: "",
       confirmPassword: "",
       agreeToTerms: false,
+      industryId: "",
     },
   });
 
   const signUpMutation = useMutation({
-    mutationFn: (data: { fullName: string; email: string; password: string }) =>
-      authService.signUp(data),
+    mutationFn: (data: {
+      fullName: string;
+      email: string;
+      password: string;
+      industryId?: number | null;
+    }) => authService.signUp(data),
     onSuccess: (response) => {
       console.log(response);
     },
@@ -122,12 +136,22 @@ export default function SignUp() {
 
   const agreeToTerms = watch("agreeToTerms");
 
+  // load industries for select
+  const { data: industriesResponse } = useQuery({
+    queryKey: ["all-industries"],
+    queryFn: () => industryService.getAllIndustries(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const industries = industriesResponse?.data || [];
+
   const onSubmit = async (data: SignUpFormData) => {
     try {
       const response = await signUpMutation.mutateAsync({
         fullName: data.fullName,
         email: data.email,
         password: data.password,
+        industryId: data.industryId ? Number(data.industryId) : undefined,
       });
 
       toast.success(response.message);
@@ -265,6 +289,40 @@ export default function SignUp() {
                 />
                 {errors.email && (
                   <p className="text-xs text-red-500">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Industry Select */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="industry"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  {t("jobSearch.industry")}
+                </Label>
+                <div className="relative">
+                  <Select
+                    value={watch("industryId") || ""}
+                    onValueChange={(val) => setValue("industryId", val)}
+                  >
+                    <SelectTrigger className="w-full !h-12 bg-white border border-gray-300 focus-visible:border-[#0A2E5C] focus-visible:ring-1 focus-visible:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm flex items-center px-3">
+                      <SelectValue
+                        placeholder={t("jobSearch.selectIndustry")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industries.map((ind) => (
+                        <SelectItem key={ind.id} value={ind.id.toString()}>
+                          {ind.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {errors.industryId && (
+                  <p className="text-xs text-red-500">
+                    {errors.industryId.message}
+                  </p>
                 )}
               </div>
 

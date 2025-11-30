@@ -12,13 +12,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { userService, districtService } from "@/services";
+import { userService, districtService, industryService } from "@/services";
+import { useUserAuth } from "@/context/user-auth";
 import { toast } from "react-toastify";
 import AddressSelector from "@/components/AddressSelector/AddressSelector";
 
 export default function ProfileTab() {
-  const { t } = useTranslation();
+  const { t, currentLanguage, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const { dispatch } = useUserAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
@@ -29,6 +31,7 @@ export default function ProfileTab() {
     provinceId: 0,
     districtId: 0,
     detailAddress: "",
+    industryId: 0,
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string>("");
@@ -44,6 +47,7 @@ export default function ProfileTab() {
     provinceId: number;
     districtId: number;
     detailAddress: string;
+    industryId?: number | null;
   };
 
   // Fetch user profile
@@ -80,6 +84,7 @@ export default function ProfileTab() {
               provinceId: provinceId,
               districtId: districtId,
               detailAddress: user.detailAddress || "",
+              industryId: user.industry?.id || 0,
             });
             setIsInitialized(true);
           } catch (error) {
@@ -93,6 +98,7 @@ export default function ProfileTab() {
               provinceId: user.province?.id || 0,
               districtId: 0,
               detailAddress: user.detailAddress || "",
+              industryId: user.industry?.id || 0,
             });
             setIsInitialized(true);
           }
@@ -106,6 +112,7 @@ export default function ProfileTab() {
             provinceId: user.province?.id || 0,
             districtId: user.district?.id || 0,
             detailAddress: user.detailAddress || "",
+            industryId: user.industry?.id || 0,
           });
           setIsInitialized(true);
         }
@@ -116,6 +123,15 @@ export default function ProfileTab() {
       loadUserData();
     }
   }, [user, queryClient, isInitialized]);
+
+  // load industries for select
+  const { data: industriesResponse } = useQuery({
+    queryKey: ["all-industries"],
+    queryFn: () => industryService.getAllIndustries(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const industries = industriesResponse?.data || [];
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -128,11 +144,28 @@ export default function ProfileTab() {
         provinceId: data.provinceId > 0 ? data.provinceId : null,
         districtId: data.districtId > 0 ? data.districtId : null,
         detailAddress: data.detailAddress || null,
+        industryId: data.industryId ?? null,
       });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast.success(t("toast.success.profileUpdated"));
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      // Update auth context user so current session reflects changed industry
+      try {
+        const updatedUser = response.data;
+        if (updatedUser) {
+          dispatch({
+            type: "SET_USER",
+            payload: {
+              user: updatedUser,
+              isAuthenticated: true,
+              isLoading: false,
+            },
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
     },
     onError: () => {
       toast.error(t("toast.error.updateProfileFailed"));
@@ -142,10 +175,25 @@ export default function ProfileTab() {
   // Update avatar mutation
   const updateAvatarMutation = useMutation({
     mutationFn: (file: File) => userService.updateUserAvatar(file),
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast.success(t("toast.success.avatarUpdated"));
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
       setAvatarFile(null);
+      try {
+        const updatedUser = response.data;
+        if (updatedUser) {
+          dispatch({
+            type: "SET_USER",
+            payload: {
+              user: updatedUser,
+              isAuthenticated: true,
+              isLoading: false,
+            },
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
     },
     onError: () => {
       toast.error(t("toast.error.updateAvatarFailed"));
@@ -208,6 +256,7 @@ export default function ProfileTab() {
       provinceId: formData.provinceId,
       districtId: formData.districtId,
       detailAddress: formData.detailAddress,
+      industryId: formData.industryId > 0 ? formData.industryId : null,
     });
 
     // Update avatar if changed
@@ -267,6 +316,8 @@ export default function ProfileTab() {
             </div>
           )}
         </div>
+
+        {/* Industry note remains here visually but select moved into form grid */}
         <p className="text-xs text-gray-500 text-center max-w-xs">
           {t("profile.avatarHint")}
         </p>
@@ -294,6 +345,36 @@ export default function ProfileTab() {
             className="focus-visible:ring-1 focus-visible:ring-[#1967d2] focus-visible:border-none"
             required
           />
+        </div>
+        {/* Industry Select (placed to share row with Gender) */}
+        <div className="">
+          <Label
+            htmlFor="industry"
+            className="text-sm font-medium text-gray-700 mb-2 block"
+          >
+            {t("profile.industry")}
+          </Label>
+          <Select
+            value={String(formData.industryId || "")}
+            onValueChange={(val) =>
+              setFormData({ ...formData, industryId: Number(val) || 0 })
+            }
+          >
+            <SelectTrigger className="focus-visible:ring-1 w-full focus-visible:ring-[#1967d2]">
+              <SelectValue placeholder={t("profile.selectIndustry")} />
+            </SelectTrigger>
+            <SelectContent>
+              {industries.map((ind) => (
+                <SelectItem key={ind.id} value={ind.id.toString()}>
+                  {i18n?.exists(ind.name)
+                    ? t(ind.name)
+                    : currentLanguage === "en"
+                      ? ind.engName || ind.name
+                      : ind.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Phone Number */}

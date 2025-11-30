@@ -7,6 +7,7 @@ import { initEmployerAuthState } from "./employerAuth.types";
 import { employerTokenUtils } from "@/lib/token";
 import { employerService } from "@/services/employer.service";
 import { employer_routes } from "@/routes/routes.const";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 interface EmployerAuthProviderProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
     initEmployerAuthState
   );
   const location = useLocation();
+  const { setCurrentUserId } = useWebSocket();
 
   // Initialize or re-fetch auth state when navigating to employer routes
   useEffect(() => {
@@ -28,6 +30,11 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
     // Only run on employer routes
     if (!isEmployerRoute) {
       dispatch({ type: "SET_LOADING", payload: false });
+      try {
+        setCurrentUserId(null, "USER");
+      } catch (e) {
+        // ignore
+      }
       return;
     }
 
@@ -56,6 +63,11 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
               isLoading: false,
             },
           });
+          try {
+            setCurrentUserId(employer?.id ?? null, "EMPLOYER");
+          } catch (e) {
+            // ignore
+          }
         } catch (error) {
           console.error(
             "[EmployerAuth] Failed to fetch employer profile:",
@@ -64,6 +76,11 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
           // Token might be invalid, clear auth
           employerTokenUtils.clearAuth();
           dispatch({ type: "CLEAR_EMPLOYER" });
+          try {
+            setCurrentUserId(null, "EMPLOYER");
+          } catch (e) {
+            // ignore
+          }
         }
       } else {
         dispatch({ type: "SET_LOADING", payload: false });
@@ -78,6 +95,11 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
 
       if (!accessToken) {
         dispatch({ type: "CLEAR_EMPLOYER" });
+        try {
+          setCurrentUserId(null, "EMPLOYER");
+        } catch (e) {
+          // ignore
+        }
       }
     };
 

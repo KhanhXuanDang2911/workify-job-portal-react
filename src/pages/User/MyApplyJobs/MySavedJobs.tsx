@@ -12,6 +12,7 @@ import { routes } from "@/routes/routes.const";
 import { mockSavedJobs } from "@/pages/User/MySavedJobs/MySavedJobsMockData";
 import { formatSalaryCompact } from "@/utils/formatSalary";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserAuth } from "@/context/user-auth";
 
 interface Job {
   id: number;
@@ -61,6 +62,7 @@ const mapTypeColor = (jobType?: string): string => {
 
 export default function MyApplyJobs() {
   const { t } = useTranslation();
+  const { state: userAuth } = useUserAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -76,9 +78,15 @@ export default function MyApplyJobs() {
   }, []);
 
   // Fetch top attractive jobs for suggestions
+  const userIndustryId = userAuth?.user?.industry?.id;
+
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 7],
-    queryFn: () => jobService.getTopAttractiveJobs(7),
+    queryKey: ["top-attractive-jobs", 7, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        7,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

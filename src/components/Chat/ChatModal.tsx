@@ -6,8 +6,9 @@ import React, {
   useMemo,
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, isToday, isYesterday } from "date-fns";
 import { vi } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
+import { formatRelativeTime } from "@/lib/relativeTime";
 import {
   Dialog,
   DialogContent,
@@ -43,14 +44,18 @@ export default function ChatModal({
   currentUserId,
   currentUserType,
 }: ChatModalProps) {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [message, setMessage] = useState("");
   const [conversation, setConversation] = useState<ConversationResponse | null>(
     initialConversation
   );
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { subscribeToMessages } = useWebSocket();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const {
+    subscribeToMessages,
+    markConversationAsSeenLocally,
+    recordOwnSentMessage,
+  } = useWebSocket();
   const queryClient = useQueryClient();
 
   // Fetch conversation by applicationId if not provided
@@ -58,7 +63,7 @@ export default function ChatModal({
     queryKey: ["conversation", applicationId],
     queryFn: () => chatService.getConversationByApplicationId(applicationId!),
     enabled: open && !conversation && !!applicationId,
-    staleTime: 0, // Always fetch fresh conversation data
+    staleTime: 0,
     refetchOnMount: true,
   });
 
@@ -146,12 +151,7 @@ export default function ChatModal({
           }
         }
 
-        if (
-          newMessage.senderId !== currentUserId ||
-          newMessage.senderType !== currentUserType
-        ) {
-          chatService.markAsSeen(conversation.id).catch(() => {});
-        }
+        // Do not auto mark as seen here — we'll mark as seen when the user focuses the input.
       }
     });
 
@@ -183,7 +183,7 @@ export default function ChatModal({
   useEffect(() => {
     if (open && conversation?.id) {
       refetchMessages();
-      chatService.markAsSeen(conversation.id).catch(() => {});
+      // Do not mark as seen on open. Marking will happen when input is focused.
     }
   }, [open, conversation?.id, refetchMessages]);
 
@@ -196,8 +196,88 @@ export default function ChatModal({
         content,
       });
     },
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       setMessage("");
+      try {
+        const msg: MessageResponse = res?.data ?? res;
+        if (!msg) return;
+
+        // Update messages cache so sender sees the message immediately
+        queryClient.setQueryData<{ data: MessageResponse[] }>(
+          ["messages", conversation!.id],
+          (old) => {
+            if (!old) return { data: [msg] };
+            const exists = old.data.some((m) => m.id === msg.id);
+            if (exists) return old;
+            return { data: [...old.data, msg] };
+          }
+        );
+
+        // Record this message id so when the websocket echoes it back we don't
+        // mark it as unread or show transient notifications for the sender.
+        try {
+          if (msg?.id && typeof recordOwnSentMessage === "function") {
+            recordOwnSentMessage(msg.id);
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // Update conversations list so preview shows lastMessage immediately
+        queryClient.setQueryData(
+          [
+            "conversations",
+            currentUserType === "EMPLOYER" ? "employer" : "user",
+          ],
+          (old: any) => {
+            if (!old) return old;
+            const list: any[] = Array.isArray(old) ? old : old.data || [];
+            const idx = list.findIndex((c) => c.id === conversation!.id);
+            if (idx !== -1) {
+              const updated = { ...list[idx] } as any;
+              updated.lastMessage = msg.content;
+              updated.lastMessageSenderId = msg.senderId;
+              updated.lastMessageSenderType = msg.senderType;
+              updated.updatedAt = msg.createdAt;
+              return list.map((c) => (c.id === conversation!.id ? updated : c));
+            }
+            return list;
+          }
+        );
+
+        // keep focus in the input so user can continue typing
+        try {
+          const focusChatInput = () => {
+            const el = document.querySelector(
+              'textarea[data-chat-input="true"]'
+            ) as HTMLTextAreaElement | null;
+            const inputEl =
+              el || (document.activeElement as HTMLTextAreaElement | null);
+            if (inputEl) {
+              try {
+                inputEl.focus();
+                const len = inputEl.value?.length ?? 0;
+                try {
+                  inputEl.setSelectionRange(len, len);
+                } catch (e) {
+                  // ignore
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+          };
+
+          // Try immediate focus
+          focusChatInput();
+          // Fallback: focus again after a short delay to handle re-renders/UI focus steals
+          setTimeout(focusChatInput, 50);
+        } catch (e) {
+          // ignore
+        }
+      } catch (e) {
+        // ignore
+      }
     },
     onError: (error: any) => {
       const errorMessage =
@@ -224,14 +304,8 @@ export default function ChatModal({
   };
 
   const formatMessageTime = (dateString: string) => {
-    const date = new Date(dateString);
-    if (isToday(date)) {
-      return format(date, "HH:mm");
-    } else if (isYesterday(date)) {
-      return `${t("chatModal.yesterday")} ${format(date, "HH:mm")}`;
-    } else {
-      return format(date, "dd/MM/yyyy HH:mm", { locale: vi });
-    }
+    const locale = currentLanguage === "vi" ? vi : enUS;
+    return formatRelativeTime(dateString, t, locale);
   };
 
   const getOtherPartyInfo = () => {
@@ -423,8 +497,43 @@ export default function ChatModal({
             <div className="flex-1 relative">
               <Textarea
                 value={message}
+                data-chat-input={"true"}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
+                onFocus={() => {
+                  const side =
+                    currentUserType === "EMPLOYER" ? "employer" : "user";
+                  // mark this conversation as focused (for other components)
+                  queryClient.setQueryData(
+                    ["focusedConversation", side],
+                    conversation?.id
+                  );
+
+                  // Optimistically clear local unread state for snappy UX,
+                  // then call server to persist (server will emit SEEN_UPDATE to reconcile).
+                  if (conversation?.id) {
+                    try {
+                      markConversationAsSeenLocally(conversation.id);
+                    } catch (e) {
+                      // ignore
+                    }
+                    chatService.markAsSeen(conversation.id).catch(() => {});
+                  }
+                }}
+                onBlur={() => {
+                  const side =
+                    currentUserType === "EMPLOYER" ? "employer" : "user";
+                  const focused = queryClient.getQueryData([
+                    "focusedConversation",
+                    side,
+                  ]);
+                  if (focused === conversation?.id) {
+                    queryClient.setQueryData(
+                      ["focusedConversation", side],
+                      undefined
+                    );
+                  }
+                }}
                 placeholder={
                   canSendMessage
                     ? t("chatModal.placeholderCanSend")
@@ -443,6 +552,8 @@ export default function ChatModal({
             </div>
             <Button
               onClick={handleSendMessage}
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.preventDefault()}
               disabled={
                 !message.trim() ||
                 !canSendMessage ||

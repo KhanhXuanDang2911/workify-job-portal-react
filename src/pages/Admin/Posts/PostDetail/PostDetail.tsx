@@ -99,7 +99,10 @@ export default function PostDetail() {
                 <User className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm">
                   <span className="font-medium">Tác giả:</span>{" "}
-                  {post.author.fullName}
+                  {post.userAuthor?.fullName ||
+                    post.userAuthor?.email ||
+                    post.employerAuthor?.companyName ||
+                    post.employerAuthor?.email}
                 </span>
               </div>
               <div className="flex items-center gap-2">
