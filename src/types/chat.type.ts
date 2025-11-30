@@ -9,6 +9,8 @@ export interface ConversationResponse {
   employerId: number;
   employerName: string;
   employerAvatar: string | null;
+  // Number of unread messages for the current viewer (jobSeeker or employer)
+  unreadCount?: number;
   lastMessage: string | null;
   lastMessageSenderId: number | null;
   lastMessageSenderType: "USER" | "EMPLOYER" | null;

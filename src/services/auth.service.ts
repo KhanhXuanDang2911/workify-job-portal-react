@@ -9,8 +9,22 @@ export const authService = {
     fullName: string;
     email: string;
     password: string;
+    industryId?: number | null;
   }): Promise<ApiResponse> => {
-    const response = await publicHttp.post<ApiResponse>("/users/sign-up", data);
+    const payload: any = {
+      fullName: data.fullName,
+      email: data.email,
+      password: data.password,
+    };
+
+    if (typeof data.industryId !== "undefined") {
+      payload.industryId = data.industryId;
+    }
+
+    const response = await publicHttp.post<ApiResponse>(
+      "/users/sign-up",
+      payload
+    );
     return response.data;
   },
 

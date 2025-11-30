@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,10 @@ import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import NotFound from "@/pages/NotFound";
 import { employer_routes, routes } from "@/routes/routes.const";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function VerifyEmail() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -32,23 +34,28 @@ export default function VerifyEmail() {
     },
     onSuccess: (data) => {
       console.log("Email verification successful:", data);
-      toast(data.message || "Email của bạn đã được xác thực thành công");
+      toast(data.message || t("auth.verifyEmail.successToast"));
 
       setTimeout(() => {
-        if (role === "employers") {
-          navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, {
-            replace: true,
-          });
-        } else {
-          navigate(`${routes.BASE}/${routes.SIGN_IN}`, { replace: true });
+        try {
+          if (typeof navigate === "function") {
+            if (role === "employers") {
+              navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, {
+                replace: true,
+              });
+            } else {
+              navigate(`/${routes.SIGN_IN}`, { replace: true });
+            }
+          }
+        } catch (e) {
+          console.error("Navigation failed:", e);
         }
       }, 3000);
     },
     onError: (error: any) => {
       console.error("[Email verification failed:", error);
       const errorMessage =
-        error.response?.data?.message ||
-        "Xác thực email thất bại. Vui lòng thử lại.";
+        error.response?.data?.message || t("auth.verifyEmail.errorToast");
       toast(errorMessage, { type: "error" });
     },
   });
@@ -72,10 +79,11 @@ export default function VerifyEmail() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
-            <CardTitle className="text-2xl">Đang xác thực email</CardTitle>
+            <CardTitle className="text-2xl">
+              {t("auth.verifyEmail.pendingTitle")}
+            </CardTitle>
             <CardDescription className="text-base">
-              Vui lòng đợi trong giây lát, chúng tôi đang xác thực tài khoản của
-              bạn...
+              {t("auth.verifyEmail.pendingDesc")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -85,7 +93,7 @@ export default function VerifyEmail() {
 
   if (verifyMutation.isError) {
     const errorData = (verifyMutation.error as any)?.response?.data;
-    const errorMessage = "Đã có lỗi xảy ra khi xác thực email";
+    const errorMessage = t("auth.verifyEmail.errorTitle");
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -94,7 +102,9 @@ export default function VerifyEmail() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
               <XCircle className="h-8 w-8 text-destructive" />
             </div>
-            <CardTitle className="text-2xl">Xác thực thất bại</CardTitle>
+            <CardTitle className="text-2xl">
+              {t("auth.verifyEmail.errorTitle")}
+            </CardTitle>
             <CardDescription className="text-base">
               {errorMessage}
             </CardDescription>
@@ -109,7 +119,7 @@ export default function VerifyEmail() {
               variant="outline"
               size="lg"
             >
-              Thử lại
+              {t("auth.verifyEmail.retry")}
             </Button>
             <Button
               onClick={() => {
@@ -118,13 +128,13 @@ export default function VerifyEmail() {
                     `${employer_routes.BASE}/${employer_routes.SIGN_IN}`
                   );
                 } else {
-                  return navigate(`${routes.BASE}/${routes.SIGN_IN}`);
+                  return navigate(`/${routes.SIGN_IN}`);
                 }
               }}
               className="w-full"
               size="lg"
             >
-              Quay lại đăng nhập
+              {t("auth.verifyEmail.backToSignIn")}
             </Button>
           </CardContent>
         </Card>
@@ -141,18 +151,17 @@ export default function VerifyEmail() {
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
             <CardTitle className="text-2xl text-green-700">
-              Xác thực thành công!
+              {t("auth.verifyEmail.successTitle")}
             </CardTitle>
             <CardDescription className="text-base">
-              Email của bạn đã được xác thực thành công. Tài khoản của bạn đã
-              được kích hoạt và sẵn sàng sử dụng.
+              {t("auth.verifyEmail.successDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-lg bg-green-50 p-4 text-center">
               <Mail className="mx-auto mb-2 h-6 w-6 text-green-600" />
               <p className="text-sm text-green-800">
-                Bạn sẽ được tự động chuyển đến trang đăng nhập trong giây lát...
+                {t("auth.verifyEmail.autoRedirect")}
               </p>
             </div>
             <Button
@@ -163,7 +172,7 @@ export default function VerifyEmail() {
                     { replace: true }
                   );
                 } else {
-                  navigate(`${routes.BASE}/${routes.SIGN_IN}`, {
+                  navigate(`/${routes.SIGN_IN}`, {
                     replace: true,
                   });
                 }
@@ -171,7 +180,7 @@ export default function VerifyEmail() {
               className="w-full"
               size="lg"
             >
-              Đăng nhập ngay
+              {t("auth.verifyEmail.signInNow")}
             </Button>
           </CardContent>
         </Card>

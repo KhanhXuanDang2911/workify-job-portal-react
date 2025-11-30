@@ -80,7 +80,14 @@ export default function JobManagement() {
     { field: SortField; direction: SortDirection }[]
   >(() => {
     const sortsParam = searchParams.get("sorts");
-    if (!sortsParam) return [];
+    // Default to sorting by createdAt desc so updated jobs don't jump positions
+    if (!sortsParam)
+      return [
+        {
+          field: "createdAt",
+          direction: "desc",
+        },
+      ];
     return sortsParam.split(",").map((s) => {
       const [field, direction] = s.split(":");
       return {
@@ -305,7 +312,13 @@ export default function JobManagement() {
     setPageSize(10);
     setIndustryId(undefined);
     setProvinceId(undefined);
-    setSorts([]);
+    // Reset sorts to default createdAt desc to keep stable ordering
+    setSorts([
+      {
+        field: "createdAt",
+        direction: "desc",
+      },
+    ]);
   };
 
   const handleView = (id: number) => {

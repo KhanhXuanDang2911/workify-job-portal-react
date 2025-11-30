@@ -130,10 +130,46 @@ export const jobService = {
   },
 
   getTopAttractiveJobs: async (
-    limit = 10
+    limit = 10,
+    options?: { industryId?: number }
   ): Promise<ApiResponse<JobResponse[]>> => {
-    const response = await publicHttp.get<ApiResponse<JobResponse[]>>(
-      "/jobs/top-attractive",
+    // If industryId provided, try fetching with it first. If no results, fallback to no industry filter.
+    try {
+      if (options?.industryId) {
+        const response = await publicHttp.get<ApiResponse<JobResponse[]>>(
+          "/jobs/top-attractive",
+          {
+            params: { limit, industryId: options.industryId },
+          }
+        );
+
+        // If server returned any jobs, return them. Otherwise retry without industryId.
+        if (
+          response.data &&
+          Array.isArray((response.data as any).data) &&
+          ((response.data as any).data as JobResponse[]).length > 0
+        ) {
+          return response.data as ApiResponse<JobResponse[]>;
+        }
+      }
+
+      const fallback = await publicHttp.get<ApiResponse<JobResponse[]>>(
+        "/jobs/top-attractive",
+        {
+          params: { limit },
+        }
+      );
+      return fallback.data;
+    } catch (e) {
+      // If any network/server error occurs, rethrow to let callers handle retries/errors
+      throw e;
+    }
+  },
+
+  // Get personalized jobs for current user (server will fallback to top-attractive when not personalized)
+  getPersonalized: async (limit = 10): Promise<ApiResponse<JobResponse[]>> => {
+    const response = await userHttp.get<ApiResponse<JobResponse[]>>(
+      "/jobs/personalized",
       {
         params: { limit },
       }

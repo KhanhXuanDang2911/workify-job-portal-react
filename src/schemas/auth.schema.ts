@@ -26,6 +26,7 @@ export const signUpSchema = z
     agreeToTerms: z.boolean().refine((val) => val === true, {
       message: "Bạn phải đồng ý với điều khoản sử dụng",
     }),
+    industryId: z.string().optional().nullable(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",

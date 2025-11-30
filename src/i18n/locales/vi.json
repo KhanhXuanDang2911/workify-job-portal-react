@@ -46,6 +46,7 @@
       "postCreated": "Tạo bài viết thành công",
       "postUpdated": "Cập nhật bài viết thành công",
       "postDeleted": "Xóa bài viết thành công",
+      "postStatusUpdated": "Cập nhật trạng thái bài viết thành công",
       "passwordChanged": "Đổi mật khẩu thành công",
       "profileUpdated": "Cập nhật hồ sơ thành công",
       "signUpSuccess": "Đăng ký thành công",
@@ -83,6 +84,7 @@
       "createPostFailed": "Có lỗi xảy ra khi tạo bài viết",
       "updatePostFailed": "Có lỗi xảy ra khi cập nhật bài viết",
       "deletePostFailed": "Có lỗi xảy ra khi xóa bài viết",
+      "updatePostStatusFailed": "Có lỗi xảy ra khi cập nhật trạng thái bài viết",
       "changePasswordFailed": "Đổi mật khẩu thất bại",
       "updateProfileFailed": "Cập nhật hồ sơ thất bại",
       "updateAvatarFailed": "Cập nhật ảnh đại diện thất bại",
@@ -179,7 +181,27 @@
     "resend": "Gửi lại",
     "accountLocked": "Tài khoản của bạn đã bị khóa",
     "invalidEmail": "Email không hợp lệ. Vui lòng nhập email đã đăng ký",
-    "smsNotAvailable": "Đặt lại qua SMS chưa khả dụng"
+    "smsNotAvailable": "Đặt lại qua SMS chưa khả dụng",
+    "verifyEmail": {
+      "pendingTitle": "Đang xác thực email...",
+      "pendingDesc": "Vui lòng đợi trong khi chúng tôi xác thực email của bạn. Quá trình có thể mất vài giây.",
+      "successToast": "Xác thực email thành công",
+      "successTitle": "Đã xác thực email",
+      "successDesc": "Email của bạn đã được xác thực thành công. Bạn sẽ được chuyển hướng trong giây lát.",
+      "autoRedirect": "Bạn sẽ được chuyển hướng sau {{count}} giây",
+      "signInNow": "Đăng nhập ngay",
+      "backToSignIn": "Quay lại đăng nhập",
+      "retry": "Thử lại",
+      "errorToast": "Xác thực email thất bại",
+      "errorTitle": "Xác thực thất bại"
+    },
+    "resetPassword": {
+      "linkExpiredTitle": "Liên kết đặt lại đã hết hạn",
+      "linkExpiredDesc": "Liên kết đặt lại không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.",
+      "successTitle": "Đặt lại mật khẩu thành công",
+      "successDesc": "Mật khẩu của bạn đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
+      "changePasswordTitle": "Đổi mật khẩu của bạn"
+    }
   },
   "validation": {
     "required": "Trường này là bắt buộc",
@@ -258,6 +280,7 @@
         "gender": "Giới tính",
         "province": "Tỉnh/Thành phố",
         "district": "Quận/Huyện",
+        "industry": "Ngành nghề",
         "detailAddress": "Địa chỉ chi tiết",
         "status": "Trạng thái",
         "role": "Vai trò"
@@ -274,6 +297,7 @@
         "detailAddress": "Địa chỉ chi tiết",
         "selectStatus": "Chọn trạng thái",
         "selectRole": "Chọn vai trò",
+        "selectIndustry": "Chọn ngành nghề",
         "search": "Tìm kiếm"
       },
       "genders": {
@@ -850,6 +874,9 @@
       "jobs": "Việc làm",
       "myJobs": "Việc làm của tôi",
       "postJobs": "Đăng việc làm",
+      "posts": "Bài viết",
+      "myPosts": "Bài viết của tôi",
+      "createPost": "Tạo bài viết",
       "myCandidates": "Ứng viên của tôi",
       "blog": "Blog",
       "hiringAdvice": "Lời khuyên tuyển dụng",
@@ -1338,6 +1365,13 @@
     "errorSendingMessage": "Không thể gửi tin nhắn",
     "yesterday": "Hôm qua"
   },
+  "messages": {
+    "title": "Tin nhắn",
+    "employerTitle": "Tin nhắn (Nhà tuyển dụng)",
+    "loading": "Đang tải...",
+    "noConversations": "Chưa có cuộc hội thoại",
+    "selectConversation": "Chọn cuộc hội thoại để bắt đầu trò chuyện"
+  },
   "mySavedJobs": {
     "title": "Công việc đã lưu ({{count}})",
     "today": "Hôm nay",
@@ -1367,6 +1401,8 @@
     "birthDate": "Ngày sinh",
     "gender": "Giới tính",
     "selectGender": "Chọn giới tính",
+    "industry": "Ngành nghề",
+    "selectIndustry": "Chọn ngành nghề",
     "genderMale": "Nam",
     "genderFemale": "Nữ",
     "genderOther": "Khác",

@@ -13,32 +13,15 @@ import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { routes, employer_routes } from "@/routes/routes.const";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PasswordRequirement {
   label: string;
   test: (password: string) => boolean;
 }
 
-const pwdRequirements: PasswordRequirement[] = [
-  {
-    label: "Password must be at least 8 characters long.",
-    test: (pwd) => pwd.length >= 8 && pwd.length <= 160,
-  },
-  {
-    label: "Password must contain at least one upper case letter.",
-    test: (pwd) => /[A-Z]/.test(pwd),
-  },
-  {
-    label: "Password must contain at least one lower case letter.",
-    test: (pwd) => /[a-z]/.test(pwd),
-  },
-  {
-    label: "Password must contain at least one special character.",
-    test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
-  },
-];
-
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(true);
@@ -48,6 +31,25 @@ export default function ResetPassword() {
   const location = useLocation();
   const token = searchParams.get("token");
   const isEmployer = location.pathname.includes("/employer");
+
+  const pwdRequirements: PasswordRequirement[] = [
+    {
+      label: t("changePassword.requirements.minChars"),
+      test: (pwd) => pwd.length >= 8 && pwd.length <= 160,
+    },
+    {
+      label: t("changePassword.requirements.uppercase"),
+      test: (pwd) => /[A-Z]/.test(pwd),
+    },
+    {
+      label: t("changePassword.requirements.lowercase"),
+      test: (pwd) => /[a-z]/.test(pwd),
+    },
+    {
+      label: t("changePassword.requirements.specialChar"),
+      test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
+    },
+  ];
 
   const {
     register,
@@ -128,12 +130,10 @@ export default function ResetPassword() {
           <div className="w-full lg:w-1/2 space-y-6">
             <div className="space-y-5">
               <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
-                Link Expired
+                {t("auth.resetPassword.linkExpiredTitle")}
               </h1>
               <p className="text-gray-600">
-                Your link has expired, because you haven't used it. Reset
-                password link expires in every 24 hours and can be used only
-                once. You can create one by clicking the button below.
+                {t("auth.resetPassword.linkExpiredDesc")}
               </p>
             </div>
 
@@ -142,7 +142,7 @@ export default function ResetPassword() {
               variant="outline"
               className="w-full h-12 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 bg-transparent"
             >
-              Try another way
+              {t("auth.tryAnotherWay")}
             </Button>
           </div>
         </div>
@@ -162,10 +162,10 @@ export default function ResetPassword() {
           <div className="w-full lg:w-1/2 space-y-6">
             <div className="space-y-5">
               <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
-                Your password has been changed successfully!
+                {t("auth.resetPassword.successTitle")}
               </h1>
               <p className="text-gray-600">
-                You can now sign in with your new password.
+                {t("auth.resetPassword.successDesc")}
               </p>
             </div>
 
@@ -173,7 +173,7 @@ export default function ResetPassword() {
               onClick={handleGoToSignIn}
               className="w-full !rounded-3xl h-12 bg-[#1967d2] hover:bg-[#1251a3] text-white font-medium"
             >
-              GO TO SIGN IN
+              {t("auth.login")}
             </Button>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function ResetPassword() {
         <div className="w-full lg:w-1/2 space-y-6">
           <div className="space-y-5">
             <h1 className="text-3xl font-bold text-[#1967d2] -mt-10">
-              Change New Password
+              {t("auth.resetPassword.changePasswordTitle")}
             </h1>
           </div>
 
@@ -295,8 +295,8 @@ export default function ResetPassword() {
               className="w-full h-12 bg-[#1967d2] hover:bg-[#1251a3] text-white font-medium"
             >
               {resetPasswordMutation.isPending
-                ? "Updating..."
-                : "UPDATE PASSWORD"}
+                ? t("changePassword.changingPassword")
+                : t("changePassword.changePasswordButton")}
             </Button>
           </form>
 

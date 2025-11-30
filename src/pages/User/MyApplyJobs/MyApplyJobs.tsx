@@ -202,9 +202,15 @@ export default function MyApplyJobs() {
   });
 
   // Fetch top attractive jobs for suggestions
+  const userIndustryId = userAuth?.user?.industry?.id;
+
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 7],
-    queryFn: () => jobService.getTopAttractiveJobs(7),
+    queryKey: ["top-attractive-jobs", 7, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        7,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

@@ -44,7 +44,17 @@ export interface PostResponse {
   slug: string;
   readingTimeMinutes: number;
   category: PostCategory;
-  author: PostAuthor;
+  userAuthor?: PostAuthor | null;
+  employerAuthor?: {
+    id: number;
+    email: string;
+    backgroundUrl: string | null;
+    avatarUrl: string | null;
+    companyName: string;
+    createdAt?: string;
+    updatedAt?: string;
+    employerSlug?: string;
+  } | null;
   status: PostStatus;
 }
 

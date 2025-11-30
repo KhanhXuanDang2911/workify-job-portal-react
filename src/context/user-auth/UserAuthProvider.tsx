@@ -7,6 +7,7 @@ import { initUserAuthState } from "./userAuth.types";
 import { userTokenUtils } from "@/lib/token";
 import { userService } from "@/services/user.service";
 import { employer_routes } from "@/routes/routes.const";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 interface UserAuthProviderProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export const UserAuthProvider: React.FC<UserAuthProviderProps> = ({
 }) => {
   const [state, dispatch] = useReducer(userAuthReducer, initUserAuthState);
   const location = useLocation();
+  const { setCurrentUserId } = useWebSocket();
 
   // Initialize or re-fetch auth state when navigating to user routes
   useEffect(() => {
@@ -25,6 +27,12 @@ export const UserAuthProvider: React.FC<UserAuthProviderProps> = ({
     // Skip if on employer routes
     if (isEmployerRoute) {
       dispatch({ type: "SET_LOADING", payload: false });
+      // Clear any user id registration in websocket if switching to employer
+      try {
+        setCurrentUserId(null, "EMPLOYER");
+      } catch (e) {
+        // ignore
+      }
       return;
     }
 
@@ -53,11 +61,21 @@ export const UserAuthProvider: React.FC<UserAuthProviderProps> = ({
               isLoading: false,
             },
           });
+          try {
+            setCurrentUserId(user?.id ?? null, "USER");
+          } catch (e) {
+            // ignore
+          }
         } catch (error) {
           console.error("[UserAuth] Failed to fetch user profile:", error);
           // Token might be invalid, clear auth
           userTokenUtils.clearAuth();
           dispatch({ type: "CLEAR_USER" });
+          try {
+            setCurrentUserId(null, "USER");
+          } catch (e) {
+            // ignore
+          }
         }
       } else {
         dispatch({ type: "SET_LOADING", payload: false });
@@ -72,6 +90,11 @@ export const UserAuthProvider: React.FC<UserAuthProviderProps> = ({
 
       if (!accessToken) {
         dispatch({ type: "CLEAR_USER" });
+        try {
+          setCurrentUserId(null, "USER");
+        } catch (e) {
+          // ignore
+        }
       }
     };
 

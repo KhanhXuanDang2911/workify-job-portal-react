@@ -70,6 +70,7 @@ export const userService = {
     provinceId?: number | null;
     districtId?: number | null;
     detailAddress?: string | null;
+    industryId?: number | null;
   }): Promise<ApiResponse<User>> => {
     const response = await userHttp.put<ApiResponse<User>>("/users/me", data);
     return response.data;

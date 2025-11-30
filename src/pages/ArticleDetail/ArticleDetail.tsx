@@ -22,6 +22,7 @@ import type { PostResponse, PostCategory } from "@/types/post.type";
 import type { JobResponse } from "@/types/job.type";
 import { JobTypeLabelVN } from "@/constants/job.constant";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserAuth } from "@/context/user-auth";
 
 interface TOCItem {
   id: string;
@@ -31,6 +32,7 @@ interface TOCItem {
 
 export default function ArticleDetail() {
   const { t } = useTranslation();
+  const { state: userAuth } = useUserAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
@@ -132,14 +134,20 @@ export default function ArticleDetail() {
   };
 
   // Fetch top attractive jobs for suggestions
+  const userIndustryId = userAuth?.user?.industry?.id;
+
   const {
     data: topAttractiveResponse,
     isLoading: isLoadingJobs,
     isError: isErrorJobs,
     error: errorJobs,
   } = useQuery({
-    queryKey: ["top-attractive-jobs", 4],
-    queryFn: () => jobService.getTopAttractiveJobs(4),
+    queryKey: ["top-attractive-jobs", 4, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        4,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -251,7 +259,12 @@ export default function ArticleDetail() {
   const article = articleData
     ? {
         title: articleData.title,
-        author: articleData.author?.fullName || articleData.author?.email || "",
+        author:
+          articleData.userAuthor?.fullName ||
+          articleData.userAuthor?.email ||
+          articleData.employerAuthor?.companyName ||
+          articleData.employerAuthor?.email ||
+          "",
         date: articleData.createdAt
           ? new Date(articleData.createdAt).toLocaleDateString("en-US", {
               year: "numeric",

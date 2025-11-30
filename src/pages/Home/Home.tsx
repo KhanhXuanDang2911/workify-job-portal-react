@@ -18,6 +18,7 @@ import TopEmployers from "@/components/TopEmployers";
 import { useTranslation } from "@/hooks/useTranslation";
 import { industryService } from "@/services/industry.service";
 import { provinceService } from "@/services/location.service";
+import { jobService } from "@/services/job.service";
 import { routes } from "@/routes/routes.const";
 import { saveSearchHistory } from "@/utils/searchHistory";
 
@@ -54,6 +55,17 @@ export default function Home() {
 
   const industries = industriesResponse?.data || [];
   const provinces = provincesResponse?.data || [];
+
+  // Personalized jobs for the current user (server will fallback when not personalized)
+  const { data: personalizedResponse } = useQuery({
+    queryKey: ["personalized-jobs", 8],
+    queryFn: () => jobService.getPersonalized(8),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const personalizedJobs = Array.isArray(personalizedResponse?.data)
+    ? personalizedResponse?.data
+    : undefined;
 
   const handleSearch = () => {
     // Lưu vào search history
@@ -330,7 +342,7 @@ export default function Home() {
       </section>
 
       <JobCategories />
-      <FeaturedJobs />
+      <FeaturedJobs overrideJobs={personalizedJobs} />
       <TopEmployers />
       <FeaturedArticles />
     </>

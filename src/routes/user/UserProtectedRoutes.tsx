@@ -9,6 +9,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROLE } from "@/constants";
 import MyApplyJobs from "@/pages/User/MyApplyJobs";
 import Notifications from "@/pages/Notifications";
+import Messages from "@/pages/Messages";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -60,6 +61,14 @@ const UserProtectedRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <Notifications />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: routes.MESSAGES,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <Messages />
           </ProtectedRoute>
         ),
       },

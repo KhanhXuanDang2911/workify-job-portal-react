@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
+// header no longer queries chat unread totals here
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,12 +36,20 @@ import { Settings } from "lucide-react";
 import { getNameInitials } from "@/utils/string";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 export default function Header() {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
   const queryClient = useQueryClient();
   const { state, dispatch } = useUserAuth();
+  const { conversationUnread } = useWebSocket();
+
+  const chatConversationCount = Object.values(conversationUnread ?? {}).filter(
+    (v) => (v ?? 0) > 0
+  ).length;
 
   const user = state.user;
 
@@ -61,6 +71,10 @@ export default function Header() {
   const handleSignOut = () => {
     signOutMutation.mutate();
   };
+
+  // Note: unread header totals intentionally disabled here so the app can
+  // re-implement aggregate unread behavior from a single source of truth.
+  // Header will not fetch or display a message unread count.
 
   return (
     <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
@@ -122,6 +136,24 @@ export default function Header() {
             {state.isAuthenticated ? (
               <>
                 <JobSeekerNotificationDropdown />
+                <Link
+                  to={
+                    isEmployerRoute
+                      ? `${employer_routes.BASE}/messages`
+                      : `/${routes.MESSAGES}`
+                  }
+                  className="relative p-2 rounded hover:bg-gray-50 transition-colors"
+                  aria-label={t("header.messages")}
+                >
+                  <MessageSquare className="w-5 h-5 text-gray-600" />
+                  {chatConversationCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full shadow">
+                      {chatConversationCount > 99
+                        ? "99+"
+                        : chatConversationCount}
+                    </span>
+                  )}
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 focus:outline-none hover:opacity-90 transition-all duration-200 rounded-lg px-2 py-1.5 hover:bg-gray-50">
                     <Avatar className="h-9 w-9 ring-2 ring-gray-200 hover:ring-[#1967d2]/30 transition-all duration-300">
@@ -228,7 +260,29 @@ export default function Header() {
           {/* Mobile menu */}
           <div className="lg:hidden flex items-center space-x-2">
             <LanguageSwitcher />
-            {state.isAuthenticated && <JobSeekerNotificationDropdown />}
+            {state.isAuthenticated && (
+              <>
+                <JobSeekerNotificationDropdown />
+                <Link
+                  to={
+                    isEmployerRoute
+                      ? `${employer_routes.BASE}/messages`
+                      : `/${routes.MESSAGES}`
+                  }
+                  className="relative p-2 rounded hover:bg-gray-50 transition-colors"
+                  aria-label={t("header.messages")}
+                >
+                  <MessageSquare className="w-5 h-5 text-gray-600" />
+                  {chatConversationCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full shadow">
+                      {chatConversationCount > 99
+                        ? "99+"
+                        : chatConversationCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -282,6 +336,7 @@ export default function Header() {
               {state.isAuthenticated && (
                 <>
                   <div className="border-t border-gray-100 my-2"></div>
+                  {/* messages link removed from mobile expanded menu — standalone icon kept outside menu */}
                   <Link
                     to={routes.SETTINGS}
                     className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors"

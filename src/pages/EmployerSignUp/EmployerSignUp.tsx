@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { employerService } from "@/services";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { AxiosError } from "axios";
 import type { ApiError } from "@/types";
 import { toast } from "react-toastify";
