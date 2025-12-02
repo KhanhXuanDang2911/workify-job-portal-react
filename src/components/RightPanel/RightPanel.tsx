@@ -26,6 +26,12 @@ import type { ResumeData, TemplateType, Theme } from "@/types/resume.type";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import { cn } from "@/lib/utils";
 import { useResume } from "@/context/ResumeContext/useResume";
+import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
+import { templateRabbitDummy } from "@/templates/TemplateRabbit/dummy";
+import TemplateLion from "@/templates/TemplateLion/TemplateLion";
+import { templateLionDummy } from "@/templates/TemplateLion/dummy";
+import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
+import { templateDolphinDummy } from "@/templates/TemplateDolphin/dummy";
 
 type TabKey = "template" | "theme";
 
@@ -207,16 +213,45 @@ function DetailsPanelActions({ activeTab, onClose }: DetailsPanelActionsProps) {
 }
 
 type TemplateItem<P = any> = {
+  id: string;
+  name: string;
   component: React.FC<P>;
   type: TemplateType;
+  dummyData: ResumeData;
 };
 
 const templates: TemplateItem<{
   data?: ResumeData;
   ref?: RefObject<HTMLDivElement | null>;
 }>[] = [
-  { component: TemplatePanda, type: "TEMPLATE-PANDA" },
-  { component: TemplateRabbit, type: "TEMPLATE-RABBIT" },
+  {
+    id: "template-panda",
+    name: "Template Panda",
+    component: TemplatePanda,
+    type: "TEMPLATE-PANDA",
+    dummyData: templatePandaDummy,
+  },
+  {
+    id: "template-rabbit",
+    name: "Template Rabbit",
+    component: TemplateRabbit,
+    type: "TEMPLATE-RABBIT",
+    dummyData: templateRabbitDummy,
+  },
+  {
+    id: "template-lion",
+    name: "Template Lion",
+    component: TemplateLion,
+    type: "TEMPLATE-LION",
+    dummyData: templateLionDummy,
+  },
+  {
+    id: "template-dolphin",
+    name: "Template Dolphin",
+    component: TemplateDolphin,
+    type: "TEMPLATE-DOLPHIN",
+    dummyData: templateDolphinDummy,
+  },
 ];
 
 const TEMPLATE_WIDTH = 900; // chiều rộng gốc của template
@@ -225,7 +260,7 @@ const TEMPLATE_HEIGHT = 1300; // chiều cao gốc của template
 function TemplateTab() {
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [scales, setScales] = useState<number[]>([]);
-  const { template, setTemplate } = useResume();
+  const { template, setTemplate, setResume } = useResume();
 
   useEffect(() => {
     const observers: ResizeObserver[] = [];
@@ -261,9 +296,14 @@ function TemplateTab() {
             template === TemplateComp.type &&
               "after:absolute after:bottom-0 after:right-0 after:w-0 after:h-0 after:border-b-35 after:border-b-green-600 after:border-l-35 after:border-l-transparent  after:content-['✓'] after:text-white after:text-lg after:font-bold"
           )}
-          onClick={() => setTemplate(TemplateComp.type)}
+          onClick={() => {
+            setTemplate(TemplateComp.type);
+            setResume((prev) => ({
+              ...prev,
+              theme: { ...TemplateComp.dummyData.theme },
+            }));
+          }}
         >
-          <div className=""></div>
           <div
             style={{
               width: TEMPLATE_WIDTH,

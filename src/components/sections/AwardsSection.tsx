@@ -151,7 +151,10 @@ export default function AwardsSection() {
 
       <AwardModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -198,7 +201,7 @@ function AwardItem({
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="bg-white">
+      <ContextMenuContent className="bg-white z-100">
         <ContextMenuItem
           onClick={onToggleVisible}
           className="cursor-pointer hover:bg-gray-200"
@@ -234,25 +237,30 @@ function AwardItem({
 type AwardModalProps = {
   open: boolean;
   onClose: () => void;
-  onSave: (data: Omit<AwardItemType, "id" | "order">) => void;
+  onSave: (data: Omit<AwardItemType, "order">) => void;
   defaultValues: AwardItemType | null;
 };
 
+const initialForm = {
+  title: "",
+  date: "",
+  visible: true,
+};
+
 function AwardModal({ open, onClose, onSave, defaultValues }: AwardModalProps) {
-  const [form, setForm] = useState<Omit<AwardItemType, "id" | "order">>({
-    title: "",
-    date: "",
-    visible: true,
-  });
+  const [form, setForm] =
+    useState<Omit<AwardItemType, "id" | "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });

@@ -5,19 +5,12 @@ import InstagramIcon from "@/assets/icons/InstagramIcon";
 import LinkedinIcon from "@/assets/icons/LinkedinIcon";
 import YoutubeIcon from "@/assets/icons/YoutubeIcon";
 import { useResume } from "@/context/ResumeContext/useResume";
+import type { CustomFieldType } from "@/types/resume.type";
 import { Camera, Plus, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export type FieldTypeEnum =
-  | "FACEBOOK"
-  | "LINKEDIN"
-  | "INSTAGRAM"
-  | "YOUTUBE"
-  | "GITHUB"
-  | "INFO";
-
 const FIELD_TYPE_MAP: Record<
-  FieldTypeEnum,
+  CustomFieldType,
   { label: string; icon: React.ComponentType<{ color: string }> }
 > = {
   FACEBOOK: { label: "Facebook", icon: FacebookIcon },
@@ -52,13 +45,13 @@ function BasicInformationSection() {
     });
   };
 
-  const addField = () => {
+  const addCustomField = () => {
     const existingTypes = customFields.map((f) => f.type);
     const availableTypes = (
-      Object.keys(FIELD_TYPE_MAP) as FieldTypeEnum[]
+      Object.keys(FIELD_TYPE_MAP) as CustomFieldType[]
     ).filter((type) => !existingTypes.includes(type));
     if (availableTypes.length === 0) return;
-    const newField: { type: FieldTypeEnum; value: string } = {
+    const newField: { type: CustomFieldType; value: string } = {
       type: availableTypes[0],
       value: "",
     };
@@ -73,7 +66,10 @@ function BasicInformationSection() {
     });
   };
 
-  const updateFieldType = (oldType: FieldTypeEnum, newType: FieldTypeEnum) => {
+  const updateFieldType = (
+    oldType: CustomFieldType,
+    newType: CustomFieldType
+  ) => {
     const newCustomFields = customFields.map((f) =>
       f.type === oldType ? { ...f, type: newType } : f
     );
@@ -87,7 +83,7 @@ function BasicInformationSection() {
     });
   };
 
-  const updateFieldValue = (type: FieldTypeEnum, value: string) => {
+  const updateFieldValue = (type: CustomFieldType, value: string) => {
     const newCustomFields = customFields.map((f) =>
       f.type === type ? { ...f, value } : f
     );
@@ -101,7 +97,7 @@ function BasicInformationSection() {
     });
   };
 
-  const removeField = (type: FieldTypeEnum) => {
+  const removeField = (type: CustomFieldType) => {
     const newCustomFields = customFields.filter((f) => f.type !== type);
     setCustomFields(newCustomFields);
     setResume({
@@ -193,17 +189,6 @@ function BasicInformationSection() {
         />
       </div>
 
-      {/* Website */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Website</label>
-        <input
-          type="text"
-          value={resume.basicInfo.website || ""}
-          onChange={(e) => handleChangeBasicField("website", e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
-        />
-      </div>
-
       {/* Email + Phone */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -241,7 +226,7 @@ function BasicInformationSection() {
               <select
                 value={field.type}
                 onChange={(e) =>
-                  updateFieldType(field.type, e.target.value as FieldTypeEnum)
+                  updateFieldType(field.type, e.target.value as CustomFieldType)
                 }
                 className="w-40 px-4 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none"
               >
@@ -275,7 +260,7 @@ function BasicInformationSection() {
 
         {customFields.length < Object.keys(FIELD_TYPE_MAP).length && (
           <button
-            onClick={addField}
+            onClick={addCustomField}
             className="text-sm text-black font-medium hover:underline flex items-center gap-1"
           >
             <Plus />

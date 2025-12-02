@@ -150,7 +150,10 @@ export default function SkillsSection() {
 
       <SkillModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -237,26 +240,31 @@ type EducationModalProps = {
   defaultValues: SkillItemType | null;
 };
 
+const initialForm = {
+  name: "",
+  description: "",
+  visible: true,
+};
+
 function SkillModal({
   open,
   onClose,
   onSave,
   defaultValues,
 }: EducationModalProps) {
-  const [form, setForm] = useState<Omit<SkillItemType, "id" | "order">>({
-    name: "",
-    description: "",
-    visible: true,
-  });
+  const [form, setForm] =
+    useState<Omit<SkillItemType, "id" | "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });

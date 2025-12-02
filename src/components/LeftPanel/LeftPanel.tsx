@@ -29,10 +29,16 @@ import ProjectsSection from "@/components/sections/ProjectsSection";
 import ReferencesSection from "@/components/sections/ReferencesSection";
 import SectionActionsMenu from "@/components/SectionActionsMenu";
 import ExperienceSection from "@/components/sections/ExperienceSection";
+import type { SectionType } from "@/types/resume.type";
 
-const sections = [
+const sections: {
+  id: SectionType;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  component: React.ComponentType;
+}[] = [
   {
-    id: "basic-information",
+    id: "basicInfo",
     icon: User,
     label: "Basic Information",
     component: BasicInformationSection,
@@ -82,9 +88,9 @@ const sections = [
     component: ReferencesSection,
   },
 ];
-
+const MAX_PANEL_WIDTH = 500;
 function LeftPanel() {
-  const [panelWidth, setPanelWidth] = useState(500);
+  const [panelWidth, setPanelWidth] = useState(MAX_PANEL_WIDTH);
   const isResizingRef = useRef(false);
   const moveRef = useRef<HTMLDivElement>(null);
 
@@ -113,7 +119,7 @@ function LeftPanel() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isResizingRef.current) return;
-    const newWidth = Math.max(260, Math.min(e.clientX - 44, 500));
+    const newWidth = Math.max(260, Math.min(e.clientX - 44, MAX_PANEL_WIDTH));
     setPanelWidth(newWidth);
     moveRef.current!.style.backgroundColor = "rgb(14 165 233)";
   };
@@ -220,7 +226,7 @@ function LeftPanel() {
                 <Icon className="w-5 h-5" />
                 <h2 className="text-lg font-semibold">{label}</h2>
               </div>
-              <SectionActionsMenu />
+              <SectionActionsMenu section={id} />
             </summary>
             <div className="mt-4">
               <Component />

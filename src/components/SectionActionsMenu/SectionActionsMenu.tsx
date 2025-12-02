@@ -1,23 +1,12 @@
+import type { SectionType } from "@/types/resume.type";
 import { Menu } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-function MenuItem({
-  label,
-  className = "",
+export default function SectionActionsMenu({
+  section,
 }: {
-  label: string;
-  className?: string;
+  section: SectionType;
 }) {
-  return (
-    <div
-      className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer transition ${className}`}
-    >
-      {label}
-    </div>
-  );
-}
-
-export default function SectionActionsMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +23,19 @@ export default function SectionActionsMenu() {
     };
   }, []);
 
+  const handleHideSection = () => {
+    // Implement hide section logic here
+
+    setOpen(false);
+  };
+
+  const handleClearSection = () => {
+    // Implement clear section logic here
+    setOpen(false);
+  };
+
+  if (section === "basicInfo") return null;
+
   return (
     <div className="relative inline-block" ref={menuRef}>
       <button
@@ -44,20 +46,18 @@ export default function SectionActionsMenu() {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg border border-gray-200 rounded-lg py-2 z-50">
-          <MenuItem label="Add a new item" />
-          <MenuItem label="Separate Links" />
-
-          <div className="border-t my-2" />
-
-          <MenuItem label="Hide" />
-          <MenuItem label="Rename >" />
-          <MenuItem label="Columns >" />
-
-          <div className="border-t my-2" />
-
-          <MenuItem label="Reset" />
-
-          <MenuItem label="Remove" className="text-red-500 hover:bg-red-50" />
+          <div
+            className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer transition"
+            onClick={handleHideSection}
+          >
+            Hide
+          </div>
+          <div
+            className="px-4 py-2 text-sm cursor-pointer transition text-red-500 hover:bg-red-50"
+            onClick={handleClearSection}
+          >
+            Clear
+          </div>
         </div>
       )}
     </div>

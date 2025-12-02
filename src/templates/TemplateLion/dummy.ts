@@ -1,6 +1,6 @@
 import type { ResumeData } from "@/types/resume.type";
 
-export const templateRabbitDummy: ResumeData = {
+export const templateLionDummy: ResumeData = {
   basicInfo: {
     fullName: "Lê Quang Dũng",
     position: "Nhân viên Kinh doanh",
@@ -8,7 +8,7 @@ export const templateRabbitDummy: ResumeData = {
     phone: "0839848211",
     location: "Quận Từ Liêm, Hà Nội",
     avatarUrl:
-      "https://cdnphoto.dantri.com.vn/1w9CPc-X5J2WhlvqQtZQnarq-Og=/thumb_w/1020/2024/10/03/quanghung-12-1727967721737.jpg",
+      "https://media.istockphoto.com/id/1390330373/photo/young-business-woman-with-crossed-arms-outdoor-portrait.webp?a=1&s=612x612&w=0&k=20&c=eDVVOJpJOBZsmFrlsZbWvDa_fF6UCOP56UzqgThDYR4=",
     customFields: [
       { type: "FACEBOOK", value: "facebook.com/username" },
       { type: "INSTAGRAM", value: "instagram.com/username" },
@@ -123,7 +123,7 @@ export const templateRabbitDummy: ResumeData = {
   },
 
   theme: {
-    primaryColor: "#247e7aff",
+    primaryColor: "#A82125",
     bgColor: "#FFFFFF",
     textColor: "#000000",
   },

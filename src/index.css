@@ -185,6 +185,7 @@
     100% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-10px);
     }
@@ -196,14 +197,17 @@
       transform: translate(0, 0) scale(1);
       opacity: 0.6;
     }
+
     25% {
       transform: translate(20px, -30px) scale(1.05);
       opacity: 0.7;
     }
+
     50% {
       transform: translate(-15px, -50px) scale(0.95);
       opacity: 0.5;
     }
+
     75% {
       transform: translate(10px, -20px) scale(1.02);
       opacity: 0.65;
@@ -215,6 +219,7 @@
       opacity: 0;
       transform: translateY(30px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -226,6 +231,7 @@
       opacity: 0;
       transform: translateX(50px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -237,6 +243,7 @@
       width: 0;
       opacity: 0;
     }
+
     to {
       width: 100%;
       opacity: 1;
@@ -249,6 +256,7 @@
       opacity: 0.4;
       transform: scale(1);
     }
+
     50% {
       opacity: 0.6;
       transform: scale(1.05);

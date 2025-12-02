@@ -156,7 +156,10 @@ export default function CertificationsSection() {
 
       <CertificationModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -243,28 +246,31 @@ type CertificationModalProps = {
   defaultValues: CertificationItemType | null;
 };
 
+const initialForm = {
+  name: "",
+  date: "",
+  visible: true,
+};
+
 function CertificationModal({
   open,
   onClose,
   onSave,
   defaultValues,
 }: CertificationModalProps) {
-  const [form, setForm] = useState<Omit<CertificationItemType, "id" | "order">>(
-    {
-      name: "",
-      date: "",
-      visible: true,
-    }
-  );
+  const [form, setForm] =
+    useState<Omit<CertificationItemType, "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });

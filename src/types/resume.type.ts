@@ -5,7 +5,11 @@ import InstagramIcon from "@/assets/icons/InstagramIcon";
 import LinkedinIcon from "@/assets/icons/LinkedinIcon";
 import YoutubeIcon from "@/assets/icons/YoutubeIcon";
 
-export type TemplateType = "TEMPLATE-PANDA" | "TEMPLATE-RABBIT";
+export type TemplateType =
+  | "TEMPLATE-PANDA"
+  | "TEMPLATE-RABBIT"
+  | "TEMPLATE-LION"
+  | "TEMPLATE-DOLPHIN";
 
 export type CustomFieldType =
   | "FACEBOOK"
@@ -33,86 +37,99 @@ export interface CustomField {
 }
 
 export interface ExperienceItem {
+  isHidden: boolean;
   order: number;
   company: string;
   position: string;
-  duration: string;
-  location?: string;
-  summary?: string; // richtext
+  startDate?: string;
+  endDate?: string;
+  description?: string; // richtext
 }
 
 export interface EducationItem {
+  isHidden: boolean;
   order: number;
-  institution: string;
+  name: string;
+  major: string;
   score?: string;
-  studyType?: string;
-  dateRange?: string;
-  website?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface SkillItem {
+  isHidden: boolean;
   order: number;
   name: string;
   description?: string;
 }
 
 export interface AwardItem {
+  isHidden: boolean;
   order: number;
   title: string;
   date?: string;
 }
 
 export interface CertificationItem {
+  isHidden: boolean;
   order: number;
   name: string;
   date?: string;
 }
 
 export interface ProjectItem {
+  isHidden: boolean;
   order: number;
   title: string;
   startDate?: string;
   endDate?: string;
   description?: string; // richtext
 }
-
+export interface InterestItem {
+  description: string; // richtext
+}
 export interface ReferenceItem {
+  isHidden: boolean;
   order: number;
   information: string;
   description?: string;
 }
 
+export interface ObjectiveItem {
+  description: string; // richtext
+}
 export interface Theme {
   primaryColor: string;
   bgColor: string;
   textColor: string;
 }
-
+export interface AdditionalInformationItem {
+  description: string; // richtext
+}
 export interface ResumeData {
   basicInfo: {
-    position?: string;
-    fullName?: string;
-    email?: string;
-    phone?: string;
-    location?: string;
-    website?: string;
+    position: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    location: string;
     avatarUrl?: string;
     customFields?: CustomField[];
   };
 
-  objective?: {
-    description: string; // richtext
-  };
+  objective?: ObjectiveItem;
 
-  experience: ExperienceItem[];
+  experience?: ExperienceItem[];
   education?: EducationItem[];
   skills?: SkillItem[];
   awards?: AwardItem[];
   certifications?: CertificationItem[];
-  interests?: string; // richtext
+  interests?: InterestItem;
   projects?: ProjectItem[];
   references?: ReferenceItem[];
-  additionalInformation?: string; // richtext
+  additionalInformation?: AdditionalInformationItem;
 
   theme: Theme;
 }
+
+export type SectionType = keyof ResumeData;
