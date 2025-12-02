@@ -4,12 +4,13 @@ import Toolbar from "@/components/Toolbar";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
-import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { useResume } from "@/context/ResumeContext/useResume";
 import LeftPanel from "@/components/LeftPanel";
+import TemplateLion from "@/templates/TemplateLion/TemplateLion";
+import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
 
 const TRANSFORM_COMPONENT_DEFAULT_STYLE = {
   width: "900px",
@@ -26,8 +27,18 @@ function ResumeBuilder() {
   const templateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (template === "TEMPLATE-PANDA") setResume(templatePandaDummy);
-  }, [setResume, template]);
+    setResume((prev) => ({
+      ...prev,
+      basicInfo: {
+        ...prev.basicInfo,
+        avatarUrl: "default-avatar.jpg",
+      },
+    }));
+  }, []);
+
+  useEffect(() => {
+    updateHeightTransformComponent(1300);
+  }, [template]);
 
   const transformComponentRef = useRef<HTMLDivElement>(null); // tham chiếu đến vùng làm việc
 
@@ -50,8 +61,7 @@ function ResumeBuilder() {
     startY.current = e.clientY;
     if (transformComponent) {
       transformComponent.style.cursor = "grabbing";
-      // console.log("transform DOM style: ", transformComponent.style.transform);
-      // console.log("transform:", getComputedStyle(transformComponent).transform);
+
       const matrix = new DOMMatrixReadOnly(
         getComputedStyle(transformComponent).transform
       );
@@ -111,6 +121,25 @@ function ResumeBuilder() {
       scale(${scale.current})
     `;
   };
+
+  const updateHeightTransformComponent = (newHeight: number) => {
+    const transformComponent = transformComponentRef.current;
+    if (transformComponent) {
+      transformComponent.style.height = `${newHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   /** 
       Các function cho Toolbar
@@ -201,10 +230,32 @@ function ResumeBuilder() {
           }}
         >
           {template === "TEMPLATE-PANDA" && (
-            <TemplatePanda data={resume} ref={templateRef} />
+            <TemplatePanda
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
           )}
           {template === "TEMPLATE-RABBIT" && (
-            <TemplateRabbit data={resume} ref={templateRef} />
+            <TemplateRabbit
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-LION" && (
+            <TemplateLion
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-DOLPHIN" && (
+            <TemplateDolphin
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
           )}
         </div>
       </div>

@@ -10,9 +10,11 @@ const PAGE_HEIGHT = 1300;
 function TemplatePanda({
   data = dummyData,
   ref,
+  onUpdateHeight,
 }: {
   data?: ResumeData;
   ref?: RefObject<HTMLDivElement | null>;
+  onUpdateHeight?: (newHeight: number) => void;
 }) {
   const {
     basicInfo,
@@ -22,6 +24,7 @@ function TemplatePanda({
     awards,
     certifications,
     interests,
+    references,
     objective,
     projects,
   } = data;
@@ -54,10 +57,16 @@ function TemplatePanda({
     return () => resizeObserver.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (onUpdateHeight) {
+      onUpdateHeight(minPageHeight);
+    }
+  }, [minPageHeight, onUpdateHeight]);
+
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative"
+      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none"
       style={{ minHeight: minPageHeight, backgroundColor: data.theme.bgColor }}
       ref={ref}
     >
@@ -148,24 +157,6 @@ function TemplatePanda({
                 </span>
               </div>
 
-              {/* Website */}
-              <div className=" flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill={data.theme.primaryColor || "#3d509f"}
-                  className="w-6 h-6 self-start shrink-0"
-                >
-                  <path d="M21.721 12.752a9.711 9.711 0 00-.945-5.003 12.754 12.754 0 01-4.339 2.708 18.991 18.991 0 01-.214 4.772 17.165 17.165 0 005.498-2.477zM14.634 15.55a17.324 17.324 0 00.332-4.647c-.952.227-1.945.347-2.966.347-1.021 0-2.014-.12-2.966-.347a17.515 17.515 0 00.332 4.647 17.385 17.385 0 005.268 0zM9.772 17.119a18.963 18.963 0 004.456 0A17.182 17.182 0 0112 21.724a17.18 17.18 0 01-2.228-4.605zM7.777 15.23a18.87 18.87 0 01-.214-4.774 12.753 12.753 0 01-4.34-2.708 9.711 9.711 0 00-.944 5.004 17.165 17.165 0 005.498 2.477zM21.356 14.752a9.765 9.765 0 01-7.478 6.817 18.64 18.64 0 001.988-4.718 18.627 18.627 0 005.49-2.098zM2.644 14.752c1.682.971 3.53 1.688 5.49 2.099a18.64 18.64 0 001.988 4.718 9.765 9.765 0 01-7.478-6.816zM13.878 2.43a9.755 9.755 0 016.116 3.986 11.267 11.267 0 01-3.746 2.504 18.63 18.63 0 00-2.37-6.49zM12 2.276a17.152 17.152 0 012.805 7.121c-.897.23-1.837.353-2.805.353-.968 0-1.908-.122-2.805-.353A17.151 17.151 0 0112 2.276zM10.122 2.43a18.629 18.629 0 00-2.37 6.49 11.266 11.266 0 01-3.746-2.504 9.754 9.754 0 016.116-3.985z" />
-                </svg>
-                <span
-                  className="ml-2 text-[#07113c] break-all"
-                  style={{ color: data.theme.textColor }}
-                >
-                  {basicInfo.website}
-                </span>
-              </div>
-
               {/* Location */}
               <div className=" flex items-center gap-2">
                 <svg
@@ -210,7 +201,7 @@ function TemplatePanda({
         </div>
 
         {/* Skills */}
-        {skills && (
+        {skills && skills.length > 0 && (
           <div className="bg-[#F5F7FF] py-[36px]">
             <div className="px-[18px]">
               <h1
@@ -248,7 +239,7 @@ function TemplatePanda({
         )}
 
         {/* Education */}
-        {education && (
+        {education && education.length > 0 && (
           <div className="bg-[#F5F7FF] py-[36px]">
             <div className="px-[18px]">
               <h1
@@ -271,14 +262,12 @@ function TemplatePanda({
                       strokeWidth={7}
                     />
                     <div>
-                      <div className="font-semibold">{e.institution}</div>
-                      {e.studyType && (
-                        <div className="text-sm ">{e.studyType}</div>
-                      )}
+                      <div className="font-semibold">{e.name}</div>
+                      {e.major && <div className="text-sm ">{e.major}</div>}
                       {e.score && <div className="text-sm ">{e.score}</div>}
-                      {e.dateRange && (
-                        <div className="text-sm ">{e.dateRange}</div>
-                      )}
+                      <div className="text-sm ">
+                        {e.startDate}-{e.endDate}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -288,7 +277,7 @@ function TemplatePanda({
         )}
 
         {/* Awards */}
-        {awards && (
+        {awards && awards.length > 0 && (
           <div className="bg-[#F5F7FF] py-[36px]">
             <div className="px-[18px]">
               <h1
@@ -312,24 +301,53 @@ function TemplatePanda({
             </div>
           </div>
         )}
+
+        {/* Certifications*/}
+        {certifications && certifications.length > 0 && (
+          <div className="bg-[#F5F7FF] py-[36px]">
+            <div className="px-[18px]">
+              <h1
+                className="uppercase text-[26px] font-fahkwang font-semibold"
+                style={{ color: data.theme.primaryColor }}
+              >
+                Certifications
+              </h1>
+              <div className="mt-2 space-y-2">
+                {certifications.map((certification, idx) => (
+                  <div
+                    key={idx}
+                    className="mb-3"
+                    style={{ color: data.theme.textColor }}
+                  >
+                    <div className="font-semibold">{certification.name}</div>
+                    {certification.date && (
+                      <div className="text-sm ">{certification.date}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Col-2 : Right */}
       <div className="pl-[calc(280px+34px)]" ref={colRightRef}>
         <div className="p-[34px] space-y-4">
           {/* Objective */}
-          {objective && (
-            <div
-              className="text-sm leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: objective.description }}
-              style={{ color: data.theme.textColor }}
-            />
+          {objective && objective.description !== "<p><br></p>" && (
+            <>
+              <div
+                className="ql-editor p-0! text-sm leading-relaxed  "
+                dangerouslySetInnerHTML={{ __html: objective.description }}
+                style={{ color: data.theme.textColor }}
+              />
+              <hr
+                className="h-[1.5px] border-0"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              />
+            </>
           )}
-
-          <hr
-            className="h-[1.5px] border-0"
-            style={{ backgroundColor: data.theme.primaryColor }}
-          />
 
           {/* Experience */}
           {experience && experience.length > 0 && (
@@ -352,15 +370,19 @@ function TemplatePanda({
                       <div className="font-raleway uppercase text-[18px]">
                         {exp.position}
                       </div>
-                      <div>{exp.duration}</div>
+                      <div>
+                        <span>{exp.startDate}</span>-<span>{exp.endDate}</span>
+                      </div>
                     </div>
                     <div className="text-base italic  mb-2 font-raleway font-medium">
                       {exp.company}
                     </div>
 
                     <div
-                      className="text-sm  leading-relaxed font-raleway font-medium"
-                      dangerouslySetInnerHTML={{ __html: exp.summary || "" }}
+                      className=" ql-editor text-sm  leading-relaxed font-raleway font-medium"
+                      dangerouslySetInnerHTML={{
+                        __html: exp.description || "",
+                      }}
                     />
                   </div>
                 ))}
@@ -375,38 +397,104 @@ function TemplatePanda({
 
           {/* Projects */}
           {projects && projects.length > 0 && (
-            <div>
-              <h2
-                className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
-                style={{ color: data.theme.primaryColor }}
-              >
-                projects
-              </h2>
-              {projects.map((project, idx) => (
-                <div
-                  key={idx}
-                  className="mb-6"
-                  style={{ color: data.theme.textColor }}
+            <>
+              <div>
+                <h2
+                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
+                  style={{ color: data.theme.primaryColor }}
                 >
-                  <div className="flex justify-between gap-3 font-semibold text-sm">
-                    <div className="font-raleway uppercase text-[18px] max-w-[70%]">
-                      {project.title}
-                    </div>
-                    <div>
-                      <span>{project.startDate}</span> -{" "}
-                      <span>{project.endDate}</span>
-                    </div>
-                  </div>
-
+                  projects
+                </h2>
+                {projects.map((project, idx) => (
                   <div
-                    className="text-sm  leading-relaxed font-raleway font-medium mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: project.description || "",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+                    key={idx}
+                    className="mb-6"
+                    style={{ color: data.theme.textColor }}
+                  >
+                    <div className="flex justify-between gap-3 font-semibold text-sm">
+                      <div className="font-raleway uppercase text-[18px] max-w-[70%]">
+                        {project.title}
+                      </div>
+                      <div>
+                        <span>{project.startDate}</span> -{" "}
+                        <span>{project.endDate}</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className="ql-editor text-sm  leading-relaxed font-raleway font-medium mt-2"
+                      dangerouslySetInnerHTML={{
+                        __html: project.description || "",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <hr
+                className="h-[1.5px] border-0"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              />
+            </>
+          )}
+
+          {/* References */}
+          {references && references.length > 0 && (
+            <>
+              <div>
+                <h2
+                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
+                  style={{ color: data.theme.primaryColor }}
+                >
+                  References
+                </h2>
+                {references.map((reference, idx) => (
+                  <div
+                    key={idx}
+                    className="mb-3"
+                    style={{ color: data.theme.textColor }}
+                  >
+                    <div className="font-semibold text-sm">
+                      {reference.information}
+                    </div>
+
+                    <div
+                      className="ql-editor text-[11px]  leading-relaxed font-raleway font-medium"
+                      dangerouslySetInnerHTML={{
+                        __html: reference.description || "",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <hr
+                className="h-[1.5px] border-0"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              />
+            </>
+          )}
+
+          {/*Interests  */}
+          {interests && interests.description !== "<p><br></p>" && (
+            <>
+              <div>
+                <h2
+                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
+                  style={{ color: data.theme.primaryColor }}
+                >
+                  Interests
+                </h2>
+                <div
+                  className="ql-editor p-0! text-sm leading-relaxed  "
+                  dangerouslySetInnerHTML={{ __html: interests.description }}
+                  style={{ color: data.theme.textColor }}
+                />
+              </div>
+              <hr
+                className="h-[1.5px] border-0"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              />
+            </>
           )}
         </div>
       </div>

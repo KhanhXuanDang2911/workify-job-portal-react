@@ -1,6 +1,5 @@
+import RichTextEditor from "@/components/RichTextEditor";
 import { useResume } from "@/context/ResumeContext/useResume";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
 function ObjectiveSection() {
   const { resume, setResume } = useResume();
 
@@ -12,13 +11,12 @@ function ObjectiveSection() {
       },
     }));
   };
+
   return (
     <div>
-      <ReactQuill
-        theme="snow"
+      <RichTextEditor
         value={resume.objective?.description ?? ""}
         onChange={handleChange}
-        className="[&_.ql-editor]:min-h-[200px] [&_.ql-editor]:max-h-[200px] [&_.ql-editor]:overflow-y-auto"
       />
     </div>
   );

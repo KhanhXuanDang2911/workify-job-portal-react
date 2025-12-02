@@ -17,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import ReactQuill from "react-quill-new";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -27,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ExperienceItem } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
+import RichTextEditor from "@/components/RichTextEditor";
 
 interface ExperienceItemType extends ExperienceItem {
   visible: boolean;
@@ -130,7 +130,6 @@ export default function ExperienceSection() {
       item.order === order ? { ...item, visible: !item.visible } : item
     );
     setItems(updatedItems);
-    console.log(updatedItems);
 
     saveToContext(updatedItems);
   };
@@ -163,7 +162,10 @@ export default function ExperienceSection() {
 
       <ExperienceModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -246,8 +248,17 @@ function ExperienceItem({
 type ExperienceModalProps = {
   open: boolean;
   onClose: () => void;
-  onSave: (data: Omit<ExperienceItemType, "id" | "order">) => void;
+  onSave: (data: Omit<ExperienceItemType, "order">) => void;
   defaultValues: ExperienceItemType | null;
+};
+
+const initialForm = {
+  company: "",
+  position: "",
+  startDate: "",
+  endDate: "",
+  description: "",
+  visible: true,
 };
 
 function ExperienceModal({
@@ -256,23 +267,19 @@ function ExperienceModal({
   onSave,
   defaultValues,
 }: ExperienceModalProps) {
-  const [form, setForm] = useState<Omit<ExperienceItemType, "id" | "order">>({
-    company: "",
-    position: "",
-    duration: "",
-    location: "",
-    summary: "",
-    visible: true,
-  });
+  const [form, setForm] =
+    useState<Omit<ExperienceItemType, "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -322,36 +329,34 @@ function ExperienceModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="duration">Duration</label>
+            <label htmlFor="startDate">Start Date</label>
             <input
               type="text"
-              name="duration"
-              placeholder="Duration"
-              value={form.duration}
+              name="startDate"
+              placeholder="Start date"
+              value={form.startDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="endDate">End Date</label>
             <input
               type="text"
-              name="location"
-              placeholder="Location"
-              value={form.location}
+              name="endDate"
+              placeholder="End date"
+              value={form.endDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
             />
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label>Summary</label>
-            <ReactQuill
-              theme="snow"
-              defaultValue={form.summary}
-              onChange={(value) => setForm({ ...form, summary: value })}
-              className="[&_.ql-editor]:min-h-[100px] [&_.ql-editor]:max-h-[100px] [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:w-full"
+            <label>Description</label>
+            <RichTextEditor
+              value={form.description ?? ""}
+              onChange={(value) => setForm({ ...form, description: value })}
             />
           </div>
         </div>
@@ -364,7 +369,6 @@ function ExperienceModal({
             variant={"default"}
             className="bg-sky-600"
             onClick={() => {
-              console.log(form.summary);
               onSave(form);
             }}
           >

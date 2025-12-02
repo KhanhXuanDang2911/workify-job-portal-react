@@ -17,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import ReactQuill from "react-quill-new";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -27,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ReferenceItem } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
+import RichTextEditor from "@/components/RichTextEditor";
 
 interface ReferenceItemType extends ReferenceItem {
   visible: boolean;
@@ -156,7 +156,10 @@ export default function ReferencesSection() {
 
       <ReferenceModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -243,26 +246,31 @@ type ReferenceModalProps = {
   defaultValues: ReferenceItemType | null;
 };
 
+const initialForm = {
+  information: "",
+  description: "",
+  visible: true,
+};
+
 function ReferenceModal({
   open,
   onClose,
   onSave,
   defaultValues,
 }: ReferenceModalProps) {
-  const [form, setForm] = useState<Omit<ReferenceItemType, "order">>({
-    information: "",
-    description: "",
-    visible: true,
-  });
+  const [form, setForm] =
+    useState<Omit<ReferenceItemType, "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -300,12 +308,10 @@ function ReferenceModal({
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label>Description</label>
-            <ReactQuill
-              theme="snow"
-              defaultValue={form.description}
+            <label>Description </label>
+            <RichTextEditor
+              value={form.description || ""}
               onChange={(value) => setForm({ ...form, description: value })}
-              className="[&_.ql-editor]:min-h-[100px] [&_.ql-editor]:max-h-[100px] [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:w-full"
             />
           </div>
         </div>

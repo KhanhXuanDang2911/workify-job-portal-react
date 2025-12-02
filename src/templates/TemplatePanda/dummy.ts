@@ -2,117 +2,129 @@ import type { ResumeData } from "@/types/resume.type";
 
 export const templatePandaDummy: ResumeData = {
   basicInfo: {
-    fullName: "Văn Hoàng Duy",
-    position: "Game Developer",
-    email: "duy.nguyen@example.com",
-    phone: "0912345678",
-    location: "Quận 1, TP.HCM",
-    website: "github.com/duynguyen",
+    fullName: "Lê Quang Dũng",
+    position: "Nhân viên Kinh doanh",
+    email: "email@example.com",
+    phone: "0839848211",
+    location: "Quận Từ Liêm, Hà Nội",
     avatarUrl:
-      "https://images.unsplash.com/photo-1728577740843-5f29c7586afe?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://cdn-web.onlive.vn/onlive/image-news/z6316153534704_68da3ded05d4e9cd60d191ea8e447709.jpg",
     customFields: [
-      { type: "GITHUB", value: "github.com/duynguyen" },
-      { type: "LINKEDIN", value: "linkedin.com/in/duynguyen" },
+      { type: "FACEBOOK", value: "facebook.com/username" },
+      { type: "INSTAGRAM", value: "instagram.com/username" },
     ],
   },
   objective: {
     description:
-      "Tôi là Game Developer với hơn 4 năm kinh nghiệm phát triển game trên Unity và Unreal Engine. Tôi đã tham gia nhiều dự án game 2D/3D trên PC và Mobile, tối ưu hóa hiệu năng và tạo trải nghiệm mượt mà cho người chơi. Tôi mong muốn đóng góp kỹ năng lập trình và sáng tạo của mình vào các dự án game chất lượng cao tại công ty của bạn.",
+      "Với hơn 3 năm kinh nghiệm làm việc tại vị trí Nhân viên kinh doanh, tôi có nền tảng vững chắc về quy trình bán hàng, kỹ năng nắm bắt tâm lý khách hàng và kinh nghiệm chốt sales. Tại công ty gần nhất, tôi đã tư vấn và xây dựng mối quan hệ bền vững với hơn 200 khách hàng lớn, đạt danh hiệu Nhân viên kinh doanh xuất sắc năm 2024. Tôi mong muốn có cơ hội làm việc tại Quý công ty để nâng cao kỹ năng chuyên môn đồng thời đóng góp sự phát triển bền vững của công ty trong tương lai.",
   },
   experience: [
     {
       order: 1,
-      company: "Công ty TNHH GameTech Studio",
-      position: "Game Developer",
-      duration: "03/2021 - 10/2025",
-      summary:
-        '<ol><li data-list="bullet">Phát triển game 3D trên Unity, tối ưu hóa performance và animation.</li><li data-list="bullet">Tích hợp hệ thống multiplayer cho game mobile và PC.</li><li data-list="bullet">Hợp tác với đội thiết kế và QA để hoàn thiện gameplay, bug fixing và cân bằng game.</li><li data-list="bullet"><strong>Thành tựu:</strong> Game "Battle Arena" đạt 1 triệu lượt tải trên App Store & Google Play, được đánh giá 4.7 sao.</li></ol>',
+      company: "Công ty cổ phần nội thất HLT",
+      position: "Chuyên viên viên kinh doanh",
+      startDate: "03/2022",
+      endDate: "07/2025",
+      description:
+        '<ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Quản lý và phát triển mối quan hệ với hơn 200 khách hàng lớn, gồm các nhóm khách hàng chiến lược trong ngành đồ gia dụng và nội thất, giúp duy trì hợp đồng dài hạn và gia tăng doanh thu. </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Phối hợp với bộ phận Marketing triển khai các chiến dịch quảng cáo, khuyến mãi và các hoạt động marketing để mở rộng tệp khách hàng tiềm năng và tăng trưởng doanh thu.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Theo dõi tình trạng đơn hàng và hỗ trợ giải đáp thắc mắc của khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Hỗ trợ giải đáp của khách hàng sau khi mua sản phẩm, giúp nâng cao trải nghiệm sau mua và duy trì mối quan hệ lâu dài với khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span><strong>Thành tựu:</strong> Đạt danh hiệu "Nhân viên xuất sắc nhất năm 2024" với doanh số vượt 15% KPI trong Quý I và Quý II.</li></ol>',
     },
     {
       order: 2,
-      company: "Công ty Cổ phần PixelFun",
-      position: "Junior Game Developer",
-      duration: "06/2019 - 02/2021",
-      summary:
-        '<ol><li data-list="bullet">Phát triển game 2D trên Unity, tối ưu UI/UX và cơ chế gameplay.</li><li data-list="bullet">Viết script gameplay, animation và hệ thống AI cơ bản.</li><li data-list="bullet">Hỗ trợ phát triển các công cụ nội bộ để tăng hiệu quả pipeline game.</li></ol>',
+      company: "Công ty TNHH TM&DV XNK Hồng Lam",
+      position: "Nhân viên kinh doanh",
+      startDate: "06/2020",
+      endDate: "02/2022",
+      description:
+        '<ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Tìm kiếm và phát triển mối quan hệ với khách hàng tiềm năng, đồng thời duy trì kết nối với khách hàng cũ, hỗ trợ giải đáp thắc mắc và xử lý các khiếu nại liên quan đến sản phẩm/dịch vụ.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Tổng hợp thông tin, đánh giá tình hình kinh doanh của đối thủ, đề xuất phương án triển khai để tăng doanh số bán hàng cho doanh nghiệp.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Gửi mail thông báo chương trình khuyến mãi, hội chợ, trải nghiệm sản phẩm cho khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Tổ chức triển khai sự kiện, chương trình PR sản phẩm của công ty.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Lên dự thảo hợp đồng, báo giá gửi khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Làm báo cáo tuần/tháng/quý về tiến độ công việc.</li></ol>',
     },
   ],
   education: [
     {
       order: 1,
-      institution: "Đại học Bách Khoa TP.HCM",
-      studyType: "Công nghệ thông tin - Chuyên ngành Game Development",
-      dateRange: "2015 - 2019",
-      score: "GPA: 3.8/4.0",
+      name: "Trường Đại học Ngoại Thương",
+      major: "Quản trị Kinh doanh",
+      startDate: "2016",
+      endDate: "2020",
+      score: "GPA: 3.7/4.0",
     },
   ],
   skills: [
     {
       order: 1,
-      name: "Unity 3D / C#",
-      description: "Phát triển gameplay, animation, scripting",
+      name: "Kỹ năng bán hàng",
+      description: "Thuyết phục và chốt hợp đồng hiệu quả",
     },
     {
       order: 2,
-      name: "Unreal Engine / C++",
-      description: "Tạo game 3D, tối ưu hiệu năng, vật lý",
+      name: "Giao tiếp",
+      description: "Khả năng giao tiếp với khách hàng và đồng nghiệp tốt",
     },
     {
       order: 3,
-      name: "AI & Game Logic",
-      description: "Thiết kế NPC, hệ thống enemy và AI gameplay",
+      name: "Marketing cơ bản",
+      description: "Triển khai các chiến dịch marketing và quảng bá sản phẩm",
     },
     {
       order: 4,
-      name: "Shader & VFX",
-      description: "Hiệu ứng hình ảnh và ánh sáng trong game",
-    },
-    {
-      order: 5,
-      name: "Git & CI/CD",
-      description: "Quản lý version, triển khai build tự động",
+      name: "Phân tích thị trường",
+      description: "Đánh giá đối thủ và xu hướng thị trường",
     },
   ],
   awards: [
-    { order: 1, title: "Game of the Year - Battle Arena", date: "12/2023" },
-    { order: 2, title: "Top Indie Game Award", date: "05/2022" },
+    { order: 1, title: "Nhân viên xuất sắc nhất năm 2024", date: "12/2024" },
+    {
+      order: 2,
+      title: "Giải thưởng bán hàng cao nhất Quý I 2023",
+      date: "03/2023",
+    },
   ],
   certifications: [
-    { order: 1, name: "Unity Certified Programmer", date: "08/2021" },
-    { order: 2, name: "Unreal Engine Developer Certificate", date: "11/2020" },
+    { order: 1, name: "Chứng chỉ Kinh doanh chuyên nghiệp", date: "05/2021" },
+    { order: 2, name: "Chứng chỉ Marketing Online", date: "08/2022" },
   ],
   projects: [
     {
       order: 1,
-      title: "Battle Arena (Mobile & PC)",
+      title: "Triển khai hệ thống CRM cho khách hàng doanh nghiệp",
       startDate: "01/2023",
-      endDate: "12/2023",
+      endDate: "06/2023",
       description:
-        "Phát triển game hành động 3D multiplayer, tối ưu hóa network và hệ thống server, triển khai trên iOS, Android và PC.",
+        "Tư vấn, triển khai và đào tạo sử dụng hệ thống quản lý quan hệ khách hàng (CRM) cho các doanh nghiệp khách hàng lớn, giúp tăng hiệu suất quản lý dữ liệu khách hàng và cải thiện doanh số.",
     },
     {
       order: 2,
-      title: "Pixel Adventure (2D Platformer)",
-      startDate: "03/2021",
-      endDate: "12/2021",
+      title: "Chương trình PR sản phẩm nội thất mới",
+      startDate: "09/2022",
+      endDate: "12/2022",
       description:
-        "Game 2D platformer cho mobile, thiết kế level, cơ chế gameplay, animation và audio integration.",
+        "Phối hợp Marketing tổ chức các chiến dịch PR và sự kiện offline, tăng nhận diện thương hiệu sản phẩm mới trong thị trường nội thất.",
     },
   ],
   references: [
     {
       order: 1,
-      information: "Trần Văn Hưng - Lead Game Developer tại GameTech Studio",
-      description: "Email: hung.tran@gametech.com | Phone: 0909876543",
+      information: "Nguyễn Văn An - Trưởng phòng Kinh doanh tại HLT",
+      description: "Email: an.nguyen@hlt.com | Phone: 0901234567",
+    },
+    {
+      order: 2,
+      information: "Trần Thị Bích - Giám đốc bán hàng tại Hồng Lam",
+      description: "Email: bich.tran@honglam.vn | Phone: 0912345678",
     },
   ],
-  interests:
-    "Chơi và phát triển game indie, tham gia hackathon về game, nghiên cứu AI trong gameplay.",
-  additionalInformation:
-    "Sẵn sàng làm việc remote hoặc onsite, yêu thích thử thách mới trong phát triển game.",
+  interests: {
+    description:
+      "Thích đọc sách về kinh doanh và marketing, tham gia các hội thảo về quản trị doanh nghiệp, chơi thể thao như bóng đá và bơi lội.",
+  },
+
+  additionalInformation: {
+    description:
+      "Sẵn sàng đi công tác xa, có khả năng làm việc dưới áp lực cao và thích học hỏi công nghệ mới để áp dụng vào công việc.",
+  },
+
   theme: {
-    primaryColor: "#1F2937",
-    bgColor: "#F9FAFB",
-    textColor: "#111827",
+    primaryColor: "#053750",
+    bgColor: "#E5E5E5",
+    textColor: "#000000",
   },
 };

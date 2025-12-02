@@ -9,6 +9,7 @@ import "./index.css";
 import "./global.css";
 import "./utils/debugToken";
 import "leaflet/dist/leaflet.css";
+import { ResumeProvider } from "@/context/ResumeContext/resumeProvider.tsx";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,9 +30,11 @@ createRoot(document.getElementById("root")!).render(
         <GoogleOAuthProvider
           clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}
         >
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
+          <ResumeProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </ResumeProvider>
         </GoogleOAuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

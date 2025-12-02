@@ -22,6 +22,7 @@ export const routes = {
   LINKEDIN_AUTHENTICATE: "linkedin/authenticate",
   NOTIFICATIONS: "notifications",
   CREATE_RESUME: "create-resume",
+  TEMPLATES_CV: "templates-cv",
 };
 
 export const employer_routes = {

@@ -154,7 +154,10 @@ export default function EducationSection() {
 
       <EducationModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingIndex(null);
+        }}
         onSave={saveItem}
         defaultValues={editingIndex !== null ? items[editingIndex] : null}
       />
@@ -191,8 +194,8 @@ function ExperienceItem({
           <div className="flex gap-2 items-center">
             <GripVertical className="cursor-move text-gray-400" />
             <div>
-              <p className="font-medium">{item.institution}</p>
-              <p className="text-sm text-gray-500">{item.studyType}</p>
+              <p className="font-medium">{item.name}</p>
+              <p className="text-sm text-gray-500">{item.major}</p>
             </div>
           </div>
           {!item.visible && (
@@ -241,29 +244,34 @@ type EducationModalProps = {
   defaultValues: EducationItemType | null;
 };
 
+const initialForm = {
+  name: "",
+  score: "",
+  major: "",
+  startDate: "",
+  endDate: "",
+  visible: true,
+};
+
 function EducationModal({
   open,
   onClose,
   onSave,
   defaultValues,
 }: EducationModalProps) {
-  const [form, setForm] = useState<Omit<EducationItemType, "id" | "order">>({
-    institution: "",
-    score: "",
-    studyType: "",
-    dateRange: "",
-    website: "",
-    visible: true,
-  });
+  const [form, setForm] =
+    useState<Omit<EducationItemType, "order">>(initialForm);
 
   useEffect(() => {
-    if (defaultValues) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { order, ...rest } = defaultValues;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm(rest);
+    if (open) {
+      if (defaultValues) {
+        const { order, ...rest } = defaultValues;
+        setForm(rest);
+      } else {
+        setForm(initialForm);
+      }
     }
-  }, [defaultValues]);
+  }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -288,61 +296,61 @@ function EducationModal({
         </DialogHeader>
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="institution">Institution</label>
+          <div className="flex flex-col gap-1 col-span-2">
+            <label htmlFor="name">Name</label>
             <input
               type="text"
-              name="institution"
-              placeholder="Institution"
-              value={form.institution}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="typeOfStudy">Type Of Study</label>
-            <input
-              type="text"
-              name="typeOfStudy"
-              placeholder="Type Of Study"
-              value={form.studyType}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="duration">Duration</label>
-            <input
-              type="text"
-              name="duration"
-              placeholder="Duration"
-              value={form.dateRange}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="score">Score</label>
-            <input
-              type="text"
-              name="score"
-              placeholder="Score"
-              value={form.score}
+              name="name"
+              placeholder="Name"
+              value={form.name}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
             />
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="website">Website</label>
+            <label htmlFor="major">Major</label>
             <input
               type="text"
-              name="website"
-              placeholder="website"
-              value={form.website}
+              name="major"
+              placeholder="Major"
+              value={form.major}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="startDate">Start date</label>
+            <input
+              type="text"
+              name="startDate"
+              placeholder="Start date"
+              value={form.startDate}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="endDate">End date</label>
+            <input
+              type="text"
+              name="endDate"
+              placeholder="End date"
+              value={form.endDate}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1 col-span-2">
+            <label htmlFor="score">Score</label>
+            <input
+              type="text"
+              name="score"
+              placeholder="Score"
+              value={form.score}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
             />

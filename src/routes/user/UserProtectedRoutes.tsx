@@ -9,6 +9,8 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROLE } from "@/constants";
 import MyApplyJobs from "@/pages/User/MyApplyJobs";
 import Notifications from "@/pages/Notifications";
+import TemplatesCV from "@/pages/TemplatesCV/TemplatesCV";
+import ResumeBuilder from "@/pages/ResumeBuilder";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -60,6 +62,22 @@ const UserProtectedRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <Notifications />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: routes.TEMPLATES_CV,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <TemplatesCV />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: routes.CREATE_RESUME,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <ResumeBuilder />
           </ProtectedRoute>
         ),
       },
