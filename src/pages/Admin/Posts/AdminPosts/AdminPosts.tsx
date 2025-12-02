@@ -27,7 +27,11 @@ import {
   Eye,
 } from "lucide-react";
 import { postService } from "@/services/post.service";
-import { PostStatusColors, PostStatusLabelEN } from "@/constants/post.constant";
+import {
+  PostStatusColors,
+  PostStatusLabelEN,
+  PostStatus,
+} from "@/constants/post.constant";
 import { admin_routes } from "@/routes/routes.const";
 import {
   AlertDialog,
@@ -71,7 +75,8 @@ export default function AdminPosts() {
     { field: SortField; direction: SortDirection }[]
   >(() => {
     const sortsParam = searchParams.get("sorts");
-    if (!sortsParam) return [];
+    // default to newest first when no sorts provided
+    if (!sortsParam) return [{ field: "createdAt", direction: "desc" }];
     return sortsParam.split(",").map((s) => {
       const [field, direction] = s.split(":");
       return {
@@ -163,6 +168,19 @@ export default function AdminPosts() {
     },
     onError: () => {
       toast.error(t("toast.error.deletePostFailed"));
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
+      postService.patchPostStatus(id, status),
+    onSuccess: () => {
+      toast.success(t("toast.success.postStatusUpdated"));
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
+    onError: () => {
+      toast.error(t("toast.error.updatePostStatusFailed"));
     },
   });
 
@@ -410,11 +428,42 @@ export default function AdminPosts() {
                   <td className="px-4 py-3">
                     <Badge variant="outline">{post.category.title}</Badge>
                   </td>
-                  <td className="px-4 py-3">{post.author.fullName}</td>
                   <td className="px-4 py-3">
-                    <Badge className={PostStatusColors[post.status]}>
-                      {PostStatusLabelEN[post.status]}
-                    </Badge>
+                    {post.userAuthor?.fullName ||
+                      post.userAuthor?.email ||
+                      post.employerAuthor?.companyName ||
+                      post.employerAuthor?.email}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="max-w-[200px]">
+                      <Select
+                        value={post.status}
+                        onValueChange={(value) => {
+                          if (value && post.id) {
+                            updateStatusMutation.mutate({
+                              id: post.id,
+                              status: value,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(PostStatus).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              <div className="flex items-center gap-2">
+                                <Badge className={PostStatusColors[status]}>
+                                  &nbsp;
+                                </Badge>
+                                <span>{PostStatusLabelEN[status]}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                     {new Date(post.createdAt).toLocaleDateString("vi-VN")}

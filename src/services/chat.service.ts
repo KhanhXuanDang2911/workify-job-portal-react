@@ -82,4 +82,12 @@ export const chatService = {
     );
     return response.data;
   },
+  // Get total unread count for current user
+  getUnreadCount: async (): Promise<ApiResponse<{ totalUnread: number }>> => {
+    const http = getHttpClient();
+    const response = await http.get<ApiResponse<{ totalUnread: number }>>(
+      `/messages/unread-count`
+    );
+    return response.data;
+  },
 };

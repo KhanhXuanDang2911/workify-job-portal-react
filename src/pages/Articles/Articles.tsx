@@ -100,6 +100,8 @@ export default function Articles() {
     queryKey: ["latest-public-posts", 6],
     queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
+    // Always refetch when this component mounts so recent posts show up quickly
+    refetchOnMount: "always",
   });
 
   // Fetch articles from API
@@ -124,13 +126,20 @@ export default function Articles() {
         ...(selectedCategoryId && { categoryId: selectedCategoryId }),
       }),
     staleTime: 5 * 60 * 1000,
+    // Ensure we refetch when the Articles page mounts so newly published posts appear
+    refetchOnMount: "always",
   });
 
   // Map PostResponse to Article format
   const mapPostToArticle = (post: PostResponse): Article => ({
     id: post.id,
     title: post.title,
-    author: post.author?.fullName || post.author?.email || "",
+    author:
+      post.userAuthor?.fullName ||
+      post.userAuthor?.email ||
+      post.employerAuthor?.companyName ||
+      post.employerAuthor?.email ||
+      "",
     date: post.createdAt
       ? new Date(post.createdAt).toLocaleDateString("en-US", {
           year: "numeric",

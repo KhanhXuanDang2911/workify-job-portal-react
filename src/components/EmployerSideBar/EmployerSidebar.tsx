@@ -3,9 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Home,
   Briefcase,
-  Users,
   FileText,
   ChevronDown,
   ChevronRight,
@@ -41,12 +39,6 @@ function getMenuItems(t: (key: string) => string) {
       ],
     },
     {
-      id: "candidates",
-      label: t("employer.sidebar.myCandidates"),
-      icon: Users,
-      href: `/employer/applications`,
-    },
-    {
       id: "blog",
       label: t("employer.sidebar.blog"),
       icon: MessageSquare,
@@ -61,6 +53,24 @@ function getMenuItems(t: (key: string) => string) {
           label: t("employer.sidebar.tipsForEmployers"),
           href: `/articles`,
           icon: MessageSquare,
+        },
+      ],
+    },
+    {
+      id: "posts",
+      label: t("employer.sidebar.posts"),
+      icon: FileText,
+      expandable: true,
+      children: [
+        {
+          label: t("employer.sidebar.myPosts"),
+          href: `/employer/posts`,
+          icon: FileText,
+        },
+        {
+          label: t("employer.sidebar.createPost"),
+          href: `/employer/posts/add`,
+          icon: FileText,
         },
       ],
     },
@@ -99,10 +109,7 @@ export default function EmployerSidebar({
   device?: string;
 }) {
   const { t } = useTranslation();
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    "jobs",
-    "candidates",
-  ]);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["jobs"]);
   const location = useLocation();
   const menuItems = getMenuItems(t);
 

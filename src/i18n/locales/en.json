@@ -46,6 +46,7 @@
       "postCreated": "Post created successfully",
       "postUpdated": "Post updated successfully",
       "postDeleted": "Post deleted successfully",
+      "postStatusUpdated": "Post status updated successfully",
       "passwordChanged": "Password changed successfully",
       "profileUpdated": "Profile updated successfully",
       "signUpSuccess": "Sign up successful",
@@ -83,6 +84,7 @@
       "createPostFailed": "An error occurred while creating the post",
       "updatePostFailed": "An error occurred while updating the post",
       "deletePostFailed": "An error occurred while deleting the post",
+      "updatePostStatusFailed": "An error occurred while updating the post status",
       "changePasswordFailed": "Failed to change password",
       "updateProfileFailed": "Failed to update profile",
       "updateAvatarFailed": "Failed to update avatar",
@@ -179,7 +181,27 @@
     "resend": "Resend",
     "accountLocked": "Your account has been locked",
     "invalidEmail": "Invalid email. Please enter your registered email",
-    "smsNotAvailable": "SMS reset is not available yet"
+    "smsNotAvailable": "SMS reset is not available yet",
+    "verifyEmail": {
+      "pendingTitle": "Verifying your email...",
+      "pendingDesc": "Please wait while we verify your email. This may take a moment.",
+      "successToast": "Email verified successfully",
+      "successTitle": "Email Verified",
+      "successDesc": "Your email has been verified successfully. You will be redirected shortly.",
+      "autoRedirect": "You will be redirected in {{count}} seconds",
+      "signInNow": "Sign in now",
+      "backToSignIn": "Back to sign in",
+      "retry": "Retry",
+      "errorToast": "Email verification failed",
+      "errorTitle": "Verification Failed"
+    },
+    "resetPassword": {
+      "linkExpiredTitle": "Reset link expired",
+      "linkExpiredDesc": "The reset link is invalid or has expired. Please request a new one.",
+      "successTitle": "Password reset successful",
+      "successDesc": "Your password has been reset successfully. You can sign in with your new password.",
+      "changePasswordTitle": "Change your password"
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -258,6 +280,7 @@
         "gender": "Gender",
         "province": "Province",
         "district": "District",
+        "industry": "Industry",
         "detailAddress": "Detail Address",
         "status": "Status",
         "role": "Role"
@@ -274,6 +297,7 @@
         "detailAddress": "Detail address",
         "selectStatus": "Select status",
         "selectRole": "Select role",
+        "selectIndustry": "Select Industry",
         "search": "Search"
       },
       "genders": {
@@ -850,6 +874,9 @@
       "jobs": "Jobs",
       "myJobs": "My Jobs",
       "postJobs": "Post Jobs",
+      "posts": "Posts",
+      "myPosts": "My Posts",
+      "createPost": "Create Post",
       "myCandidates": "My Candidates",
       "blog": "Blog",
       "hiringAdvice": "Hiring Advice",
@@ -1338,6 +1365,13 @@
     "errorSendingMessage": "Could not send message",
     "yesterday": "Yesterday"
   },
+  "messages": {
+    "title": "Messages",
+    "employerTitle": "Messages (Employer)",
+    "loading": "Loading...",
+    "noConversations": "No conversations",
+    "selectConversation": "Select a conversation to start chatting"
+  },
   "mySavedJobs": {
     "title": "Saved Jobs ({{count}})",
     "today": "Today",
@@ -1367,6 +1401,8 @@
     "birthDate": "Date of Birth",
     "gender": "Gender",
     "selectGender": "Select gender",
+    "industry": "Industry",
+    "selectIndustry": "Select Industry",
     "genderMale": "Male",
     "genderFemale": "Female",
     "genderOther": "Other",

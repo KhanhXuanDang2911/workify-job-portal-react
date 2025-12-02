@@ -198,9 +198,15 @@ const JobDetail = () => {
   ]);
 
   // Fetch top 5 attractive jobs for sidebar
+  const userIndustryId = authState?.user?.industry?.id;
+
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 5],
-    queryFn: () => jobService.getTopAttractiveJobs(5),
+    queryKey: ["top-attractive-jobs", 5, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        5,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

@@ -35,7 +35,12 @@ export default function FeaturedArticles() {
   const mapPostToArticle = (post: any) => ({
     id: post.id,
     title: post.title,
-    author: post.author?.fullName || post.author?.email || "",
+    author:
+      post.userAuthor?.fullName ||
+      post.userAuthor?.email ||
+      post.employerAuthor?.companyName ||
+      post.employerAuthor?.email ||
+      "",
     date: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "",
     excerpt: post.excerpt || post.contentText || "",
     image: post.thumbnailUrl || "/placeholder.svg",

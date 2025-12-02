@@ -6,6 +6,7 @@ type Article = {
   id?: number;
   title: string;
   author: string;
+  authorAvatar?: string | null;
   date: string;
   excerpt: string;
   image: string;
@@ -14,13 +15,14 @@ type Article = {
   readingTime?: string;
 };
 
-// Generate random avatar based on author name
-const getAvatarUrl = (name: string) => {
-  const seed = name
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return `https://i.pravatar.cc/150?img=${(seed % 70) + 1}`;
-};
+// Fallback: generate initials from name
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
 export default function ArticleCard({ article }: { article: Article }) {
   const readingTime =
@@ -64,11 +66,17 @@ export default function ArticleCard({ article }: { article: Article }) {
 
           {/* Author Info */}
           <div className="flex items-center gap-3">
-            <img
-              src={getAvatarUrl(article.author)}
-              alt={article.author}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+            {article.authorAvatar ? (
+              <img
+                src={article.authorAvatar}
+                alt={article.author}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-700">
+                {getInitials(article.author || "?")}
+              </div>
+            )}
             <div className="flex-1">
               <p className="text-sm font-semibold text-[#1e3a5f]">
                 {article.author}

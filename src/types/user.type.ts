@@ -1,5 +1,6 @@
 import type { Role, UserStatus } from "@/constants";
 import type { District, Province } from "@/types/location.type";
+import type { Industry } from "@/types/industry.type";
 
 export interface User {
   id: number;
@@ -17,4 +18,5 @@ export interface User {
   noPassword: boolean;
   role: Role;
   status: UserStatus;
+  industry?: Industry | null;
 }

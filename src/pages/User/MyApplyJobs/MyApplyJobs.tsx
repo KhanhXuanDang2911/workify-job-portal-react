@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
@@ -12,12 +12,12 @@ import {
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
 import SuggestedJobs from "@/components/SuggestedJob";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/job.service";
 import { applicationService } from "@/services/application.service";
 import { JobTypeLabelVN } from "@/constants";
 import { ApplicationStatus } from "@/types";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { routes } from "@/routes/routes.const";
 import Loading from "@/components/Loading";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -27,6 +27,7 @@ import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
 import { useUserAuth } from "@/context/user-auth";
 import { toast } from "react-toastify";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
 
 interface ApplicationJob {
   id: number;
@@ -124,6 +125,10 @@ const relativePosted = (
 export default function MyApplyJobs() {
   const { t } = useTranslation();
   const { state: userAuth } = useUserAuth();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { notifications } = useWebSocket();
+  const prevNotificationsLengthRef = useRef(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -197,9 +202,15 @@ export default function MyApplyJobs() {
   });
 
   // Fetch top attractive jobs for suggestions
+  const userIndustryId = userAuth?.user?.industry?.id;
+
   const { data: topAttractiveResponse } = useQuery({
-    queryKey: ["top-attractive-jobs", 7],
-    queryFn: () => jobService.getTopAttractiveJobs(7),
+    queryKey: ["top-attractive-jobs", 7, userIndustryId ?? null],
+    queryFn: () =>
+      jobService.getTopAttractiveJobs(
+        7,
+        userIndustryId ? { industryId: Number(userIndustryId) } : undefined
+      ),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -246,6 +257,32 @@ export default function MyApplyJobs() {
         "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
     }));
   }, [topAttractiveResponse, t]);
+
+  // Refetch applications when receiving notification about application status change
+  useEffect(() => {
+    // Check if we're on the applied-jobs page
+    const isOnAppliedJobsPage =
+      location.pathname === `/${routes.MY_APPLIED_JOBS}`;
+
+    if (!isOnAppliedJobsPage) {
+      return;
+    }
+
+    // Check if there are new notifications
+    if (notifications.length > prevNotificationsLengthRef.current) {
+      const latestNotification = notifications[0];
+
+      // Check if notification has applicationId (indicates application-related notification)
+      if (latestNotification?.applicationId) {
+        // Refetch the applications query to get updated status
+        queryClient.invalidateQueries({
+          queryKey: ["my-applications"],
+        });
+      }
+
+      prevNotificationsLengthRef.current = notifications.length;
+    }
+  }, [notifications, location.pathname, queryClient]);
 
   const totalPages = applicationsResponse?.data?.totalPages || 0;
   const currentApplications = applications;

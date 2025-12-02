@@ -24,6 +24,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { districtService, provinceService, userService } from "@/services";
+import { industryService } from "@/services/industry.service";
 import { Eye, EyeOff, Search, XIcon, ArrowLeft, Camera } from "lucide-react";
 import { admin_routes } from "@/routes/routes.const";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -89,6 +90,7 @@ const schema = z.object({
     ),
   provinceId: z.number().int().positive().optional(),
   districtId: z.number().int().positive().optional(),
+  industryId: z.number().int().positive().optional(),
   detailAddress: z.string().nullable().optional(),
   status: UserStatusEnum,
   role: RoleEnum,
@@ -100,7 +102,7 @@ const defaultAvatar =
   "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
 
 export default function EditUser() {
-  const { t } = useTranslation();
+  const { t, currentLanguage, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -134,6 +136,7 @@ export default function EditUser() {
       role: userData?.role,
       provinceId: userData?.province?.id,
       districtId: userData?.district?.id,
+      industryId: userData?.industry?.id,
     },
   });
 
@@ -148,6 +151,7 @@ export default function EditUser() {
         gender: userData.gender || undefined,
         provinceId: userData.province?.id,
         districtId: userData.district?.id,
+        industryId: userData.industry?.id,
         detailAddress: userData.detailAddress || "",
         status: userData.status,
         role: userData.role,
@@ -215,6 +219,15 @@ export default function EditUser() {
     form.setValue("gender", userData?.gender || undefined);
   }, [districts, userData, form]);
 
+  // load industries for select
+  const { data: industriesResponse } = useQuery({
+    queryKey: ["all-industries"],
+    queryFn: () => industryService.getAllIndustries(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const industries = industriesResponse?.data || [];
+
   const onSubmit = (data: UserFormData) => {
     const formData = new FormData();
 
@@ -246,9 +259,11 @@ export default function EditUser() {
         className="mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back
+        {t("common.previous")}
       </Button>
-      <h2 className="text-2xl font-semibold mb-4 text-[#4B9D7C]"> User</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-[#4B9D7C]">
+        {t("admin.userManagement.title")}
+      </h2>
       <form
         className="grid grid-cols-2 gap-4"
         onSubmit={form.handleSubmit(onSubmit, onError)}
@@ -297,10 +312,10 @@ export default function EditUser() {
           {/* Birth Date */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
-              Birth Date
+              {t("admin.createUser.fields.birthDate")}
             </label>
             <Input
-              placeholder="dd/MM/yyyy"
+              placeholder={t("admin.createUser.placeholders.birthDate")}
               {...form.register("birthDate")}
               className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
             />
@@ -313,7 +328,9 @@ export default function EditUser() {
 
           {/* Gender */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Gender</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              {t("admin.createUser.fields.gender")}
+            </label>
             <Controller
               name="gender"
               control={form.control}
@@ -323,7 +340,11 @@ export default function EditUser() {
                   value={field.value ?? ""}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue
+                      placeholder={t(
+                        "admin.createUser.placeholders.selectGender"
+                      )}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.keys(GENDER_ENUM).map((key) => (
@@ -332,8 +353,7 @@ export default function EditUser() {
                         value={key}
                         className="focus:bg-sky-200 focus:text-[#1967d2]"
                       >
-                        {key.charAt(0).toUpperCase() +
-                          key.slice(1).toLowerCase()}
+                        {t(`admin.createUser.genders.${key}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -346,10 +366,11 @@ export default function EditUser() {
         {/* Full Name */}
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Full Name <span className="text-red-600">*</span>
+            {t("admin.createUser.fields.fullName")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Full Name"
+            placeholder={t("admin.createUser.placeholders.fullName")}
             {...form.register("fullName")}
             className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -363,10 +384,11 @@ export default function EditUser() {
         {/* Email */}
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Email <span className="text-red-600">*</span>
+            {t("admin.createUser.fields.email")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Email"
+            placeholder={t("admin.createUser.placeholders.email")}
             {...form.register("email")}
             className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -380,7 +402,7 @@ export default function EditUser() {
         {/* Password */}
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Password{" "}
+            {t("admin.createUser.fields.password")}{" "}
             <span className="text-gray-400">
               (Leave blank to keep current password)
             </span>
@@ -388,7 +410,7 @@ export default function EditUser() {
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder={t("admin.createUser.placeholders.password")}
               {...form.register("password")}
               className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C] pr-10"
             />
@@ -414,10 +436,10 @@ export default function EditUser() {
         {/* Phone Number */}
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Phone Number
+            {t("admin.createUser.fields.phoneNumber")}
           </label>
           <Input
-            placeholder="Phone number"
+            placeholder={t("admin.createUser.placeholders.phoneNumber")}
             {...form.register("phoneNumber")}
             className="focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -429,7 +451,9 @@ export default function EditUser() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Province</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createUser.fields.province")}
+          </label>
           <Controller
             name="provinceId"
             control={form.control}
@@ -441,7 +465,11 @@ export default function EditUser() {
                 }}
               >
                 <SelectTrigger className=" w-full">
-                  <SelectValue placeholder="Province" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createUser.placeholders.selectProvince"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent className="w-96 p-0">
                   <div className="p-4">
@@ -509,7 +537,9 @@ export default function EditUser() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1">District</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createUser.fields.district")}
+          </label>
           <Controller
             name="districtId"
             control={form.control}
@@ -523,7 +553,11 @@ export default function EditUser() {
                   className="w-full"
                   disabled={!form.watch("provinceId")}
                 >
-                  <SelectValue placeholder="Select District" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createUser.placeholders.selectDistrict"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {districts?.map((d) => (
@@ -546,12 +580,56 @@ export default function EditUser() {
           )}
         </div>
 
-        <div className="col-span-2">
+        {/* Industry */}
+        <div className="col-span-2 md:col-span-1">
           <label className="block text-sm text-gray-600 mb-1">
-            Detail Address
+            {t("admin.createUser.fields.industry")}
+          </label>
+          <Controller
+            name="industryId"
+            control={form.control}
+            render={({ field }) => (
+              <Select
+                value={field.value ? String(field.value) : ""}
+                onValueChange={(val) =>
+                  field.onChange(val ? Number(val) : undefined)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createUser.placeholders.selectIndustry"
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {industries.length > 0 ? (
+                    industries.map((ind: any) => (
+                      <SelectItem key={ind.id} value={String(ind.id)}>
+                        {i18n?.exists(ind.name)
+                          ? t(ind.name)
+                          : currentLanguage === "en"
+                            ? ind.engName || ind.name
+                            : ind.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-gray-500">
+                      {t("admin.createUser.noIndustry")}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+
+        <div className="col-span-2 md:col-span-1">
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createUser.fields.detailAddress")}
           </label>
           <Input
-            placeholder="Detail address"
+            placeholder={t("admin.createUser.placeholders.detailAddress")}
             {...form.register("detailAddress")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -564,7 +642,8 @@ export default function EditUser() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Status <span className="text-red-600">*</span>
+            {t("admin.createUser.fields.status")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Controller
             name="status"
@@ -572,7 +651,11 @@ export default function EditUser() {
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createUser.placeholders.selectStatus"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(UserStatusLabelEN).map((key) => (
@@ -598,7 +681,8 @@ export default function EditUser() {
         {/* Role */}
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Role <span className="text-red-600">*</span>
+            {t("admin.createUser.fields.role")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Controller
             name="role"
@@ -606,11 +690,17 @@ export default function EditUser() {
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue
+                    placeholder={t("admin.createUser.placeholders.selectRole")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="JOB_SEEKER">Job Seeker</SelectItem>
+                  <SelectItem value="ADMIN">
+                    {t("admin.createUser.roles.ADMIN")}
+                  </SelectItem>
+                  <SelectItem value="JOB_SEEKER">
+                    {t("admin.createUser.roles.JOB_SEEKER")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -622,7 +712,7 @@ export default function EditUser() {
             disabled={updateMutation.isPending}
             className="bg-[#4B9D7C] text-white px-6"
           >
-            {updateMutation.isPending ? "Updating..." : "Save Changes"}
+            {updateMutation.isPending ? t("common.loading") : t("common.save")}
           </Button>
         </div>
       </form>

@@ -10,15 +10,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Pagination from "@/components/Pagination";
 import { ResponsiveContext } from "@/context/ResponsiveContext";
-import { applicationService, jobService } from "@/services";
+import { applicationService } from "@/services";
 import { ApplicationStatus } from "@/types";
 import Loading from "@/components/Loading";
 import CandidateSheet from "@/components/CandidateSheet";
-import type { ApplicationResponse } from "@/types";
+// type ApplicationResponse not used in this file
 import { toast } from "react-toastify";
 import { FileText, FileTextIcon, Download, MessageCircle } from "lucide-react";
 import {
@@ -104,33 +105,27 @@ const formatDate = (dateString?: string, locale: string = "vi-VN"): string => {
 function Candidates() {
   const { t, i18n } = useTranslation();
   const { device } = useContext(ResponsiveContext);
+  // Shared grid columns for header and rows to ensure alignment
+  const gridColumns =
+    "80px minmax(160px,1fr) 140px minmax(140px,1fr) 160px 150px minmax(160px,2fr)";
+  const params = useParams();
+
   const [selectedJobId, setSelectedJobId] = useState<number | undefined>(
-    undefined
+    params.jobId ? Number(params.jobId) : undefined
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Fetch employer's jobs
-  const { data: jobsResponse } = useQuery({
-    queryKey: ["my-jobs-for-applications"],
-    queryFn: async () => {
-      const res = await jobService.getMyJobs({
-        pageNumber: 1,
-        pageSize: 100, // Get all jobs
-      });
-      return res.data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const jobs = jobsResponse?.items || [];
+  // NOTE: removed fetching all jobs here to avoid extra API calls.
+  // The page now relies on `selectedJobId` from the route params.
 
   // Fetch applications by job
   const {
     data: applicationsResponse,
     isLoading: isLoadingApplications,
     isError: isErrorApplications,
+    refetch: refetchApplications,
   } = useQuery({
     queryKey: ["applications-by-job", selectedJobId, currentPage, itemsPerPage],
     queryFn: () =>
@@ -139,7 +134,8 @@ function Candidates() {
         pageSize: itemsPerPage,
       }),
     enabled: !!selectedJobId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
   });
 
   const queryClient = useQueryClient();
@@ -186,9 +182,24 @@ function Candidates() {
   });
 
   // Auto-select first job if available
-  if (jobs.length > 0 && !selectedJobId) {
-    setSelectedJobId(jobs[0].id);
-  }
+  // Previously this component fetched all jobs and auto-selected the first one.
+  // That behaviour was removed per request: the page now expects `jobId` from
+  // the URL. If `params.jobId` changes, update selection accordingly.
+  useEffect(() => {
+    if (params.jobId) {
+      const id = Number(params.jobId);
+      if (!isNaN(id)) {
+        setSelectedJobId(id);
+      }
+    }
+  }, [params.jobId]);
+
+  // Refetch applications when job is selected/changed
+  useEffect(() => {
+    if (selectedJobId) {
+      refetchApplications();
+    }
+  }, [selectedJobId, refetchApplications]);
 
   // Handle change status
   const handleChangeStatus = (
@@ -316,10 +327,7 @@ function Candidates() {
       const currentDate = new Date()
         .toLocaleDateString("vi-VN")
         .replace(/\//g, "-");
-      const selectedJob = jobs.find((job) => job.id === selectedJobId);
-      const jobTitle = selectedJob
-        ? selectedJob.jobTitle.replace(/[^a-zA-Z0-9]/g, "_")
-        : "All";
+      const jobTitle = selectedJobId ? `job_${selectedJobId}` : "All";
       const filename = `${t("employer.applications.excel.filenamePrefix")}_${jobTitle}_${currentDate}.xlsx`;
 
       // Write file
@@ -349,29 +357,7 @@ function Candidates() {
                 count: totalCandidates,
               })}
             </h2>
-            {jobs.length > 0 && (
-              <Select
-                value={selectedJobId ? String(selectedJobId) : ""}
-                onValueChange={(value) => setSelectedJobId(Number(value))}
-              >
-                <SelectTrigger className="w-[250px] bg-white border-[#e2e7f5]">
-                  <SelectValue
-                    placeholder={t("employer.applications.selectJob")}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobs.map((job) => (
-                    <SelectItem
-                      key={job.id}
-                      value={String(job.id)}
-                      className="focus:bg-sky-200 focus:text-[#1967d2]"
-                    >
-                      {job.jobTitle}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            {/* Job select removed — page relies on jobId in URL */}
           </div>
 
           <div
@@ -437,16 +423,17 @@ function Candidates() {
             </div>
           ) : (
             <>
-              {/* Table Container with Horizontal Scroll */}
+              {/* Table Container with Horizontal Scroll (fluid widths) */}
               <div className="overflow-x-auto">
-                <div className="min-w-[1400px]">
+                {/* Make inner wrapper size to content so header width matches rows */}
+                <div className="w-max inline-block">
                   {/* Desktop Table Header */}
                   {device === "desktop" && (
                     <div
-                      className="hidden md:grid items-center gap-6 px-6 py-4 bg-gradient-to-r from-[#f8f8fd] to-[#f0f4ff] border-b-2 border-[#e2e7f5] text-sm font-semibold text-[#7c8493] uppercase tracking-wide"
+                      className="hidden md:grid items-center gap-6 px-6 py-4 bg-gradient-to-r from-[#f8f8fd] to-[#f0f4ff] border-b-2 border-[#e2e7f5] text-sm font-semibold text-[#7c8493] uppercase tracking-wide box-border"
                       style={{
-                        gridTemplateColumns:
-                          "80px 220px 150px 200px 180px 150px 380px",
+                        // Use fluid column sizes so table can shrink without forcing horizontal scroll
+                        gridTemplateColumns: gridColumns,
                       }}
                     >
                       <div className="text-center">
@@ -473,10 +460,10 @@ function Candidates() {
                             {/* Desktop Row */}
                             <CandidateSheet candidate={application}>
                               <div
-                                className="hidden md:grid items-center gap-6 px-6 py-4 border-b border-[#e2e7f5] hover:bg-gradient-to-r hover:from-[#f8f8fd] hover:to-[#f0f4ff] transition-all cursor-pointer"
+                                className="hidden md:grid items-center gap-6 px-6 py-4 border-b border-[#e2e7f5] hover:bg-gradient-to-r hover:from-[#f8f8fd] hover:to-[#f0f4ff] transition-all cursor-pointer box-border"
                                 style={{
-                                  gridTemplateColumns:
-                                    "80px 220px 150px 200px 180px 150px 380px",
+                                  // Match header's fluid layout for rows
+                                  gridTemplateColumns: gridColumns,
                                 }}
                               >
                                 <div className="text-center text-[#7c8493] font-semibold text-base">
@@ -547,7 +534,7 @@ function Candidates() {
                                 </div>
 
                                 <div
-                                  className="flex items-center gap-2"
+                                  className="flex items-center gap-2 flex-wrap min-w-0"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <Button
@@ -609,10 +596,10 @@ function Candidates() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <div>
-                                      <h3 className="font-medium text-[#202430] truncate">
-                                        {application.fullName}
-                                      </h3>
+                                    <div
+                                      className="flex items-center gap-2 flex-wrap min-w-0"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
                                       <p className="text-sm text-[#7c8493] mt-1 truncate">
                                         {application.job.jobTitle}
                                       </p>

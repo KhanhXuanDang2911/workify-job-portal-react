@@ -13,12 +13,16 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { JobType, JobLevel } from "@/constants/job.constant";
 import { formatSalaryCompact } from "@/utils/formatSalary";
 
-export default function FeaturedJobs() {
+export default function FeaturedJobs({
+  overrideJobs,
+}: {
+  overrideJobs?: any[];
+}) {
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
 
-  // useQuery to fetch top attractive jobs with limit = 8
+  // If overrideJobs provided, use them; otherwise fetch top attractive jobs
   const {
     data: apiResponse,
     isLoading,
@@ -28,11 +32,14 @@ export default function FeaturedJobs() {
     queryKey: ["top-attractive-jobs", 8],
     queryFn: () => jobService.getTopAttractiveJobs(8),
     staleTime: 5 * 60 * 1000,
+    enabled: !overrideJobs,
   });
 
-  const itemsFromApi: any[] = Array.isArray(apiResponse?.data)
-    ? apiResponse.data
-    : [];
+  const itemsFromApi: any[] = overrideJobs
+    ? overrideJobs
+    : Array.isArray(apiResponse?.data)
+      ? apiResponse.data
+      : [];
 
   const formatSalary = (item: any) => {
     return formatSalaryCompact(item, t);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
   XIcon,
   Trash2,
   LocationEdit,
+  Users,
 } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import {
@@ -36,7 +37,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { jobService } from "@/services";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { employer_routes } from "@/routes/routes.const";
 import MultiSortButton from "@/components/MultiSortButton";
 import { toast } from "react-toastify";
@@ -51,6 +52,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { ResponsiveContext } from "@/context/ResponsiveContext";
 
 type SortField =
   | "jobTitle"
@@ -62,9 +65,13 @@ type SortDirection = "asc" | "desc";
 
 export default function Jobs() {
   const { t } = useTranslation();
+  const { device } = useContext(ResponsiveContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const { notifications } = useWebSocket();
+  const prevNotificationsLengthRef = useRef(0);
 
   // Get values from URL params
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
@@ -279,6 +286,32 @@ export default function Jobs() {
       setIndustriesOptions(industriesData);
     }
   }, [industriesData]);
+
+  // Refetch jobs when receiving notification about job status change
+  useEffect(() => {
+    // Check if we're on the jobs management page
+    const isOnJobsPage =
+      location.pathname === `${employer_routes.BASE}/${employer_routes.JOBS}`;
+
+    if (!isOnJobsPage) {
+      return;
+    }
+
+    // Check if there are new notifications
+    if (notifications.length > prevNotificationsLengthRef.current) {
+      const latestNotification = notifications[0];
+
+      // Check if notification has jobId (indicates job-related notification)
+      if (latestNotification?.jobId) {
+        // Refetch the jobs query to get updated status
+        queryClient.invalidateQueries({
+          queryKey: ["my-jobs"],
+        });
+      }
+
+      prevNotificationsLengthRef.current = notifications.length;
+    }
+  }, [notifications, location.pathname, queryClient]);
 
   const handleSortChange = useCallback(
     (field: SortField, newDirection: SortDirection | null) => {
@@ -534,232 +567,345 @@ export default function Jobs() {
       </div>
 
       {/* Table */}
-      <div
-        className="bg-card rounded-lg border mx-4 shadow-sm overflow-x-auto [&::-webkit-scrollbar]:w-1
-  [&::-webkit-scrollbar-track]:rounded-full
-  [&::-webkit-scrollbar-track]:bg-teal-100
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-teal-500"
-      >
-        <table className="min-w-screen w-full border-collapse text-sm table-fixed">
-          {/* Table Header */}
-          <thead>
-            <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
-              <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs truncate">
-                <div className="flex items-center justify-start gap-2">
-                  <span>{t("employer.jobs.table.jobTitle")}</span>
-                  <MultiSortButton
-                    direction={
-                      sorts.find((s) => s.field === "jobTitle")?.direction ??
-                      null
-                    }
-                    onChange={(newDirection) =>
-                      handleSortChange("jobTitle", newDirection)
-                    }
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                <div className="flex items-center justify-start gap-2">
-                  <span>{t("employer.jobs.table.status")}</span>
-                  <MultiSortButton
-                    direction={
-                      sorts.find((s) => s.field === "status")?.direction ?? null
-                    }
-                    onChange={(newDirection) =>
-                      handleSortChange("status", newDirection)
-                    }
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 w-[240px] font-semibold uppercase tracking-wide text-xs">
-                {t("employer.jobs.table.location")}
-              </th>
-              <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
-                <div className="flex items-center justify-start gap-2">
-                  <span>{t("employer.jobs.table.expirationDate")}</span>
-                  <MultiSortButton
-                    direction={
-                      sorts.find((s) => s.field === "expirationDate")
-                        ?.direction ?? null
-                    }
-                    onChange={(newDirection) =>
-                      handleSortChange("expirationDate", newDirection)
-                    }
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
-                {t("employer.jobs.table.type")}
-              </th>
-              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                {t("employer.jobs.table.level")}
-              </th>
-              <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">
-                {t("employer.jobs.table.salary")}
-              </th>
-              <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
-                <div className="flex items-center justify-start gap-2">
-                  <span>{t("employer.jobs.table.createdAt")}</span>
-                  <MultiSortButton
-                    direction={
-                      sorts.find((s) => s.field === "createdAt")?.direction ??
-                      null
-                    }
-                    onChange={(newDirection) =>
-                      handleSortChange("createdAt", newDirection)
-                    }
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[130px]">
-                <div className="flex items-center justify-start gap-2">
-                  <span>{t("employer.jobs.table.updatedAt")}</span>
-                  <MultiSortButton
-                    direction={
-                      sorts.find((s) => s.field === "updatedAt")?.direction ??
-                      null
-                    }
-                    onChange={(newDirection) =>
-                      handleSortChange("updatedAt", newDirection)
-                    }
-                  />
-                </div>
-              </th>
-              <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
-                {t("employer.jobs.table.contactPerson")}
-              </th>
-              <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
-                {t("employer.jobs.table.phoneNumber")}
-              </th>
-              <th className="px-4 py-3 text-right w-[120px]">
-                {t("employer.jobs.table.action")}
-              </th>
-            </tr>
-          </thead>
+      <div className="bg-card rounded-lg border mx-4 shadow-sm overflow-hidden">
+        {device === "desktop" ? (
+          <div className="overflow-x-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-teal-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-teal-500">
+            <table className="min-w-screen w-full border-collapse text-sm table-fixed">
+              {/* Table Header */}
+              <thead>
+                <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
+                  <th className="px-4 py-3 w-[280px] font-semibold uppercase tracking-wide text-xs truncate">
+                    <div className="flex items-center justify-start gap-2">
+                      <span>{t("employer.jobs.table.jobTitle")}</span>
+                      <MultiSortButton
+                        direction={
+                          sorts.find((s) => s.field === "jobTitle")
+                            ?.direction ?? null
+                        }
+                        onChange={(newDirection) =>
+                          handleSortChange("jobTitle", newDirection)
+                        }
+                      />
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
+                    <div className="flex items-center justify-start gap-2">
+                      <span>{t("employer.jobs.table.status")}</span>
+                      <MultiSortButton
+                        direction={
+                          sorts.find((s) => s.field === "status")?.direction ??
+                          null
+                        }
+                        onChange={(newDirection) =>
+                          handleSortChange("status", newDirection)
+                        }
+                      />
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 w-[240px] font-semibold uppercase tracking-wide text-xs">
+                    {t("employer.jobs.table.location")}
+                  </th>
+                  <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
+                    <div className="flex items-center justify-start gap-2">
+                      <span>{t("employer.jobs.table.expirationDate")}</span>
+                      <MultiSortButton
+                        direction={
+                          sorts.find((s) => s.field === "expirationDate")
+                            ?.direction ?? null
+                        }
+                        onChange={(newDirection) =>
+                          handleSortChange("expirationDate", newDirection)
+                        }
+                      />
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 w-[90px] font-semibold uppercase tracking-wide text-xs">
+                    {t("employer.jobs.table.type")}
+                  </th>
+                  <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
+                    {t("employer.jobs.table.level")}
+                  </th>
+                  <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">
+                    {t("employer.jobs.table.salary")}
+                  </th>
+                  <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
+                    <div className="flex items-center justify-start gap-2">
+                      <span>{t("employer.jobs.table.createdAt")}</span>
+                      <MultiSortButton
+                        direction={
+                          sorts.find((s) => s.field === "createdAt")
+                            ?.direction ?? null
+                        }
+                        onChange={(newDirection) =>
+                          handleSortChange("createdAt", newDirection)
+                        }
+                      />
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[130px]">
+                    <div className="flex items-center justify-start gap-2">
+                      <span>{t("employer.jobs.table.updatedAt")}</span>
+                      <MultiSortButton
+                        direction={
+                          sorts.find((s) => s.field === "updatedAt")
+                            ?.direction ?? null
+                        }
+                        onChange={(newDirection) =>
+                          handleSortChange("updatedAt", newDirection)
+                        }
+                      />
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wide text-xs w-[160px]">
+                    {t("employer.jobs.table.contactPerson")}
+                  </th>
+                  <th className="px-4 py-3 w-[100px] font-semibold uppercase tracking-wide text-xs">
+                    {t("employer.jobs.table.phoneNumber")}
+                  </th>
+                  <th className="px-4 py-3 text-right w-[180px]">
+                    {t("employer.jobs.table.action")}
+                  </th>
+                </tr>
+              </thead>
 
-          {/* Table Body */}
-          <tbody>
+              {/* Table Body */}
+              <tbody>
+                {isLoadingJobsData ? (
+                  <tr>
+                    <td
+                      colSpan={12}
+                      className="text-center py-10 text-muted-foreground italic"
+                    >
+                      {t("common.loading")}
+                    </td>
+                  </tr>
+                ) : myJobs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={12}
+                      className="text-center py-10 text-muted-foreground"
+                    >
+                      <img
+                        src="/empty-folder.png"
+                        alt="Empty"
+                        className="mx-auto w-20 opacity-70"
+                      />
+                      <p className="mt-2 text-sm text-gray-500">
+                        {t("employer.jobs.noJobsFound")}
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  myJobs.map((job) => (
+                    <tr
+                      key={job.id}
+                      className="hover:bg-muted/30 border-b last:border-none transition-colors"
+                    >
+                      <td className="px-4 py-3 w-[280px] font-medium  text-gray-900 dark:text-gray-100 truncate">
+                        {job.jobTitle}
+                      </td>
+                      <td className="px-4 py-3 w-[100px]">
+                        <Badge
+                          variant="outline"
+                          className={JobStatusColors[job.status]}
+                        >
+                          {JobStatusLabelEN[job.status]}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 w-[240px]  truncate">
+                        <ul>
+                          {job.jobLocations.map((location) => (
+                            <li
+                              key={location.id}
+                              className="flex items-center gap-1"
+                            >
+                              <LocationEdit
+                                size={12}
+                                className="flex-shrink-0"
+                                strokeWidth={1.8}
+                                color="#1967d2"
+                              />
+                              {location.district.name}, {location.province.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">
+                        {new Date(
+                          job.expirationDate as string
+                        ).toLocaleDateString("vi-VN")}
+                      </td>
+                      <td className="px-4 py-3 w-[90px]">
+                        {JobTypeLabelEN[job.jobType]}
+                      </td>
+                      <td className="px-4 py-3 w-[100px]">
+                        {JobLevelLabelEN[job.jobLevel]}
+                      </td>
+                      <td className="px-4 py-3 w-[150px]">
+                        {job.salaryType === SalaryType.RANGE &&
+                          `${job.minSalary}-${job.maxSalary} ${job.salaryUnit}`}
+                        {job.salaryType === SalaryType.GREATER_THAN &&
+                          `> ${job.minSalary} ${job.salaryUnit}`}
+                        {job.salaryType === SalaryType.NEGOTIABLE &&
+                          SalaryTypeLabelEN[SalaryType.NEGOTIABLE]}
+                        {job.salaryType === SalaryType.COMPETITIVE &&
+                          SalaryTypeLabelEN[SalaryType.COMPETITIVE]}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">
+                        {new Date(job.createdAt as string).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </td>
+                      <td className="px-4 py-3 w-[130px]">
+                        {new Date(job.updatedAt as string).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </td>
+                      <td className="px-4 py-3 w-[160px]">
+                        {job.contactPerson}
+                      </td>
+                      <td className="px-4 py-3 w-[160px]">{job.phoneNumber}</td>
+                      <td className="px-4 py-3 text-right w-[180px] whitespace-nowrap">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(
+                                `${employer_routes.BASE}/${employer_routes.APPLICATIONS}/${job.id}`
+                              );
+                            }}
+                            className="bg-blue-500 flex-shrink-0 p-2"
+                          >
+                            <Users className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditJob(job.id);
+                            }}
+                            className="bg-green-500 flex-shrink-0 p-2"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(job.id);
+                            }}
+                            className="bg-red-500 flex-shrink-0 p-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          // Mobile / Tablet: render responsive cards
+          <div className="grid grid-cols-1 gap-4 p-4">
             {isLoadingJobsData ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="text-center py-10 text-muted-foreground italic"
-                >
-                  {t("common.loading")}
-                </td>
-              </tr>
+              <div className="text-center py-8">{t("common.loading")}</div>
             ) : myJobs.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="text-center py-10 text-muted-foreground"
-                >
-                  <img
-                    src="/empty-folder.png"
-                    alt="Empty"
-                    className="mx-auto w-20 opacity-70"
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    {t("employer.jobs.noJobsFound")}
-                  </p>
-                </td>
-              </tr>
+              <div className="text-center py-8">
+                <img
+                  src="/empty-folder.png"
+                  alt="Empty"
+                  className="mx-auto w-20 opacity-70"
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  {t("employer.jobs.noJobsFound")}
+                </p>
+              </div>
             ) : (
               myJobs.map((job) => (
-                <tr
+                <div
                   key={job.id}
-                  className="hover:bg-muted/30 border-b last:border-none transition-colors"
+                  className="bg-white border rounded-lg p-4 shadow-sm"
                 >
-                  <td className="px-4 py-3 w-[280px] font-medium  text-gray-900 dark:text-gray-100 truncate">
-                    {job.jobTitle}
-                  </td>
-                  <td className="px-4 py-3 w-[100px]">
-                    <Badge
-                      variant="outline"
-                      className={JobStatusColors[job.status]}
-                    >
-                      {JobStatusLabelEN[job.status]}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 w-[240px]  truncate">
-                    <ul>
-                      {job.jobLocations.map((location) => (
-                        <li
-                          key={location.id}
-                          className="flex items-center gap-1"
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-semibold truncate">
+                        {job.jobTitle}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                        <Badge
+                          variant="outline"
+                          className={JobStatusColors[job.status]}
                         >
-                          <LocationEdit
-                            size={12}
-                            className="flex-shrink-0"
-                            strokeWidth={1.8}
-                            color="#1967d2"
-                          />
-                          {location.district.name}, {location.province.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">
-                    {new Date(job.expirationDate as string).toLocaleDateString(
-                      "vi-VN"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 w-[90px]">
-                    {JobTypeLabelEN[job.jobType]}
-                  </td>
-                  <td className="px-4 py-3 w-[100px]">
-                    {JobLevelLabelEN[job.jobLevel]}
-                  </td>
-                  <td className="px-4 py-3 w-[150px]">
-                    {job.salaryType === SalaryType.RANGE &&
-                      `${job.minSalary}-${job.maxSalary} ${job.salaryUnit}`}
-                    {job.salaryType === SalaryType.GREATER_THAN &&
-                      `> ${job.minSalary} ${job.salaryUnit}`}
-                    {job.salaryType === SalaryType.NEGOTIABLE &&
-                      SalaryTypeLabelEN[SalaryType.NEGOTIABLE]}
-                    {job.salaryType === SalaryType.COMPETITIVE &&
-                      SalaryTypeLabelEN[SalaryType.COMPETITIVE]}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 w-[130px]">
-                    {new Date(job.createdAt as string).toLocaleDateString(
-                      "vi-VN"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 w-[130px]">
-                    {new Date(job.updatedAt as string).toLocaleDateString(
-                      "vi-VN"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 w-[160px]">{job.contactPerson}</td>
-                  <td className="px-4 py-3 w-[160px]">{job.phoneNumber}</td>
-                  <td className="px-4 py-3 text-right w-[120px]">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditJob(job.id);
-                        }}
-                        className="bg-green-500"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(job.id);
-                        }}
-                        className="bg-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                          {JobStatusLabelEN[job.status]}
+                        </Badge>
+                        <span className="truncate">
+                          {job.jobLocations
+                            .map(
+                              (l) => `${l.district.name}, ${l.province.name}`
+                            )
+                            .join(" • ")}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500">
+                        {t("employer.jobs.table.expirationDate")} :{" "}
+                        {new Date(
+                          job.expirationDate as string
+                        ).toLocaleDateString("vi-VN")}
+                      </div>
+                      <div className="mt-1 text-sm text-gray-500">
+                        {JobTypeLabelEN[job.jobType]} •{" "}
+                        {JobLevelLabelEN[job.jobLevel]} •{" "}
+                        {job.salaryType === SalaryType.RANGE
+                          ? `${job.minSalary}-${job.maxSalary} ${job.salaryUnit}`
+                          : job.salaryType === SalaryType.GREATER_THAN
+                            ? `> ${job.minSalary} ${job.salaryUnit}`
+                            : SalaryTypeLabelEN[job.salaryType]}
+                      </div>
                     </div>
-                  </td>
-                </tr>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="text-sm text-gray-500">
+                        {new Date(job.updatedAt as string).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(
+                              `${employer_routes.BASE}/${employer_routes.APPLICATIONS}/${job.id}`
+                            );
+                          }}
+                          className="bg-blue-500"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditJob(job.id);
+                          }}
+                          className="bg-green-500"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(job.id);
+                          }}
+                          className="bg-red-500"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))
             )}
-          </tbody>
-        </table>
+          </div>
+        )}
 
         {totalMyJobs > 0 && (
           <div className="flex flex-col items-center justify-between px-3 md:px-6 py-4 border-t">
