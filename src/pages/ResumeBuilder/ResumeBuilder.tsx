@@ -23,7 +23,7 @@ const TRANSFORM_COMPONENT_DEFAULT_STYLE = {
 function ResumeBuilder() {
   const { resume, setResume, setResumeName, resumeName, template } =
     useResume();
-
+  console.log(resume);
   const templateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

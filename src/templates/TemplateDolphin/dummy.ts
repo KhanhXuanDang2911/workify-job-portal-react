@@ -20,6 +20,7 @@ export const templateDolphinDummy: ResumeData = {
   },
   experience: [
     {
+      isHidden: false,
       order: 1,
       company: "Công ty cổ phần nội thất HLT",
       position: "Chuyên viên viên kinh doanh",
@@ -29,6 +30,7 @@ export const templateDolphinDummy: ResumeData = {
         '<ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Quản lý và phát triển mối quan hệ với hơn 200 khách hàng lớn, gồm các nhóm khách hàng chiến lược trong ngành đồ gia dụng và nội thất, giúp duy trì hợp đồng dài hạn và gia tăng doanh thu. </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Phối hợp với bộ phận Marketing triển khai các chiến dịch quảng cáo, khuyến mãi và các hoạt động marketing để mở rộng tệp khách hàng tiềm năng và tăng trưởng doanh thu.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Theo dõi tình trạng đơn hàng và hỗ trợ giải đáp thắc mắc của khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Hỗ trợ giải đáp của khách hàng sau khi mua sản phẩm, giúp nâng cao trải nghiệm sau mua và duy trì mối quan hệ lâu dài với khách hàng.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span><strong>Thành tựu:</strong> Đạt danh hiệu "Nhân viên xuất sắc nhất năm 2024" với doanh số vượt 15% KPI trong Quý I và Quý II.</li></ol>',
     },
     {
+      isHidden: false,
       order: 2,
       company: "Công ty TNHH TM&DV XNK Hồng Lam",
       position: "Nhân viên kinh doanh",
@@ -40,6 +42,7 @@ export const templateDolphinDummy: ResumeData = {
   ],
   education: [
     {
+      isHidden: false,
       order: 1,
       name: "Trường Đại học Ngoại Thương",
       major: "Quản trị Kinh doanh",
@@ -50,40 +53,61 @@ export const templateDolphinDummy: ResumeData = {
   ],
   skills: [
     {
+      isHidden: false,
       order: 1,
       name: "Kỹ năng bán hàng",
       description: "Thuyết phục và chốt hợp đồng hiệu quả",
     },
     {
+      isHidden: false,
       order: 2,
       name: "Giao tiếp",
       description: "Khả năng giao tiếp với khách hàng và đồng nghiệp tốt",
     },
     {
+      isHidden: false,
       order: 3,
       name: "Marketing cơ bản",
       description: "Triển khai các chiến dịch marketing và quảng bá sản phẩm",
     },
     {
+      isHidden: false,
       order: 4,
       name: "Phân tích thị trường",
       description: "Đánh giá đối thủ và xu hướng thị trường",
     },
   ],
   awards: [
-    { order: 1, title: "Nhân viên xuất sắc nhất năm 2024", date: "12/2024" },
     {
+      isHidden: false,
+      order: 1,
+      title: "Nhân viên xuất sắc nhất năm 2024",
+      date: "12/2024",
+    },
+    {
+      isHidden: false,
       order: 2,
       title: "Giải thưởng bán hàng cao nhất Quý I 2023",
       date: "03/2023",
     },
   ],
   certifications: [
-    { order: 1, name: "Chứng chỉ Kinh doanh chuyên nghiệp", date: "05/2021" },
-    { order: 2, name: "Chứng chỉ Marketing Online", date: "08/2022" },
+    {
+      isHidden: false,
+      order: 1,
+      name: "Chứng chỉ Kinh doanh chuyên nghiệp",
+      date: "05/2021",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      name: "Chứng chỉ Marketing Online",
+      date: "08/2022",
+    },
   ],
   projects: [
     {
+      isHidden: false,
       order: 1,
       title: "Triển khai hệ thống CRM cho khách hàng doanh nghiệp",
       startDate: "01/2023",
@@ -92,6 +116,7 @@ export const templateDolphinDummy: ResumeData = {
         "Tư vấn, triển khai và đào tạo sử dụng hệ thống quản lý quan hệ khách hàng (CRM) cho các doanh nghiệp khách hàng lớn, giúp tăng hiệu suất quản lý dữ liệu khách hàng và cải thiện doanh số.",
     },
     {
+      isHidden: false,
       order: 2,
       title: "Chương trình PR sản phẩm nội thất mới",
       startDate: "09/2022",
@@ -102,17 +127,20 @@ export const templateDolphinDummy: ResumeData = {
   ],
   references: [
     {
+      isHidden: false,
       order: 1,
       information: "Nguyễn Văn An - Trưởng phòng Kinh doanh tại HLT",
       description: "Email: an.nguyen@hlt.com | Phone: 0901234567",
     },
     {
+      isHidden: false,
       order: 2,
       information: "Trần Thị Bích - Giám đốc bán hàng tại Hồng Lam",
       description: "Email: bich.tran@honglam.vn | Phone: 0912345678",
     },
   ],
   interests: {
+    isHidden: false,
     description:
       "Thích đọc sách về kinh doanh và marketing, tham gia các hội thảo về quản trị doanh nghiệp, chơi thể thao như bóng đá và bơi lội.",
   },

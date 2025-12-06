@@ -86,6 +86,7 @@ export interface ProjectItem {
   description?: string; // richtext
 }
 export interface InterestItem {
+  isHidden: boolean;
   description: string; // richtext
 }
 export interface ReferenceItem {
@@ -117,17 +118,17 @@ export interface ResumeData {
     customFields?: CustomField[];
   };
 
-  objective?: ObjectiveItem;
+  objective: ObjectiveItem;
 
-  experience?: ExperienceItem[];
-  education?: EducationItem[];
-  skills?: SkillItem[];
-  awards?: AwardItem[];
-  certifications?: CertificationItem[];
-  interests?: InterestItem;
-  projects?: ProjectItem[];
-  references?: ReferenceItem[];
-  additionalInformation?: AdditionalInformationItem;
+  experience: ExperienceItem[];
+  education: EducationItem[];
+  skills: SkillItem[];
+  awards: AwardItem[];
+  certifications: CertificationItem[];
+  interests: InterestItem;
+  projects: ProjectItem[];
+  references: ReferenceItem[];
+  additionalInformation: AdditionalInformationItem;
 
   theme: Theme;
 }
