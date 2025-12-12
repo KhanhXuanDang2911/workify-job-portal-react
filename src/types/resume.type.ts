@@ -112,9 +112,9 @@ export interface ResumeData {
     position: string;
     fullName: string;
     email: string;
-    phone: string;
+    phoneNumber: string;
     location: string;
-    avatarUrl?: string;
+    profilePhoto?: string;
     customFields?: CustomField[];
   };
 
@@ -132,5 +132,27 @@ export interface ResumeData {
 
   theme: Theme;
 }
+// API Types
+export interface ResumeItem {
+  id: number;
+  title: string;
+  template: TemplateType;
+  data: ResumeData;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export type SectionType = keyof ResumeData;
+export interface ResumePayload {
+  title: string;
+  template: TemplateType;
+  data: ResumeData;
+}
+
+// SectionType includes all resume sections except theme and additionalInformation
+export type SectionType = keyof Omit<
+  ResumeData,
+  "theme" | "additionalInformation"
+>;
+
+// EditableSectionType for sections that can be hidden/cleared (excludes basicInfo)
+export type EditableSectionType = Exclude<SectionType, "basicInfo">;

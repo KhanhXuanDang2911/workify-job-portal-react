@@ -5,10 +5,9 @@ export const templateRabbitDummy: ResumeData = {
     fullName: "Lê Quang Dũng",
     position: "Nhân viên Kinh doanh",
     email: "email@example.com",
-    phone: "0839848211",
+    phoneNumber: "0839848211",
     location: "Quận Từ Liêm, Hà Nội",
-    avatarUrl:
-      "https://cdnphoto.dantri.com.vn/1w9CPc-X5J2WhlvqQtZQnarq-Og=/thumb_w/1020/2024/10/03/quanghung-12-1727967721737.jpg",
+    profilePhoto: "/default-avatar.jpg",
     customFields: [
       { type: "FACEBOOK", value: "facebook.com/username" },
       { type: "INSTAGRAM", value: "instagram.com/username" },

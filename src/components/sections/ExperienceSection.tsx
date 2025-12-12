@@ -27,30 +27,36 @@ import { cn } from "@/lib/utils";
 import type { ExperienceItem } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
 import RichTextEditor from "@/components/RichTextEditor";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ExperienceItemType extends ExperienceItem {
   visible: boolean;
 }
 
 export default function ExperienceSection() {
+  const { t } = useTranslation();
   const { resume, setResume } = useResume();
-  const [items, setItems] = useState<ExperienceItemType[]>([]);
+  const [items, setItems] = useState<ExperienceItemType[]>(() => {
+    return (resume.experience || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+  });
 
-  const isInitialized = useRef(false);
+  // Sync local state with context when resume.experience changes from external source (e.g., API load)
+  const isLocalUpdate = useRef(false);
 
   useEffect(() => {
-    if (
-      !isInitialized.current &&
-      resume.experience &&
-      resume.experience.length > 0
-    ) {
-      isInitialized.current = true;
-      const updatedItems = resume.experience.map((item) => ({
-        ...item,
-        visible: true,
-      }));
-      setItems(updatedItems);
+    if (isLocalUpdate.current) {
+      isLocalUpdate.current = false;
+      return;
     }
+
+    const updatedItems = (resume.experience || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+    setItems(updatedItems);
   }, [resume.experience]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,11 +64,13 @@ export default function ExperienceSection() {
   const dragItemIndex = useRef<number | null>(null);
 
   const saveToContext = (updatedItems: ExperienceItemType[]) => {
+    isLocalUpdate.current = true;
     setResume({
       ...resume,
-      experience: updatedItems
-        .filter((item) => item.visible)
-        .map(({ visible, ...rest }) => rest),
+      experience: updatedItems.map(({ visible, ...rest }) => ({
+        ...rest,
+        isHidden: !visible,
+      })),
     });
   };
 
@@ -157,7 +165,7 @@ export default function ExperienceSection() {
         className="w-full border-dashed border-gray-400 py-6 hover:bg-gray-200 hover:border-gray-600 cursor-pointer"
         onClick={openAddModal}
       >
-        <Plus /> Add a new item
+        <Plus /> {t("resumeBuilder.actions.addItem")}
       </Button>
 
       <ExperienceModal
@@ -189,6 +197,7 @@ function ExperienceItem({
   onToggleVisible,
   ...dragProps
 }: ExperienceItemProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -218,27 +227,29 @@ function ExperienceItem({
           className="cursor-pointer hover:bg-gray-200"
         >
           <HatGlasses />
-          {item.visible ? "Hide" : "Show"}
+          {item.visible
+            ? t("resumeBuilder.actions.hide")
+            : t("resumeBuilder.actions.show")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onEdit}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Edit />
-          Edit
+          {t("resumeBuilder.actions.edit")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onCopy}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Copy />
-          Copy
+          {t("resumeBuilder.actions.copy")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onRemove}
           className="cursor-pointer hover:bg-gray-200 text-red-500"
         >
-          <Trash /> Remove
+          <Trash /> {t("resumeBuilder.actions.remove")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -258,6 +269,7 @@ const initialForm = {
   startDate: "",
   endDate: "",
   description: "",
+  isHidden: false,
   visible: true,
 };
 
@@ -267,8 +279,12 @@ function ExperienceModal({
   onSave,
   defaultValues,
 }: ExperienceModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] =
     useState<Omit<ExperienceItemType, "order">>(initialForm);
+  const [errors, setErrors] = useState<{ company?: string; position?: string }>(
+    {}
+  );
 
   useEffect(() => {
     if (open) {
@@ -278,11 +294,30 @@ function ExperienceModal({
       } else {
         setForm(initialForm);
       }
+      setErrors({});
     }
   }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const validate = () => {
+    const newErrors: { company?: string; position?: string } = {};
+    if (!form.company.trim()) {
+      newErrors.company = t("resumeBuilder.validation.required");
+    }
+    if (!form.position.trim()) {
+      newErrors.position = t("resumeBuilder.validation.required");
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      onSave(form);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -292,12 +327,12 @@ function ExperienceModal({
             {defaultValues ? (
               <>
                 <Edit2 className="w-5 h-5" />
-                Edit item
+                {t("resumeBuilder.actions.editItem")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Create a new item
+                {t("resumeBuilder.actions.createItem")}
               </>
             )}
           </DialogTitle>
@@ -305,35 +340,49 @@ function ExperienceModal({
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
           <div className="flex flex-col gap-1">
-            <label htmlFor="company">Company</label>
+            <label htmlFor="company">
+              {t("resumeBuilder.forms.experience.company")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="company"
-              placeholder="Company"
+              placeholder={t("resumeBuilder.forms.experience.company")}
               value={form.company}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.company ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.company && (
+              <span className="text-red-500 text-xs">{errors.company}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="position">Position</label>
+            <label htmlFor="position">
+              {t("resumeBuilder.forms.experience.position")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="position"
-              placeholder="Position"
+              placeholder={t("resumeBuilder.forms.experience.position")}
               value={form.position}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.position ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.position && (
+              <span className="text-red-500 text-xs">{errors.position}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="startDate">Start Date</label>
+            <label htmlFor="startDate">
+              {t("resumeBuilder.forms.experience.startDate")}
+            </label>
             <input
               type="text"
               name="startDate"
-              placeholder="Start date"
+              placeholder={t("resumeBuilder.forms.experience.startDate")}
               value={form.startDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -341,11 +390,13 @@ function ExperienceModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="endDate">End Date</label>
+            <label htmlFor="endDate">
+              {t("resumeBuilder.forms.experience.endDate")}
+            </label>
             <input
               type="text"
               name="endDate"
-              placeholder="End date"
+              placeholder={t("resumeBuilder.forms.experience.endDate")}
               value={form.endDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -353,7 +404,7 @@ function ExperienceModal({
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label>Description</label>
+            <label>{t("resumeBuilder.forms.experience.description")}</label>
             <RichTextEditor
               value={form.description ?? ""}
               onChange={(value) => setForm({ ...form, description: value })}
@@ -363,16 +414,14 @@ function ExperienceModal({
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("resumeBuilder.actions.cancel")}
           </Button>
           <Button
             variant={"default"}
             className="bg-sky-600"
-            onClick={() => {
-              onSave(form);
-            }}
+            onClick={handleSave}
           >
-            Save
+            {t("resumeBuilder.actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

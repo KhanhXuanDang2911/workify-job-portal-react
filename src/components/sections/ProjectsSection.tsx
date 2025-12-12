@@ -10,6 +10,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Dialog,
   DialogContent,
@@ -33,23 +34,29 @@ interface ProjectItemType extends ProjectItem {
 }
 
 export default function ProjectsSection() {
+  const { t } = useTranslation();
   const { resume, setResume } = useResume();
-  const [items, setItems] = useState<ProjectItemType[]>([]);
-  const isInitialized = useRef(false);
+  const [items, setItems] = useState<ProjectItemType[]>(() => {
+    return (resume.projects || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+  });
+
+  // Sync local state with context when resume.projects changes from external source (e.g., API load)
+  const isLocalUpdate = useRef(false);
 
   useEffect(() => {
-    if (
-      !isInitialized.current &&
-      resume.projects &&
-      resume.projects.length > 0
-    ) {
-      isInitialized.current = true;
-      const updatedItems = resume.projects.map((item) => ({
-        ...item,
-        visible: true,
-      }));
-      setItems(updatedItems);
+    if (isLocalUpdate.current) {
+      isLocalUpdate.current = false;
+      return;
     }
+
+    const updatedItems = (resume.projects || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+    setItems(updatedItems);
   }, [resume.projects]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -57,11 +64,13 @@ export default function ProjectsSection() {
   const dragItemIndex = useRef<number | null>(null);
 
   const saveToContext = (updatedItems: ProjectItemType[]) => {
+    isLocalUpdate.current = true;
     setResume({
       ...resume,
-      projects: updatedItems
-        .filter((item) => item.visible)
-        .map(({ visible, ...rest }) => rest),
+      projects: updatedItems.map(({ visible, ...rest }) => ({
+        ...rest,
+        isHidden: !visible,
+      })),
     });
   };
 
@@ -151,7 +160,7 @@ export default function ProjectsSection() {
         className="w-full border-dashed border-gray-400 py-6 hover:bg-gray-200 hover:border-gray-600 cursor-pointer"
         onClick={openAddModal}
       >
-        <Plus /> Add a new item
+        <Plus /> {t("resumeBuilder.actions.addItem")}
       </Button>
 
       <ProjectModal
@@ -183,6 +192,7 @@ function ProjectItem({
   onToggleVisible,
   ...dragProps
 }: ProjectItemProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -214,27 +224,29 @@ function ProjectItem({
           className="cursor-pointer hover:bg-gray-200"
         >
           <HatGlasses />
-          {item.visible ? "Hide" : "Show"}
+          {item.visible
+            ? t("resumeBuilder.actions.hide")
+            : t("resumeBuilder.actions.show")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onEdit}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Edit />
-          Edit
+          {t("resumeBuilder.actions.edit")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onCopy}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Copy />
-          Copy
+          {t("resumeBuilder.actions.copy")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onRemove}
           className="cursor-pointer hover:bg-gray-200 text-red-500"
         >
-          <Trash /> Remove
+          <Trash /> {t("resumeBuilder.actions.remove")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -253,6 +265,7 @@ const initialForm = {
   startDate: "",
   endDate: "",
   description: "",
+  isHidden: false,
   visible: true,
 };
 
@@ -262,7 +275,9 @@ function ProjectModal({
   onSave,
   defaultValues,
 }: ProjectModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<Omit<ProjectItemType, "order">>(initialForm);
+  const [errors, setErrors] = useState<{ title?: string }>({});
 
   useEffect(() => {
     if (open) {
@@ -272,11 +287,27 @@ function ProjectModal({
       } else {
         setForm(initialForm);
       }
+      setErrors({});
     }
   }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const validate = () => {
+    const newErrors: { title?: string } = {};
+    if (!form.title.trim()) {
+      newErrors.title = t("resumeBuilder.validation.required");
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      onSave(form);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -286,12 +317,12 @@ function ProjectModal({
             {defaultValues ? (
               <>
                 <Edit2 className="w-5 h-5" />
-                Edit item
+                {t("resumeBuilder.actions.editItem")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Create a new item
+                {t("resumeBuilder.actions.createItem")}
               </>
             )}
           </DialogTitle>
@@ -299,33 +330,43 @@ function ProjectModal({
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="title">Title</label>
+            <label htmlFor="title">
+              {t("resumeBuilder.forms.projects.title")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="title"
-              placeholder="Title"
+              placeholder={t("resumeBuilder.forms.projects.title")}
               value={form.title}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.title ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.title && (
+              <span className="text-red-500 text-xs">{errors.title}</span>
+            )}
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="startDate">Start Date</label>
+            <label htmlFor="startDate">
+              {t("resumeBuilder.forms.projects.startDate")}
+            </label>
             <input
               type="text"
               name="startDate"
-              placeholder="Start Date"
+              placeholder={t("resumeBuilder.forms.projects.startDate")}
               value={form.startDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="startDate">End Date</label>
+            <label htmlFor="endDate">
+              {t("resumeBuilder.forms.projects.endDate")}
+            </label>
             <input
               type="text"
               name="endDate"
-              placeholder="End Date"
+              placeholder={t("resumeBuilder.forms.projects.endDate")}
               value={form.endDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -333,7 +374,7 @@ function ProjectModal({
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label>Description</label>
+            <label>{t("resumeBuilder.forms.projects.description")}</label>
             <RichTextEditor
               value={form.description || ""}
               onChange={(value) => setForm({ ...form, description: value })}
@@ -343,14 +384,14 @@ function ProjectModal({
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("resumeBuilder.actions.cancel")}
           </Button>
           <Button
             variant={"default"}
             className="bg-sky-600"
-            onClick={() => onSave(form)}
+            onClick={handleSave}
           >
-            Save
+            {t("resumeBuilder.actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

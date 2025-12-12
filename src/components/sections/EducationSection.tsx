@@ -26,37 +26,46 @@ import {
 import { cn } from "@/lib/utils";
 import type { EducationItem } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface EducationItemType extends EducationItem {
   visible: boolean;
 }
 
 export default function EducationSection() {
+  const { t } = useTranslation();
   const { resume, setResume } = useResume();
-  const [items, setItems] = useState<EducationItemType[]>([]);
-  const isInitialized = useRef(false);
+  const [items, setItems] = useState<EducationItemType[]>(() => {
+    return (resume.education || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+  });
+
+  // Sync local state with context when resume.education changes from external source (e.g., API load)
+  const isLocalUpdate = useRef(false);
 
   useEffect(() => {
-    if (
-      !isInitialized.current &&
-      resume.education &&
-      resume.education.length > 0
-    ) {
-      isInitialized.current = true;
-      const updatedItems = resume.education.map((item) => ({
-        ...item,
-        visible: true,
-      }));
-      setItems(updatedItems);
+    if (isLocalUpdate.current) {
+      isLocalUpdate.current = false;
+      return;
     }
+
+    const updatedItems = (resume.education || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+    setItems(updatedItems);
   }, [resume.education]);
 
   const saveToContext = (updatedItems: EducationItemType[]) => {
+    isLocalUpdate.current = true;
     setResume({
       ...resume,
-      education: updatedItems
-        .filter((i) => i.visible)
-        .map(({ visible, ...rest }) => rest),
+      education: updatedItems.map(({ visible, ...rest }) => ({
+        ...rest,
+        isHidden: !visible,
+      })),
     });
   };
 
@@ -149,7 +158,7 @@ export default function EducationSection() {
         className="w-full border-dashed border-gray-400 py-6 hover:bg-gray-200 hover:border-gray-600 cursor-pointer"
         onClick={openAddModal}
       >
-        <Plus /> Add a new item
+        <Plus /> {t("resumeBuilder.actions.addItem")}
       </Button>
 
       <EducationModal
@@ -181,6 +190,7 @@ function ExperienceItem({
   onToggleVisible,
   ...dragProps
 }: EducationItemProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -209,28 +219,30 @@ function ExperienceItem({
           onClick={onToggleVisible}
           className="cursor-pointer hover:bg-gray-200"
         >
-          <HatGlasses />
-          {item.visible ? "Hide" : "Show"}
+          <HatGlasses />{" "}
+          {item.visible
+            ? t("resumeBuilder.actions.hide")
+            : t("resumeBuilder.actions.show")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onEdit}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Edit />
-          Edit
+          {t("resumeBuilder.actions.edit")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onCopy}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Copy />
-          Copy
+          {t("resumeBuilder.actions.copy")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onRemove}
           className="cursor-pointer hover:bg-gray-200 text-red-500"
         >
-          <Trash /> Remove
+          <Trash /> {t("resumeBuilder.actions.remove")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -250,6 +262,7 @@ const initialForm = {
   major: "",
   startDate: "",
   endDate: "",
+  isHidden: false,
   visible: true,
 };
 
@@ -259,8 +272,10 @@ function EducationModal({
   onSave,
   defaultValues,
 }: EducationModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] =
     useState<Omit<EducationItemType, "order">>(initialForm);
+  const [errors, setErrors] = useState<{ name?: string; major?: string }>({});
 
   useEffect(() => {
     if (open) {
@@ -270,11 +285,30 @@ function EducationModal({
       } else {
         setForm(initialForm);
       }
+      setErrors({});
     }
   }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const validate = () => {
+    const newErrors: { name?: string; major?: string } = {};
+    if (!form.name.trim()) {
+      newErrors.name = t("resumeBuilder.validation.required");
+    }
+    if (!form.major.trim()) {
+      newErrors.major = t("resumeBuilder.validation.required");
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      onSave(form);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -284,12 +318,12 @@ function EducationModal({
             {defaultValues ? (
               <>
                 <Edit2 className="w-5 h-5" />
-                Edit item
+                {t("resumeBuilder.actions.editItem")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Create a new item
+                {t("resumeBuilder.actions.createItem")}
               </>
             )}
           </DialogTitle>
@@ -297,35 +331,49 @@ function EducationModal({
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">
+              {t("resumeBuilder.forms.education.school")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="name"
-              placeholder="Name"
+              placeholder={t("resumeBuilder.forms.education.school")}
               value={form.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.name ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.name && (
+              <span className="text-red-500 text-xs">{errors.name}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="major">Major</label>
+            <label htmlFor="major">
+              {t("resumeBuilder.forms.education.field")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="major"
-              placeholder="Major"
+              placeholder={t("resumeBuilder.forms.education.field")}
               value={form.major}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.major ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.major && (
+              <span className="text-red-500 text-xs">{errors.major}</span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="startDate">Start date</label>
+            <label htmlFor="startDate">
+              {t("resumeBuilder.forms.education.startDate")}
+            </label>
             <input
               type="text"
               name="startDate"
-              placeholder="Start date"
+              placeholder={t("resumeBuilder.forms.education.startDate")}
               value={form.startDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -333,11 +381,13 @@ function EducationModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="endDate">End date</label>
+            <label htmlFor="endDate">
+              {t("resumeBuilder.forms.education.endDate")}
+            </label>
             <input
               type="text"
               name="endDate"
-              placeholder="End date"
+              placeholder={t("resumeBuilder.forms.education.endDate")}
               value={form.endDate}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -345,11 +395,13 @@ function EducationModal({
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="score">Score</label>
+            <label htmlFor="score">
+              {t("resumeBuilder.forms.education.score")}
+            </label>
             <input
               type="text"
               name="score"
-              placeholder="Score"
+              placeholder={t("resumeBuilder.forms.education.score")}
               value={form.score}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -359,14 +411,14 @@ function EducationModal({
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("resumeBuilder.actions.cancel")}
           </Button>
           <Button
             variant={"default"}
             className="bg-sky-600"
-            onClick={() => onSave(form)}
+            onClick={handleSave}
           >
-            Save
+            {t("resumeBuilder.actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

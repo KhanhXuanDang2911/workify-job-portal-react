@@ -17,6 +17,7 @@ import CreatePassword from "@/pages/CreatePassword";
 import GuestRoute from "@/routes/GuestRoute";
 import LinkedInAuthenticate from "@/pages/LinkedInAuthenticate";
 import ResumeBuilder from "@/pages/ResumeBuilder";
+import { ResumeProvider } from "@/context/ResumeContext/resumeProvider";
 const UserPublicRoutes: RouteObject[] = [
   {
     path: routes.BASE,
@@ -87,8 +88,12 @@ const UserPublicRoutes: RouteObject[] = [
         element: <LinkedInAuthenticate />,
       },
       {
-        path: routes.CREATE_RESUME,
-        element: <ResumeBuilder />,
+        path: `${routes.CREATE_RESUME}/:template?`,
+        element: (
+          <ResumeProvider>
+            <ResumeBuilder />
+          </ResumeProvider>
+        ),
       },
     ],
   },

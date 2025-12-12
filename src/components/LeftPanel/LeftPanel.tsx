@@ -2,11 +2,11 @@ import {
   BadgeCheck,
   Briefcase,
   ChevronRight,
+  Eye,
   FolderGit2,
   Gamepad2,
   GraduationCap,
   Home,
-  MoveHorizontal,
   Plus,
   Target,
   Trophy,
@@ -15,9 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { useEffect, useRef, useState } from "react";
-
-import { cn } from "@/lib/utils";
+import { useRef } from "react";
 import BasicInformationSection from "@/components/sections/BasicInformationSection";
 import ObjectiveSection from "@/components/sections/ObjectiveSection";
 import EducationSection from "@/components/sections/EducationSection";
@@ -30,69 +28,105 @@ import ReferencesSection from "@/components/sections/ReferencesSection";
 import SectionActionsMenu from "@/components/SectionActionsMenu";
 import ExperienceSection from "@/components/sections/ExperienceSection";
 import type { SectionType } from "@/types/resume.type";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useResume } from "@/context/ResumeContext/useResume";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const sections: {
   id: SectionType;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  label: string;
+  labelKey: string;
   component: React.ComponentType;
 }[] = [
   {
     id: "basicInfo",
     icon: User,
-    label: "Basic Information",
+    labelKey: "resumeBuilder.sections.basicInfo",
     component: BasicInformationSection,
   },
   {
     id: "objective",
     icon: Target,
-    label: "Objective",
+    labelKey: "resumeBuilder.sections.objective",
     component: ObjectiveSection,
   },
   {
     id: "experience",
     icon: Briefcase,
-    label: "Experience",
+    labelKey: "resumeBuilder.sections.experience",
     component: ExperienceSection,
   },
   {
     id: "education",
     icon: GraduationCap,
-    label: "Education",
+    labelKey: "resumeBuilder.sections.education",
     component: EducationSection,
   },
-  { id: "skills", icon: Wrench, label: "Skills", component: SkillsSection },
-  { id: "awards", icon: Trophy, label: "Awards", component: AwardsSection },
+  {
+    id: "skills",
+    icon: Wrench,
+    labelKey: "resumeBuilder.sections.skills",
+    component: SkillsSection,
+  },
+  {
+    id: "awards",
+    icon: Trophy,
+    labelKey: "resumeBuilder.sections.awards",
+    component: AwardsSection,
+  },
   {
     id: "certifications",
     icon: BadgeCheck,
-    label: "Certifications",
+    labelKey: "resumeBuilder.sections.certifications",
     component: CertificationsSection,
   },
   {
     id: "interests",
     icon: Gamepad2,
-    label: "Interests",
+    labelKey: "resumeBuilder.sections.interests",
     component: InterestsSection,
   },
   {
     id: "projects",
     icon: FolderGit2,
-    label: "Projects",
+    labelKey: "resumeBuilder.sections.projects",
     component: ProjectsSection,
   },
   {
     id: "references",
     icon: Users,
-    label: "References",
+    labelKey: "resumeBuilder.sections.references",
     component: ReferencesSection,
   },
 ];
-const MAX_PANEL_WIDTH = 500;
+
+// Sections that support isHidden (array sections + interests)
+type HideableSectionType =
+  | "experience"
+  | "education"
+  | "skills"
+  | "awards"
+  | "certifications"
+  | "projects"
+  | "references"
+  | "interests";
+
+const HIDEABLE_SECTIONS: HideableSectionType[] = [
+  "experience",
+  "education",
+  "skills",
+  "awards",
+  "certifications",
+  "projects",
+  "references",
+  "interests",
+];
+
 function LeftPanel() {
-  const [panelWidth, setPanelWidth] = useState(MAX_PANEL_WIDTH);
-  const isResizingRef = useRef(false);
-  const moveRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+  const { resumeId, resume, setResume } = useResume();
+  const isEditMode = !!resumeId;
 
   const detailRefs = useRef<Record<string, HTMLDetailsElement | null>>({});
 
@@ -112,31 +146,55 @@ function LeftPanel() {
     detailEl.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleMouseDownOnMove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isResizingRef.current = true;
+  // Check if a section is hidden
+  const isSectionHidden = (sectionId: SectionType): boolean => {
+    if (!HIDEABLE_SECTIONS.includes(sectionId as HideableSectionType)) {
+      return false;
+    }
+
+    const sectionData = resume[sectionId as HideableSectionType];
+
+    if (sectionId === "interests") {
+      return resume.interests?.isHidden ?? false;
+    }
+
+    if (Array.isArray(sectionData)) {
+      // Section is hidden if ALL items are hidden or if there are no items
+      if (sectionData.length === 0) return false;
+      return sectionData.every((item) => item.isHidden);
+    }
+
+    return false;
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizingRef.current) return;
-    const newWidth = Math.max(260, Math.min(e.clientX - 44, MAX_PANEL_WIDTH));
-    setPanelWidth(newWidth);
-    moveRef.current!.style.backgroundColor = "rgb(14 165 233)";
-  };
+  // Unhide a section
+  const unhideSection = (sectionId: SectionType) => {
+    if (!HIDEABLE_SECTIONS.includes(sectionId as HideableSectionType)) return;
 
-  const handleMouseUp = () => {
-    isResizingRef.current = false;
-    moveRef.current!.style.backgroundColor = "rgb(243 244 246)";
-  };
+    const sectionData = resume[sectionId as HideableSectionType];
 
-  useEffect(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
+    if (sectionId === "interests") {
+      setResume({
+        ...resume,
+        interests: {
+          ...resume.interests,
+          isHidden: false,
+        },
+      });
+      return;
+    }
+
+    if (Array.isArray(sectionData)) {
+      const unhiddenItems = sectionData.map((item) => ({
+        ...item,
+        isHidden: false,
+      }));
+      setResume({
+        ...resume,
+        [sectionId]: unhiddenItems,
+      });
+    }
+  };
 
   return (
     <div
@@ -162,7 +220,7 @@ function LeftPanel() {
           </div>
         </div>
 
-        {sections.map(({ id, icon: Icon, label }) => (
+        {sections.map(({ id, icon: Icon, labelKey }) => (
           <div
             key={id}
             className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full"
@@ -181,7 +239,7 @@ function LeftPanel() {
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
             "
             >
-              {label}
+              {t(labelKey)}
             </div>
           </div>
         ))}
@@ -206,43 +264,78 @@ function LeftPanel() {
       <div
         id="panel-details"
         className="h-[calc(100vh-64px)]
- overflow-y-auto p-6 space-y-8 bg-[#F1F2F6] relative
+ overflow-y-auto p-4 xl:p-6 space-y-6 xl:space-y-8 bg-[#F1F2F6] relative
             [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:rounded-full
   [&::-webkit-scrollbar-track]:bg-gray-200
   [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-300"
-        style={{ width: `${panelWidth}px` }}
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  w-[276px] xl:w-[500px]"
       >
-        {sections.map(({ id, label, icon: Icon, component: Component }) => (
-          <details
-            key={id}
-            className="group border-b border-gray-400 pb-4 open:pb-6"
-            ref={(el) => (detailRefs.current[id] = el)}
-          >
-            <summary className="flex items-center justify-between cursor-pointer list-none">
-              <div className="flex items-center gap-3">
-                <ChevronRight className="w-5 h-5 transition-transform group-open:rotate-90" />
-                <Icon className="w-5 h-5" />
-                <h2 className="text-lg font-semibold">{label}</h2>
-              </div>
-              <SectionActionsMenu section={id} />
-            </summary>
-            <div className="mt-4">
-              <Component />
-            </div>
-          </details>
-        ))}
-      </div>
+        {sections.map(({ id, labelKey, icon: Icon, component: Component }) => {
+          const isHidden = isSectionHidden(id);
 
-      <div
-        ref={moveRef}
-        onMouseDown={handleMouseDownOnMove}
-        className={cn(
-          "absolute top-1/2 -right-3 w-8 h-8 z-50 cursor-grab flex items-center justify-center bg-gray-100 rounded-full"
-        )}
-      >
-        <MoveHorizontal strokeWidth={1} />
+          return (
+            <details
+              key={id}
+              className={cn(
+                "group border-b border-gray-400 pb-4 open:pb-6",
+                isHidden && "opacity-60"
+              )}
+              ref={(el) => {
+                detailRefs.current[id] = el;
+              }}
+              open={isEditMode}
+            >
+              <summary className="flex items-center justify-between cursor-pointer list-none">
+                <div className="flex items-center gap-3">
+                  <ChevronRight className="w-5 h-5 transition-transform group-open:rotate-90" />
+                  <Icon
+                    className={cn("w-5 h-5", isHidden && "text-gray-400")}
+                  />
+                  <h2
+                    className={cn(
+                      "text-lg font-semibold",
+                      isHidden && "text-gray-400 line-through"
+                    )}
+                  >
+                    {t(labelKey)}
+                  </h2>
+                  {isHidden && (
+                    <span className="text-xs bg-gray-300 text-gray-600 px-2 py-0.5 rounded">
+                      {t("resumeBuilder.sections.hidden")}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  {isHidden && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        unhideSection(id);
+                      }}
+                      className="h-8 px-2 text-xs hover:bg-gray-200"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      {t("resumeBuilder.actions.show")}
+                    </Button>
+                  )}
+                  <SectionActionsMenu section={id} />
+                </div>
+              </summary>
+              <div
+                className={cn(
+                  "mt-4",
+                  isHidden && "pointer-events-none opacity-50"
+                )}
+              >
+                <Component />
+              </div>
+            </details>
+          );
+        })}
       </div>
     </div>
   );

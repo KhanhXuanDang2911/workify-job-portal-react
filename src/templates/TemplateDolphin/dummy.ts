@@ -5,10 +5,9 @@ export const templateDolphinDummy: ResumeData = {
     fullName: "Lê Quang Dũng",
     position: "Nhân viên Kinh doanh",
     email: "email@example.com",
-    phone: "0839848211",
+    phoneNumber: "0839848211",
     location: "Quận Từ Liêm, Hà Nội",
-    avatarUrl:
-      "https://media.istockphoto.com/id/1390330373/photo/young-business-woman-with-crossed-arms-outdoor-portrait.webp?a=1&s=612x612&w=0&k=20&c=eDVVOJpJOBZsmFrlsZbWvDa_fF6UCOP56UzqgThDYR4=",
+    profilePhoto: "/default-avatar.jpg",
     customFields: [
       { type: "FACEBOOK", value: "facebook.com/username" },
       { type: "INSTAGRAM", value: "instagram.com/username" },

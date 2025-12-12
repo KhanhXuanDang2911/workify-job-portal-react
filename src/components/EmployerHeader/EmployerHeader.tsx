@@ -12,7 +12,6 @@ import {
   Settings,
   LogOut,
   Briefcase,
-  Users,
   Bookmark,
   FileText,
   Building,
@@ -192,28 +191,6 @@ export default function EmployerHeader({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2 outline-none">
-                  <Users className="w-4 h-4" />
-                  {t("employerHeader.candidates")}
-                  <ChevronDown className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  className="w-48 shadow-xl border-gray-200/50 backdrop-blur-sm bg-white/95"
-                >
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link
-                      to={employer_routes.APPLICATIONS}
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      {t("employerHeader.applications")}
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
               <Link
                 to={employer_routes.ORGANIZATION}
                 className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
@@ -306,15 +283,6 @@ export default function EmployerHeader({
                       >
                         <FileText className="w-4 h-4" />
                         {t("employerHeader.postJob")}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={employer_routes.APPLICATIONS}
-                        className="cursor-pointer flex items-center gap-3"
-                      >
-                        <FileText className="w-4 h-4" />
-                        {t("employerHeader.applications")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

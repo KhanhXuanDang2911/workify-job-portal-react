@@ -89,7 +89,7 @@ export default function TemplatesCV() {
     <div className="w-full min-h-screen bg-gray-100 p-6 px-[164px]">
       <h1 className="text-2xl font-bold mb-6 text-center">Chọn Mẫu CV</h1>
 
-      <div className="grid grid-cols-3 gap-28 justify-center">
+      <div className="grid grid-cols-2 gap-16 justify-center max-w-5xl mx-auto">
         {templates.map((tpl, idx) => {
           const Component = tpl.component;
           return (
@@ -99,7 +99,9 @@ export default function TemplatesCV() {
             >
               <div
                 className="aspect-[3/4] overflow-hidden border rounded-lg relative"
-                ref={(el) => (containerRefs.current[idx] = el)}
+                ref={(el) => {
+                  containerRefs.current[idx] = el;
+                }}
               >
                 <div
                   style={{
@@ -121,7 +123,9 @@ export default function TemplatesCV() {
                 onClick={() => {
                   setTemplate(tpl.type);
                   setResume(tpl.dummyData);
-                  navigate("/create-resume");
+                  // Navigate with template in URL
+                  const templateSlug = tpl.type.toLowerCase();
+                  navigate(`/create-resume/template/${templateSlug}`);
                 }}
               >
                 Dùng mẫu
