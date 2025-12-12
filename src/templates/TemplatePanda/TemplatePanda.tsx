@@ -2,6 +2,7 @@ import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
 import { CUSTOMFIELD_MAP_ICON, type ResumeData } from "@/types/resume.type";
 import { Dot } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const dummyData: ResumeData = templatePandaDummy;
 
@@ -16,22 +17,24 @@ function TemplatePanda({
   ref?: RefObject<HTMLDivElement | null>;
   onUpdateHeight?: (newHeight: number) => void;
 }) {
-  const {
-    basicInfo,
-    experience,
-    education,
-    skills,
-    awards,
-    certifications,
-    interests,
-    references,
-    objective,
-    projects,
-  } = data;
+  const { t } = useTranslation();
+  const { basicInfo, objective } = data;
+
+  // Filter hidden items
+  const experience = (data.experience || []).filter((item) => !item.isHidden);
+  const education = (data.education || []).filter((item) => !item.isHidden);
+  const skills = (data.skills || []).filter((item) => !item.isHidden);
+  const awards = (data.awards || []).filter((item) => !item.isHidden);
+  const certifications = (data.certifications || []).filter(
+    (item) => !item.isHidden
+  );
+  const projects = (data.projects || []).filter((item) => !item.isHidden);
+  const references = (data.references || []).filter((item) => !item.isHidden);
+  const interests = data.interests?.isHidden ? null : data.interests;
+
   const [minPageHeight, setMinPageHeight] = useState(PAGE_HEIGHT);
 
   const topRef = useRef<HTMLDivElement>(null);
-  const topHeight = topRef.current?.offsetHeight || 0;
   const colRightRef = useRef<HTMLDivElement>(null);
   const colLeftRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +105,7 @@ function TemplatePanda({
           {/* Avatar */}
           <div className="mx-auto w-[212px] h-[270px] overflow-hidden mb-[36px]">
             <img
-              src={basicInfo.avatarUrl}
+              src={basicInfo.profilePhoto || "/default-avatar.jpg"}
               alt={basicInfo.fullName}
               className="w-full h-full object-cover object-center"
             />
@@ -113,7 +116,7 @@ function TemplatePanda({
               className="uppercase text-[26px] font-fahkwang font-semibold"
               style={{ color: data.theme.primaryColor }}
             >
-              Contact
+              {t("resumeBuilder.pdfHeaders.contact")}
             </h1>
             <div className="mt-2 space-y-2">
               {/* Email */}
@@ -153,7 +156,7 @@ function TemplatePanda({
                   className="ml-2 text-[#07113c] break-all"
                   style={{ color: data.theme.textColor }}
                 >
-                  {basicInfo.phone}
+                  {basicInfo.phoneNumber}
                 </span>
               </div>
 
@@ -208,7 +211,7 @@ function TemplatePanda({
                 className="uppercase text-[26px] font-fahkwang font-semibold"
                 style={{ color: data.theme.primaryColor }}
               >
-                Skills
+                {t("resumeBuilder.pdfHeaders.skills")}
               </h1>
               <div className="mt-2 space-y-2">
                 {skills.map((skill, index) => (
@@ -246,7 +249,7 @@ function TemplatePanda({
                 className="uppercase text-[26px] font-fahkwang font-semibold"
                 style={{ color: data.theme.primaryColor }}
               >
-                Educations
+                {t("resumeBuilder.pdfHeaders.education")}
               </h1>
               <div className="mt-2 space-y-2">
                 {education.map((e, idx) => (
@@ -284,7 +287,7 @@ function TemplatePanda({
                 className="uppercase text-[26px] font-fahkwang font-semibold"
                 style={{ color: data.theme.primaryColor }}
               >
-                Awards
+                {t("resumeBuilder.pdfHeaders.awards")}
               </h1>
               <div className="mt-2 space-y-2">
                 {awards.map((award, idx) => (
@@ -310,7 +313,7 @@ function TemplatePanda({
                 className="uppercase text-[26px] font-fahkwang font-semibold"
                 style={{ color: data.theme.primaryColor }}
               >
-                Certifications
+                {t("resumeBuilder.pdfHeaders.certifications")}
               </h1>
               <div className="mt-2 space-y-2">
                 {certifications.map((certification, idx) => (
@@ -357,7 +360,7 @@ function TemplatePanda({
                   className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
                   style={{ color: data.theme.primaryColor }}
                 >
-                  Experience
+                  {t("resumeBuilder.pdfHeaders.experience")}
                 </h2>
 
                 {experience.map((exp, idx) => (
@@ -403,7 +406,7 @@ function TemplatePanda({
                   className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
                   style={{ color: data.theme.primaryColor }}
                 >
-                  projects
+                  {t("resumeBuilder.pdfHeaders.projects")}
                 </h2>
                 {projects.map((project, idx) => (
                   <div
@@ -445,7 +448,7 @@ function TemplatePanda({
                   className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
                   style={{ color: data.theme.primaryColor }}
                 >
-                  References
+                  {t("resumeBuilder.pdfHeaders.references")}
                 </h2>
                 {references.map((reference, idx) => (
                   <div
@@ -482,7 +485,7 @@ function TemplatePanda({
                   className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
                   style={{ color: data.theme.primaryColor }}
                 >
-                  Interests
+                  {t("resumeBuilder.pdfHeaders.interests")}
                 </h2>
                 <div
                   className="ql-editor p-0! text-sm leading-relaxed  "

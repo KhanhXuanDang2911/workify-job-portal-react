@@ -11,6 +11,9 @@ import MyApplyJobs from "@/pages/User/MyApplyJobs";
 import Notifications from "@/pages/Notifications";
 import TemplatesCV from "@/pages/TemplatesCV/TemplatesCV";
 import ResumeBuilder from "@/pages/ResumeBuilder";
+import MessagesPage from "@/pages/Messages/Messages";
+import ViewResume from "@/pages/ViewResume";
+import { ResumeProvider } from "@/context/ResumeContext/resumeProvider";
 
 const UserProtectedRoutes: RouteObject[] = [
   {
@@ -69,7 +72,9 @@ const UserProtectedRoutes: RouteObject[] = [
         path: routes.TEMPLATES_CV,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
-            <TemplatesCV />
+            <ResumeProvider>
+              <TemplatesCV />
+            </ResumeProvider>
           </ProtectedRoute>
         ),
       },
@@ -77,7 +82,47 @@ const UserProtectedRoutes: RouteObject[] = [
         path: routes.CREATE_RESUME,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
-            <ResumeBuilder />
+            <ResumeProvider>
+              <ResumeBuilder />
+            </ResumeProvider>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: `${routes.CREATE_RESUME}/template/:template`,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <ResumeProvider>
+              <ResumeBuilder />
+            </ResumeProvider>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: `${routes.CREATE_RESUME}/edit/:id`,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <ResumeProvider>
+              <ResumeBuilder />
+            </ResumeProvider>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: `${routes.VIEW_RESUME}/:id`,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <ResumeProvider>
+              <ViewResume />
+            </ResumeProvider>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: routes.MESSAGES,
+        element: (
+          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
+            <MessagesPage />
           </ProtectedRoute>
         ),
       },

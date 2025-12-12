@@ -1,6 +1,7 @@
 import { templateLionDummy } from "@/templates/TemplateLion/dummy";
 import { CUSTOMFIELD_MAP_ICON, type ResumeData } from "@/types/resume.type";
 import { useEffect, useState, type RefObject } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const PAGE_HEIGHT = 1300;
 const dummyData: ResumeData = templateLionDummy;
@@ -14,18 +15,20 @@ function TemplateLion({
   ref?: RefObject<HTMLDivElement | null>;
   onUpdateHeight?: (newHeight: number) => void;
 }) {
-  const {
-    basicInfo,
-    experience,
-    education,
-    skills,
-    awards,
-    certifications,
-    interests,
-    objective,
-    projects,
-    theme,
-  } = data;
+  const { t } = useTranslation();
+  const { basicInfo, objective, theme } = data;
+
+  // Filter hidden items
+  const experience = (data.experience || []).filter((item) => !item.isHidden);
+  const education = (data.education || []).filter((item) => !item.isHidden);
+  const skills = (data.skills || []).filter((item) => !item.isHidden);
+  const awards = (data.awards || []).filter((item) => !item.isHidden);
+  const certifications = (data.certifications || []).filter(
+    (item) => !item.isHidden
+  );
+  const projects = (data.projects || []).filter((item) => !item.isHidden);
+  const interests = data.interests?.isHidden ? null : data.interests;
+
   const [minPageHeight, setMinPageHeight] = useState(PAGE_HEIGHT);
 
   useEffect(() => {
@@ -142,7 +145,7 @@ function TemplateLion({
           style={{ outlineColor: theme.bgColor }}
         >
           <img
-            src={data.basicInfo.avatarUrl}
+            src={data.basicInfo.profilePhoto || "/default-avatar.jpg"}
             alt=""
             className="w-full h-full rounded-full object-cover"
           />
@@ -210,7 +213,7 @@ function TemplateLion({
                 style={{ backgroundColor: data.theme.primaryColor }}
               >
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Skills
+                  {t("resumeBuilder.pdfHeaders.skills")}
                 </span>
               </h2>
 
@@ -242,7 +245,7 @@ function TemplateLion({
                 style={{ backgroundColor: data.theme.primaryColor }}
               >
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  awards
+                  {t("resumeBuilder.pdfHeaders.awards")}
                 </span>
               </h2>
 
@@ -268,7 +271,7 @@ function TemplateLion({
                 style={{ backgroundColor: data.theme.primaryColor }}
               >
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  certifications
+                  {t("resumeBuilder.pdfHeaders.certifications")}
                 </span>
               </h2>
 
@@ -293,7 +296,7 @@ function TemplateLion({
               style={{ backgroundColor: data.theme.primaryColor }}
             >
               <span className="" style={{ color: data.theme.bgColor }}>
-                Contact
+                {t("resumeBuilder.pdfHeaders.contact")}
               </span>
             </h2>
             <div className="mt-2 space-y-2  py-[18px]">
@@ -334,7 +337,7 @@ function TemplateLion({
                   className="ml-2 text-[#07113c] break-all"
                   style={{ color: data.theme.textColor }}
                 >
-                  {basicInfo.phone}
+                  {basicInfo.phoneNumber}
                 </span>
               </div>
 
@@ -388,7 +391,7 @@ function TemplateLion({
                 style={{ backgroundColor: data.theme.primaryColor }}
               >
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Interest
+                  {t("resumeBuilder.pdfHeaders.interests")}
                 </span>
               </h2>
               <div className="py-[18px]">
@@ -474,7 +477,7 @@ function TemplateLion({
                     className=" font-bold mb-2 font-fahkwang text-[26px] capitalize"
                     style={{ color: data.theme.primaryColor }}
                   >
-                    Objective
+                    {t("resumeBuilder.pdfHeaders.objective")}
                   </h2>
                   {objective && (
                     <div
@@ -515,7 +518,7 @@ function TemplateLion({
                       style={{ backgroundColor: data.theme.primaryColor }}
                     >
                       <span className="" style={{ color: data.theme.bgColor }}>
-                        Experiences
+                        {t("resumeBuilder.pdfHeaders.experience")}
                       </span>
                     </h2>
                   </div>
@@ -578,7 +581,7 @@ function TemplateLion({
                       style={{ backgroundColor: data.theme.primaryColor }}
                     >
                       <span className="" style={{ color: data.theme.bgColor }}>
-                        Project
+                        {t("resumeBuilder.pdfHeaders.projects")}
                       </span>
                     </h2>
                   </div>
@@ -638,7 +641,7 @@ function TemplateLion({
                       style={{ backgroundColor: data.theme.primaryColor }}
                     >
                       <span className="" style={{ color: data.theme.bgColor }}>
-                        Education
+                        {t("resumeBuilder.pdfHeaders.education")}
                       </span>
                     </h2>
                   </div>

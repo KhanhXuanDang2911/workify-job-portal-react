@@ -11,7 +11,7 @@ export const routes = {
   ARTICLES_DETAIL: "article-detail",
   OVERVIEW: "overview",
   SETTINGS: "settings",
-  MY_RESUME: "resumes",
+  MY_RESUME: "my-resumes",
   MY_SAVED_JOBS: "saved-jobs",
   MY_APPLIED_JOBS: "applied-jobs",
   MESSAGES: "messages",
@@ -23,6 +23,7 @@ export const routes = {
   NOTIFICATIONS: "notifications",
   CREATE_RESUME: "create-resume",
   TEMPLATES_CV: "templates-cv",
+  VIEW_RESUME: "view-resume",
 };
 
 export const employer_routes = {

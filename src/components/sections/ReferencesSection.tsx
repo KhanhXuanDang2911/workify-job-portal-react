@@ -10,6 +10,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Dialog,
   DialogContent,
@@ -33,35 +34,43 @@ interface ReferenceItemType extends ReferenceItem {
 }
 
 export default function ReferencesSection() {
+  const { t } = useTranslation();
   const { resume, setResume } = useResume();
-  const [items, setItems] = useState<ReferenceItemType[]>([]);
+  const [items, setItems] = useState<ReferenceItemType[]>(() => {
+    return (resume.references || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+  });
 
-  const isInitialized = useRef(false);
+  // Sync local state with context when resume.references changes from external source (e.g., API load)
+  const isLocalUpdate = useRef(false);
+
   useEffect(() => {
-    if (
-      !isInitialized.current &&
-      resume.references &&
-      resume.references.length > 0
-    ) {
-      isInitialized.current = true;
-      const updatedItems = resume.references.map((item) => ({
-        ...item,
-        visible: true,
-      }));
-      setItems(updatedItems);
+    if (isLocalUpdate.current) {
+      isLocalUpdate.current = false;
+      return;
     }
-  }, [resume.awards]);
+
+    const updatedItems = (resume.references || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+    setItems(updatedItems);
+  }, [resume.references]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const dragItemIndex = useRef<number | null>(null);
 
   const saveToContext = (updatedItems: ReferenceItemType[]) => {
+    isLocalUpdate.current = true;
     setResume({
       ...resume,
-      references: updatedItems
-        .filter((item) => item.visible)
-        .map(({ visible, ...rest }) => rest),
+      references: updatedItems.map(({ visible, ...rest }) => ({
+        ...rest,
+        isHidden: !visible,
+      })),
     });
   };
 
@@ -151,7 +160,7 @@ export default function ReferencesSection() {
         className="w-full border-dashed border-gray-400 py-6 hover:bg-gray-200 hover:border-gray-600 cursor-pointer"
         onClick={openAddModal}
       >
-        <Plus /> Add a new item
+        <Plus /> {t("resumeBuilder.actions.addItem")}
       </Button>
 
       <ReferenceModal
@@ -183,6 +192,7 @@ function ReferenceItem({
   onToggleVisible,
   ...dragProps
 }: ReferenceItemProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -212,27 +222,29 @@ function ReferenceItem({
           className="cursor-pointer hover:bg-gray-200"
         >
           <HatGlasses />
-          {item.visible ? "Hide" : "Show"}
+          {item.visible
+            ? t("resumeBuilder.actions.hide")
+            : t("resumeBuilder.actions.show")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onEdit}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Edit />
-          Edit
+          {t("resumeBuilder.actions.edit")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onCopy}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Copy />
-          Copy
+          {t("resumeBuilder.actions.copy")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onRemove}
           className="cursor-pointer hover:bg-gray-200 text-red-500"
         >
-          <Trash /> Remove
+          <Trash /> {t("resumeBuilder.actions.remove")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -249,6 +261,7 @@ type ReferenceModalProps = {
 const initialForm = {
   information: "",
   description: "",
+  isHidden: false,
   visible: true,
 };
 
@@ -258,8 +271,10 @@ function ReferenceModal({
   onSave,
   defaultValues,
 }: ReferenceModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] =
     useState<Omit<ReferenceItemType, "order">>(initialForm);
+  const [errors, setErrors] = useState<{ information?: boolean }>({});
 
   useEffect(() => {
     if (open) {
@@ -269,11 +284,25 @@ function ReferenceModal({
       } else {
         setForm(initialForm);
       }
+      setErrors({});
     }
   }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSave = () => {
+    const newErrors: { information?: boolean } = {};
+    if (!form.information.trim()) newErrors.information = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onSave(form);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -283,12 +312,12 @@ function ReferenceModal({
             {defaultValues ? (
               <>
                 <Edit2 className="w-5 h-5" />
-                Edit item
+                {t("resumeBuilder.actions.editItem")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Create a new item
+                {t("resumeBuilder.actions.createItem")}
               </>
             )}
           </DialogTitle>
@@ -296,19 +325,30 @@ function ReferenceModal({
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="information">Information</label>
+            <label htmlFor="information">
+              {t("resumeBuilder.forms.references.name")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="information"
-              placeholder="Information"
+              placeholder={t("resumeBuilder.forms.references.name")}
               value={form.information}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={cn(
+                "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0",
+                errors.information && "border-red-500"
+              )}
             />
+            {errors.information && (
+              <span className="text-red-500 text-xs">
+                {t("resumeBuilder.validation.required")}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1 col-span-2">
-            <label>Description </label>
+            <label>{t("resumeBuilder.forms.references.description")}</label>
             <RichTextEditor
               value={form.description || ""}
               onChange={(value) => setForm({ ...form, description: value })}
@@ -318,14 +358,14 @@ function ReferenceModal({
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("resumeBuilder.actions.cancel")}
           </Button>
           <Button
             variant={"default"}
             className="bg-sky-600"
-            onClick={() => onSave(form)}
+            onClick={handleSave}
           >
-            Save
+            {t("resumeBuilder.actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1507,5 +1507,179 @@
       "loading": "Loading...",
       "viewAll": "View all notifications"
     }
+  },
+  "resumeBuilder": {
+    "sections": {
+      "basicInfo": "Basic Information",
+      "objective": "Objective",
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills",
+      "awards": "Awards",
+      "certifications": "Certifications",
+      "interests": "Interests",
+      "projects": "Projects",
+      "references": "References",
+      "hidden": "Hidden"
+    },
+    "tabs": {
+      "template": "Template",
+      "theme": "Theme"
+    },
+    "actions": {
+      "save": "Save",
+      "download": "Download",
+      "print": "Print",
+      "exportPDF": "Export as PDF",
+      "exportImage": "Export as Image",
+      "hide": "Hide",
+      "show": "Show",
+      "edit": "Edit",
+      "copy": "Copy",
+      "remove": "Remove",
+      "cancel": "Cancel",
+      "createItem": "Create a new item",
+      "editItem": "Edit item",
+      "addItem": "Add a new item"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "primaryColor": "Primary Color",
+      "backgroundColor": "Background Color",
+      "textColor": "Text Color",
+      "toggleTheme": "Toggle Theme"
+    },
+    "toolbar": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "resetSize": "Reset Size",
+      "downloadPdf": "Download PDF",
+      "downloading": "Downloading...",
+      "save": "Save",
+      "untitledResume": "Untitled Resume",
+      "toast": {
+        "downloadNameRequired": "Please name your Resume before downloading!",
+        "infoRequired": "Please fill in all basic information before saving!",
+        "objectiveRequired": "Please fill in the Objective section before saving!",
+        "nameRequired": "Please enter a name for your Resume!",
+        "saveSuccess": "Resume saved successfully!",
+        "saveFailed": "Failed to save resume. Please try again."
+      },
+      "confirmDownload": {
+        "title": "Confirm Download",
+        "description": "Are you sure you want to download the PDF with file name",
+        "cancel": "Cancel",
+        "confirm": "Yes, Download"
+      },
+      "saveDialog": {
+        "title": "Name your Resume",
+        "description": "Please enter a name for your Resume",
+        "placeholder": "Enter Resume name (e.g. Senior Developer CV)",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "forms": {
+      "basicInfo": {
+        "fullName": "Full Name",
+        "position": "Position",
+        "location": "Location",
+        "email": "Email",
+        "phone": "Phone",
+        "summary": "Professional Summary",
+        "notSet": "CV not named",
+        "addCustomField": "Add custom field",
+        "customFields": {
+          "facebook": "Facebook",
+          "linkedin": "LinkedIn",
+          "instagram": "Instagram",
+          "youtube": "YouTube",
+          "github": "GitHub",
+          "info": "Info",
+          "value": "Value"
+        }
+      },
+      "objective": {
+        "objective": "Objective"
+      },
+      "experience": {
+        "company": "Company",
+        "position": "Position",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "currentlyWorking": "Currently Working Here",
+        "description": "Description",
+        "add": "Add Experience"
+      },
+      "education": {
+        "school": "School/University",
+        "degree": "Degree",
+        "field": "Field of Study",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "description": "Description",
+        "score": "Score",
+        "add": "Add Education"
+      },
+      "skills": {
+        "skill": "Skill",
+        "level": "Level",
+        "add": "Add Skill"
+      },
+      "awards": {
+        "title": "Award Title",
+        "issuer": "Issuer",
+        "date": "Date",
+        "description": "Description",
+        "add": "Add Award"
+      },
+      "certifications": {
+        "name": "Certification Name",
+        "issuer": "Issuer",
+        "date": "Date",
+        "credentialUrl": "Credential URL",
+        "add": "Add Certification"
+      },
+      "interests": {
+        "interest": "Interest",
+        "add": "Add Interest"
+      },
+      "projects": {
+        "title": "Project Title",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "link": "Project Link",
+        "description": "Description",
+        "add": "Add Project"
+      },
+      "references": {
+        "name": "Reference Name",
+        "position": "Position",
+        "company": "Company",
+        "phone": "Phone",
+        "email": "Email",
+        "description": "Description",
+        "add": "Add Reference"
+      }
+    },
+    "pdfHeaders": {
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills",
+      "awards": "Awards",
+      "certifications": "Certifications",
+      "interests": "Interests",
+      "projects": "Projects",
+      "references": "References",
+      "objective": "Objective",
+      "contact": "Contact"
+    },
+    "validation": {
+      "required": "This field is required",
+      "hasErrors": "Please fill in all required fields before saving!"
+    }
   }
 }

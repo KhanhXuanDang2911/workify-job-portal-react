@@ -3,6 +3,7 @@ import { templateDolphinDummy } from "@/templates/TemplateDolphin/dummy";
 import { CUSTOMFIELD_MAP_ICON, type ResumeData } from "@/types/resume.type";
 import { Dot } from "lucide-react";
 import { useEffect, useState, type RefObject } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const PAGE_HEIGHT = 1300;
 const dummyData: ResumeData = templateDolphinDummy;
@@ -15,18 +16,20 @@ function TemplateDolphin({
   ref?: RefObject<HTMLDivElement | null>;
   onUpdateHeight?: (newHeight: number) => void;
 }) {
-  const {
-    basicInfo,
-    experience,
-    education,
-    skills,
-    awards,
-    certifications,
-    interests,
-    objective,
-    projects,
-    theme,
-  } = data;
+  const { t } = useTranslation();
+  const { basicInfo, objective, theme } = data;
+
+  // Filter hidden items
+  const experience = (data.experience || []).filter((item) => !item.isHidden);
+  const education = (data.education || []).filter((item) => !item.isHidden);
+  const skills = (data.skills || []).filter((item) => !item.isHidden);
+  const awards = (data.awards || []).filter((item) => !item.isHidden);
+  const certifications = (data.certifications || []).filter(
+    (item) => !item.isHidden
+  );
+  const projects = (data.projects || []).filter((item) => !item.isHidden);
+  const interests = data.interests?.isHidden ? null : data.interests;
+
   const [minPageHeight, setMinPageHeight] = useState(PAGE_HEIGHT);
 
   useEffect(() => {
@@ -64,7 +67,7 @@ function TemplateDolphin({
             style={{ outlineColor: theme.primaryColor }}
           >
             <img
-              src={basicInfo.avatarUrl}
+              src={basicInfo.profilePhoto || "/default-avatar.jpg"}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -107,7 +110,7 @@ function TemplateDolphin({
               className="bg-[#1E2837] uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
               style={{ color: theme.bgColor }}
             >
-              Contact
+              {t("resumeBuilder.pdfHeaders.contact")}
             </h2>
             <div className="mt-4 space-y-2">
               {/* Email */}
@@ -153,7 +156,7 @@ function TemplateDolphin({
                   className="ml-2 break-all"
                   style={{ color: theme.textColor }}
                 >
-                  {basicInfo.phone}
+                  {basicInfo.phoneNumber}
                 </span>
               </div>
 
@@ -211,7 +214,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Skills
+                {t("resumeBuilder.pdfHeaders.skills")}
               </h2>
               <div className="mt-2 space-y-2">
                 {skills.map((skill, index) => (
@@ -247,7 +250,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Objective
+                {t("resumeBuilder.pdfHeaders.objective")}
               </h2>
               <div
                 className="ql-editor text-sm leading-relaxed"
@@ -264,7 +267,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                certifications
+                {t("resumeBuilder.pdfHeaders.certifications")}
               </h2>
               <div
                 className="space-y-2 py-[18px] pl-[10px]"
@@ -287,7 +290,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Interest
+                {t("resumeBuilder.pdfHeaders.interests")}
               </h2>
               <div
                 className="ql-editor text-sm leading-relaxed pl-[10px]! pr-0! py-[18px]"
@@ -306,7 +309,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Education
+                {t("resumeBuilder.pdfHeaders.education")}
               </h2>
               <div className="mt-[12px] ">
                 {education?.map((edu) => (
@@ -336,7 +339,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center"
                 style={{ color: theme.bgColor }}
               >
-                Experiences
+                {t("resumeBuilder.pdfHeaders.experience")}
               </h2>
               <div className="mt-[12px] ">
                 {experience?.map((exp, idx) => (
@@ -372,10 +375,10 @@ function TemplateDolphin({
           {awards && awards.length > 0 && (
             <div className="">
               <h2
-                className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center"
+                className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Awards
+                {t("resumeBuilder.pdfHeaders.awards")}
               </h2>
               <div className="space-y-1">
                 {awards?.map((award) => (
@@ -399,7 +402,7 @@ function TemplateDolphin({
                 className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
                 style={{ color: theme.bgColor }}
               >
-                Projects
+                {t("resumeBuilder.pdfHeaders.projects")}
               </h2>
               <div className="mt-[12px] ">
                 {projects?.map((project) => (

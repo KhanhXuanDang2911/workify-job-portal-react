@@ -10,6 +10,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Dialog,
   DialogContent,
@@ -32,35 +33,45 @@ interface CertificationItemType extends CertificationItem {
 }
 
 export default function CertificationsSection() {
+  const { t } = useTranslation();
   const { resume, setResume } = useResume();
-  const [items, setItems] = useState<CertificationItemType[]>([]);
+  const [items, setItems] = useState<CertificationItemType[]>(() => {
+    // Initialize from context
+    return (resume.certifications || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+  });
 
-  const isInitialized = useRef(false);
+  // Sync local state with context when resume.certifications changes from external source (e.g., API load)
+  const isLocalUpdate = useRef(false);
+
   useEffect(() => {
-    if (
-      !isInitialized.current &&
-      resume.certifications &&
-      resume.certifications.length > 0
-    ) {
-      isInitialized.current = true;
-      const updatedItems = resume.certifications.map((item) => ({
-        ...item,
-        visible: true,
-      }));
-      setItems(updatedItems);
+    // Skip sync if this was triggered by local update
+    if (isLocalUpdate.current) {
+      isLocalUpdate.current = false;
+      return;
     }
-  }, [resume.awards]);
+
+    const updatedItems = (resume.certifications || []).map((item) => ({
+      ...item,
+      visible: !item.isHidden,
+    }));
+    setItems(updatedItems);
+  }, [resume.certifications]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const dragItemIndex = useRef<number | null>(null);
 
   const saveToContext = (updatedItems: CertificationItemType[]) => {
+    isLocalUpdate.current = true;
     setResume({
       ...resume,
-      certifications: updatedItems
-        .filter((item) => item.visible)
-        .map(({ visible, ...rest }) => rest),
+      certifications: updatedItems.map(({ visible, ...rest }) => ({
+        ...rest,
+        isHidden: !visible,
+      })),
     });
   };
 
@@ -151,7 +162,7 @@ export default function CertificationsSection() {
         className="w-full border-dashed border-gray-400 py-6 hover:bg-gray-200 hover:border-gray-600 cursor-pointer"
         onClick={openAddModal}
       >
-        <Plus /> Add a new item
+        <Plus /> {t("resumeBuilder.actions.addItem")}
       </Button>
 
       <CertificationModal
@@ -183,6 +194,7 @@ function CertificationItem({
   onToggleVisible,
   ...dragProps
 }: CertificationItemProps) {
+  const { t } = useTranslation();
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -212,27 +224,29 @@ function CertificationItem({
           className="cursor-pointer hover:bg-gray-200"
         >
           <HatGlasses />
-          {item.visible ? "Hide" : "Show"}
+          {item.visible
+            ? t("resumeBuilder.actions.hide")
+            : t("resumeBuilder.actions.show")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onEdit}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Edit />
-          Edit
+          {t("resumeBuilder.actions.edit")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onCopy}
           className="cursor-pointer hover:bg-gray-200"
         >
           <Copy />
-          Copy
+          {t("resumeBuilder.actions.copy")}
         </ContextMenuItem>
         <ContextMenuItem
           onClick={onRemove}
           className="cursor-pointer hover:bg-gray-200 text-red-500"
         >
-          <Trash /> Remove
+          <Trash /> {t("resumeBuilder.actions.remove")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -249,6 +263,7 @@ type CertificationModalProps = {
 const initialForm = {
   name: "",
   date: "",
+  isHidden: false,
   visible: true,
 };
 
@@ -258,8 +273,10 @@ function CertificationModal({
   onSave,
   defaultValues,
 }: CertificationModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] =
     useState<Omit<CertificationItemType, "order">>(initialForm);
+  const [errors, setErrors] = useState<{ name?: string }>({});
 
   useEffect(() => {
     if (open) {
@@ -269,11 +286,27 @@ function CertificationModal({
       } else {
         setForm(initialForm);
       }
+      setErrors({});
     }
   }, [open, defaultValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const validate = () => {
+    const newErrors: { name?: string } = {};
+    if (!form.name.trim()) {
+      newErrors.name = t("resumeBuilder.validation.required");
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (validate()) {
+      onSave(form);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -283,12 +316,12 @@ function CertificationModal({
             {defaultValues ? (
               <>
                 <Edit2 className="w-5 h-5" />
-                Edit item
+                {t("resumeBuilder.actions.editItem")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Create a new item
+                {t("resumeBuilder.actions.createItem")}
               </>
             )}
           </DialogTitle>
@@ -296,22 +329,30 @@ function CertificationModal({
 
         <div className="space-y-3 grid grid-cols-2 gap-2 overflow-y-auto pb-1 text-base">
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">
+              {t("resumeBuilder.forms.certifications.name")}{" "}
+              <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="name"
-              placeholder="name"
+              placeholder={t("resumeBuilder.forms.certifications.name")}
               value={form.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+              className={`w-full border rounded px-3 py-2 text-sm focus:outline-0 ${errors.name ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.name && (
+              <span className="text-red-500 text-xs">{errors.name}</span>
+            )}
           </div>
           <div className="flex flex-col gap-1 col-span-2">
-            <label htmlFor="date">Date</label>
+            <label htmlFor="date">
+              {t("resumeBuilder.forms.certifications.date")}
+            </label>
             <input
               type="text"
               name="date"
-              placeholder="date"
+              placeholder={t("resumeBuilder.forms.certifications.date")}
               value={form.date}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
@@ -321,14 +362,14 @@ function CertificationModal({
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("resumeBuilder.actions.cancel")}
           </Button>
           <Button
             variant={"default"}
             className="bg-sky-600"
-            onClick={() => onSave(form)}
+            onClick={handleSave}
           >
-            Save
+            {t("resumeBuilder.actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

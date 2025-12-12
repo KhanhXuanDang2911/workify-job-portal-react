@@ -5,10 +5,9 @@ export const templatePandaDummy: ResumeData = {
     fullName: "Lê Quang Dũng",
     position: "Nhân viên Kinh doanh",
     email: "email@example.com",
-    phone: "0839848211",
+    phoneNumber: "0839848211",
     location: "Quận Từ Liêm, Hà Nội",
-    avatarUrl:
-      "https://cdn-web.onlive.vn/onlive/image-news/z6316153534704_68da3ded05d4e9cd60d191ea8e447709.jpg",
+    profilePhoto: "/default-avatar.jpg",
     customFields: [
       { type: "FACEBOOK", value: "facebook.com/username" },
       { type: "INSTAGRAM", value: "instagram.com/username" },

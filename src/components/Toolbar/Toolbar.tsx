@@ -8,31 +8,38 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useResume } from "@/context/ResumeContext/useResume";
-import {
-  Undo,
-  Redo,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  ArrowDownToLine,
-  Save,
-} from "lucide-react";
+import { ArrowDownToLine, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 type ToolbarProps = {
-  onDownload: () => void;
-  onResetSize: () => void;
+  onDownload: () => Promise<void>;
+  isDownloading?: boolean;
 };
+import { useTranslation } from "@/hooks/useTranslation";
 
-export default function Toolbar({ onDownload, onResetSize }: ToolbarProps) {
-  const { resumeName, resume } = useResume();
+export default function Toolbar({
+  onDownload,
+  isDownloading = false,
+}: ToolbarProps) {
+  const { t } = useTranslation();
+  const {
+    resumeName,
+    setResumeName,
+    saveResume,
+    isSaving,
+    resumeId,
+    validateResume,
+  } = useResume();
   const [openDialogConfirmDownload, setOpenDialogConfirmDownload] =
     useState(false);
+  const [openDialogSave, setOpenDialogSave] = useState(false);
+  const [tempResumeName, setTempResumeName] = useState(resumeName);
+  const isEditMode = !!resumeId;
 
   const handleClickedDownloadButton = () => {
     if (!resumeName) {
-      toast("Vui lòng đặt tên cho CV trước khi tải về!", {
+      toast(t("resumeBuilder.toolbar.toast.downloadNameRequired"), {
         position: "top-right",
       });
       return;
@@ -40,82 +47,53 @@ export default function Toolbar({ onDownload, onResetSize }: ToolbarProps) {
     setOpenDialogConfirmDownload(true);
   };
 
-  const handleClickedSaveButton = () => {
-    if (
-      resume.basicInfo.fullName.trim() === "" ||
-      resume.basicInfo.email.trim() === "" ||
-      resume.basicInfo.phone.trim() === "" ||
-      resume.basicInfo.position.trim() === "" ||
-      resume.basicInfo.location.trim() === ""
-    ) {
-      toast("Vui lòng điền đầy đủ thông tin cơ bản trước khi lưu!", {
-        position: "top-right",
-      });
+  const handleClickedSaveButton = async () => {
+    // Validate using context validation
+    if (!validateResume()) {
       return;
     }
 
-    if (!resumeName) {
-      toast("Vui lòng đặt tên cho CV trước khi lưu", {
+    // In edit mode, save directly without dialog
+    if (isEditMode) {
+      await saveResume();
+      return;
+    }
+
+    // In create mode, show dialog to enter name
+    setTempResumeName(resumeName);
+    setOpenDialogSave(true);
+  };
+
+  const handleSaveResumeName = async () => {
+    if (!tempResumeName.trim()) {
+      toast(t("resumeBuilder.toolbar.toast.nameRequired"), {
         position: "top-right",
       });
       return;
     }
+    setResumeName(tempResumeName);
+    setOpenDialogSave(false);
+    await saveResume();
   };
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white shadow-xl rounded-full px-4 py-2 flex items-center gap-2 border border-neutral-200 select-none z-100">
-      {/* Undo */}
-      <button className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer">
-        <Undo />
-        <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Undo
-        </div>
-      </button>
-
-      {/* Redo */}
-      <button className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer">
-        <Redo />
-        <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Redo
-        </div>
-      </button>
-
-      {/* Zoom In */}
-      <button className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer">
-        <ZoomIn />
-        <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Zoom In
-        </div>
-      </button>
-
-      {/* Zoom Out */}
-      <button className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer">
-        <ZoomOut />
-        <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Zoom Out
-        </div>
-      </button>
-
-      {/* Reset Size */}
-      <button
-        className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer"
-        onClick={onResetSize}
-      >
-        <RotateCcw />
-        <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Reset Size
-        </div>
-      </button>
-
       {/* Download PDF */}
       <>
         <button
-          className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer"
+          className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleClickedDownloadButton}
+          disabled={isDownloading}
         >
-          <ArrowDownToLine />
+          {isDownloading ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <ArrowDownToLine />
+          )}
           <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-            Download PDF
+            {isDownloading
+              ? t("resumeBuilder.toolbar.downloading")
+              : t("resumeBuilder.toolbar.downloadPdf")}
           </div>
         </button>
 
@@ -125,9 +103,11 @@ export default function Toolbar({ onDownload, onResetSize }: ToolbarProps) {
         >
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>
-              <DialogTitle>Confirm Download</DialogTitle>
+              <DialogTitle>
+                {t("resumeBuilder.toolbar.confirmDownload.title")}
+              </DialogTitle>
               <DialogDescription>
-                Are you sure you want to download the PDF with file name{" "}
+                {t("resumeBuilder.toolbar.confirmDownload.description")}{" "}
                 <span className="text-orange-500">{resumeName}</span>?
               </DialogDescription>
             </DialogHeader>
@@ -135,17 +115,26 @@ export default function Toolbar({ onDownload, onResetSize }: ToolbarProps) {
               <Button
                 variant="outline"
                 onClick={() => setOpenDialogConfirmDownload(false)}
+                disabled={isDownloading}
               >
-                Cancel
+                {t("resumeBuilder.toolbar.confirmDownload.cancel")}
               </Button>
               <Button
-                onClick={() => {
-                  onDownload();
+                onClick={async () => {
+                  await onDownload();
                   setOpenDialogConfirmDownload(false);
                 }}
                 className="bg-cyan-950 hover:bg-cyan-700"
+                disabled={isDownloading}
               >
-                Yes, Download
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("resumeBuilder.toolbar.downloading")}
+                  </>
+                ) : (
+                  t("resumeBuilder.toolbar.confirmDownload.confirm")
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -154,14 +143,56 @@ export default function Toolbar({ onDownload, onResetSize }: ToolbarProps) {
 
       {/* Save */}
       <button
-        className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer"
+        className="p-2 hover:bg-neutral-100 rounded-xl transition flex items-center justify-center relative group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleClickedSaveButton}
+        disabled={isSaving}
       >
         <Save />
         <div className="absolute -top-11 opacity-0 translate-x-[-10px] group-hover:opacity-100 pointer-events-none group-hover:translate-x-0 transition-all duration-200 ease-out bg-gray-900 text-white text-sm text-center py-1 px-3 rounded-sm whitespace-nowrap shadow-lg">
-          Save
+          {t("resumeBuilder.toolbar.save")}
         </div>
       </button>
+
+      <Dialog open={openDialogSave} onOpenChange={setOpenDialogSave}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>
+              {t("resumeBuilder.toolbar.saveDialog.title")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("resumeBuilder.toolbar.saveDialog.description")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <input
+              type="text"
+              value={tempResumeName}
+              onChange={(e) => setTempResumeName(e.target.value)}
+              placeholder={t("resumeBuilder.toolbar.saveDialog.placeholder")}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveResumeName();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenDialogSave(false)}>
+              {t("resumeBuilder.toolbar.saveDialog.cancel")}
+            </Button>
+            <Button
+              onClick={handleSaveResumeName}
+              className="bg-cyan-950 hover:bg-cyan-700"
+              disabled={isSaving}
+            >
+              {isSaving
+                ? "Saving..."
+                : t("resumeBuilder.toolbar.saveDialog.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -32,20 +32,21 @@ import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import { templateLionDummy } from "@/templates/TemplateLion/dummy";
 import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
 import { templateDolphinDummy } from "@/templates/TemplateDolphin/dummy";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type TabKey = "template" | "theme";
 
-const tabMap: Record<
+const tabMapConfig: Record<
   TabKey,
   {
-    label: string;
+    labelKey: string;
     icon: ForwardRefExoticComponent<
       Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
     >;
   }
 > = {
-  template: { label: "Template", icon: Aperture },
-  theme: { label: "Theme", icon: Palette },
+  template: { labelKey: "resumeBuilder.tabs.template", icon: Aperture },
+  theme: { labelKey: "resumeBuilder.tabs.theme", icon: Palette },
 };
 
 function RightPanel({
@@ -55,6 +56,7 @@ function RightPanel({
   transformWrapperBgMode: "light" | "dark";
   setTransformWrapperBgMode: Dispatch<SetStateAction<"light" | "dark">>;
 }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   return (
     <>
@@ -65,15 +67,16 @@ function RightPanel({
         />
         <div className="w-11 bg-[#eaeaec] flex flex-col items-center justify-between py-4 gap-3 z-50">
           <div className="flex flex-col items-center gap-3">
-            {Object.entries(tabMap).map(([key, { label, icon: Icon }]) => (
-              <div
-                key={key}
-                className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full"
-                onClick={() => setActiveTab(key as TabKey)}
-              >
-                <Icon className=" w-4 h-4" strokeWidth={1} />
+            {Object.entries(tabMapConfig).map(
+              ([key, { labelKey, icon: Icon }]) => (
                 <div
-                  className="
+                  key={key}
+                  className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full"
+                  onClick={() => setActiveTab(key as TabKey)}
+                >
+                  <Icon className=" w-4 h-4" strokeWidth={1} />
+                  <div
+                    className="
               absolute right-11 top-1/2 -translate-y-1/2
               opacity-0 translate-x-[-10px]
               group-hover:opacity-100
@@ -83,11 +86,12 @@ function RightPanel({
               bg-gray-900 text-white text-sm text-center
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
             "
-                >
-                  {label}
+                  >
+                    {t(labelKey)}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           <div
@@ -115,7 +119,7 @@ function RightPanel({
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
             "
             >
-              Toggle Theme
+              {t("resumeBuilder.theme.toggleTheme")}
             </div>
           </div>
         </div>
@@ -134,6 +138,7 @@ interface DetailsPanelActionsProps {
 function DetailsPanelActions({ activeTab, onClose }: DetailsPanelActionsProps) {
   const [isClosing, setIsClosing] = useState(false);
   const elRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useTranslation();
 
   const handleClose = () => {
     if (isClosing) return;
@@ -185,10 +190,10 @@ function DetailsPanelActions({ activeTab, onClose }: DetailsPanelActionsProps) {
       <div className="sticky top-[64px] bg-[#F1F2F6] border-b border-border rounded-t-sm px-6 h-[80px] flex items-center justify-between z-10">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           {(() => {
-            const TabIcon = tabMap[activeTab].icon;
+            const TabIcon = tabMapConfig[activeTab].icon;
             return <TabIcon className="w-6 h-6" />;
           })()}
-          {tabMap[activeTab].label}
+          {t(tabMapConfig[activeTab].labelKey)}
         </h2>
         <button
           onClick={handleClose}
@@ -290,7 +295,9 @@ function TemplateTab() {
       {templates.map((TemplateComp, idx) => (
         <div
           key={idx}
-          ref={(el) => (containerRefs.current[idx] = el)}
+          ref={(el) => {
+            containerRefs.current[idx] = el;
+          }}
           className={cn(
             "aspect-2/3 shadow-md hover:shadow-lg rounded overflow-hidden border cursor-pointer relative ",
             template === TemplateComp.type &&

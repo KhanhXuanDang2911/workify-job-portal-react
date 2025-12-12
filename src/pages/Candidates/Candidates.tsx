@@ -7,7 +7,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useContext, useState, useEffect } from "react";
@@ -35,54 +34,56 @@ import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
 import { useEmployerAuth } from "@/context/employer-auth";
 
-// Map ApplicationStatus to display text and color
+// Map ApplicationStatus to display text and color with badge styles
 const getStatusInfo = (
   status: ApplicationStatus,
   t: (key: string) => string
-): { label: string; color: string } => {
-  const statusMap: Record<ApplicationStatus, { label: string; color: string }> =
-    {
-      [ApplicationStatus.UNREAD]: {
-        label: t("employer.candidates.status.newApplied"),
-        color: "border-gray-500 text-gray-500",
-      },
-      [ApplicationStatus.VIEWED]: {
-        label: t("employer.candidates.status.viewed"),
-        color: "border-blue-500 text-blue-500",
-      },
-      [ApplicationStatus.EMAILED]: {
-        label: t("employer.candidates.status.emailed"),
-        color: "border-purple-500 text-purple-500",
-      },
-      [ApplicationStatus.SCREENING]: {
-        label: t("employer.candidates.status.screening"),
-        color: "border-teal-600 text-teal-600",
-      },
-      [ApplicationStatus.SCREENING_PENDING]: {
-        label: t("employer.candidates.status.screeningPending"),
-        color: "border-orange-500 text-orange-500",
-      },
-      [ApplicationStatus.INTERVIEW_SCHEDULING]: {
-        label: t("employer.candidates.status.interviewScheduling"),
-        color: "border-yellow-500 text-yellow-500",
-      },
-      [ApplicationStatus.INTERVIEWED_PENDING]: {
-        label: t("employer.candidates.status.interviewedPending"),
-        color: "border-cyan-500 text-cyan-500",
-      },
-      [ApplicationStatus.OFFERED]: {
-        label: t("employer.candidates.status.offered"),
-        color: "border-green-500 text-green-500",
-      },
-      [ApplicationStatus.REJECTED]: {
-        label: t("employer.candidates.status.rejected"),
-        color: "border-red-500 text-red-500",
-      },
-    };
+): { label: string; badgeColor: string } => {
+  const statusMap: Record<
+    ApplicationStatus,
+    { label: string; badgeColor: string }
+  > = {
+    [ApplicationStatus.UNREAD]: {
+      label: t("employer.candidates.status.newApplied"),
+      badgeColor: "bg-gray-100 text-gray-700 border-gray-300",
+    },
+    [ApplicationStatus.VIEWED]: {
+      label: t("employer.candidates.status.viewed"),
+      badgeColor: "bg-blue-100 text-blue-700 border-blue-300",
+    },
+    [ApplicationStatus.EMAILED]: {
+      label: t("employer.candidates.status.emailed"),
+      badgeColor: "bg-purple-100 text-purple-700 border-purple-300",
+    },
+    [ApplicationStatus.SCREENING]: {
+      label: t("employer.candidates.status.screening"),
+      badgeColor: "bg-teal-100 text-teal-700 border-teal-300",
+    },
+    [ApplicationStatus.SCREENING_PENDING]: {
+      label: t("employer.candidates.status.screeningPending"),
+      badgeColor: "bg-orange-100 text-orange-700 border-orange-300",
+    },
+    [ApplicationStatus.INTERVIEW_SCHEDULING]: {
+      label: t("employer.candidates.status.interviewScheduling"),
+      badgeColor: "bg-yellow-100 text-yellow-700 border-yellow-300",
+    },
+    [ApplicationStatus.INTERVIEWED_PENDING]: {
+      label: t("employer.candidates.status.interviewedPending"),
+      badgeColor: "bg-cyan-100 text-cyan-700 border-cyan-300",
+    },
+    [ApplicationStatus.OFFERED]: {
+      label: t("employer.candidates.status.offered"),
+      badgeColor: "bg-green-100 text-green-700 border-green-300",
+    },
+    [ApplicationStatus.REJECTED]: {
+      label: t("employer.candidates.status.rejected"),
+      badgeColor: "bg-red-100 text-red-700 border-red-300",
+    },
+  };
   return (
     statusMap[status] || {
       label: status,
-      color: "border-gray-500 text-gray-500",
+      badgeColor: "bg-gray-100 text-gray-700 border-gray-300",
     }
   );
 };
@@ -105,9 +106,6 @@ const formatDate = (dateString?: string, locale: string = "vi-VN"): string => {
 function Candidates() {
   const { t, i18n } = useTranslation();
   const { device } = useContext(ResponsiveContext);
-  // Shared grid columns for header and rows to ensure alignment
-  const gridColumns =
-    "80px minmax(160px,1fr) 140px minmax(140px,1fr) 160px 150px minmax(160px,2fr)";
   const params = useParams();
 
   const [selectedJobId, setSelectedJobId] = useState<number | undefined>(
@@ -423,135 +421,139 @@ function Candidates() {
             </div>
           ) : (
             <>
-              {/* Table Container with Horizontal Scroll (fluid widths) */}
-              <div className="overflow-x-auto">
-                {/* Make inner wrapper size to content so header width matches rows */}
-                <div className="w-max inline-block">
-                  {/* Desktop Table Header */}
-                  {device === "desktop" && (
-                    <div
-                      className="hidden md:grid items-center gap-6 px-6 py-4 bg-gradient-to-r from-[#f8f8fd] to-[#f0f4ff] border-b-2 border-[#e2e7f5] text-sm font-semibold text-[#7c8493] uppercase tracking-wide box-border"
-                      style={{
-                        // Use fluid column sizes so table can shrink without forcing horizontal scroll
-                        gridTemplateColumns: gridColumns,
-                      }}
-                    >
-                      <div className="text-center">
-                        {t("employer.applications.table.stt")}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>{t("employer.applications.table.fullName")}</span>
-                      </div>
-                      <div>{t("employer.applications.table.phoneNumber")}</div>
-                      <div>{t("employer.applications.table.email")}</div>
-                      <div>{t("employer.applications.table.status")}</div>
-                      <div>{t("employer.applications.table.appliedDate")}</div>
-                      <div>{t("employer.applications.table.action")}</div>
-                    </div>
-                  )}
+              {/* Table Container with Horizontal Scroll */}
+              {device === "desktop" ? (
+                <div className="overflow-x-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-teal-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-teal-500">
+                  <table className="min-w-screen w-full border-collapse text-sm table-fixed">
+                    {/* Table Header */}
+                    <thead>
+                      <tr className="bg-muted/40 text-left text-gray-700 dark:text-gray-300 border-b">
+                        <th className="px-4 py-3 w-[60px] font-semibold uppercase tracking-wide text-xs text-center">
+                          {t("employer.applications.table.stt")}
+                        </th>
+                        <th className="px-4 py-3 w-[200px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.fullName")}
+                        </th>
+                        <th className="px-4 py-3 w-[130px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.phoneNumber")}
+                        </th>
+                        <th className="px-4 py-3 w-[200px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.email")}
+                        </th>
+                        <th className="px-4 py-3 w-[180px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.status")}
+                        </th>
+                        <th className="px-4 py-3 w-[150px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.appliedDate")}
+                        </th>
+                        <th className="px-4 py-3 w-[300px] font-semibold uppercase tracking-wide text-xs">
+                          {t("employer.applications.table.action")}
+                        </th>
+                      </tr>
+                    </thead>
 
-                  {/* Candidate Rows */}
-                  {filteredApplications.map((application, index) => {
-                    const statusInfo = getStatusInfo(application.status, t);
-                    return (
-                      <div key={application.id}>
-                        {device === "desktop" ? (
-                          <>
-                            {/* Desktop Row */}
-                            <CandidateSheet candidate={application}>
-                              <div
-                                className="hidden md:grid items-center gap-6 px-6 py-4 border-b border-[#e2e7f5] hover:bg-gradient-to-r hover:from-[#f8f8fd] hover:to-[#f0f4ff] transition-all cursor-pointer box-border"
-                                style={{
-                                  // Match header's fluid layout for rows
-                                  gridTemplateColumns: gridColumns,
-                                }}
-                              >
-                                <div className="text-center text-[#7c8493] font-semibold text-base">
-                                  {(currentPage - 1) * itemsPerPage + index + 1}
-                                </div>
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <Avatar className="w-12 h-12 flex-shrink-0 ring-2 ring-purple-200">
+                    {/* Table Body */}
+                    <tbody>
+                      {filteredApplications.map((application, index) => {
+                        const statusInfo = getStatusInfo(application.status, t);
+                        return (
+                          <CandidateSheet
+                            key={application.id}
+                            candidate={application}
+                          >
+                            <tr className="hover:bg-muted/30 border-b last:border-none transition-colors cursor-pointer">
+                              <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 font-medium">
+                                {(currentPage - 1) * itemsPerPage + index + 1}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="w-10 h-10 flex-shrink-0">
                                     <AvatarImage src={""} />
-                                    <AvatarFallback className="bg-purple-200 text-purple-600 font-semibold text-base">
+                                    <AvatarFallback className="bg-purple-200 text-purple-600 font-semibold">
                                       {application.fullName.charAt(0)}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="font-semibold text-[#202430] text-base truncate">
+                                  <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
                                     {application.fullName}
                                   </span>
                                 </div>
-
-                                <div className="text-[#7c8493] text-sm font-medium truncate">
-                                  {application.phoneNumber}
-                                </div>
-
-                                <div className="text-[#7c8493] text-sm font-medium truncate">
-                                  {application.email}
-                                </div>
-
-                                <div
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="flex items-center"
+                              </td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                {application.phoneNumber}
+                              </td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400 truncate">
+                                {application.email}
+                              </td>
+                              <td
+                                className="px-4 py-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Select
+                                  value={application.status}
+                                  onValueChange={(value) =>
+                                    handleChangeStatus(
+                                      application.id,
+                                      value as ApplicationStatus
+                                    )
+                                  }
                                 >
-                                  <Select
-                                    value={application.status}
-                                    onValueChange={(value) =>
-                                      handleChangeStatus(
-                                        application.id,
-                                        value as ApplicationStatus
-                                      )
-                                    }
-                                  >
-                                    <SelectTrigger
-                                      className={`h-9 w-full ${statusInfo.color} border-2 font-medium`}
+                                  <SelectTrigger className="w-fit border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
+                                    <Badge
+                                      variant="outline"
+                                      className={`${statusInfo.badgeColor} font-medium cursor-pointer hover:opacity-80 transition-opacity`}
                                     >
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Object.values(ApplicationStatus).map(
-                                        (status) => {
-                                          const info = getStatusInfo(status, t);
-                                          return (
-                                            <SelectItem
-                                              key={status}
-                                              value={status}
-                                              className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                      {statusInfo.label}
+                                    </Badge>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.values(ApplicationStatus).map(
+                                      (status) => {
+                                        const info = getStatusInfo(status, t);
+                                        return (
+                                          <SelectItem
+                                            key={status}
+                                            value={status}
+                                            className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                          >
+                                            <Badge
+                                              variant="outline"
+                                              className={`${info.badgeColor} font-medium`}
                                             >
                                               {info.label}
-                                            </SelectItem>
-                                          );
-                                        }
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div className="text-[#7c8493] text-sm font-medium">
-                                  {formatDate(
-                                    application.createdAt,
-                                    i18n.language === "vi" ? "vi-VN" : "en-US"
-                                  )}
-                                </div>
-
-                                <div
-                                  className="flex items-center gap-2 flex-wrap min-w-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                                            </Badge>
+                                          </SelectItem>
+                                        );
+                                      }
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                {formatDate(
+                                  application.createdAt,
+                                  i18n.language === "vi" ? "vi-VN" : "en-US"
+                                )}
+                              </td>
+                              <td
+                                className="px-4 py-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="flex items-center gap-2">
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    className="bg-blue-500 text-white hover:bg-blue-600 border-blue-500"
                                     onClick={(e) =>
                                       handleViewCV(application.cvUrl, e)
                                     }
                                   >
-                                    <FileText className="w-4 h-4 mr-2" />
+                                    <FileText className="w-4 h-4 mr-1" />
                                     {t("employer.applications.viewCv")}
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-[#4640de] border-[#4640de] hover:bg-[#4640de] hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    className="bg-purple-500 text-white hover:bg-purple-600 border-purple-500"
                                     onClick={(e) =>
                                       handleViewCoverLetter(
                                         application.coverLetter,
@@ -559,175 +561,172 @@ function Candidates() {
                                       )
                                     }
                                   >
-                                    <FileTextIcon className="w-4 h-4 mr-2" />
-                                    {t("employer.applications.coverLetter")}
+                                    <FileTextIcon className="w-4 h-4 mr-1" />
+                                    Cover Letter
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white bg-transparent text-sm font-medium px-3 py-2 h-auto transition-all shadow-sm hover:shadow-md"
+                                    className="bg-green-500 text-white hover:bg-green-600 border-green-500"
                                     onClick={(e) =>
                                       handleOpenChat(application.id, e)
                                     }
                                   >
-                                    <MessageCircle className="w-4 h-4 mr-2" />
-                                    {t("employer.applications.chat")}
+                                    <MessageCircle className="w-4 h-4" />
                                   </Button>
                                 </div>
+                              </td>
+                            </tr>
+                          </CandidateSheet>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <>
+                  {/* Mobile/Tablet Card Layout */}
+                  {filteredApplications.map((application, index) => {
+                    const statusInfo = getStatusInfo(application.status, t);
+                    return (
+                      <CandidateSheet
+                        key={application.id}
+                        candidate={application}
+                      >
+                        <div className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer">
+                          <div className="flex items-start gap-3">
+                            <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">
+                              {(currentPage - 1) * itemsPerPage + index + 1}.
+                            </div>
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={""} />
+                              <AvatarFallback className="bg-purple-200 text-purple-600">
+                                {application.fullName.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900">
+                                {application.fullName}
+                              </p>
+                              <p className="text-sm text-[#7c8493] mt-1 truncate">
+                                {application.job.jobTitle}
+                              </p>
+                              <div
+                                className="flex items-center gap-2 mt-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Select
+                                  value={application.status}
+                                  onValueChange={(value) =>
+                                    handleChangeStatus(
+                                      application.id,
+                                      value as ApplicationStatus
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="w-auto border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
+                                    <Badge
+                                      variant="outline"
+                                      className={`${statusInfo.badgeColor} text-xs cursor-pointer hover:opacity-80 transition-opacity`}
+                                    >
+                                      {statusInfo.label}
+                                    </Badge>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.values(ApplicationStatus).map(
+                                      (status) => {
+                                        const info = getStatusInfo(status, t);
+                                        return (
+                                          <SelectItem
+                                            key={status}
+                                            value={status}
+                                            className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                          >
+                                            <Badge
+                                              variant="outline"
+                                              className={`${info.badgeColor} text-xs font-medium`}
+                                            >
+                                              {info.label}
+                                            </Badge>
+                                          </SelectItem>
+                                        );
+                                      }
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-xs text-[#7c8493]">
+                                  {formatDate(
+                                    application.createdAt,
+                                    i18n.language === "vi" ? "vi-VN" : "en-US"
+                                  )}
+                                </span>
                               </div>
-                            </CandidateSheet>
-                          </>
-                        ) : (
-                          <>
-                            {/* Mobile/Tablet Card Layout */}
-                            <CandidateSheet candidate={application}>
-                              <div className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer">
-                                <div className="flex items-start gap-3">
-                                  <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">
-                                    {(currentPage - 1) * itemsPerPage +
-                                      index +
-                                      1}
-                                    .
-                                  </div>
-                                  <Avatar className="w-12 h-12">
-                                    <AvatarImage src={""} />
-                                    <AvatarFallback className="bg-purple-200 text-purple-600">
-                                      {application.fullName.charAt(0)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <div
-                                      className="flex items-center gap-2 flex-wrap min-w-0"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <p className="text-sm text-[#7c8493] mt-1 truncate">
-                                        {application.job.jobTitle}
-                                      </p>
-                                    </div>
-                                    <div
-                                      className="flex items-center gap-2 mt-2"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <Select
-                                        value={application.status}
-                                        onValueChange={(value) =>
-                                          handleChangeStatus(
-                                            application.id,
-                                            value as ApplicationStatus
-                                          )
-                                        }
-                                      >
-                                        <SelectTrigger
-                                          className={`h-7 w-[120px] text-xs ${statusInfo.color} border-2`}
-                                        >
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {Object.values(ApplicationStatus).map(
-                                            (status) => {
-                                              const info = getStatusInfo(
-                                                status,
-                                                t
-                                              );
-                                              return (
-                                                <SelectItem
-                                                  key={status}
-                                                  value={status}
-                                                  className="focus:bg-sky-200 focus:text-[#1967d2] text-xs"
-                                                >
-                                                  {info.label}
-                                                </SelectItem>
-                                              );
-                                            }
-                                          )}
-                                        </SelectContent>
-                                      </Select>
-                                      <span className="text-xs text-[#7c8493]">
-                                        {formatDate(
-                                          application.createdAt,
-                                          i18n.language === "vi"
-                                            ? "vi-VN"
-                                            : "en-US"
-                                        )}
-                                      </span>
-                                    </div>
-                                    <div className="mt-2 space-y-1">
-                                      <div className="text-xs text-[#7c8493]">
-                                        <span className="font-medium">
-                                          {t(
-                                            "employer.applications.phoneLabel"
-                                          )}
-                                          :
-                                        </span>{" "}
-                                        {application.phoneNumber}
-                                      </div>
-                                      <div className="text-xs text-[#7c8493] truncate">
-                                        <span className="font-medium">
-                                          {t(
-                                            "employer.applications.emailLabel"
-                                          )}
-                                          :
-                                        </span>{" "}
-                                        {application.email}
-                                      </div>
-                                    </div>
-                                    <div className="mt-3 flex gap-2 flex-wrap">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
-                                        onClick={(e) =>
-                                          handleViewCV(application.cvUrl, e)
-                                        }
-                                      >
-                                        <FileText className="w-3 h-3 mr-1" />
-                                        <span className="text-xs sm:text-sm">
-                                          {t("employer.applications.viewCv")}
-                                        </span>
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
-                                        onClick={(e) =>
-                                          handleViewCoverLetter(
-                                            application.coverLetter,
-                                            e
-                                          )
-                                        }
-                                      >
-                                        <FileTextIcon className="w-3 h-3 mr-1" />
-                                        <span className="text-xs sm:text-sm">
-                                          {t(
-                                            "employer.applications.coverLetter"
-                                          )}
-                                        </span>
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-green-600 border-green-600 hover:bg-green-600/10 bg-transparent flex-1 min-w-[80px]"
-                                        onClick={(e) =>
-                                          handleOpenChat(application.id, e)
-                                        }
-                                      >
-                                        <MessageCircle className="w-3 h-3 mr-1" />
-                                        <span className="text-xs sm:text-sm">
-                                          {t("employer.applications.chat")}
-                                        </span>
-                                      </Button>
-                                    </div>
-                                  </div>
+                              <div className="mt-2 space-y-1">
+                                <div className="text-xs text-[#7c8493]">
+                                  <span className="font-medium">
+                                    {t("employer.applications.phoneLabel")}:
+                                  </span>{" "}
+                                  {application.phoneNumber}
+                                </div>
+                                <div className="text-xs text-[#7c8493] truncate">
+                                  <span className="font-medium">
+                                    {t("employer.applications.emailLabel")}:
+                                  </span>{" "}
+                                  {application.email}
                                 </div>
                               </div>
-                            </CandidateSheet>
-                          </>
-                        )}
-                      </div>
+                              <div className="mt-3 flex gap-2 flex-wrap">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
+                                  onClick={(e) =>
+                                    handleViewCV(application.cvUrl, e)
+                                  }
+                                >
+                                  <FileText className="w-3 h-3 mr-1" />
+                                  <span className="text-xs sm:text-sm">
+                                    {t("employer.applications.viewCv")}
+                                  </span>
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[100px]"
+                                  onClick={(e) =>
+                                    handleViewCoverLetter(
+                                      application.coverLetter,
+                                      e
+                                    )
+                                  }
+                                >
+                                  <FileTextIcon className="w-3 h-3 mr-1" />
+                                  <span className="text-xs sm:text-sm">
+                                    {t("employer.applications.coverLetter")}
+                                  </span>
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-green-600 border-green-600 hover:bg-green-600/10 bg-transparent flex-1 min-w-[80px]"
+                                  onClick={(e) =>
+                                    handleOpenChat(application.id, e)
+                                  }
+                                >
+                                  <MessageCircle className="w-3 h-3 mr-1" />
+                                  <span className="text-xs sm:text-sm">
+                                    {t("employer.applications.chat")}
+                                  </span>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CandidateSheet>
                     );
                   })}
-                </div>
-              </div>
+                </>
+              )}
             </>
           )}
         </div>

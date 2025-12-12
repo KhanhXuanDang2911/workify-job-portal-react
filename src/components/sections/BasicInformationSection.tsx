@@ -5,6 +5,8 @@ import InstagramIcon from "@/assets/icons/InstagramIcon";
 import LinkedinIcon from "@/assets/icons/LinkedinIcon";
 import YoutubeIcon from "@/assets/icons/YoutubeIcon";
 import { useResume } from "@/context/ResumeContext/useResume";
+import { useTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
 import type { CustomFieldType } from "@/types/resume.type";
 import { Camera, Plus, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -22,7 +24,9 @@ const FIELD_TYPE_MAP: Record<
 };
 
 function BasicInformationSection() {
-  const { resume, setResume } = useResume();
+  const { resume, setResume, validationErrors, setValidationErrors } =
+    useResume();
+  const { t } = useTranslation();
   const [customFields, setCustomFields] = useState(
     resume.basicInfo.customFields || []
   );
@@ -43,6 +47,22 @@ function BasicInformationSection() {
         [field]: value,
       },
     });
+    // Clear validation error when user starts typing
+    if (field === "fullName" && validationErrors.fullName) {
+      setValidationErrors((prev) => ({ ...prev, fullName: false }));
+    }
+    if (field === "email" && validationErrors.email) {
+      setValidationErrors((prev) => ({ ...prev, email: false }));
+    }
+    if (field === "position" && validationErrors.position) {
+      setValidationErrors((prev) => ({ ...prev, position: false }));
+    }
+    if (field === "phoneNumber" && validationErrors.phone) {
+      setValidationErrors((prev) => ({ ...prev, phone: false }));
+    }
+    if (field === "location" && validationErrors.location) {
+      setValidationErrors((prev) => ({ ...prev, location: false }));
+    }
   };
 
   const addCustomField = () => {
@@ -119,12 +139,12 @@ function BasicInformationSection() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const avatarUrl = reader.result as string;
+      const profilePhoto = reader.result as string;
       setResume({
         ...resume,
         basicInfo: {
           ...resume.basicInfo,
-          avatarUrl,
+          profilePhoto,
         },
       });
     };
@@ -137,7 +157,7 @@ function BasicInformationSection() {
       <div className="flex items-start gap-4">
         <div className="relative">
           <img
-            src={resume.basicInfo.avatarUrl || "default-avatar.jpg"}
+            src={resume.basicInfo.profilePhoto || "/default-avatar.jpg"}
             alt="Avatar"
             className="w-20 h-20 rounded-full object-cover"
           />
@@ -157,58 +177,115 @@ function BasicInformationSection() {
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Full Name</label>
+          <label className="block text-sm font-medium mb-1">
+            {t("resumeBuilder.forms.basicInfo.fullName")}{" "}
+            <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={resume.basicInfo.fullName || ""}
             onChange={(e) => handleChangeBasicField("fullName", e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            className={cn(
+              "w-full border rounded px-3 py-2 text-sm focus:outline-0",
+              validationErrors.fullName ? "border-red-500" : "border-gray-300"
+            )}
           />
+          {validationErrors.fullName && (
+            <span className="text-red-500 text-xs">
+              {t("resumeBuilder.validation.required")}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Position */}
       <div>
-        <label className="block text-sm font-medium mb-1">Position</label>
+        <label className="block text-sm font-medium mb-1">
+          {t("resumeBuilder.forms.basicInfo.position")}{" "}
+          <span className="text-red-500">*</span>
+        </label>
         <input
           type="text"
           value={resume.basicInfo.position || ""}
           onChange={(e) => handleChangeBasicField("position", e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+          className={cn(
+            "w-full border rounded px-3 py-2 text-sm focus:outline-0",
+            validationErrors.position ? "border-red-500" : "border-gray-300"
+          )}
         />
+        {validationErrors.position && (
+          <span className="text-red-500 text-xs">
+            {t("resumeBuilder.validation.required")}
+          </span>
+        )}
       </div>
 
       {/* Location */}
       <div>
-        <label className="block text-sm font-medium mb-1">Location</label>
+        <label className="block text-sm font-medium mb-1">
+          {t("resumeBuilder.forms.basicInfo.location")}{" "}
+          <span className="text-red-500">*</span>
+        </label>
         <input
           type="text"
           value={resume.basicInfo.location || ""}
           onChange={(e) => handleChangeBasicField("location", e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+          className={cn(
+            "w-full border rounded px-3 py-2 text-sm focus:outline-0",
+            validationErrors.location ? "border-red-500" : "border-gray-300"
+          )}
         />
+        {validationErrors.location && (
+          <span className="text-red-500 text-xs">
+            {t("resumeBuilder.validation.required")}
+          </span>
+        )}
       </div>
 
       {/* Email + Phone */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1">
+            {t("resumeBuilder.forms.basicInfo.email")}{" "}
+            <span className="text-red-500">*</span>
+          </label>
           <input
             type="email"
             value={resume.basicInfo.email || ""}
             onChange={(e) => handleChangeBasicField("email", e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            className={cn(
+              "w-full border rounded px-3 py-2 text-sm focus:outline-0",
+              validationErrors.email ? "border-red-500" : "border-gray-300"
+            )}
           />
+          {validationErrors.email && (
+            <span className="text-red-500 text-xs">
+              {t("resumeBuilder.validation.required")}
+            </span>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Phone</label>
+          <label className="block text-sm font-medium mb-1">
+            {t("resumeBuilder.forms.basicInfo.phone")}{" "}
+            <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
-            value={resume.basicInfo.phone || ""}
-            onChange={(e) => handleChangeBasicField("phone", e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-0"
+            value={resume.basicInfo.phoneNumber || ""}
+            onChange={(e) =>
+              handleChangeBasicField("phoneNumber", e.target.value)
+            }
+            className={cn(
+              "w-full border rounded px-3 py-2 text-sm focus:outline-0",
+              validationErrors.phone ? "border-red-500" : "border-gray-300"
+            )}
           />
+          {validationErrors.phone && (
+            <span className="text-red-500 text-xs">
+              {t("resumeBuilder.validation.required")}
+            </span>
+          )}
         </div>
       </div>
 
@@ -230,11 +307,13 @@ function BasicInformationSection() {
                 }
                 className="w-40 px-4 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none"
               >
-                {Object.entries(FIELD_TYPE_MAP).map(([type, { label }]) => {
+                {Object.entries(FIELD_TYPE_MAP).map(([type]) => {
                   const isSelected = customFields.some((f) => f.type === type);
                   return (
                     <option key={type} value={type} disabled={isSelected}>
-                      {label}
+                      {t(
+                        `resumeBuilder.forms.basicInfo.customFields.${type.toLowerCase()}`
+                      )}
                     </option>
                   );
                 })}
@@ -242,7 +321,9 @@ function BasicInformationSection() {
 
               <input
                 type="text"
-                placeholder="Value"
+                placeholder={t(
+                  "resumeBuilder.forms.basicInfo.customFields.value"
+                )}
                 value={field.value}
                 onChange={(e) => updateFieldValue(field.type, e.target.value)}
                 className="border border-gray-300 rounded px-3 py-2 text-sm w-full focus:outline-0"
@@ -264,7 +345,7 @@ function BasicInformationSection() {
             className="text-sm text-black font-medium hover:underline flex items-center gap-1"
           >
             <Plus />
-            Add a custom field
+            {t("resumeBuilder.forms.basicInfo.addCustomField")}
           </button>
         )}
       </div>

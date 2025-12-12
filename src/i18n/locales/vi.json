@@ -1507,5 +1507,178 @@
       "loading": "Đang tải...",
       "viewAll": "Xem tất cả thông báo"
     }
+  },
+  "resumeBuilder": {
+    "sections": {
+      "basicInfo": "Thông tin cơ bản",
+      "objective": "Mục tiêu",
+      "experience": "Kinh nghiệm",
+      "education": "Học vấn",
+      "skills": "Kỹ năng",
+      "awards": "Giải thưởng",
+      "certifications": "Chứng chỉ",
+      "interests": "Sở thích",
+      "projects": "Dự án",
+      "references": "Người tham chiếu",
+      "hidden": "Đã ẩn"
+    },
+    "tabs": {
+      "template": "Mẫu",
+      "theme": "Chủ đề"
+    },
+    "actions": {
+      "save": "Lưu",
+      "download": "Tải xuống",
+      "print": "In",
+      "exportPDF": "Xuất PDF",
+      "exportImage": "Xuất ảnh",
+      "hide": "Ẩn",
+      "show": "Hiển thị",
+      "edit": "Chỉnh sửa",
+      "copy": "Sao chép",
+      "remove": "Xóa",
+      "cancel": "Hủy",
+      "createItem": "Tạo mục mới",
+      "editItem": "Chỉnh sửa mục",
+      "addItem": "Thêm mục mới"
+    },
+    "theme": {
+      "light": "Sáng",
+      "dark": "Tối",
+      "primaryColor": "Màu chính",
+      "backgroundColor": "Màu nền",
+      "textColor": "Màu văn bản",
+      "toggleTheme": "Chuyển giao diện"
+    },
+    "toolbar": {
+      "undo": "Hoàn tác",
+      "redo": "Làm lại",
+      "zoomIn": "Phóng to",
+      "zoomOut": "Thu nhỏ",
+      "resetSize": "Đặt lại kích thước",
+      "downloadPdf": "Tải xuống PDF",
+      "downloading": "Đang tải...",
+      "save": "Lưu",
+      "untitledResume": "CV Chưa đặt tên",
+      "toast": {
+        "downloadNameRequired": "Vui lòng đặt tên cho CV trước khi tải về!",
+        "infoRequired": "Vui lòng điền đầy đủ thông tin cơ bản trước khi lưu!",
+        "objectiveRequired": "Vui lòng điền mục tiêu nghề nghiệp trước khi lưu!",
+        "nameRequired": "Vui lòng nhập tên cho CV!",
+        "saveSuccess": "CV đã được lưu thành công!",
+        "saveFailed": "Không thể lưu CV. Vui lòng thử lại."
+      },
+      "confirmDownload": {
+        "title": "Xác nhận tải xuống",
+        "description": "Bạn có chắc chắn muốn tải xuống PDF với tên tệp",
+        "cancel": "Hủy",
+        "confirm": "Có, Tải xuống"
+      },
+      "saveDialog": {
+        "title": "Đặt tên cho CV",
+        "description": "Vui lòng nhập tên cho CV của bạn",
+        "placeholder": "Nhập tên CV (ví dụ: CV Kỹ sư phần mềm)",
+        "cancel": "Hủy",
+        "save": "Lưu"
+      }
+    },
+    "forms": {
+      "basicInfo": {
+        "fullName": "Họ và tên",
+        "position": "Vị trí",
+        "location": "Địa điểm",
+        "email": "Email",
+        "phone": "Điện thoại",
+        "notSet": "CV chưa được đặt tên",
+        "addCustomField": "Thêm trường tùy chỉnh",
+        "customFields": {
+          "facebook": "Facebook",
+          "linkedin": "LinkedIn",
+          "instagram": "Instagram",
+          "youtube": "YouTube",
+          "github": "GitHub",
+          "info": "Thông tin",
+          "value": "Giá trị"
+        }
+      },
+      "objective": {
+        "objective": "Mục tiêu"
+      },
+      "experience": {
+        "company": "Công ty",
+        "position": "Vị trí",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "currentlyWorking": "Đang làm việc tại đây",
+        "description": "Mô tả",
+        "add": "Thêm kinh nghiệm"
+      },
+      "education": {
+        "school": "Trường/Đại học",
+        "degree": "Bằng cấp",
+        "field": "Lĩnh vực học tập",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "description": "Mô tả",
+        "score": "Điểm số",
+        "add": "Thêm học vấn"
+      },
+      "skills": {
+        "skill": "Kỹ năng",
+        "level": "Cấp độ",
+        "add": "Thêm kỹ năng"
+      },
+      "awards": {
+        "title": "Tên giải thưởng",
+        "issuer": "Tổ chức trao giải",
+        "date": "Ngày",
+        "description": "Mô tả",
+        "add": "Thêm giải thưởng"
+      },
+      "certifications": {
+        "name": "Tên chứng chỉ",
+        "issuer": "Tổ chức cấp chứng chỉ",
+        "date": "Ngày",
+        "credentialUrl": "Liên kết chứng chỉ",
+        "add": "Thêm chứng chỉ"
+      },
+      "interests": {
+        "interest": "Sở thích",
+        "add": "Thêm sở thích"
+      },
+      "projects": {
+        "title": "Tên dự án",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "link": "Liên kết dự án",
+        "description": "Mô tả",
+        "add": "Thêm dự án"
+      },
+      "references": {
+        "name": "Tên người tham chiếu",
+        "position": "Vị trí",
+        "company": "Công ty",
+        "phone": "Điện thoại",
+        "email": "Email",
+        "description": "Mô tả",
+        "add": "Thêm người tham chiếu"
+      }
+    },
+    "pdfHeaders": {
+      "experience": "Kinh nghiệm",
+      "education": "Học vấn",
+      "skills": "Kỹ năng",
+      "awards": "Giải thưởng",
+      "certifications": "Chứng chỉ",
+      "interests": "Sở thích",
+      "projects": "Dự án",
+      "references": "Người tham chiếu",
+      "objective": "Mục tiêu",
+      "contact": "Liên hệ"
+    },
+    "validation": {
+      "required": "Trường này là bắt buộc",
+      "hasErrors": "Vui lòng điền đầy đủ các trường bắt buộc trước khi lưu!"
+    }
   }
 }

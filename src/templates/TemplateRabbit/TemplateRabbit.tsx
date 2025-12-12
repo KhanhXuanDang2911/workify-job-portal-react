@@ -2,6 +2,7 @@ import { templateRabbitDummy } from "@/templates/TemplateRabbit/dummy";
 import { CUSTOMFIELD_MAP_ICON, type ResumeData } from "@/types/resume.type";
 import { Dot } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const dummyData: ResumeData = templateRabbitDummy;
 
@@ -16,18 +17,21 @@ function TemplateRabbit({
   ref?: RefObject<HTMLDivElement | null>;
   onUpdateHeight?: (newHeight: number) => void;
 }) {
-  const {
-    basicInfo,
-    experience,
-    education,
-    skills,
-    awards,
-    certifications,
-    interests,
-    objective,
-    projects,
-    references,
-  } = data;
+  const { t } = useTranslation();
+  const { basicInfo, objective } = data;
+
+  // Filter hidden items
+  const experience = (data.experience || []).filter((item) => !item.isHidden);
+  const education = (data.education || []).filter((item) => !item.isHidden);
+  const skills = (data.skills || []).filter((item) => !item.isHidden);
+  const awards = (data.awards || []).filter((item) => !item.isHidden);
+  const certifications = (data.certifications || []).filter(
+    (item) => !item.isHidden
+  );
+  const projects = (data.projects || []).filter((item) => !item.isHidden);
+  const references = (data.references || []).filter((item) => !item.isHidden);
+  const interests = data.interests?.isHidden ? null : data.interests;
+
   const [minPageHeight, setMinPageHeight] = useState(PAGE_HEIGHT);
 
   const topRef = useRef<HTMLDivElement>(null);
@@ -96,7 +100,7 @@ function TemplateRabbit({
           }}
         >
           <img
-            src={data.basicInfo.avatarUrl}
+            src={data.basicInfo.profilePhoto || "/default-avatar.jpg"}
             alt=""
             className="w-full h-full rounded-full object-cover"
           />
@@ -115,7 +119,7 @@ function TemplateRabbit({
               className="uppercase text-[26px] font-fahkwang font-semibold"
               style={{ color: data.theme.bgColor }}
             >
-              Contact
+              {t("resumeBuilder.pdfHeaders.contact")}
             </h1>
             <div className="mt-2 space-y-2">
               {/* Email */}
@@ -155,7 +159,7 @@ function TemplateRabbit({
                   className="ml-2 text-[#07113c] break-all"
                   style={{ color: data.theme.bgColor }}
                 >
-                  {basicInfo.phone}
+                  {basicInfo.phoneNumber}
                 </span>
               </div>
 
@@ -209,7 +213,7 @@ function TemplateRabbit({
                   className="uppercase text-[26px] font-fahkwang font-semibold"
                   style={{ color: data.theme.bgColor }}
                 >
-                  Skills
+                  {t("resumeBuilder.pdfHeaders.skills")}
                 </h1>
                 <div className="mt-2 space-y-2">
                   {skills.map((skill, index) => (
@@ -247,7 +251,7 @@ function TemplateRabbit({
                   className="uppercase text-[26px] font-fahkwang font-semibold"
                   style={{ color: data.theme.bgColor }}
                 >
-                  Awards
+                  {t("resumeBuilder.pdfHeaders.awards")}
                 </h1>
                 <div className="mt-2 space-y-2">
                   {awards.map((award, idx) => (
@@ -275,7 +279,7 @@ function TemplateRabbit({
                   className="uppercase text-[26px] font-fahkwang font-semibold"
                   style={{ color: data.theme.bgColor }}
                 >
-                  interests
+                  {t("resumeBuilder.pdfHeaders.interests")}
                 </h1>
                 <div
                   className="text-sm leading-relaxed pt-2"
@@ -294,7 +298,7 @@ function TemplateRabbit({
                   className="uppercase text-[26px] font-fahkwang font-semibold"
                   style={{ color: data.theme.bgColor }}
                 >
-                  Certifications
+                  {t("resumeBuilder.pdfHeaders.certifications")}
                 </h1>
                 <div className="mt-2 space-y-2">
                   {certifications.map((certification, idx) => (
@@ -322,7 +326,7 @@ function TemplateRabbit({
                   className="uppercase text-[26px] font-fahkwang font-semibold"
                   style={{ color: data.theme.bgColor }}
                 >
-                  References
+                  {t("resumeBuilder.pdfHeaders.references")}
                 </h1>
                 <div className="mt-2 space-y-2">
                   {references.map((reference, idx) => (
@@ -371,7 +375,7 @@ function TemplateRabbit({
                   />
                 </svg>
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Objective
+                  {t("resumeBuilder.pdfHeaders.objective")}
                 </span>
               </h2>
               <div
@@ -399,7 +403,7 @@ function TemplateRabbit({
                 </svg>
 
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Education
+                  {t("resumeBuilder.pdfHeaders.education")}
                 </span>
               </h2>
               <div
@@ -446,7 +450,7 @@ function TemplateRabbit({
                 </svg>
 
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Experiences
+                  {t("resumeBuilder.pdfHeaders.experience")}
                 </span>
               </h2>
               <div
@@ -515,7 +519,7 @@ function TemplateRabbit({
                 </svg>
 
                 <span className="" style={{ color: data.theme.bgColor }}>
-                  Projects
+                  {t("resumeBuilder.pdfHeaders.projects")}
                 </span>
               </h2>
               <div

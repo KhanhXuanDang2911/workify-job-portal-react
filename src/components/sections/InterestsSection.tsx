@@ -7,6 +7,7 @@ function InterestsSection() {
     setResume((prev) => ({
       ...prev,
       interests: {
+        isHidden: prev.interests?.isHidden ?? false,
         description: value,
       },
     }));
