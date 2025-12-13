@@ -23,6 +23,8 @@ interface ResumeContextProps {
   validationErrors: ValidationErrors;
   setValidationErrors: React.Dispatch<React.SetStateAction<ValidationErrors>>;
   validateResume: () => boolean;
+  avatarFile: File | null;
+  setAvatarFile: React.Dispatch<React.SetStateAction<File | null>>;
 }
 
 export const ResumeContext = createContext<ResumeContextProps | null>(null);

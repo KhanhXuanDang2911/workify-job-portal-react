@@ -105,7 +105,7 @@ function TemplatePanda({
           {/* Avatar */}
           <div className="mx-auto w-[212px] h-[270px] overflow-hidden mb-[36px]">
             <img
-              src={basicInfo.profilePhoto || "/default-avatar.jpg"}
+              src={basicInfo.profilePhoto || "/default-avatar.png"}
               alt={basicInfo.fullName}
               className="w-full h-full object-cover object-center"
             />
@@ -341,7 +341,7 @@ function TemplatePanda({
           {objective && objective.description !== "<p><br></p>" && (
             <>
               <div
-                className="ql-editor p-0! text-sm leading-relaxed  "
+                className="ql-editor !p-0 text-sm leading-relaxed  "
                 dangerouslySetInnerHTML={{ __html: objective.description }}
                 style={{ color: data.theme.textColor }}
               />
@@ -488,7 +488,7 @@ function TemplatePanda({
                   {t("resumeBuilder.pdfHeaders.interests")}
                 </h2>
                 <div
-                  className="ql-editor p-0! text-sm leading-relaxed  "
+                  className="ql-editor !p-0 text-sm leading-relaxed  "
                   dangerouslySetInnerHTML={{ __html: interests.description }}
                   style={{ color: data.theme.textColor }}
                 />

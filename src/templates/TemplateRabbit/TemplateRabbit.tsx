@@ -100,7 +100,7 @@ function TemplateRabbit({
           }}
         >
           <img
-            src={data.basicInfo.profilePhoto || "/default-avatar.jpg"}
+            src={data.basicInfo.profilePhoto || "/default-avatar.png"}
             alt=""
             className="w-full h-full rounded-full object-cover"
           />
@@ -282,7 +282,7 @@ function TemplateRabbit({
                   {t("resumeBuilder.pdfHeaders.interests")}
                 </h1>
                 <div
-                  className="text-sm leading-relaxed pt-2"
+                  className="text-sm leading-relaxed pt-2 ql-editor !p-0"
                   dangerouslySetInnerHTML={{ __html: interests.description }}
                   style={{ color: data.theme.bgColor }}
                 />
@@ -339,7 +339,12 @@ function TemplateRabbit({
                         {reference.information}
                       </div>
                       {reference.description && (
-                        <div className="text-sm ">{reference.description}</div>
+                        <div
+                          className="text-sm ql-editor p-0"
+                          dangerouslySetInnerHTML={{
+                            __html: reference.description,
+                          }}
+                        />
                       )}
                     </div>
                   ))}
@@ -458,8 +463,8 @@ function TemplateRabbit({
                 style={{ color: data.theme.textColor }}
               >
                 {experience.map((exp, index) => (
-                  <div className="">
-                    <div className=" flex gap-3" key={index}>
+                  <div key={index} className="">
+                    <div className=" flex gap-3">
                       <div
                         className="px-3 pr-5 py-1 self-start mt-2"
                         style={{

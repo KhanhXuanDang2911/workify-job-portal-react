@@ -24,8 +24,13 @@ const FIELD_TYPE_MAP: Record<
 };
 
 function BasicInformationSection() {
-  const { resume, setResume, validationErrors, setValidationErrors } =
-    useResume();
+  const {
+    resume,
+    setResume,
+    validationErrors,
+    setValidationErrors,
+    setAvatarFile,
+  } = useResume();
   const { t } = useTranslation();
   const [customFields, setCustomFields] = useState(
     resume.basicInfo.customFields || []
@@ -137,18 +142,18 @@ function BasicInformationSection() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const profilePhoto = reader.result as string;
-      setResume({
-        ...resume,
-        basicInfo: {
-          ...resume.basicInfo,
-          profilePhoto,
-        },
-      });
-    };
-    reader.readAsDataURL(file);
+    // Store the file for upload
+    setAvatarFile(file);
+
+    // Create preview URL for displaying in the UI
+    const previewUrl = URL.createObjectURL(file);
+    setResume({
+      ...resume,
+      basicInfo: {
+        ...resume.basicInfo,
+        profilePhoto: previewUrl,
+      },
+    });
   };
 
   return (
@@ -157,7 +162,7 @@ function BasicInformationSection() {
       <div className="flex items-start gap-4">
         <div className="relative">
           <img
-            src={resume.basicInfo.profilePhoto || "/default-avatar.jpg"}
+            src={resume.basicInfo.profilePhoto || "/default-avatar.png"}
             alt="Avatar"
             className="w-20 h-20 rounded-full object-cover"
           />

@@ -7,15 +7,68 @@ import { useResume } from "@/context/ResumeContext/useResume";
 import LeftPanel from "@/components/LeftPanel";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
+import TemplateTiger from "@/templates/TemplateTiger/TemplateTiger";
+import TemplateEagle from "@/templates/TemplateEagle/TemplateEagle";
+import TemplateProfessional1 from "@/templates/TemplateProfessional1/TemplateProfessional1";
+import TemplateProfessional2 from "@/templates/TemplateProfessional2/TemplateProfessional2";
+import TemplateProfessional3 from "@/templates/TemplateProfessional3/TemplateProfessional3";
+import TemplateProfessional4 from "../../templates/TemplateProfessional4/TemplateProfessional4";
+import TemplateHavard1 from "@/templates/TemplateHavard1/TemplateHavard1";
+import TemplateHavard2 from "@/templates/TemplateHavard2/TemplateHavard2";
 import { useParams, useNavigate } from "react-router-dom";
 import type { TemplateType } from "@/types/resume.type";
-import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
+import {
+  templatePandaDummyVi,
+  templatePandaDummyEn,
+} from "@/templates/TemplatePanda/dummy";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Edit3, Eye } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { templateRabbitDummy } from "@/templates/TemplateRabbit/dummy";
-import { templateLionDummy } from "@/templates/TemplateLion/dummy";
-import { templateDolphinDummy } from "@/templates/TemplateDolphin/dummy";
+import {
+  templateRabbitDummyVi,
+  templateRabbitDummyEn,
+} from "@/templates/TemplateRabbit/dummy";
+import {
+  templateLionDummyVi,
+  templateLionDummyEn,
+} from "@/templates/TemplateLion/dummy";
+import {
+  templateDolphinDummyVi,
+  templateDolphinDummyEn,
+} from "@/templates/TemplateDolphin/dummy";
+import {
+  templateTigerDummyVi,
+  templateTigerDummyEn,
+} from "@/templates/TemplateTiger/dummy";
+import {
+  templateEagleDummyVi,
+  templateEagleDummyEn,
+} from "@/templates/TemplateEagle/dummy";
+import {
+  templateProfessional1DummyVi,
+  templateProfessional1DummyEn,
+} from "@/templates/TemplateProfessional1/dummy";
+import {
+  templateProfessional2DummyVi,
+  templateProfessional2DummyEn,
+} from "@/templates/TemplateProfessional2/dummy";
+import {
+  templateProfessional3DummyVi,
+  templateProfessional3DummyEn,
+} from "@/templates/TemplateProfessional3/dummy";
+import {
+  templateProfessional4DummyVi,
+  templateProfessional4DummyEn,
+} from "../../templates/TemplateProfessional4/dummy";
+import {
+  templateHavard1DummyVi,
+  templateHavard1DummyEn,
+} from "@/templates/TemplateHavard1/dummy";
+import {
+  templateHavard2DummyVi,
+  templateHavard2DummyEn,
+} from "@/templates/TemplateHavard2/dummy";
+import { useSearchParams } from "react-router-dom";
 
 function ResumeBuilder() {
   const { t } = useTranslation();
@@ -24,6 +77,7 @@ function ResumeBuilder() {
     id?: string;
   }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     resume,
     setResume,
@@ -32,17 +86,42 @@ function ResumeBuilder() {
     template,
     setTemplate,
   } = useResume();
-  console.log(resume);
+
   const templateRef = useRef<HTMLDivElement>(null);
 
-  // Map template slug to dummy data
-  const getTemplateDummyData = (templateType: TemplateType) => {
-    const dummyDataMap: Record<TemplateType, typeof templatePandaDummy> = {
-      "TEMPLATE-PANDA": templatePandaDummy,
-      "TEMPLATE-RABBIT": templateRabbitDummy,
-      "TEMPLATE-LION": templateLionDummy,
-      "TEMPLATE-DOLPHIN": templateDolphinDummy,
-    };
+  // Map template slug to dummy data based on language
+  const getTemplateDummyData = (templateType: TemplateType, lang: string) => {
+    const isEnglish = lang.startsWith("en");
+    const dummyDataMap: Record<TemplateType, typeof templatePandaDummyVi> =
+      isEnglish
+        ? {
+            "TEMPLATE-PANDA": templatePandaDummyEn,
+            "TEMPLATE-RABBIT": templateRabbitDummyEn,
+            "TEMPLATE-LION": templateLionDummyEn,
+            "TEMPLATE-DOLPHIN": templateDolphinDummyEn,
+            "TEMPLATE-TIGER": templateTigerDummyEn,
+            "TEMPLATE-EAGLE": templateEagleDummyEn,
+            "TEMPLATE-PROFESSIONAL-1": templateProfessional1DummyEn,
+            "TEMPLATE-PROFESSIONAL-2": templateProfessional2DummyEn,
+            "TEMPLATE-PROFESSIONAL-3": templateProfessional3DummyEn,
+            "TEMPLATE-PROFESSIONAL-4": templateProfessional4DummyEn,
+            "TEMPLATE-HAVARD-1": templateHavard1DummyEn,
+            "TEMPLATE-HAVARD-2": templateHavard2DummyEn,
+          }
+        : {
+            "TEMPLATE-PANDA": templatePandaDummyVi,
+            "TEMPLATE-RABBIT": templateRabbitDummyVi,
+            "TEMPLATE-LION": templateLionDummyVi,
+            "TEMPLATE-DOLPHIN": templateDolphinDummyVi,
+            "TEMPLATE-TIGER": templateTigerDummyVi,
+            "TEMPLATE-EAGLE": templateEagleDummyVi,
+            "TEMPLATE-PROFESSIONAL-1": templateProfessional1DummyVi,
+            "TEMPLATE-PROFESSIONAL-2": templateProfessional2DummyVi,
+            "TEMPLATE-PROFESSIONAL-3": templateProfessional3DummyVi,
+            "TEMPLATE-PROFESSIONAL-4": templateProfessional4DummyVi,
+            "TEMPLATE-HAVARD-1": templateHavard1DummyVi,
+            "TEMPLATE-HAVARD-2": templateHavard2DummyVi,
+          };
     return dummyDataMap[templateType];
   };
 
@@ -62,11 +141,28 @@ function ResumeBuilder() {
         "TEMPLATE-RABBIT",
         "TEMPLATE-LION",
         "TEMPLATE-DOLPHIN",
+        "TEMPLATE-TIGER",
+        "TEMPLATE-EAGLE",
+        "TEMPLATE-PROFESSIONAL-1",
+        "TEMPLATE-PROFESSIONAL-2",
+        "TEMPLATE-PROFESSIONAL-3",
+        "TEMPLATE-PROFESSIONAL-4",
+        "TEMPLATE-HAVARD-1",
+        "TEMPLATE-HAVARD-2",
       ];
       if (validTemplates.includes(uppercaseTemplate)) {
         setTemplate(uppercaseTemplate);
-        const dummyData = getTemplateDummyData(uppercaseTemplate);
-        setResume(dummyData);
+        // Get language from URL query param (default to 'vi')
+        const lang = searchParams.get("lang") || "vi";
+        const dummyData = getTemplateDummyData(uppercaseTemplate, lang);
+        // Use default-avatar.png when creating new CV (not the template preview avatar)
+        setResume({
+          ...dummyData,
+          basicInfo: {
+            ...dummyData.basicInfo,
+            profilePhoto: "/default-avatar.png",
+          },
+        });
       } else {
         navigate("/404", { replace: true });
       }
@@ -74,7 +170,7 @@ function ResumeBuilder() {
       // No template and no ID, redirect to templates page
       navigate("/templates-cv", { replace: true });
     }
-  }, [templateParam, idParam, setTemplate, setResume, navigate]);
+  }, [templateParam, idParam, setTemplate, setResume, navigate, searchParams]);
   useEffect(() => {
     updateHeightTransformComponent(1300);
   }, [template]);
@@ -84,12 +180,49 @@ function ResumeBuilder() {
   const [transformWrapperBgMode, setTransformWrapperBgMode] = useState<
     "light" | "dark"
   >("dark");
+  const [scale, setScale] = useState(1);
+  const [activeMobileTab, setActiveMobileTab] = useState<"editor" | "preview">(
+    "editor"
+  );
+
+  const transformWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (!transformWrapperRef.current) return;
+
+      const wrapperWidth = transformWrapperRef.current.clientWidth;
+      // 900px is the fixed width of the template
+      // maintain some padding (32px total horizontal padding)
+      const padding = 32;
+      const availableWidth = wrapperWidth - padding;
+
+      // Calculate scale to fit width
+      // Limit max scale to 1 (don't stretch on large screens)
+      const newScale = Math.min(availableWidth / 900, 1);
+
+      setScale(newScale);
+    };
+
+    // Initial check
+    updateScale();
+
+    // Use ResizeObserver for robust monitoring
+    const observer = new ResizeObserver(() => {
+      updateScale();
+    });
+
+    if (transformWrapperRef.current) {
+      observer.observe(transformWrapperRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const [contentHeight, setContentHeight] = useState(1273);
 
   const updateHeightTransformComponent = (newHeight: number) => {
-    const transformComponent = transformComponentRef.current;
-    if (transformComponent) {
-      transformComponent.style.height = `${newHeight}px`;
-    }
+    setContentHeight(newHeight);
   };
 
   useEffect(() => {
@@ -121,22 +254,27 @@ function ResumeBuilder() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 pb-16 lg:pb-0">
       {/* Header with CV name and action buttons */}
-      <div className="fixed top-[64px] left-[320px] xl:left-[544px] right-[44px] h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-50 shadow-sm">
-        <div className="flex items-center gap-3">
+      <div
+        className={cn(
+          "fixed top-0 lg:top-[64px] left-0 right-0 lg:left-[320px] xl:left-[544px] lg:right-[44px] h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 z-50 shadow-sm transition-all duration-300",
+          activeMobileTab === "preview" ? "lg:flex hidden" : "flex"
+        )}
+      >
+        <div className="flex items-center gap-3 w-full lg:w-auto">
           <input
             type="text"
             value={resumeName}
             onChange={(e) => setResumeName(e.target.value)}
             placeholder={t("resumeBuilder.toolbar.untitledResume")}
-            className="text-xl font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-cyan-600 focus:outline-none px-1 py-0.5 min-w-[200px]"
+            className="text-lg lg:text-xl font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-cyan-600 focus:outline-none px-1 py-0.5 w-full lg:min-w-[200px]"
           />
         </div>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            className="gap-2 bg-cyan-950 hover:bg-cyan-700"
+            className="gap-2 bg-cyan-950 hover:bg-cyan-700 whitespace-nowrap"
             onClick={handleSaveFromHeader}
             disabled={isSavingFromContext}
           >
@@ -145,36 +283,59 @@ function ResumeBuilder() {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {isSavingFromContext
-              ? t("common.loading")
-              : t("resumeBuilder.toolbar.save")}
+            <span className="hidden sm:inline">
+              {isSavingFromContext
+                ? t("common.loading")
+                : t("resumeBuilder.toolbar.save")}
+            </span>
           </Button>
         </div>
       </div>
 
-      <LeftPanel />
-      <RightPanel
-        setTransformWrapperBgMode={setTransformWrapperBgMode}
-        transformWrapperBgMode={transformWrapperBgMode}
-      />
+      <div
+        className={cn(
+          "transition-opacity duration-300",
+          activeMobileTab === "preview" ? "hidden lg:block" : "block"
+        )}
+      >
+        <LeftPanel />
+        <RightPanel
+          setTransformWrapperBgMode={setTransformWrapperBgMode}
+          transformWrapperBgMode={transformWrapperBgMode}
+        />
+      </div>
 
       <div
         id="transform-wrapper"
+        ref={transformWrapperRef}
         className={cn(
-          "fixed bottom-0 overflow-auto pt-8 pb-8 px-4",
+          "fixed bottom-0 overflow-auto pt-8 pb-20 lg:pb-8 px-4 transition-all duration-300",
           transformWrapperBgMode === "light" ? "bg-[#FAFAFA]" : "bg-[#414141]",
-          "top-[128px] left-[320px] xl:left-[544px] right-[44px]"
+          // Desktop positioning
+          "lg:top-[128px] lg:left-[320px] xl:left-[544px] lg:right-[44px]",
+          // Mobile/Tablet positioning
+          "top-0 left-0 right-0 z-40",
+          activeMobileTab === "editor" ? "hidden lg:block" : "block",
+          // Add extra padding-bottom to ensure scrolling past the scaled element is comfortable
+          "pb-32"
         )}
       >
         <div
           id="transform-component"
           ref={transformComponentRef}
-          className="bg-white shadow-2xl [&_*]:!select-text [&_*]:!cursor-text mx-auto"
+          className="bg-white shadow-2xl [&_*]:!select-text [&_*]:!cursor-text mx-auto origin-top-left transition-all duration-200"
           style={{
             width: "900px", // Match template actual width
+            height: `${contentHeight}px`,
             minHeight: "1273px", // A4 aspect ratio (900 * 1.414)
             userSelect: "text",
             cursor: "text",
+            transform: `scale(${scale})`,
+            // Apply negative margins to offset the layout space that remains unscaled
+            marginBottom: `-${contentHeight * (1 - scale)}px`,
+            marginRight: `-${900 * (1 - scale)}px`,
+            // On mobile, we might need extra top margin if there is a header overlapping
+            marginTop: window.innerWidth < 1024 ? "60px" : "0",
           }}
         >
           {template === "TEMPLATE-PANDA" && (
@@ -205,9 +366,93 @@ function ResumeBuilder() {
               onUpdateHeight={(value) => updateHeightTransformComponent(value)}
             />
           )}
+          {template === "TEMPLATE-TIGER" && (
+            <TemplateTiger
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-EAGLE" && (
+            <TemplateEagle
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-PROFESSIONAL-1" && (
+            <TemplateProfessional1
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-PROFESSIONAL-2" && (
+            <TemplateProfessional2
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-PROFESSIONAL-3" && (
+            <TemplateProfessional3
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-PROFESSIONAL-4" && (
+            <TemplateProfessional4
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-HAVARD-1" && (
+            <TemplateHavard1
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
+          {template === "TEMPLATE-HAVARD-2" && (
+            <TemplateHavard2
+              data={resume}
+              ref={templateRef}
+              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
+            />
+          )}
         </div>
       </div>
-    </>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex lg:hidden z-50">
+        <button
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
+            activeMobileTab === "editor"
+              ? "text-blue-600 bg-blue-50"
+              : "text-gray-500 hover:text-gray-900"
+          )}
+          onClick={() => setActiveMobileTab("editor")}
+        >
+          <Edit3 className="w-5 h-5" />
+          Editor
+        </button>
+        <button
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
+            activeMobileTab === "preview"
+              ? "text-blue-600 bg-blue-50"
+              : "text-gray-500 hover:text-gray-900"
+          )}
+          onClick={() => setActiveMobileTab("preview")}
+        >
+          <Eye className="w-5 h-5" />
+          Preview
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -11,8 +11,10 @@ import type {
   InterestItem,
 } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
-import { Menu } from "lucide-react";
+import { Menu, Undo2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { toast } from "react-toastify";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Sections that support isHidden according to API docs
 // basicInfo, objective, additionalInformation do NOT have isHidden
@@ -68,6 +70,7 @@ export default function SectionActionsMenu({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { resume, setResume } = useResume();
+  const { t } = useTranslation();
 
   const isHideable = HIDEABLE_SECTIONS.includes(section as HideableSectionType);
 
@@ -116,11 +119,48 @@ export default function SectionActionsMenu({
   const handleClearSection = () => {
     if (section === "basicInfo") return;
 
+    // Save current data for undo
+    const previousData = resume[section as ClearableSectionType];
+
+    // Clear the section
     setResume({
       ...resume,
       [section]: getDefaultValue(section as ClearableSectionType),
     });
     setOpen(false);
+
+    // Get section name for toast message
+    const sectionName = t(`resumeBuilder.sections.${section}`);
+
+    // Show toast with undo button
+    toast.success(
+      ({ closeToast }) => (
+        <div className="flex items-center justify-between gap-3">
+          <span>
+            {t("resumeBuilder.toast.sectionCleared", { section: sectionName })}
+          </span>
+          <button
+            onClick={() => {
+              // Restore previous data
+              setResume((currentResume) => ({
+                ...currentResume,
+                [section]: previousData,
+              }));
+              closeToast?.();
+            }}
+            className="flex items-center gap-1 px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+          >
+            <Undo2 className="w-4 h-4" />
+            {t("resumeBuilder.toast.undo")}
+          </button>
+        </div>
+      ),
+      {
+        autoClose: 10000,
+        closeOnClick: false,
+        pauseOnHover: true,
+      }
+    );
   };
 
   // Don't show menu for basicInfo and objective (objective is required, can't clear)
@@ -144,14 +184,14 @@ export default function SectionActionsMenu({
               className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer transition"
               onClick={handleHideSection}
             >
-              Hide
+              {t("resumeBuilder.actions.hide")}
             </div>
           )}
           <div
             className="px-4 py-2 text-sm cursor-pointer transition text-red-500 hover:bg-red-50"
             onClick={handleClearSection}
           >
-            Clear
+            {t("resumeBuilder.toast.clear")}
           </div>
         </div>
       )}

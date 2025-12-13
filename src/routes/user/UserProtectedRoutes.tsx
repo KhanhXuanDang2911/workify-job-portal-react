@@ -9,7 +9,6 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROLE } from "@/constants";
 import MyApplyJobs from "@/pages/User/MyApplyJobs";
 import Notifications from "@/pages/Notifications";
-import TemplatesCV from "@/pages/TemplatesCV/TemplatesCV";
 import ResumeBuilder from "@/pages/ResumeBuilder";
 import MessagesPage from "@/pages/Messages/Messages";
 import ViewResume from "@/pages/ViewResume";
@@ -68,18 +67,9 @@ const UserProtectedRoutes: RouteObject[] = [
           </ProtectedRoute>
         ),
       },
+
       {
-        path: routes.TEMPLATES_CV,
-        element: (
-          <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
-            <ResumeProvider>
-              <TemplatesCV />
-            </ResumeProvider>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: routes.CREATE_RESUME,
+        path: routes.RESUME,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <ResumeProvider>
@@ -89,7 +79,7 @@ const UserProtectedRoutes: RouteObject[] = [
         ),
       },
       {
-        path: `${routes.CREATE_RESUME}/template/:template`,
+        path: `${routes.RESUME}/create/:template`,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <ResumeProvider>
@@ -99,7 +89,7 @@ const UserProtectedRoutes: RouteObject[] = [
         ),
       },
       {
-        path: `${routes.CREATE_RESUME}/edit/:id`,
+        path: `${routes.RESUME}/edit/:id`,
         element: (
           <ProtectedRoute requiredRole={ROLE.JOB_SEEKER}>
             <ResumeProvider>

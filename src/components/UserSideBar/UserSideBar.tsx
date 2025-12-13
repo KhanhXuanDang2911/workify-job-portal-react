@@ -9,6 +9,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { routes } from "@/routes/routes.const";
 
 interface UserSideBarProps {
   className?: string;
@@ -23,39 +24,49 @@ export default function UserSideBar({ className }: UserSideBarProps) {
       id: "overview",
       label: t("sidebar.overview"),
       icon: Home,
-      href: "/overview",
+      href: `/${routes.OVERVIEW}`,
     },
     {
       id: "my-resumes",
       label: t("sidebar.myResumes"),
       icon: FileText,
-      href: "/resumes",
+      href: `/${routes.MY_RESUME}`,
     },
     {
       id: "saved-jobs",
       label: t("sidebar.savedJobs"),
       icon: Bookmark,
-      href: "/saved-jobs",
+      href: `/${routes.MY_SAVED_JOBS}`,
     },
     {
       id: "applied-jobs",
       label: t("sidebar.appliedJobs"),
       icon: Briefcase,
-      href: "/applied-jobs",
+      href: `/${routes.MY_APPLIED_JOBS}`,
     },
     {
       id: "settings",
       label: t("sidebar.settings"),
       icon: Settings,
-      href: "/settings",
+      href: `/${routes.SETTINGS}`,
     },
     {
       id: "messages",
       label: t("sidebar.messages"),
       icon: MessageSquare,
-      href: "/messages",
+      href: `/${routes.MESSAGES}`,
     },
   ];
+
+  // Check if current path matches or starts with the menu item href
+  const isActiveItem = (href: string) => {
+    if (href === `/${routes.OVERVIEW}`) {
+      return location.pathname === href;
+    }
+    return (
+      location.pathname === href || location.pathname.startsWith(href + "/")
+    );
+  };
 
   return (
     <div
@@ -75,7 +86,7 @@ export default function UserSideBar({ className }: UserSideBarProps) {
       <nav className="flex-1 overflow-y-auto p-2">
         <ul className="space-y-1">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = isActiveItem(item.href);
             return (
               <li key={item.id}>
                 <Link to={item.href}>

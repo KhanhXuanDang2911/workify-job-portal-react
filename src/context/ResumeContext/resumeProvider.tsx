@@ -16,6 +16,15 @@ interface ApiError {
   errors?: { field: string; message: string }[];
 }
 
+// Initial resume data for creating new CV (using default-avatar.png)
+const initialResumeData: ResumeData = {
+  ...templatePandaDummy,
+  basicInfo: {
+    ...templatePandaDummy.basicInfo,
+    profilePhoto: "/default-avatar.png",
+  },
+};
+
 // Helper function to check if rich text content is empty
 const isRichTextEmpty = (html: string | undefined | null): boolean => {
   if (!html) return true;
@@ -34,7 +43,7 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
 
   const [resumeName, setResumeName] = useState<string>("");
   const [template, setTemplate] = useState<TemplateType>("TEMPLATE-PANDA");
-  const [resume, setResume] = useState<ResumeData>(templatePandaDummy);
+  const [resume, setResume] = useState<ResumeData>(initialResumeData);
   const [resumeId, setResumeId] = useState<number | null>(
     idFromUrl ? Number(idFromUrl) : null
   );
@@ -42,6 +51,7 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
   );
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   // Validate resume data
   const validateResume = (): boolean => {
@@ -119,16 +129,22 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
 
       if (resumeId) {
         // Update
-        const res = await resumeService.updateResume(resumeId, payload);
+        const res = await resumeService.updateResume(
+          resumeId,
+          payload,
+          avatarFile
+        );
         if (res.data) {
+          setAvatarFile(null); // Reset after successful save
           toast.success(t("resumeBuilder.toolbar.toast.saveSuccess"));
           navigate("/my-resumes");
         }
       } else {
         // Create
-        const res = await resumeService.createResume(payload);
+        const res = await resumeService.createResume(payload, avatarFile);
         if (res.data) {
           setResumeId(res.data.id);
+          setAvatarFile(null); // Reset after successful save
           toast.success(t("resumeBuilder.toolbar.toast.saveSuccess"));
           navigate("/my-resumes");
         }
@@ -160,6 +176,8 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
         validationErrors,
         setValidationErrors,
         validateResume,
+        avatarFile,
+        setAvatarFile,
       }}
     >
       {children}

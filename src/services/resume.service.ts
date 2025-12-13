@@ -65,14 +65,35 @@ const fromApiData = (apiItem: any): ResumeItem => {
 };
 
 export const resumeService = {
-  // Create Resume
+  // Create Resume with optional avatar image
   createResume: async (
-    payload: ResumePayload
+    payload: ResumePayload,
+    avatarFile?: File | null
   ): Promise<ApiResponse<ResumeItem>> => {
     const apiPayload = toApiPayload(payload);
+    console.log(
+      "Creating resume with payload:",
+      JSON.stringify(apiPayload, null, 2)
+    );
+
+    const formData = new FormData();
+    formData.append(
+      "request",
+      new Blob([JSON.stringify(apiPayload)], { type: "application/json" })
+    );
+
+    if (avatarFile) {
+      formData.append("image", avatarFile);
+    }
+
     const response = await userHttp.post<ApiResponse<any>>(
       "/resumes",
-      apiPayload
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     // Transform response back to frontend model
     if (response.data.data) {
@@ -81,15 +102,36 @@ export const resumeService = {
     return response.data;
   },
 
-  // Update Resume
+  // Update Resume with optional avatar image
   updateResume: async (
     id: number,
-    payload: ResumePayload
+    payload: ResumePayload,
+    avatarFile?: File | null
   ): Promise<ApiResponse<ResumeItem>> => {
     const apiPayload = toApiPayload(payload);
+    console.log(
+      "Updating resume with payload:",
+      JSON.stringify(apiPayload, null, 2)
+    );
+
+    const formData = new FormData();
+    formData.append(
+      "request",
+      new Blob([JSON.stringify(apiPayload)], { type: "application/json" })
+    );
+
+    if (avatarFile) {
+      formData.append("image", avatarFile);
+    }
+
     const response = await userHttp.put<ApiResponse<any>>(
       `/resumes/${id}`,
-      apiPayload
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     // Transform response back
     if (response.data.data) {
