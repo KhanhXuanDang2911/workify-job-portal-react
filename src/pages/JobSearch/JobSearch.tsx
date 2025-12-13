@@ -14,7 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Search, ChevronDown } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, ChevronDown, Sparkles, ChevronUp } from "lucide-react";
 import JobCard from "@/components/JobCard";
 import Pagination from "@/components/Pagination";
 import SuggestedJobs from "@/components/SuggestedJob";
@@ -22,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { jobService } from "@/services/job.service";
 import { industryService } from "@/services/industry.service";
 import { provinceService } from "@/services/location.service";
+import { extractSearchParams } from "@/services/smart_search";
 import type { JobResponse } from "@/types/job.type";
 import { formatSalaryCompact } from "@/utils/formatSalary";
 import {
@@ -437,8 +439,12 @@ const JobSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSmartSearch, setShowSmartSearch] = useState(false);
+  const [smartSearchInput, setSmartSearchInput] = useState("");
+  const [isExtractingParams, setIsExtractingParams] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
+  const jobsSectionRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close history dropdown
   useEffect(() => {
@@ -562,6 +568,130 @@ const JobSearch = () => {
           : undefined;
       saveSearchHistory(tempKeyword.trim(), industryId, provinceId);
       refreshSearchHistory();
+    }
+  };
+
+  // Handle smart search
+  const handleSmartSearch = async () => {
+    if (!smartSearchInput.trim() || isExtractingParams) return;
+
+    setIsExtractingParams(true);
+    try {
+      // Step 2: Call Gemini to extract params
+      const extractedParams = await extractSearchParams(
+        smartSearchInput.trim(),
+        {
+          provinces,
+          industries,
+        }
+      );
+
+      // Step 3 & 4: Apply extracted params and update filters
+      const newFilters: JobSearchFilters = { ...appliedFilters };
+
+      // Apply keyword
+      if (extractedParams.keyword) {
+        setAppliedKeyword(extractedParams.keyword);
+      }
+
+      // Apply provinceIds
+      if (
+        extractedParams.provinceIds &&
+        extractedParams.provinceIds.length > 0
+      ) {
+        newFilters.provinceId = extractedParams.provinceIds.map((id) =>
+          String(id)
+        );
+      }
+
+      // Apply industryIds
+      if (
+        extractedParams.industryIds &&
+        extractedParams.industryIds.length > 0
+      ) {
+        newFilters.industry = extractedParams.industryIds.map((id) =>
+          String(id)
+        );
+      }
+
+      // Apply jobLevels (map enum to display labels)
+      if (extractedParams.jobLevels && extractedParams.jobLevels.length > 0) {
+        newFilters.level = extractedParams.jobLevels.map((level) =>
+          mapEnumToLevel(level, t)
+        );
+      }
+
+      // Apply experienceLevels
+      if (
+        extractedParams.experienceLevels &&
+        extractedParams.experienceLevels.length > 0
+      ) {
+        newFilters.experience = extractedParams.experienceLevels.map((exp) =>
+          mapEnumToExperience(exp, t)
+        );
+      }
+
+      // Apply educationLevels
+      if (
+        extractedParams.educationLevels &&
+        extractedParams.educationLevels.length > 0
+      ) {
+        newFilters.education = extractedParams.educationLevels.map((edu) =>
+          mapEnumToEducation(edu, t)
+        );
+      }
+
+      // Apply jobTypes
+      if (extractedParams.jobTypes && extractedParams.jobTypes.length > 0) {
+        newFilters.jobType = extractedParams.jobTypes.map((type) =>
+          mapEnumToJobType(type, t)
+        );
+      }
+
+      // Apply postedWithinDays
+      if (extractedParams.postedWithinDays) {
+        const daysLabel = mapDaysToDatePosted(
+          extractedParams.postedWithinDays,
+          t
+        );
+        if (daysLabel) {
+          newFilters.datePosted = [daysLabel];
+        }
+      }
+
+      // Apply salary
+      if (extractedParams.minSalary || extractedParams.maxSalary) {
+        newFilters.salaryMin = extractedParams.minSalary || 0;
+        newFilters.salaryMax = extractedParams.maxSalary || 0;
+        newFilters.salaryUnit =
+          (extractedParams.salaryUnit as "VND" | "USD") || "VND";
+      }
+
+      // Apply sort
+      if (extractedParams.sort) {
+        const [field, direction] = extractedParams.sort.split(":");
+        setAppliedSort({
+          field: field || "createdAt",
+          direction: (direction as "asc" | "desc") || "desc",
+        });
+      }
+
+      // Update filters
+      setAppliedFilters(newFilters);
+      setCurrentPage(1);
+
+      // Scroll to results
+      if (jobsSectionRef.current) {
+        jobsSectionRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    } catch (error) {
+      console.error("Error in smart search:", error);
+      // You can add toast notification here
+    } finally {
+      setIsExtractingParams(false);
     }
   };
 
@@ -948,6 +1078,13 @@ const JobSearch = () => {
     setCurrentPage(1);
   };
 
+  // Handle clear smart search
+  const handleClearSmartSearch = () => {
+    setSmartSearchInput("");
+    handleClearFilters();
+    setTempKeyword("");
+  };
+
   // Auto-apply filters when changed
   const handleCheckboxChange = (
     category: keyof Pick<
@@ -1222,6 +1359,105 @@ const JobSearch = () => {
                 >
                   <Search className="w-5 h-5 pointer-events-none" />
                 </Button>
+              </div>
+
+              {/* Smart Search Section */}
+              <div className="mt-4 max-w-4xl mx-auto">
+                {/* Smart Search Toggle Button */}
+                <Button
+                  type="button"
+                  onClick={() => setShowSmartSearch(!showSmartSearch)}
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium">
+                    {showSmartSearch ? "Hide Smart Search" : "Smart Search"}
+                  </span>
+                  {showSmartSearch ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </Button>
+
+                {/* Smart Search Textarea - Animated */}
+                {showSmartSearch && (
+                  <div className="mt-4 animate-fade-in-up transition-all duration-300 ease-in-out">
+                    <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-200">
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <Label
+                            htmlFor="smart-search"
+                            className="text-sm font-medium text-gray-700 mb-2 block"
+                          >
+                            Describe what you're looking for in detail
+                          </Label>
+                          <Textarea
+                            id="smart-search"
+                            placeholder="E.g., I'm looking for a remote software engineer position with 3+ years of experience in React and Node.js, preferably in a startup environment..."
+                            className="min-h-[120px] resize-y border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm text-sm"
+                            rows={5}
+                            value={smartSearchInput}
+                            onChange={(e) =>
+                              setSmartSearchInput(e.target.value)
+                            }
+                            disabled={isExtractingParams}
+                            onKeyDown={(e) => {
+                              // Enter = search
+                              if (
+                                e.key === "Enter" &&
+                                !e.ctrlKey &&
+                                !e.metaKey &&
+                                !e.shiftKey
+                              ) {
+                                e.preventDefault();
+                                handleSmartSearch();
+                              }
+                              // Ctrl+Enter or Cmd+Enter = new line (default behavior)
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 mt-2">
+                            Provide detailed information about your job
+                            preferences, skills, and requirements for better
+                            search results.
+                            {isExtractingParams && (
+                              <span className="block mt-1 text-blue-600 font-medium">
+                                Extracting search parameters...
+                              </span>
+                            )}
+                          </p>
+
+                          {/* Action Buttons */}
+                          <div className="mt-4 flex items-center justify-end gap-3">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleClearSmartSearch}
+                              disabled={isExtractingParams}
+                              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-gray-300 hover:border-gray-400 transition-all"
+                            >
+                              <X className="w-4 h-4" />
+                              <span>Clear</span>
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={handleSmartSearch}
+                              disabled={
+                                !smartSearchInput.trim() || isExtractingParams
+                              }
+                              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Search className="w-4 h-4" />
+                              <span>Search</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1599,7 +1835,10 @@ const JobSearch = () => {
           {/* Main Content */}
           <div className="lg:col-span-4">
             {/* Results Header */}
-            <Card className="bg-white shadow-sm border border-gray-200 p-4 mb-4">
+            <Card
+              ref={jobsSectionRef}
+              className="bg-white shadow-sm border border-gray-200 p-4 mb-4"
+            >
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   {!isLoading && totalJobs > 0 && (
