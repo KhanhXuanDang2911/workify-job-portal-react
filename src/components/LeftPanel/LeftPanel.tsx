@@ -198,10 +198,10 @@ function LeftPanel() {
 
   return (
     <div
-      className="h-[calc(100vh-64px)]
- inline-flex fixed top-[64px] left-0 z-100"
+      className="h-[calc(100dvh-64px)] lg:h-[calc(100vh-64px)] 
+ flex lg:fixed lg:top-[64px] top-[64px] lg:left-0 left-0 w-full lg:w-auto z-40 bg-white lg:bg-transparent pr-11 lg:pr-0"
     >
-      <div className="w-11 bg-[#eaeaec] flex flex-col items-center py-4 gap-3 z-100">
+      <div className="w-11 bg-[#eaeaec] flex flex-col items-center py-4 gap-3 z-50 h-full border-r lg:border-none">
         <div className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full">
           <Home className=" w-4 h-4" strokeWidth={1} />
           <div
@@ -214,6 +214,7 @@ function LeftPanel() {
               transition-all duration-200 ease-out
               bg-gray-900 text-white text-sm text-center
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
+              z-50
             "
           >
             Home
@@ -237,6 +238,7 @@ function LeftPanel() {
               transition-all duration-200 ease-out
               bg-gray-900 text-white text-sm text-center
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
+               z-50
             "
             >
               {t(labelKey)}
@@ -254,6 +256,7 @@ function LeftPanel() {
               transition-all duration-200 ease-out
               bg-gray-900 text-white text-sm text-center
               py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
+               z-50
             "
           >
             Additional information
@@ -263,14 +266,15 @@ function LeftPanel() {
 
       <div
         id="panel-details"
-        className="h-[calc(100vh-64px)]
+        className="h-full
  overflow-y-auto p-4 xl:p-6 space-y-6 xl:space-y-8 bg-[#F1F2F6] relative
             [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:rounded-full
   [&::-webkit-scrollbar-track]:bg-gray-200
   [&::-webkit-scrollbar-thumb]:rounded-full
   [&::-webkit-scrollbar-thumb]:bg-gray-300
-  w-[276px] xl:w-[500px]"
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  flex-1 w-0 min-w-0 lg:w-[276px] xl:w-[500px]"
       >
         {sections.map(({ id, labelKey, icon: Icon, component: Component }) => {
           const isHidden = isSectionHidden(id);

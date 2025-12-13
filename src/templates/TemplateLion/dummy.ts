@@ -1,13 +1,14 @@
 import type { ResumeData } from "@/types/resume.type";
 
-export const templateLionDummy: ResumeData = {
+// Vietnamese dummy data
+export const templateLionDummyVi: ResumeData = {
   basicInfo: {
-    fullName: "Lê Quang Dũng",
+    fullName: "Lê Thị Hương",
     position: "Nhân viên Kinh doanh",
-    email: "email@example.com",
-    phoneNumber: "0839848211",
-    location: "Quận Từ Liêm, Hà Nội",
-    profilePhoto: "/default-avatar.jpg",
+    email: "huong.le@gmail.com",
+    phoneNumber: "0912876543",
+    location: "Quận Đống Đa, Hà Nội",
+    profilePhoto: "/template_avatar/default2.jpg",
     customFields: [
       { type: "FACEBOOK", value: "facebook.com/username" },
       { type: "INSTAGRAM", value: "instagram.com/username" },
@@ -155,3 +156,163 @@ export const templateLionDummy: ResumeData = {
     textColor: "#000000",
   },
 };
+
+// English dummy data
+export const templateLionDummyEn: ResumeData = {
+  basicInfo: {
+    fullName: "Olivia Mitchell",
+    position: "Sales Representative",
+    email: "olivia.mitchell@gmail.com",
+    phoneNumber: "(555) 567-8901",
+    location: "Los Angeles, CA",
+    profilePhoto: "/template_avatar/default2.jpg",
+    customFields: [
+      { type: "FACEBOOK", value: "facebook.com/oliviamitchell" },
+      { type: "INSTAGRAM", value: "instagram.com/oliviamitchell" },
+    ],
+  },
+  objective: {
+    description:
+      "With over 3 years of experience as a Sales Representative, I have a solid foundation in sales processes, customer psychology skills, and deal closing experience. At my recent company, I consulted and built lasting relationships with over 200 major clients, achieving the Outstanding Sales Employee title in 2024. I'm eager to join your company to enhance my professional skills while contributing to sustainable company growth.",
+  },
+  experience: [
+    {
+      isHidden: false,
+      order: 1,
+      company: "Luxury Home Designs Co.",
+      position: "Senior Sales Executive",
+      startDate: "Mar 2022",
+      endDate: "Jul 2025",
+      description:
+        '<ul><li>Managed and developed relationships with over 200 key accounts, including strategic customer groups in home goods and furniture industry, maintaining long-term contracts and increasing revenue.</li><li>Coordinated with Marketing department to implement advertising campaigns, promotions and marketing activities to expand potential customer base and grow revenue.</li><li>Monitored order status and supported customer inquiries.</li><li>Provided after-sales support to enhance customer experience and maintain long-term relationships.</li><li><strong>Achievement:</strong> Received "Outstanding Employee 2024" award with sales exceeding 15% KPI in Q1 and Q2.</li></ul>',
+    },
+    {
+      isHidden: false,
+      order: 2,
+      company: "West Coast Trading LLC",
+      position: "Sales Representative",
+      startDate: "Jun 2020",
+      endDate: "Feb 2022",
+      description:
+        "<ul><li>Sourced and developed relationships with potential customers while maintaining connections with existing clients, supporting inquiries and handling product/service complaints.</li><li>Compiled competitor information, assessed business situations, and proposed strategies to increase company sales.</li><li>Sent promotional emails, trade show and product experience notifications to customers.</li><li>Organized events and PR campaigns for company products.</li><li>Drafted contracts and quotes for customers.</li><li>Created weekly/monthly/quarterly progress reports.</li></ul>",
+    },
+  ],
+  education: [
+    {
+      isHidden: false,
+      order: 1,
+      name: "UCLA",
+      major: "Business Administration",
+      startDate: "2016",
+      endDate: "2020",
+      score: "GPA: 3.7/4.0",
+    },
+  ],
+  skills: [
+    {
+      isHidden: false,
+      order: 1,
+      name: "Sales Skills",
+      description: "Effective persuasion and deal closing",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      name: "Communication",
+      description: "Strong communication with customers and colleagues",
+    },
+    {
+      isHidden: false,
+      order: 3,
+      name: "Basic Marketing",
+      description: "Implementing marketing campaigns and product promotion",
+    },
+    {
+      isHidden: false,
+      order: 4,
+      name: "Market Analysis",
+      description: "Competitor and market trend evaluation",
+    },
+  ],
+  awards: [
+    {
+      isHidden: false,
+      order: 1,
+      title: "Outstanding Employee 2024",
+      date: "Dec 2024",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      title: "Highest Sales Award Q1 2023",
+      date: "Mar 2023",
+    },
+  ],
+  certifications: [
+    {
+      isHidden: false,
+      order: 1,
+      name: "Professional Sales Certificate",
+      date: "May 2021",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      name: "Online Marketing Certificate",
+      date: "Aug 2022",
+    },
+  ],
+  projects: [
+    {
+      isHidden: false,
+      order: 1,
+      title: "CRM Implementation for Enterprise Clients",
+      startDate: "Jan 2023",
+      endDate: "Jun 2023",
+      description:
+        "Consulted, implemented and trained CRM system usage for major enterprise clients, helping improve customer data management efficiency and sales.",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      title: "New Furniture Product PR Campaign",
+      startDate: "Sep 2022",
+      endDate: "Dec 2022",
+      description:
+        "Collaborated with Marketing to organize PR campaigns and offline events, increasing brand awareness for new products in the furniture market.",
+    },
+  ],
+  references: [
+    {
+      isHidden: false,
+      order: 1,
+      information: "Michael Davis - Sales Director at Luxury Home Designs",
+      description:
+        "Email: michael.davis@luxuryhomedesigns.com | Phone: (555) 666-7777",
+    },
+    {
+      isHidden: false,
+      order: 2,
+      information: "Susan Lee - Sales Manager at West Coast Trading",
+      description:
+        "Email: susan.lee@westcoasttrading.com | Phone: (555) 888-9999",
+    },
+  ],
+  interests: {
+    isHidden: false,
+    description:
+      "Reading business and marketing books, attending business management seminars, playing sports like soccer and swimming.",
+  },
+  additionalInformation: {
+    description:
+      "Ready for business travel, capable of working under high pressure and eager to learn new technologies to apply at work.",
+  },
+  theme: {
+    primaryColor: "#A82125",
+    bgColor: "#FFFFFF",
+    textColor: "#000000",
+  },
+};
+
+// Default export for backward compatibility
+export const templateLionDummy = templateLionDummyVi;

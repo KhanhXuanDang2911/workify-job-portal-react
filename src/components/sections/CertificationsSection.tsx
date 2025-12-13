@@ -6,6 +6,7 @@ import {
   Edit2,
   GripVertical,
   HatGlasses,
+  MoreVertical,
   Plus,
   Trash,
 } from "lucide-react";
@@ -24,6 +25,12 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { CertificationItem } from "@/types/resume.type";
 import { useResume } from "@/context/ResumeContext/useResume";
@@ -212,9 +219,63 @@ function CertificationItem({
               <p className="text-sm text-gray-500">{item.date}</p>
             </div>
           </div>
-          {!item.visible && (
-            <CircleSlash2 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
-          )}
+          <div className="flex items-center gap-2">
+            {!item.visible && <CircleSlash2 className="text-gray-400 size-4" />}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-black"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white z-100">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleVisible();
+                  }}
+                >
+                  <HatGlasses className="mr-2 h-4 w-4" />
+                  {item.visible
+                    ? t("resumeBuilder.actions.hide")
+                    : t("resumeBuilder.actions.show")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit();
+                  }}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  {t("resumeBuilder.actions.edit")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopy();
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  {t("resumeBuilder.actions.copy")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash className="mr-2 h-4 w-4" />
+                  {t("resumeBuilder.actions.remove")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </ContextMenuTrigger>
 

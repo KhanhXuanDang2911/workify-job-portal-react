@@ -605,6 +605,7 @@
     "jobs": "Việc làm",
     "careerGuide": "Hướng nghiệp",
     "companies": "Công ty",
+    "createCV": "Tạo CV",
     "forEmployers": "Dành cho nhà tuyển dụng",
     "profile": "Hồ sơ",
     "appliedJobs": "Việc đã ứng tuyển",
@@ -647,7 +648,9 @@
     "title": "Yêu cầu đăng nhập",
     "description": "Vui lòng đăng nhập để tiếp tục sử dụng tính năng này.",
     "actionText": "Đăng nhập",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "createCVTitle": "Đăng nhập để tạo CV",
+    "createCVDescription": "Bạn cần đăng nhập để tạo và lưu CV của mình. Đăng nhập ngay để bắt đầu xây dựng CV chuyên nghiệp!"
   },
   "featuredJobs": {
     "badge": "Việc làm hấp dẫn nhất",
@@ -1508,6 +1511,29 @@
       "viewAll": "Xem tất cả thông báo"
     }
   },
+  "resume": {
+    "selectTemplate": "Chọn Mẫu CV",
+    "useTemplate": "Dùng mẫu",
+    "preview": "Xem trước",
+    "hero": {
+      "badge": "Miễn phí & Chuyên nghiệp",
+      "title": "Tạo CV Ấn Tượng Trong Vài Phút",
+      "description": "Chọn mẫu CV phù hợp với phong cách của bạn. Tất cả đều được thiết kế chuyên nghiệp, dễ tùy chỉnh và sẵn sàng gây ấn tượng với nhà tuyển dụng."
+    },
+    "features": {
+      "professional": "Thiết kế chuyên nghiệp",
+      "easy": "Dễ dàng tùy chỉnh",
+      "free": "Hoàn toàn miễn phí"
+    },
+    "filters": {
+      "all": "Tất cả mẫu",
+      "professional": "Chuyên nghiệp",
+      "havard": "Havard",
+      "creative": "Sáng tạo",
+      "avatar": "Có ảnh đại diện",
+      "noAvatar": "Không ảnh"
+    }
+  },
   "resumeBuilder": {
     "sections": {
       "basicInfo": "Thông tin cơ bản",
@@ -1519,8 +1545,13 @@
       "certifications": "Chứng chỉ",
       "interests": "Sở thích",
       "projects": "Dự án",
-      "references": "Người tham chiếu",
+      "references": "Người giới thiệu",
       "hidden": "Đã ẩn"
+    },
+    "toast": {
+      "sectionCleared": "Đã xóa mục {{section}}",
+      "undo": "Hoàn tác",
+      "clear": "Xóa"
     },
     "tabs": {
       "template": "Mẫu",
@@ -1672,7 +1703,7 @@
       "certifications": "Chứng chỉ",
       "interests": "Sở thích",
       "projects": "Dự án",
-      "references": "Người tham chiếu",
+      "references": "Người giới thiệu",
       "objective": "Mục tiêu",
       "contact": "Liên hệ"
     },

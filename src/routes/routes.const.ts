@@ -21,7 +21,7 @@ export const routes = {
   CREATE_CV: "cv-builder",
   LINKEDIN_AUTHENTICATE: "linkedin/authenticate",
   NOTIFICATIONS: "notifications",
-  CREATE_RESUME: "create-resume",
+  RESUME: "resume",
   TEMPLATES_CV: "templates-cv",
   VIEW_RESUME: "view-resume",
 };

@@ -32,6 +32,22 @@ import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import { templateLionDummy } from "@/templates/TemplateLion/dummy";
 import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
 import { templateDolphinDummy } from "@/templates/TemplateDolphin/dummy";
+import TemplateTiger from "@/templates/TemplateTiger/TemplateTiger";
+import { templateTigerDummy } from "@/templates/TemplateTiger/dummy";
+import TemplateEagle from "@/templates/TemplateEagle/TemplateEagle";
+import { templateEagleDummy } from "@/templates/TemplateEagle/dummy";
+import TemplateProfessional1 from "@/templates/TemplateProfessional1/TemplateProfessional1";
+import { templateProfessional1Dummy } from "@/templates/TemplateProfessional1/dummy";
+import TemplateProfessional2 from "@/templates/TemplateProfessional2/TemplateProfessional2";
+import { templateProfessional2Dummy } from "@/templates/TemplateProfessional2/dummy";
+import TemplateHavard1 from "@/templates/TemplateHavard1/TemplateHavard1";
+import { templateHavard1Dummy } from "@/templates/TemplateHavard1/dummy";
+import TemplateHavard2 from "@/templates/TemplateHavard2/TemplateHavard2";
+import { templateHavard2Dummy } from "@/templates/TemplateHavard2/dummy";
+import TemplateProfessional3 from "@/templates/TemplateProfessional3/TemplateProfessional3";
+import { templateProfessional3Dummy } from "@/templates/TemplateProfessional3/dummy";
+import TemplateProfessional4 from "@/templates/TemplateProfessional4/TemplateProfessional4";
+import { templateProfessional4Dummy } from "@/templates/TemplateProfessional4/dummy";
 import { useTranslation } from "@/hooks/useTranslation";
 
 type TabKey = "template" | "theme";
@@ -60,7 +76,7 @@ function RightPanel({
   const [activeTab, setActiveTab] = useState<TabKey | null>(null);
   return (
     <>
-      <div className="fixed top-[64px] right-0 h-[calc(100vh-64px)] inline-flex z-100">
+      <div className="fixed top-[64px] right-0 h-[calc(100dvh-64px)] lg:h-[calc(100vh-64px)] inline-flex z-50 lg:z-100">
         <DetailsPanelActions
           activeTab={activeTab}
           onClose={() => setActiveTab(null)}
@@ -185,9 +201,12 @@ function DetailsPanelActions({ activeTab, onClose }: DetailsPanelActionsProps) {
   };
 
   return (
-    <div ref={elRef} className="w-[400px] bg-[#F1F2F6] rounded-sm ">
+    <div
+      ref={elRef}
+      className="w-[calc(100vw-44px)] lg:w-[400px] bg-[#F1F2F6] rounded-sm "
+    >
       {/* header-close */}
-      <div className="sticky top-[64px] bg-[#F1F2F6] border-b border-border rounded-t-sm px-6 h-[80px] flex items-center justify-between z-10">
+      <div className="sticky top-0 lg:top-[64px] bg-[#F1F2F6] border-b border-border rounded-t-sm px-6 h-[80px] flex items-center justify-between z-10">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           {(() => {
             const TabIcon = tabMapConfig[activeTab].icon;
@@ -230,6 +249,20 @@ const templates: TemplateItem<{
   ref?: RefObject<HTMLDivElement | null>;
 }>[] = [
   {
+    id: "template-tiger",
+    name: "Template Tiger",
+    component: TemplateTiger,
+    type: "TEMPLATE-TIGER",
+    dummyData: templateTigerDummy,
+  },
+  {
+    id: "template-eagle",
+    name: "Template Eagle",
+    component: TemplateEagle,
+    type: "TEMPLATE-EAGLE",
+    dummyData: templateEagleDummy,
+  },
+  {
     id: "template-panda",
     name: "Template Panda",
     component: TemplatePanda,
@@ -256,6 +289,48 @@ const templates: TemplateItem<{
     component: TemplateDolphin,
     type: "TEMPLATE-DOLPHIN",
     dummyData: templateDolphinDummy,
+  },
+  {
+    id: "template-professional-1",
+    name: "Professional 1",
+    component: TemplateProfessional1,
+    type: "TEMPLATE-PROFESSIONAL-1",
+    dummyData: templateProfessional1Dummy,
+  },
+  {
+    id: "template-professional-2",
+    name: "Professional 2",
+    component: TemplateProfessional2,
+    type: "TEMPLATE-PROFESSIONAL-2",
+    dummyData: templateProfessional2Dummy,
+  },
+  {
+    id: "template-professional-3",
+    name: "Professional 3",
+    component: TemplateProfessional3,
+    type: "TEMPLATE-PROFESSIONAL-3",
+    dummyData: templateProfessional3Dummy,
+  },
+  {
+    id: "template-professional-4",
+    name: "Professional 4",
+    component: TemplateProfessional4,
+    type: "TEMPLATE-PROFESSIONAL-4",
+    dummyData: templateProfessional4Dummy,
+  },
+  {
+    id: "template-havard-1",
+    name: "Havard 1",
+    component: TemplateHavard1,
+    type: "TEMPLATE-HAVARD-1",
+    dummyData: templateHavard1Dummy,
+  },
+  {
+    id: "template-havard-2",
+    name: "Havard 2",
+    component: TemplateHavard2,
+    type: "TEMPLATE-HAVARD-2",
+    dummyData: templateHavard2Dummy,
   },
 ];
 

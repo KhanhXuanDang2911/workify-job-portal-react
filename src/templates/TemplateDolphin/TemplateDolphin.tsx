@@ -67,7 +67,7 @@ function TemplateDolphin({
             style={{ outlineColor: theme.primaryColor }}
           >
             <img
-              src={basicInfo.profilePhoto || "/default-avatar.jpg"}
+              src={basicInfo.profilePhoto || "/default-avatar.png"}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -359,7 +359,7 @@ function TemplateDolphin({
                       </p>
                     </div>
                     <div
-                      className="text-sm leading-relaxed px-[34px] py-[18px]"
+                      className="text-sm leading-relaxed px-[34px] py-[18px] ql-editor"
                       dangerouslySetInnerHTML={{
                         __html: exp.description || "",
                       }}
@@ -419,12 +419,45 @@ function TemplateDolphin({
                       </p>
                     </div>
                     <div
-                      className="ql-editor px-0! text-sm leading-relaxed py-[18px]"
+                      className="ql-editor !px-0 text-sm leading-relaxed py-[18px]"
                       dangerouslySetInnerHTML={{
                         __html: project.description || "",
                       }}
                       style={{ color: data.theme.textColor }}
                     />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* References */}
+          {data.references && data.references.length > 0 && (
+            <div className="">
+              <h2
+                className="bg-[#1E2837] w-full uppercase text-[24px] font-semibold py-[8px] px-[12px] text-center "
+                style={{ color: theme.bgColor }}
+              >
+                {t("resumeBuilder.pdfHeaders.references")}
+              </h2>
+              <div className="mt-[12px] space-y-4">
+                {data.references?.map((ref, idx) => (
+                  <div key={idx} className="mb-[12px]">
+                    <p
+                      className="font-semibold text-[18px]"
+                      style={{ color: data.theme.textColor }}
+                    >
+                      {ref.information}
+                    </p>
+                    {ref.description && (
+                      <div
+                        className="ql-editor px-0! text-sm leading-relaxed py-[8px]"
+                        dangerouslySetInnerHTML={{
+                          __html: ref.description,
+                        }}
+                        style={{ color: data.theme.textColor }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

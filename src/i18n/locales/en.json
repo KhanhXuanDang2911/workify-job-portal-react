@@ -605,6 +605,7 @@
     "jobs": "Jobs",
     "careerGuide": "Career Guide",
     "companies": "Companies",
+    "createCV": "Create CV",
     "forEmployers": "For Employers",
     "profile": "Profile",
     "appliedJobs": "Applied Jobs",
@@ -647,7 +648,9 @@
     "title": "Login Required",
     "description": "Please sign in to continue using this feature.",
     "actionText": "Sign In",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "createCVTitle": "Sign in to Create CV",
+    "createCVDescription": "You need to sign in to create and save your CV. Sign in now to start building your professional CV!"
   },
   "featuredJobs": {
     "badge": "Top Attractive Jobs",
@@ -1508,6 +1511,29 @@
       "viewAll": "View all notifications"
     }
   },
+  "resume": {
+    "selectTemplate": "Select CV Template",
+    "useTemplate": "Use Template",
+    "preview": "Preview",
+    "hero": {
+      "badge": "Free & Professional",
+      "title": "Create Stunning CV in Minutes",
+      "description": "Choose a template that matches your style. All professionally designed, easy to customize, and ready to impress recruiters."
+    },
+    "features": {
+      "professional": "Professional Design",
+      "easy": "Easy to Customize",
+      "free": "Completely Free"
+    },
+    "filters": {
+      "all": "All Templates",
+      "professional": "Professional",
+      "havard": "Havard",
+      "creative": "Creative",
+      "avatar": "With Avatar",
+      "noAvatar": "No Avatar"
+    }
+  },
   "resumeBuilder": {
     "sections": {
       "basicInfo": "Basic Information",
@@ -1521,6 +1547,11 @@
       "projects": "Projects",
       "references": "References",
       "hidden": "Hidden"
+    },
+    "toast": {
+      "sectionCleared": "{{section}} section cleared",
+      "undo": "Undo",
+      "clear": "Clear"
     },
     "tabs": {
       "template": "Template",

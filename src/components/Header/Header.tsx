@@ -16,6 +16,7 @@ import {
   Home,
   Building2,
   BookOpen,
+  FileText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -127,6 +128,14 @@ export default function Header() {
             >
               <Building2 className="w-4 h-4" />
               {t("header.companies")}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link
+              to={routes.TEMPLATES_CV}
+              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              {t("header.createCV")}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
             </Link>
           </nav>
@@ -332,6 +341,14 @@ export default function Header() {
               >
                 <Building2 className="w-4 h-4" />
                 {t("header.companies")}
+              </Link>
+              <Link
+                to={routes.TEMPLATES_CV}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <FileText className="w-4 h-4" />
+                {t("header.createCV")}
               </Link>
               {state.isAuthenticated && (
                 <>

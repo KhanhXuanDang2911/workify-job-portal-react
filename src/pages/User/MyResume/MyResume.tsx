@@ -23,6 +23,14 @@ import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
+import TemplateTiger from "@/templates/TemplateTiger/TemplateTiger";
+import TemplateEagle from "@/templates/TemplateEagle/TemplateEagle";
+import TemplateProfessional1 from "@/templates/TemplateProfessional1/TemplateProfessional1";
+import TemplateProfessional2 from "@/templates/TemplateProfessional2/TemplateProfessional2";
+import TemplateProfessional3 from "@/templates/TemplateProfessional3/TemplateProfessional3";
+import TemplateProfessional4 from "@/templates/TemplateProfessional4/TemplateProfessional4";
+import TemplateHavard1 from "@/templates/TemplateHavard1/TemplateHavard1";
+import TemplateHavard2 from "@/templates/TemplateHavard2/TemplateHavard2";
 import type { TemplateType, ResumeData } from "@/types/resume.type";
 
 // Helper component to render template based on type
@@ -42,6 +50,22 @@ const TemplateRenderer = ({
       return <TemplateLion data={data} onUpdateHeight={() => {}} />;
     case "TEMPLATE-DOLPHIN":
       return <TemplateDolphin data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-TIGER":
+      return <TemplateTiger data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-EAGLE":
+      return <TemplateEagle data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-PROFESSIONAL-1":
+      return <TemplateProfessional1 data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-PROFESSIONAL-2":
+      return <TemplateProfessional2 data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-PROFESSIONAL-3":
+      return <TemplateProfessional3 data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-PROFESSIONAL-4":
+      return <TemplateProfessional4 data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-HAVARD-1":
+      return <TemplateHavard1 data={data} onUpdateHeight={() => {}} />;
+    case "TEMPLATE-HAVARD-2":
+      return <TemplateHavard2 data={data} onUpdateHeight={() => {}} />;
     default:
       return <TemplatePanda data={data} onUpdateHeight={() => {}} />;
   }
@@ -170,7 +194,7 @@ const MyResume = () => {
   };
 
   const handleEdit = (id: number) => {
-    navigate(`/${routes.CREATE_RESUME}/edit/${id}`);
+    navigate(`/${routes.RESUME}/edit/${id}`);
   };
 
   const handleDelete = async (id: number) => {

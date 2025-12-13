@@ -16,7 +16,7 @@ function TemplateLion({
   onUpdateHeight?: (newHeight: number) => void;
 }) {
   const { t } = useTranslation();
-  const { basicInfo, objective, theme } = data;
+  const { basicInfo, objective, theme, references } = data;
 
   // Filter hidden items
   const experience = (data.experience || []).filter((item) => !item.isHidden);
@@ -145,7 +145,7 @@ function TemplateLion({
           style={{ outlineColor: theme.bgColor }}
         >
           <img
-            src={data.basicInfo.profilePhoto || "/default-avatar.jpg"}
+            src={data.basicInfo.profilePhoto || "/default-avatar.png"}
             alt=""
             className="w-full h-full rounded-full object-cover"
           />
@@ -400,6 +400,37 @@ function TemplateLion({
                   dangerouslySetInnerHTML={{ __html: interests.description }}
                   style={{ color: data.theme.textColor }}
                 />
+              </div>
+            </div>
+          )}
+
+          {/* References */}
+          {references && references.length > 0 && (
+            <div className="pt-[16px]">
+              <h2
+                className=" font-bold font-fahkwang text-[26px] py-2 h-[46px] box-border capitalize w-[70%] rounded-tr-4xl rounded-br-4xl flex gap-2 items-center pl-4"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              >
+                <span className="" style={{ color: data.theme.bgColor }}>
+                  {t("resumeBuilder.pdfHeaders.references")}
+                </span>
+              </h2>
+
+              <div
+                className="space-y-2 py-[18px]"
+                style={{ color: data.theme.textColor }}
+              >
+                {references.map((item, index) => (
+                  <div className="text-sm" key={index}>
+                    <p className="font-semibold">{item.information}</p>
+                    {item.description && (
+                      <div
+                        className="ql-editor px-0! mt-1"
+                        dangerouslySetInnerHTML={{ __html: item.description }}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}

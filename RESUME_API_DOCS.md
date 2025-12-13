@@ -14,20 +14,29 @@ The Resume API allows job seekers to create, update, delete, and retrieve their 
 
 ### 1. Create Resume
 
-Create a new resume with detailed information.
+Create a new resume with detailed information. Optionally attach an image for the resume avatar.
 
 **Endpoint**: `POST /api/v1/resumes`
 
 **Authentication**: Required (JOB_SEEKER, ADMIN)
 
+**Content-Type**: `multipart/form-data`
+
+**Request Parts**:
+
+| Part Name | Type | Required | Description                                              |
+| --------- | ---- | -------- | -------------------------------------------------------- |
+| `request` | JSON | Yes      | Resume data (see structure below)                        |
+| `image`   | File | No       | Avatar image for the resume (JPEG, PNG, GIF, WEBP, etc.) |
+
 **Request Headers**:
 
 ```
-Content-Type: application/json
+Content-Type: multipart/form-data
 Authorization: Bearer {accessToken}
 ```
 
-**Request Body**:
+**Request Part `request` (JSON)**:
 
 ```json
 {
@@ -152,28 +161,48 @@ Authorization: Bearer {accessToken}
 }
 ```
 
+> **Note**: If an image is provided, the `avatarUrl` in `basicInfo` will be automatically updated with the uploaded image URL.
+
 **Error Responses**:
 
-- 400 Bad Request: Invalid resume data (e.g. invalid template type, missing required fields)
+- 400 Bad Request: Invalid resume data (e.g. invalid template type, missing required fields, invalid image file)
 - 401 Unauthorized: Missing or invalid authentication
 
 ---
 
 ### 2. Update Resume
 
-Update an existing resume by ID.
+Update an existing resume by ID. Optionally attach a new image to update the resume avatar.
 
 **Endpoint**: `PUT /api/v1/resumes/{resumeId}`
 
 **Authentication**: Required (JOB_SEEKER, ADMIN)
 
+**Content-Type**: `multipart/form-data`
+
 **Path Parameters**:
 
 - `resumeId` (Long, required, minimum: 1): The ID of the resume to update
 
-**Request Body**: Same structure as Create Resume (all fields to be updated)
+**Request Parts**:
+
+| Part Name | Type | Required | Description                                                               |
+| --------- | ---- | -------- | ------------------------------------------------------------------------- |
+| `request` | JSON | Yes      | Resume data to update (see Create Resume structure, excluding `template`) |
+| `image`   | File | No       | New avatar image for the resume (JPEG, PNG, GIF, WEBP, etc.)              |
+
+**Request Headers**:
+
+```
+Content-Type: multipart/form-data
+Authorization: Bearer {accessToken}
+```
+
+**Request Part `request` (JSON)**: Same structure as Create Resume (all fields to be updated, excluding `template`)
 
 **Response** (200 OK): Returns the updated resume object.
+
+> **Note**: If an image is provided, the `avatarUrl` in `basicInfo` will be automatically updated with the new uploaded image URL. If no image is provided, the existing `avatarUrl` remains unchanged.
 
 ---
 
@@ -228,6 +257,14 @@ TEMPLATE_PANDA
 TEMPLATE_RABBIT
 TEMPLATE_LION
 TEMPLATE_DOLPHIN
+TEMPLATE_TIGER
+TEMPLATE_EAGLE
+TEMPLATE_HAVARD_1
+TEMPLATE_HAVARD_2
+TEMPLATE_PROFESSIONAL_1
+TEMPLATE_PROFESSIONAL_2
+TEMPLATE_PROFESSIONAL_3
+TEMPLATE_PROFESSIONAL_4
 ```
 
 ### BasicInfo Structure
