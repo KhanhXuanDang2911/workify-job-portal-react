@@ -239,6 +239,31 @@
       }
     }
   },
+  "viewResume": {
+    "title": "Online CV of {{name}}",
+    "downloadPDF": "Download PDF",
+    "downloading": "Downloading...",
+    "editCV": "Edit CV",
+    "toast": {
+      "loadFailed": "Failed to load resume",
+      "downloadSuccess": "Downloaded CV as PDF",
+      "imageLoadFailed": "Failed to load image for PDF",
+      "downloadFailed": "Failed to download PDF"
+    }
+  },
+  "publicResume": {
+    "unavailable": "Unavailable",
+    "notAvailable": "Resume not available",
+    "goHome": "Go Home",
+    "home": "Home",
+    "downloadPDF": "Download PDF",
+    "downloading": "Downloading...",
+    "errors": {
+      "private": "This resume is private or you do not have permission to view it.",
+      "notFound": "Resume not found.",
+      "generic": "An error occurred while loading the resume."
+    }
+  },
   "validation": {
     "required": "This field is required",
     "emailInvalid": "Invalid email format",

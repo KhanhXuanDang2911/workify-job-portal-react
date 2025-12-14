@@ -33,22 +33,9 @@ export default function EmployerSignIn() {
   const signInMutation = useMutation({
     mutationFn: (data: SignInFormData) => authService.signInEmployer(data),
     onSuccess: (response) => {
-      console.log("[Employer Sign In] Login successful, saving tokens...");
-      console.log(
-        "[Employer Sign In] Access token:",
-        response.data.accessToken.substring(0, 20) + "..."
-      );
-
       employerTokenUtils.setTokens(
         response.data.accessToken,
         response.data.refreshToken
-      );
-
-      // Verify tokens were saved
-      const savedToken = employerTokenUtils.getAccessToken();
-      console.log(
-        "[Employer Sign In] Token verification after save:",
-        savedToken ? "SUCCESS" : "FAILED"
       );
 
       dispatch({

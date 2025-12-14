@@ -62,7 +62,6 @@ export default function PersonalTab() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Personal data:", formData);
   };
 
   return (

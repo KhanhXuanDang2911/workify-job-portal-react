@@ -57,7 +57,7 @@ const ViewResume = () => {
       }
     } catch (error) {
       console.error("Failed to load resume", error);
-      toast.error("Failed to load resume");
+      toast.error(t("viewResume.toast.loadFailed"));
       navigate("/resumes");
     } finally {
       setLoading(false);
@@ -116,17 +116,17 @@ const ViewResume = () => {
         );
 
         pdf.save(`${resumeName}.pdf`);
-        toast.success("Downloaded CV as PDF");
+        toast.success(t("viewResume.toast.downloadSuccess"));
         setIsDownloading(false);
       };
 
       img.onerror = () => {
-        toast.error("Failed to load image for PDF");
+        toast.error(t("viewResume.toast.imageLoadFailed"));
         setIsDownloading(false);
       };
     } catch (error) {
       console.error("Error exporting PDF:", error);
-      toast.error("Failed to download PDF");
+      toast.error(t("viewResume.toast.downloadFailed"));
       setIsDownloading(false);
     }
   };
@@ -179,7 +179,7 @@ const ViewResume = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">{t("common.loading")}</div>
       </div>
     );
   }
@@ -191,7 +191,9 @@ const ViewResume = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">
-              Xem CV Online của {resume?.basicInfo?.fullName || "User"}
+              {t("viewResume.title", {
+                name: resume?.basicInfo?.fullName || "User",
+              })}
             </h1>
             <div className="flex gap-3">
               <Button
@@ -200,14 +202,16 @@ const ViewResume = () => {
                 className="bg-white text-teal-700 hover:bg-gray-100 flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                {isDownloading ? "Đang tải..." : "Tải CV PDF"}
+                {isDownloading
+                  ? t("viewResume.downloading")
+                  : t("viewResume.downloadPDF")}
               </Button>
               <Button
                 onClick={handleEdit}
                 className="bg-white text-teal-700 hover:bg-gray-100 flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
-                Sửa CV
+                {t("viewResume.editCV")}
               </Button>
             </div>
           </div>

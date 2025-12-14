@@ -67,7 +67,6 @@ function LinkedInAuthenticate() {
 
   useEffect(() => {
     if (code && !hasVerified) {
-      console.log("authorization code:", code);
       setHasVerified(true);
       linkedInLoginMutation.mutate(code);
     }

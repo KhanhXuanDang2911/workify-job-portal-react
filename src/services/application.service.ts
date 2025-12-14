@@ -15,8 +15,6 @@ export const applicationService = {
     // Append application data as Blob with application/json type
     // Backend Spring Boot expects JSON in multipart form with proper Content-Type
     const applicationJson = JSON.stringify(data);
-    console.log("Application JSON:", applicationJson);
-    console.log("Application data:", data);
 
     // Append JSON as Blob with application/json Content-Type
     formData.append(
@@ -26,22 +24,7 @@ export const applicationService = {
 
     // Append CV file
     formData.append("cv", cvFile);
-    console.log("CV File:", cvFile.name, cvFile.type, cvFile.size);
-
-    // Log FormData entries for debugging
-    console.log("FormData entries:");
-    for (const [key, value] of formData.entries()) {
-      const val = value as any;
-      if (val instanceof File) {
-        console.log(
-          `  ${key}: File(${val.name}, ${val.type}, ${val.size} bytes)`
-        );
-      } else if (val instanceof Blob) {
-        console.log(`  ${key}: Blob(${val.type}, ${val.size} bytes)`);
-      } else {
-        console.log(`  ${key}:`, String(val).substring(0, 100));
-      }
-    }
+    formData.append("cv", cvFile);
 
     // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.post<ApiResponse<ApplicationResponse>>(

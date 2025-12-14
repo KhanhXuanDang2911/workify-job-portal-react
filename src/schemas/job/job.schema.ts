@@ -264,7 +264,6 @@ export const postJobSchema = z
       }
 
       if (data.minSalary !== undefined && data.maxSalary !== undefined) {
-        console.log("Checking range:", data.minSalary, ">=", data.maxSalary);
         if (data.minSalary >= data.maxSalary) {
           ctx.addIssue({
             code: "custom",

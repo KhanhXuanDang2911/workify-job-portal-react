@@ -73,12 +73,8 @@ function EmployerSignUp() {
 
   const signUpMutation = useMutation({
     mutationFn: employerService.signUp,
-    onSuccess: (response) => {
-      console.log(response);
-    },
-    onError: (error: AxiosError<ApiError>) => {
-      console.log(error);
-    },
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const provinceId = watch("provinceId");

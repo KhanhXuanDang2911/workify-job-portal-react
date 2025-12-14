@@ -608,9 +608,6 @@ function EmployerPostJob() {
   // const previewData = getPreviewData(watchedValues);
 
   // console.log("previewData: ",previewData);
-  console.log("formData: ", mainForm.getValues());
-  renderCount.current += 1;
-  console.log("EmployerPostJob render count:", renderCount.current);
 
   return (
     <main className="relative flex flex-col flex-1 bg-sky-50 min-h-screen">

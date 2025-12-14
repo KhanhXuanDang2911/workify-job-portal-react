@@ -42,7 +42,7 @@ function TemplateRabbit({
     const observer = new ResizeObserver(() => {
       const h = ref.current!.offsetHeight;
       setMinPageHeight(h);
-      console.log("Height changed:", h);
+      setMinPageHeight(h);
     });
     observer.observe(ref.current);
 
@@ -53,7 +53,6 @@ function TemplateRabbit({
     if (onUpdateHeight) {
       onUpdateHeight(minPageHeight);
     }
-    console.log(minPageHeight);
   }, [minPageHeight, onUpdateHeight]);
 
   return (

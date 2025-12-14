@@ -72,10 +72,6 @@ export const resumeService = {
     avatarFile?: File | null
   ): Promise<ApiResponse<ResumeItem>> => {
     const apiPayload = toApiPayload(payload);
-    console.log(
-      "Creating resume with payload:",
-      JSON.stringify(apiPayload, null, 2)
-    );
 
     const formData = new FormData();
     formData.append(
@@ -110,10 +106,6 @@ export const resumeService = {
     avatarFile?: File | null
   ): Promise<ApiResponse<ResumeItem>> => {
     const apiPayload = toApiPayload(payload);
-    console.log(
-      "Updating resume with payload:",
-      JSON.stringify(apiPayload, null, 2)
-    );
 
     const formData = new FormData();
     formData.append(

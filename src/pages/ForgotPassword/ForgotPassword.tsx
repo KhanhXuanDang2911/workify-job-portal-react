@@ -41,13 +41,13 @@ export default function ForgotPassword() {
         ? authService.forgotPassword(email, "employers")
         : authService.forgotPassword(email, "users");
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       setStep("success");
       setShowResendSuccess(false);
     },
     onError: (error: any) => {
       const apiError = error.response?.data as ApiError;
-      console.log(apiError);
+
       if (apiError?.status === 404) {
         setError("email", {
           type: "manual",

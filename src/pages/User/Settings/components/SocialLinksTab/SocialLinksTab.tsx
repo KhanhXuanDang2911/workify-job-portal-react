@@ -65,7 +65,6 @@ export default function SocialLinksTab() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Social links:", socialLinks);
   };
 
   return (

@@ -60,12 +60,8 @@ export default function SignUp() {
       password: string;
       industryId?: number | null;
     }) => authService.signUp(data),
-    onSuccess: (response) => {
-      console.log(response);
-    },
-    onError: (error: AxiosError<ApiError>) => {
-      console.log(error);
-    },
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const googleLoginMutation = useMutation({
@@ -108,11 +104,9 @@ export default function SignUp() {
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => {
-      console.log(codeResponse.code);
       googleLoginMutation.mutate(codeResponse.code);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: () => {
       toast.error(t("toast.error.googleLoginFailed"));
     },
     flow: "auth-code",

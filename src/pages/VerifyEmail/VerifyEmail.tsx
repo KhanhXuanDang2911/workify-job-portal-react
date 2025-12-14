@@ -29,11 +29,9 @@ export default function VerifyEmail() {
 
   const verifyMutation = useMutation({
     mutationFn: (token: string) => {
-      console.log(role);
       return authService.verifyEmail(token, role);
     },
     onSuccess: (data) => {
-      console.log("Email verification successful:", data);
       toast(data.message || t("auth.verifyEmail.successToast"));
 
       setTimeout(() => {
@@ -47,13 +45,10 @@ export default function VerifyEmail() {
               navigate(`/${routes.SIGN_IN}`, { replace: true });
             }
           }
-        } catch (e) {
-          console.error("Navigation failed:", e);
-        }
+        } catch {}
       }, 3000);
     },
     onError: (error: any) => {
-      console.error("[Email verification failed:", error);
       const errorMessage =
         error.response?.data?.message || t("auth.verifyEmail.errorToast");
       toast(errorMessage, { type: "error" });

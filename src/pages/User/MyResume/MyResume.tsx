@@ -18,14 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// Actually switch was not found in list_dir. I will use Button for toggle.
+
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { Loader2, Share2, Copy, Check, Globe } from "lucide-react";
-
-// TemplateRenderer removed as CVPreview is used for both preview and PDF generation
 
 const ITEMS_PER_PAGE = 8;
 
@@ -143,7 +141,6 @@ const MyResume = () => {
       };
 
       img.onerror = () => {
-        console.error("Error loading image for PDF");
         toast.error("Failed to generate PDF");
         setDownloadingId(null);
         setResumeToDownload(null);

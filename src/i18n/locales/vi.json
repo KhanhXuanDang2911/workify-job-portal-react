@@ -239,6 +239,31 @@
       }
     }
   },
+  "viewResume": {
+    "title": "Xem CV Online của {{name}}",
+    "downloadPDF": "Tải CV PDF",
+    "downloading": "Đang tải...",
+    "editCV": "Sửa CV",
+    "toast": {
+      "loadFailed": "Không thể tải CV",
+      "downloadSuccess": "Đã tải CV dưới dạng PDF",
+      "imageLoadFailed": "Không thể tải hình ảnh cho PDF",
+      "downloadFailed": "Tải PDF thất bại"
+    }
+  },
+  "publicResume": {
+    "unavailable": "Không khả dụng",
+    "notAvailable": "CV không khả dụng",
+    "goHome": "Về trang chủ",
+    "home": "Trang chủ",
+    "downloadPDF": "Tải PDF",
+    "downloading": "Đang tải...",
+    "errors": {
+      "private": "CV này là riêng tư hoặc bạn không có quyền xem.",
+      "notFound": "Không tìm thấy CV.",
+      "generic": "Đã xảy ra lỗi khi tải CV."
+    }
+  },
   "validation": {
     "required": "Trường này là bắt buộc",
     "emailInvalid": "Định dạng email không hợp lệ",

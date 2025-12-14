@@ -10,7 +10,10 @@ import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { toast } from "react-toastify";
 
+import { useTranslation } from "@/hooks/useTranslation";
+
 export default function PublicResume() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [resume, setResume] = useState<ResumeItem | null>(null);
@@ -31,13 +34,11 @@ export default function PublicResume() {
       } catch (err: any) {
         console.error("Failed to fetch public resume", err);
         if (err.response?.status === 403) {
-          setError(
-            "This resume is private or you do not have permission to view it."
-          );
+          setError(t("publicResume.errors.private"));
         } else if (err.response?.status === 404) {
-          setError("Resume not found.");
+          setError(t("publicResume.errors.notFound"));
         } else {
-          setError("An error occurred while loading the resume.");
+          setError(t("publicResume.errors.generic"));
         }
       } finally {
         setLoading(false);
@@ -50,7 +51,7 @@ export default function PublicResume() {
   const handleDownloadPDF = async () => {
     const input = downloadRef.current;
     if (!input) {
-      toast.error("Failed to generate PDF: Content not ready");
+      toast.error(t("viewResume.toast.imageLoadFailed"));
       return;
     }
 
@@ -102,17 +103,17 @@ export default function PublicResume() {
         );
 
         pdf.save(`${resume?.title || "resume"}.pdf`);
-        toast.success("Downloaded CV as PDF");
+        toast.success(t("viewResume.toast.downloadSuccess"));
         setIsDownloading(false);
       };
 
       img.onerror = () => {
-        toast.error("Failed to load image for PDF");
+        toast.error(t("viewResume.toast.imageLoadFailed"));
         setIsDownloading(false);
       };
     } catch (error) {
       console.error("Error exporting PDF:", error);
-      toast.error("Failed to download PDF");
+      toast.error(t("viewResume.toast.downloadFailed"));
       setIsDownloading(false);
     }
   };
@@ -129,11 +130,15 @@ export default function PublicResume() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Unavailable</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t("publicResume.unavailable")}
+          </h1>
           <p className="text-gray-600 mb-6">
-            {error || "Resume not available"}
+            {error || t("publicResume.notAvailable")}
           </p>
-          <Button onClick={() => navigate(routes.BASE)}>Go Home</Button>
+          <Button onClick={() => navigate(routes.BASE)}>
+            {t("publicResume.goHome")}
+          </Button>
         </div>
       </div>
     );
@@ -151,7 +156,7 @@ export default function PublicResume() {
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Home
+            {t("publicResume.home")}
           </Button>
           <span className="text-sm text-gray-400">|</span>
           <h1 className="text-sm font-medium text-gray-800 truncate max-w-[200px] sm:max-w-md">
@@ -167,12 +172,12 @@ export default function PublicResume() {
             {isDownloading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Downloading...
+                {t("publicResume.downloading")}
               </>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                Download PDF
+                {t("publicResume.downloadPDF")}
               </>
             )}
           </Button>

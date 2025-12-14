@@ -98,11 +98,9 @@ export default function SignIn() {
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => {
-      console.log(codeResponse.code);
       googleLoginMutation.mutate(codeResponse.code);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: () => {
       toast.error(t("toast.error.googleLoginFailed"));
     },
     flow: "auth-code",
