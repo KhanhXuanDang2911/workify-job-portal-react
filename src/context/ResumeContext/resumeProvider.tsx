@@ -2,7 +2,8 @@ import {
   ResumeContext,
   type ValidationErrors,
 } from "@/context/ResumeContext/resumeContext";
-import type { ResumeData, TemplateType } from "@/types/resume.type";
+import { routes } from "@/routes/routes.const";
+import type { FontFamily, ResumeData, TemplateType } from "@/types/resume.type";
 import { useState, type ReactNode, useEffect } from "react";
 import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
 import { resumeService } from "@/services/resume.service";
@@ -43,11 +44,14 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
 
   const [resumeName, setResumeName] = useState<string>("");
   const [template, setTemplate] = useState<TemplateType>("TEMPLATE-PANDA");
+  const [fontFamily, setFontFamily] = useState<FontFamily>("PLUS_JAKARTA_SANS");
   const [resume, setResume] = useState<ResumeData>(initialResumeData);
   const [resumeId, setResumeId] = useState<number | null>(
     idFromUrl ? Number(idFromUrl) : null
   );
   const [isSaving, setIsSaving] = useState(false);
+  // Initial loading state: true if editing (has ID), false if creating
+  const [isLoading, setIsLoading] = useState(!!idFromUrl);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
   );
@@ -95,23 +99,35 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
       const id = Number(idFromUrl);
       if (id !== resumeId) {
         setResumeId(id);
+        setIsLoading(true);
       }
     }
   }, [idFromUrl]);
 
   useEffect(() => {
     if (resumeId) {
+      setIsLoading(true);
       const fetchResume = async () => {
         try {
           const res = await resumeService.getResumeById(resumeId);
           if (res.data) {
             setResumeName(res.data.title);
             setTemplate(res.data.template);
+            if (res.data.fontFamily) {
+              setFontFamily(res.data.fontFamily);
+            }
             setResume(res.data.data);
           }
         } catch (error) {
           console.error("Failed to load resume", error);
+          const axiosError = error as AxiosError;
+          if (axiosError.response?.status === 403) {
+            navigate(`/${routes.FORBIDDEN}`, { replace: true });
+            return;
+          }
           toast.error("Failed to load resume");
+        } finally {
+          setIsLoading(false);
         }
       };
       fetchResume();
@@ -124,6 +140,7 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
       const payload = {
         title: resumeName.trim() === "" ? "Untitled Resume" : resumeName,
         template: template,
+        fontFamily: fontFamily,
         data: resume,
       };
 
@@ -168,11 +185,14 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
         setResumeName,
         template,
         setTemplate,
+        fontFamily,
+        setFontFamily,
         resume,
         setResume,
         saveResume,
         resumeId,
         isSaving,
+        isLoading,
         validationErrors,
         setValidationErrors,
         validateResume,

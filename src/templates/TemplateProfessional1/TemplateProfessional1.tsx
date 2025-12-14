@@ -54,7 +54,7 @@ function TemplateProfessional1({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none"
+      className="w-[900px] min-h-[1300px] mx-auto shadow-lg relative pointer-events-none select-none"
       ref={ref}
       style={{ backgroundColor: theme.bgColor }}
     >
@@ -129,42 +129,6 @@ function TemplateProfessional1({
       <div className="flex">
         {/* Left Column */}
         <div className="w-[280px] px-6 py-6">
-          {/* Education Section */}
-          {education && education.length > 0 && (
-            <div className="mb-6">
-              <h2
-                className="text-base font-semibold uppercase tracking-wider mb-3 pb-1 border-b"
-                style={{
-                  color: theme.primaryColor,
-                  borderColor: theme.primaryColor,
-                }}
-              >
-                {t("resumeBuilder.pdfHeaders.education")}
-              </h2>
-              <div className="space-y-3">
-                {education.map((edu, index) => (
-                  <div key={index} style={{ color: theme.textColor }}>
-                    <p
-                      className="font-semibold text-sm"
-                      style={{ color: theme.primaryColor }}
-                    >
-                      {edu.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {edu.startDate} - {edu.endDate}
-                    </p>
-                    <p className="text-sm mt-1">
-                      <span className="font-medium">{edu.major}</span>
-                    </p>
-                    {edu.score && (
-                      <p className="text-xs text-gray-600">{edu.score}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Skills Section */}
           {skills && skills.length > 0 && (
             <div className="mb-6">
@@ -303,6 +267,50 @@ function TemplateProfessional1({
 
         {/* Right Column - Experience */}
         <div className="flex-1 px-6 py-6">
+          {/* Education Section */}
+          {education && education.length > 0 && (
+            <div className="mb-6">
+              <h2
+                className="text-base font-semibold uppercase tracking-wider mb-4 pb-1 border-b"
+                style={{
+                  color: theme.primaryColor,
+                  borderColor: theme.primaryColor,
+                }}
+              >
+                {t("resumeBuilder.pdfHeaders.education")}
+              </h2>
+              <div className="space-y-5">
+                {education.map((edu, index) => (
+                  <div key={index}>
+                    <h3
+                      className="font-semibold text-base"
+                      style={{ color: theme.textColor }}
+                    >
+                      {edu.name}
+                    </h3>
+                    <p
+                      className="text-sm italic mb-1"
+                      style={{ color: theme.primaryColor }}
+                    >
+                      {edu.startDate} - {edu.endDate}
+                    </p>
+                    <div className="text-sm" style={{ color: theme.textColor }}>
+                      <span className="font-medium">{edu.major}</span>
+                    </div>
+                    {edu.score && (
+                      <p
+                        className="text-sm mt-1"
+                        style={{ color: theme.textColor }}
+                      >
+                        Score: {edu.score}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Experience Section */}
           {experience && experience.length > 0 && (
             <div className="mb-6">

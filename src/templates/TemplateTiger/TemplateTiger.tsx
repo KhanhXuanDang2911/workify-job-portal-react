@@ -74,7 +74,7 @@ function TemplateTiger({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none flex"
+      className="w-[900px] min-h-[1300px] mx-auto shadow-lg relative pointer-events-none select-none flex"
       style={{ minHeight: minPageHeight, backgroundColor: data.theme.bgColor }}
       ref={ref}
     >
@@ -149,31 +149,27 @@ function TemplateTiger({
             </div>
           </div>
 
-          {/* Education Section */}
-          {education && education.length > 0 && (
+          {/* Skills Section */}
+          {skills && skills.length > 0 && (
             <div className="mb-6">
               <h3 className="text-white text-sm font-bold mb-4 uppercase tracking-wider flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <GraduationCap size={14} />
+                  <Wrench size={14} />
                 </div>
-                {t("resumeBuilder.pdfHeaders.education")}
+                {t("resumeBuilder.pdfHeaders.skills")}
               </h3>
-              <div className="space-y-3 text-white text-sm">
-                {education.map((edu, idx) => (
-                  <div key={idx} className="bg-white/10 rounded-lg p-3">
-                    <div className="font-semibold text-emerald-200 text-xs">
-                      {edu.startDate} - {edu.endDate}
-                    </div>
-                    <div className="font-bold text-white mt-1">{edu.name}</div>
-                    {edu.major && (
-                      <div className="text-white/80 text-xs mt-1">
-                        {edu.major}
-                      </div>
-                    )}
-                    {edu.score && (
-                      <div className="text-emerald-200 text-xs mt-1 font-medium">
-                        {edu.score}
-                      </div>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white/15 rounded-full px-3 py-1.5 text-xs text-white font-medium hover:bg-white/25 transition-colors"
+                  >
+                    <span>{skill.name}</span>
+                    {skill.description && (
+                      <span className="font-light text-white/80">
+                        {" "}
+                        - {skill.description}
+                      </span>
                     )}
                   </div>
                 ))}
@@ -204,34 +200,6 @@ function TemplateTiger({
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Skills Section */}
-          {skills && skills.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-white text-sm font-bold mb-4 uppercase tracking-wider flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Wrench size={14} />
-                </div>
-                {t("resumeBuilder.pdfHeaders.skills")}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.map((skill, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white/15 rounded-full px-3 py-1.5 text-xs text-white font-medium hover:bg-white/25 transition-colors"
-                  >
-                    <span>{skill.name}</span>
-                    {skill.description && (
-                      <span className="font-light text-white/80">
-                        {" "}
-                        - {skill.description}
-                      </span>
-                    )}
                   </div>
                 ))}
               </div>
@@ -318,6 +286,66 @@ function TemplateTiger({
               </div>
             </div>
           )}
+
+        {/* Education Section */}
+        {education && education.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${data.theme.primaryColor}15` }}
+              >
+                <GraduationCap
+                  size={18}
+                  style={{ color: data.theme.primaryColor }}
+                />
+              </div>
+              <h2
+                className="text-lg font-bold uppercase tracking-wide"
+                style={{ color: data.theme.primaryColor }}
+              >
+                {t("resumeBuilder.pdfHeaders.education")}
+              </h2>
+            </div>
+            <div
+              className="relative pl-6 border-l-2"
+              style={{ borderColor: `${data.theme.primaryColor}30` }}
+            >
+              {education.map((edu, idx) => (
+                <div key={idx} className="mb-5 relative">
+                  {/* Timeline dot */}
+                  <div
+                    className="absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 bg-white"
+                    style={{ borderColor: data.theme.primaryColor }}
+                  />
+                  <div
+                    className="text-xs font-semibold px-2 py-0.5 rounded-full inline-block mb-1"
+                    style={{
+                      backgroundColor: `${data.theme.primaryColor}15`,
+                      color: data.theme.primaryColor,
+                    }}
+                  >
+                    {edu.startDate} - {edu.endDate}
+                  </div>
+                  <div
+                    className="font-bold text-base"
+                    style={{ color: data.theme.primaryColor }}
+                  >
+                    {edu.name}
+                  </div>
+                  <div className="text-sm font-medium text-gray-600 mb-2">
+                    {edu.major}
+                  </div>
+                  {edu.score && (
+                    <div className="text-sm text-gray-600">
+                      Score: {edu.score}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Experience Section */}
         {experience && experience.length > 0 && (

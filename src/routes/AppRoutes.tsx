@@ -1,5 +1,7 @@
 import { useRoutes } from "react-router-dom";
 import NotFound from "@/pages/NotFound";
+import Forbidden from "@/pages/Forbidden/Forbidden";
+import { routes } from "@/routes/routes.const";
 import UserPublicRoutes from "./user/UserPublicRoutes";
 import UserProtectedRoutes from "./user/UserProtectedRoutes";
 import EmployerPublicRoutes from "./employer/EmployerPublicRoutes";
@@ -15,6 +17,10 @@ export default function AppRoutes() {
     ...EmployerProtectedRoutes,
     ...AdminPublicRoutes,
     ...AdminProtectedRoutes,
+    {
+      path: routes.FORBIDDEN,
+      element: <Forbidden />,
+    },
     {
       path: "*",
       element: <NotFound />,

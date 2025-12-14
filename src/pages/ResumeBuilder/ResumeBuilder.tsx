@@ -1,3 +1,4 @@
+import { getFontFamilyName } from "@/utils/font.utils";
 import RightPanel from "@/components/RightPanel";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, Edit3, Eye } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   templateRabbitDummyVi,
   templateRabbitDummyEn,
@@ -85,7 +87,10 @@ function ResumeBuilder() {
     setResumeName,
     template,
     setTemplate,
+    fontFamily,
   } = useResume();
+
+  // Removed local getFontFamilyName in favor of utility
 
   const templateRef = useRef<HTMLDivElement>(null);
 
@@ -242,6 +247,7 @@ function ResumeBuilder() {
     saveResume: saveResumeFromContext,
     isSaving: isSavingFromContext,
     validateResume,
+    isLoading,
   } = useResume();
 
   const handleSaveFromHeader = async () => {
@@ -331,6 +337,7 @@ function ResumeBuilder() {
             userSelect: "text",
             cursor: "text",
             transform: `scale(${scale})`,
+            fontFamily: getFontFamilyName(fontFamily),
             // Apply negative margins to offset the layout space that remains unscaled
             marginBottom: `-${contentHeight * (1 - scale)}px`,
             marginRight: `-${900 * (1 - scale)}px`,
@@ -338,89 +345,119 @@ function ResumeBuilder() {
             marginTop: window.innerWidth < 1024 ? "60px" : "0",
           }}
         >
-          {template === "TEMPLATE-PANDA" && (
-            <TemplatePanda
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-RABBIT" && (
-            <TemplateRabbit
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-LION" && (
-            <TemplateLion
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-DOLPHIN" && (
-            <TemplateDolphin
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-TIGER" && (
-            <TemplateTiger
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-EAGLE" && (
-            <TemplateEagle
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-PROFESSIONAL-1" && (
-            <TemplateProfessional1
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-PROFESSIONAL-2" && (
-            <TemplateProfessional2
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-PROFESSIONAL-3" && (
-            <TemplateProfessional3
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-PROFESSIONAL-4" && (
-            <TemplateProfessional4
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-HAVARD-1" && (
-            <TemplateHavard1
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
-          )}
-          {template === "TEMPLATE-HAVARD-2" && (
-            <TemplateHavard2
-              data={resume}
-              ref={templateRef}
-              onUpdateHeight={(value) => updateHeightTransformComponent(value)}
-            />
+          {isLoading ? (
+            <TemplateSkeleton />
+          ) : (
+            <>
+              {template === "TEMPLATE-PANDA" && (
+                <TemplatePanda
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-RABBIT" && (
+                <TemplateRabbit
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-LION" && (
+                <TemplateLion
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-DOLPHIN" && (
+                <TemplateDolphin
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-TIGER" && (
+                <TemplateTiger
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-EAGLE" && (
+                <TemplateEagle
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-PROFESSIONAL-1" && (
+                <TemplateProfessional1
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-PROFESSIONAL-2" && (
+                <TemplateProfessional2
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-PROFESSIONAL-3" && (
+                <TemplateProfessional3
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-PROFESSIONAL-4" && (
+                <TemplateProfessional4
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-HAVARD-1" && (
+                <TemplateHavard1
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+              {template === "TEMPLATE-HAVARD-2" && (
+                <TemplateHavard2
+                  data={resume}
+                  ref={templateRef}
+                  onUpdateHeight={(value) =>
+                    updateHeightTransformComponent(value)
+                  }
+                />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -451,6 +488,69 @@ function ResumeBuilder() {
           <Eye className="w-5 h-5" />
           Preview
         </button>
+      </div>
+    </div>
+  );
+}
+
+function TemplateSkeleton() {
+  return (
+    <div
+      className="w-full h-full p-8 space-y-8 bg-white"
+      style={{ minHeight: "1300px" }}
+    >
+      {/* Header Skeleton */}
+      <div className="flex items-center gap-6 pb-6 border-b">
+        <Skeleton className="w-32 h-32 rounded-full" />
+        <div className="flex-1 space-y-4">
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-6 w-1/3" />
+          <div className="flex gap-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="grid grid-cols-12 gap-8">
+        {/* Left Column */}
+        <div className="col-span-4 space-y-8">
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/6" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/6" />
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="col-span-8 space-y-8">
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-1/3" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

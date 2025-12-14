@@ -93,17 +93,14 @@ export const createPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(1, "Mật khẩu là bắt buộc")
-      .min(8, "Mật khẩu phải có ít nhất 8 ký tú")
-      .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(
-        PASSWORD_REGEX,
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
-      ),
-    confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+      .min(1, "validation.required")
+      .min(8, "auth.createPassword.requirements.length")
+      .max(160, "validation.passwordTooLong")
+      .regex(PASSWORD_REGEX, "auth.createPassword.requirements.special"),
+    confirmPassword: z.string().min(1, "validation.required"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
+    message: "validation.passwordMismatch",
     path: ["confirmPassword"],
   });
 

@@ -24,6 +24,8 @@ export const routes = {
   RESUME: "resume",
   TEMPLATES_CV: "templates-cv",
   VIEW_RESUME: "view-resume",
+  FORBIDDEN: "forbidden",
+  PUBLIC_RESUME: "cv/public/:id",
 };
 
 export const employer_routes = {

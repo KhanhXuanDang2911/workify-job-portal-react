@@ -213,6 +213,12 @@ export default function TemplatesCV() {
   const { state } = useUserAuth();
   const { isAuthenticated } = state;
 
+  // Constants for Modal Scaling
+  const modalContainerRef = useRef<HTMLDivElement>(null);
+  const templateContentRef = useRef<HTMLDivElement>(null);
+  const [modalScale, setModalScale] = useState(1);
+  const [scaledHeight, setScaledHeight] = useState(1300);
+
   // Get current language
   const currentLang = i18n.language;
 
@@ -238,6 +244,47 @@ export default function TemplatesCV() {
 
     return () => observers.forEach((o) => o.disconnect());
   }, [containerRefs, templates]); // Re-run when templates list could theoretically change, though it's static here
+
+  // Logic to update Modal Preview Scale & Height
+  useEffect(() => {
+    if (!selectedTemplate) return;
+
+    const updateModalLayout = () => {
+      if (modalContainerRef.current) {
+        const containerWidth = modalContainerRef.current.clientWidth;
+        // padding-x is 32px (p-4) on small, 64px (p-8) on medium.
+        // We use clientWidth of component which includes padding content box if box-sizing is content-box, but standard is border-box.
+        // Actually best is to just take clientWidth.
+        // Let's assume some margin for safety.
+        const availableWidth = containerWidth - 32; // Safety margin
+
+        const newScale = Math.min(availableWidth / TEMPLATE_WIDTH, 1);
+        setModalScale(newScale);
+
+        if (templateContentRef.current) {
+          // Measure the real height of the template (unscaled)
+          const originalHeight = templateContentRef.current.offsetHeight;
+          // Update wrapper height
+          setScaledHeight(originalHeight * newScale);
+        }
+      }
+    };
+
+    // Initial call after small delay to allow render
+    const timeoutId = setTimeout(updateModalLayout, 100);
+
+    const observer = new ResizeObserver(updateModalLayout);
+    if (modalContainerRef.current) observer.observe(modalContainerRef.current);
+
+    // Also listen to window resize as fallback
+    window.addEventListener("resize", updateModalLayout);
+
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+      window.removeEventListener("resize", updateModalLayout);
+    };
+  }, [selectedTemplate]);
 
   const filters = [
     { id: "all", label: t("resume.filters.all") },
@@ -450,6 +497,7 @@ export default function TemplatesCV() {
             scrollbar-width: none;
         }
       `}</style>
+
       {/* Template Preview Modal */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -460,7 +508,7 @@ export default function TemplatesCV() {
 
           <div className="relative w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeInUp">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white z-10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white z-10 shrink-0">
               <h3 className="text-xl font-bold text-gray-800">
                 {selectedTemplate.name}
               </h3>
@@ -476,29 +524,48 @@ export default function TemplatesCV() {
             </div>
 
             {/* Modal Content - Scrollable Preview */}
-            <div className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8 flex justify-center">
+            <div
+              className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8 flex justify-center"
+              ref={modalContainerRef}
+            >
+              {/* Dynamically Scaled Wrapper */}
               <div
-                className="bg-white shadow-2xl origin-top border-2 border-gray-300 overflow-hidden"
                 style={{
-                  width: TEMPLATE_WIDTH,
-                  minHeight: "fit-content",
-                  transform: "scale(0.8)", // Slight scale down to fit better by default if needed, or controlled via CSS
-                  transformOrigin: "top center",
+                  width: TEMPLATE_WIDTH * modalScale,
+                  height: scaledHeight,
+                  position: "relative",
+                  backgroundColor: "white",
+                  boxShadow:
+                    "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                  transition: "width 0.2s ease-out, height 0.2s ease-out",
+                  overflow: "hidden",
                 }}
               >
-                {/* Dynamically Render the selected component */}
-                <selectedTemplate.component
-                  data={
-                    currentLang.startsWith("en")
-                      ? selectedTemplate.dummyDataEn
-                      : selectedTemplate.dummyDataVi
-                  }
-                />
+                <div
+                  ref={templateContentRef}
+                  style={{
+                    width: TEMPLATE_WIDTH,
+                    minHeight: "1300px", // Baseline A4 height
+                    transform: `scale(${modalScale})`,
+                    transformOrigin: "top left",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                  }}
+                >
+                  <selectedTemplate.component
+                    data={
+                      currentLang.startsWith("en")
+                        ? selectedTemplate.dummyDataEn
+                        : selectedTemplate.dummyDataVi
+                    }
+                  />
+                </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-white flex justify-end gap-3 z-10">
+            <div className="px-6 py-4 border-t border-gray-100 bg-white flex justify-end gap-3 z-10 shrink-0">
               <button
                 onClick={() => setSelectedTemplate(null)}
                 className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
@@ -513,7 +580,7 @@ export default function TemplatesCV() {
                   }
 
                   setTemplate(selectedTemplate.type);
-                  // Determine dummy data based on language logic (copied from grid item)
+                  // Determine dummy data based on language
                   const isEnglish = currentLang.startsWith("en");
                   const dummyData = isEnglish
                     ? selectedTemplate.dummyDataEn

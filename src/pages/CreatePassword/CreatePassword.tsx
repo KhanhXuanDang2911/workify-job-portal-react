@@ -17,32 +17,34 @@ import { userTokenUtils } from "@/lib/token";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";
 import { useUserAuth } from "@/context/user-auth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PasswordRequirement {
-  label: string;
+  labelKey: string;
   test: (password: string) => boolean;
 }
 
 const pwdRequirements: PasswordRequirement[] = [
   {
-    label: "Password must be at least 8 characters long.",
+    labelKey: "auth.createPassword.requirements.length",
     test: (pwd) => pwd.length >= 8 && pwd.length <= 160,
   },
   {
-    label: "Password must contain at least one upper case letter.",
+    labelKey: "auth.createPassword.requirements.uppercase",
     test: (pwd) => /[A-Z]/.test(pwd),
   },
   {
-    label: "Password must contain at least one lower case letter.",
+    labelKey: "auth.createPassword.requirements.lowercase",
     test: (pwd) => /[a-z]/.test(pwd),
   },
   {
-    label: "Password must contain at least one special character.",
+    labelKey: "auth.createPassword.requirements.special",
     test: (pwd) => /[^A-Za-z0-9]/.test(pwd),
   },
 ];
 
 export default function CreatePassword() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [searchParams] = useSearchParams();
@@ -53,10 +55,10 @@ export default function CreatePassword() {
 
   useEffect(() => {
     if (!token) {
-      toast.error("Đã xãy ra lỗi. Vui lòng thử lại.");
+      toast.error(t("auth.createPassword.tokenErrorToast"));
       navigate("/sign-in", { replace: true });
     }
-  }, [token, navigate]);
+  }, [token, navigate, t]);
 
   const {
     register,
@@ -85,11 +87,15 @@ export default function CreatePassword() {
         },
       });
 
-      toast.success(`Welcome ${response.data.data.fullName}!`);
+      toast.success(
+        t("auth.createPassword.welcomeToast", {
+          name: response.data.data.fullName,
+        })
+      );
       navigate("/", { replace: true });
     },
     onError: () => {
-      toast.error("Tạo mật khẩu thất bại. Vui lòng thử lại.");
+      toast.error(t("auth.createPassword.errorToast"));
     },
   });
 
@@ -125,10 +131,10 @@ export default function CreatePassword() {
           <div className="w-full max-w-md space-y-6">
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-[#1967d2]">
-                Create Password
+                {t("auth.createPassword.title")}
               </h2>
               <p className="text-gray-600">
-                Set up a secure password for your account
+                {t("auth.createPassword.subtitle")}
               </p>
             </div>
 
@@ -140,13 +146,15 @@ export default function CreatePassword() {
                       htmlFor="password"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Enter new password
+                      {t("auth.createPassword.passwordLabel")}
                     </Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t(
+                          "auth.createPassword.passwordPlaceholder"
+                        )}
                         {...register("password")}
                         className="pr-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       />
@@ -164,7 +172,7 @@ export default function CreatePassword() {
                     </div>
                     {errors.password && (
                       <p className="text-sm text-red-500">
-                        {errors.password.message}
+                        {t(errors.password.message || "")}
                       </p>
                     )}
 
@@ -184,7 +192,7 @@ export default function CreatePassword() {
                           ) : (
                             <span className="w-1.5 h-1.5 rounded-full bg-current ml-1" />
                           )}
-                          <span>{requirement.label}</span>
+                          <span>{t(requirement.labelKey)}</span>
                         </div>
                       ))}
                     </div>
@@ -195,13 +203,15 @@ export default function CreatePassword() {
                       htmlFor="confirmPassword"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Confirm password
+                      {t("auth.createPassword.confirmPasswordLabel")}
                     </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm your password"
+                        placeholder={t(
+                          "auth.createPassword.confirmPasswordPlaceholder"
+                        )}
                         {...register("confirmPassword")}
                         className="pr-10 h-12 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       />
@@ -221,7 +231,7 @@ export default function CreatePassword() {
                     </div>
                     {errors.confirmPassword && (
                       <p className="text-sm text-red-500">
-                        {errors.confirmPassword.message}
+                        {t(errors.confirmPassword.message || "")}
                       </p>
                     )}
                   </div>
@@ -237,8 +247,8 @@ export default function CreatePassword() {
                     className="w-full h-12 bg-[#1967d2] hover:bg-[#1251a3] text-white font-medium"
                   >
                     {createPasswordMutation.isPending
-                      ? "Creating..."
-                      : "Create Password"}
+                      ? t("auth.createPassword.submitting")
+                      : t("auth.createPassword.submit")}
                   </Button>
                 </form>
               </CardContent>

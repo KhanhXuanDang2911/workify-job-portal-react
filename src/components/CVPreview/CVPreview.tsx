@@ -1,5 +1,6 @@
+import { getFontFamilyName } from "@/utils/font.utils";
 import React, { useRef } from "react";
-import type { ResumeData, TemplateType } from "@/types/resume.type";
+import type { FontFamily, ResumeData, TemplateType } from "@/types/resume.type";
 import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
@@ -16,9 +17,14 @@ import TemplateHavard2 from "@/templates/TemplateHavard2/TemplateHavard2";
 interface CVPreviewProps {
   data: ResumeData;
   template: TemplateType;
+  fontFamily?: FontFamily;
 }
 
-const CVPreview = ({ data, template }: CVPreviewProps) => {
+const CVPreview = ({
+  data,
+  template,
+  fontFamily = "PLUS_JAKARTA_SANS",
+}: CVPreviewProps) => {
   const templateRef = useRef<HTMLDivElement>(null);
 
   const renderTemplate = () => {
@@ -84,6 +90,7 @@ const CVPreview = ({ data, template }: CVPreviewProps) => {
           width: "900px",
           minHeight: "1273px", // Maintain A4 aspect ratio (900 * 1.414)
           transform: `scale(${scale})`,
+          fontFamily: getFontFamilyName(fontFamily),
         }}
       >
         {renderTemplate()}

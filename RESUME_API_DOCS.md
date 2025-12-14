@@ -42,6 +42,7 @@ Authorization: Bearer {accessToken}
 {
   "title": "Senior Developer CV",
   "template": "TEMPLATE_PANDA",
+  "fontFamily": "ARIAL",
   "data": {
     "basicInfo": {
       "position": "Senior Developer",
@@ -150,6 +151,8 @@ Authorization: Bearer {accessToken}
     "id": 1,
     "title": "Senior Developer CV",
     "template": "TEMPLATE_PANDA",
+    "fontFamily": "ARIAL",
+    "isSharedPublic": false,
     "data": {
         "basicInfo": { ... },
         "objective": { ... },
@@ -186,10 +189,10 @@ Update an existing resume by ID. Optionally attach a new image to update the res
 
 **Request Parts**:
 
-| Part Name | Type | Required | Description                                                               |
-| --------- | ---- | -------- | ------------------------------------------------------------------------- |
-| `request` | JSON | Yes      | Resume data to update (see Create Resume structure, excluding `template`) |
-| `image`   | File | No       | New avatar image for the resume (JPEG, PNG, GIF, WEBP, etc.)              |
+| Part Name | Type | Required | Description                                                  |
+| --------- | ---- | -------- | ------------------------------------------------------------ |
+| `request` | JSON | Yes      | Resume data to update (see Create Resume structure)          |
+| `image`   | File | No       | New avatar image for the resume (JPEG, PNG, GIF, WEBP, etc.) |
 
 **Request Headers**:
 
@@ -198,7 +201,7 @@ Content-Type: multipart/form-data
 Authorization: Bearer {accessToken}
 ```
 
-**Request Part `request` (JSON)**: Same structure as Create Resume (all fields to be updated, excluding `template`)
+**Request Part `request` (JSON)**: Same structure as Create Resume (all fields including `template` can be updated).
 
 **Response** (200 OK): Returns the updated resume object.
 
@@ -246,6 +249,71 @@ Retrieve the default resume for the current user.
 
 ---
 
+### 7. Get Public Resume
+
+Retrieve a resume by ID without authentication, if it has been shared publicly.
+
+**Endpoint**: `GET /api/v1/resumes/public/{resumeId}`
+
+**Authentication**: None
+
+**Response** (200 OK): Returns the resume object if it is public.
+
+```json
+{
+  "status": 200,
+  "message": "Resume retrieved successfully",
+  "data": {
+    "id": 1,
+    "title": "Senior Developer CV",
+    "template": "TEMPLATE_PANDA",
+    "fontFamily": "ARIAL",
+    "isSharedPublic": true,
+    "data": { ... },
+    "createdAt": "2025-12-08T10:00:00Z",
+    "updatedAt": "2025-12-08T10:00:00Z"
+  }
+}
+```
+
+**Error Responses**:
+
+- 404 Not Found: Resume not found (`RESUME_NOT_FOUND`)
+- 403 Forbidden: Resume is not public
+
+---
+
+### 8. Toggle Resume Public Sharing
+
+Share or unshare a resume publicly.
+
+**Endpoint**: `PATCH /api/v1/resumes/{resumeId}/share`
+
+**Authentication**: Required (JOB_SEEKER, ADMIN)
+
+**Query Parameters**:
+
+- `isShared` (boolean, required): `true` to share, `false` to unshare.
+
+**Example**: `PATCH /api/v1/resumes/1/share?isShared=true`
+
+**Response** (200 OK): Returns the updated resume object with `isSharedPublic` status.
+
+```json
+{
+  "status": 200,
+  "message": "Resume updated successfully",
+  "data": {
+    "id": 1,
+    "title": "Senior Developer CV",
+    "isSharedPublic": true,
+    ...
+  }
+}
+```
+
+---
+
 ## Data Structures
 
 ### ResumeTemplate Enum (TemplateType)
@@ -266,6 +334,30 @@ TEMPLATE_PROFESSIONAL_2
 TEMPLATE_PROFESSIONAL_3
 TEMPLATE_PROFESSIONAL_4
 ```
+
+### FontFamily Enum
+
+Supported font families for resume styling. Most of these are available via Google Fonts.
+The frontend application should load these fonts dynamically or bundle them.
+
+| Enum Value | Display Name | Category | Notes |
+|Str |Str |Str |Str |
+|---|---|---|---|
+| `ARIAL` | Arial | Sans-serif | System font (Web Safe) |
+| `BAI_JAMJUREE` | Bai Jamjuree | Sans-serif | Google Font, modern and geometric |
+| `BARLOW` | Barlow | Sans-serif | Google Font, slightly rounded, low contrast |
+| `BE_VIETNAM_PRO` | Be Vietnam Pro | Sans-serif | Google Font, well-suited for Vietnamese text |
+| `INTER` | Inter | Sans-serif | Google Font, highly legible, computer screen optimized |
+| `LEXEND` | Lexend | Sans-serif | Google Font, designed to improve reading proficiency |
+| `MAITREE` | Maitree | Serif | Google Font, Thai/Latin serif |
+| `MONTSERRAT` | Montserrat | Sans-serif | Google Font, geometric sans-serif |
+| `MONTSERRAT_ALTERNATES` | Montserrat Alternates | Sans-serif | Google Font, variant of Montserrat with different characters |
+| `MULISH` | Mulish | Sans-serif | Google Font, minimalist sans-serif |
+| `PLUS_JAKARTA_SANS` | Plus Jakarta Sans | Sans-serif | Google Font, modern geometric sans-serif, **Default** |
+| `RALEWAY` | Raleway | Sans-serif | Google Font, elegant thin weights |
+| `ROBOTO` | Roboto | Sans-serif | Google Font, modern android-style sans-serif |
+| `ROBOTO_CONDENSED` | Roboto Condensed | Sans-serif | Google Font, condensed version of Roboto |
+| `SOURCE_CODE_PRO` | Source Code Pro | Monospace | Google Font, coding/technical style |
 
 ### BasicInfo Structure
 

@@ -45,6 +45,7 @@ const toApiPayload = (payload: ResumePayload): any => {
   return {
     title: payload.title,
     template: toApiTemplate(payload.template),
+    fontFamily: payload.fontFamily,
     data: {
       ...payload.data,
       basicInfo: toApiBasicInfo(payload.data.basicInfo),
@@ -183,6 +184,35 @@ export const resumeService = {
   // Get Default Resume
   getDefaultResume: async (): Promise<ApiResponse<ResumeItem>> => {
     const response = await userHttp.get<ApiResponse<any>>("/resumes/default");
+    if (response.data.data) {
+      response.data.data = fromApiData(response.data.data);
+    }
+    return response.data;
+  },
+
+  // Get Public Resume
+  getPublicResume: async (
+    id: string | number
+  ): Promise<ApiResponse<ResumeItem>> => {
+    const response = await userHttp.get<ApiResponse<any>>(
+      `/resumes/public/${id}`
+    );
+    if (response.data.data) {
+      response.data.data = fromApiData(response.data.data);
+    }
+    return response.data;
+  },
+
+  // Share/Unshare Resume
+  toggleShareResume: async (
+    id: number,
+    isShared: boolean
+  ): Promise<ApiResponse<ResumeItem>> => {
+    const response = await userHttp.patch<ApiResponse<any>>(
+      `/resumes/${id}/share?isShared=${isShared}`
+    );
+    // Note: The response data might just be the resume object or wrapped.
+    // Assuming standard ApiResponse structure where data is the ResumeItem.
     if (response.data.data) {
       response.data.data = fromApiData(response.data.data);
     }

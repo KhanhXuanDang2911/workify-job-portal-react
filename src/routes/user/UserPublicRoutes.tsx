@@ -19,6 +19,7 @@ import LinkedInAuthenticate from "@/pages/LinkedInAuthenticate";
 import ResumeBuilder from "@/pages/ResumeBuilder";
 import { ResumeProvider } from "@/context/ResumeContext/resumeProvider";
 import TemplatesCV from "@/pages/TemplatesCV/TemplatesCV";
+import PublicResume from "@/pages/PublicResume/PublicResume";
 const UserPublicRoutes: RouteObject[] = [
   {
     path: routes.BASE,
@@ -105,6 +106,10 @@ const UserPublicRoutes: RouteObject[] = [
         ),
       },
     ],
+  },
+  {
+    path: routes.PUBLIC_RESUME,
+    element: <PublicResume />,
   },
 ];
 

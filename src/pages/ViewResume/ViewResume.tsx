@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { resumeService } from "@/services/resume.service";
-import type { ResumeData, TemplateType } from "@/types/resume.type";
+import type { ResumeData, TemplateType, FontFamily } from "@/types/resume.type";
 import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
@@ -21,6 +21,7 @@ import jsPDF from "jspdf";
 import { toast } from "react-toastify";
 import { useTranslation } from "@/hooks/useTranslation";
 import { routes } from "@/routes/routes.const";
+import { getFontFamilyName } from "@/utils/font.utils";
 
 const ViewResume = () => {
   const { t } = useTranslation();
@@ -30,6 +31,7 @@ const ViewResume = () => {
 
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [template, setTemplate] = useState<TemplateType>("TEMPLATE-PANDA");
+  const [fontFamily, setFontFamily] = useState<FontFamily>("PLUS_JAKARTA_SANS");
   const [resumeName, setResumeName] = useState("");
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -49,6 +51,9 @@ const ViewResume = () => {
         setResume(res.data.data);
         setTemplate(res.data.template);
         setResumeName(res.data.title);
+        if (res.data.fontFamily) {
+          setFontFamily(res.data.fontFamily);
+        }
       }
     } catch (error) {
       console.error("Failed to load resume", error);
@@ -219,6 +224,7 @@ const ViewResume = () => {
             margin: "0 auto",
             userSelect: "text",
             cursor: "text",
+            fontFamily: getFontFamilyName(fontFamily),
           }}
         >
           {renderTemplate()}

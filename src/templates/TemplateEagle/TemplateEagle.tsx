@@ -74,7 +74,7 @@ function TemplateEagle({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none flex"
+      className="w-[900px] min-h-[1300px] mx-auto shadow-lg relative pointer-events-none select-none flex"
       style={{ minHeight: minPageHeight, backgroundColor: data.theme.bgColor }}
       ref={ref}
     >
@@ -126,6 +126,73 @@ function TemplateEagle({
               </div>
             </div>
           )}
+
+        {/* Education Section */}
+        {education && education.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
+                style={{ backgroundColor: data.theme.primaryColor }}
+              >
+                <GraduationCap size={18} className="text-white" />
+              </div>
+              <h3
+                className="font-bold text-lg uppercase tracking-wide"
+                style={{ color: data.theme.primaryColor }}
+              >
+                {t("resumeBuilder.pdfHeaders.education")}
+              </h3>
+            </div>
+            <div
+              className="relative pl-6 border-l-2"
+              style={{ borderColor: `${data.theme.primaryColor}30` }}
+            >
+              {education.map((edu, idx) => (
+                <div key={idx} className="mb-5 relative">
+                  {/* Timeline dot */}
+                  <div
+                    className="absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 bg-white shadow-sm"
+                    style={{ borderColor: data.theme.primaryColor }}
+                  />
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div
+                        className="font-bold"
+                        style={{ color: data.theme.primaryColor }}
+                      >
+                        {edu.name}
+                      </div>
+                      <div
+                        className="text-sm font-medium"
+                        style={{ color: data.theme.textColor }}
+                      >
+                        {edu.major}
+                      </div>
+                      {edu.score && (
+                        <div
+                          className="text-sm"
+                          style={{ color: data.theme.textColor }}
+                        >
+                          {edu.score}
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${data.theme.primaryColor}15`,
+                        color: data.theme.primaryColor,
+                      }}
+                    >
+                      {edu.startDate} - {edu.endDate}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Experience Section */}
         {experience && experience.length > 0 && (
@@ -360,29 +427,31 @@ function TemplateEagle({
             </div>
           </div>
 
-          {/* Education Section */}
-          {education && education.length > 0 && (
+          {/* Skills Section */}
+          {skills && skills.length > 0 && (
             <div className="px-6 py-4 mx-4 mb-3 bg-white/10 rounded-xl">
               <h3 className="text-white font-bold text-xs mb-3 uppercase tracking-widest flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-                  <GraduationCap size={12} />
+                  <Wrench size={12} />
                 </div>
-                {t("resumeBuilder.pdfHeaders.education")}
+                {t("resumeBuilder.pdfHeaders.skills")}
               </h3>
-              {education.map((edu, idx) => (
-                <div key={idx} className="mb-3 text-white/90">
-                  <div className="font-semibold text-white text-sm">
-                    {edu.name}
+              <div className="flex flex-wrap gap-1.5">
+                {skills.map((skill, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white/20 rounded-full px-2.5 py-1 text-xs text-white font-medium"
+                  >
+                    <span>{skill.name}</span>
+                    {skill.description && (
+                      <span className="font-light text-white/80">
+                        {" "}
+                        - {skill.description}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-sky-200 font-medium">
-                    {edu.startDate} - {edu.endDate}
-                  </div>
-                  <div className="text-xs">{edu.major}</div>
-                  {edu.score && (
-                    <div className="text-xs text-sky-200">{edu.score}</div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
@@ -410,34 +479,6 @@ function TemplateEagle({
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Skills Section */}
-          {skills && skills.length > 0 && (
-            <div className="px-6 py-4 mx-4 mb-3 bg-white/10 rounded-xl">
-              <h3 className="text-white font-bold text-xs mb-3 uppercase tracking-widest flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-                  <Wrench size={12} />
-                </div>
-                {t("resumeBuilder.pdfHeaders.skills")}
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {skills.map((skill, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white/20 rounded-full px-2.5 py-1 text-xs text-white font-medium"
-                  >
-                    <span>{skill.name}</span>
-                    {skill.description && (
-                      <span className="font-light text-white/80">
-                        {" "}
-                        - {skill.description}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
