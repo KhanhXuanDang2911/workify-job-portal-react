@@ -201,6 +201,42 @@
       "successTitle": "Password reset successful",
       "successDesc": "Your password has been reset successfully. You can sign in with your new password.",
       "changePasswordTitle": "Change your password"
+    },
+    "createPassword": {
+      "title": "Create Password",
+      "subtitle": "Set up a secure password for your account",
+      "passwordLabel": "Enter new password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "submit": "Create Password",
+      "submitting": "Creating...",
+      "requirements": {
+        "length": "Password must be at least 8 characters long.",
+        "uppercase": "Password must contain at least one upper case letter.",
+        "lowercase": "Password must contain at least one lower case letter.",
+        "special": "Password must contain at least one special character."
+      },
+      "welcomeToast": "Welcome {{name}}!",
+      "errorToast": "Failed to create password. Please try again.",
+      "tokenErrorToast": "Something went wrong. Please try again."
+    },
+    "shareResume": {
+      "title": "Share Resume",
+      "subtitle": "Make your resume public to share it with recruiters or friends.",
+      "publicAccess": "Public Access",
+      "publicDesc": "Anyone with the link can view this resume.",
+      "enable": "Enable Public Access",
+      "disable": "Disable Sharing",
+      "publicLink": "Public Link",
+      "openLink": "Open public link",
+      "close": "Close",
+      "toast": {
+        "public": "Resume is now public",
+        "private": "Resume is now private",
+        "copied": "Link copied to clipboard",
+        "failed": "Failed to update share settings"
+      }
     }
   },
   "validation": {
@@ -642,6 +678,17 @@
   "notFound": {
     "title": "We Are Sorry, Page Not Found",
     "description": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.",
+    "goToHome": "Go To Home"
+  },
+  "forbidden": {
+    "title": "Access Denied",
+    "description": "You do not have permission to access this page.",
+    "goToHome": "Go To Home"
+  },
+  "errorBoundary": {
+    "title": "Something Went Wrong",
+    "description": "We apologize for the inconvenience. Please try again later.",
+    "reload": "Reload Page",
     "goToHome": "Go To Home"
   },
   "loginRequired": {
@@ -1555,7 +1602,8 @@
     },
     "tabs": {
       "template": "Template",
-      "theme": "Theme"
+      "theme": "Theme",
+      "font": "Font"
     },
     "actions": {
       "save": "Save",

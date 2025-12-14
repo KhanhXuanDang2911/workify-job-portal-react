@@ -4,6 +4,7 @@ import {
   MoonStar,
   Palette,
   Sun,
+  Type,
   X,
   type LucideProps,
 } from "lucide-react";
@@ -22,7 +23,12 @@ import {
 import gsap from "gsap";
 import CustomColorPicker from "@/components/CustomColorPicker";
 import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
-import type { ResumeData, TemplateType, Theme } from "@/types/resume.type";
+import type {
+  FontFamily,
+  ResumeData,
+  TemplateType,
+  Theme,
+} from "@/types/resume.type";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import { cn } from "@/lib/utils";
 import { useResume } from "@/context/ResumeContext/useResume";
@@ -50,7 +56,7 @@ import TemplateProfessional4 from "@/templates/TemplateProfessional4/TemplatePro
 import { templateProfessional4Dummy } from "@/templates/TemplateProfessional4/dummy";
 import { useTranslation } from "@/hooks/useTranslation";
 
-type TabKey = "template" | "theme";
+type TabKey = "template" | "theme" | "font";
 
 const tabMapConfig: Record<
   TabKey,
@@ -63,6 +69,7 @@ const tabMapConfig: Record<
 > = {
   template: { labelKey: "resumeBuilder.tabs.template", icon: Aperture },
   theme: { labelKey: "resumeBuilder.tabs.theme", icon: Palette },
+  font: { labelKey: "resumeBuilder.tabs.font", icon: Type },
 };
 
 function RightPanel({
@@ -81,29 +88,39 @@ function RightPanel({
           activeTab={activeTab}
           onClose={() => setActiveTab(null)}
         />
-        <div className="w-11 bg-[#eaeaec] flex flex-col items-center justify-between py-4 gap-3 z-50">
-          <div className="flex flex-col items-center gap-3">
+        <div className="w-16 bg-white shadow-2xl border-l border-gray-100 flex flex-col items-center justify-between py-6 gap-4 z-50">
+          <div className="flex flex-col items-center gap-4">
             {Object.entries(tabMapConfig).map(
               ([key, { labelKey, icon: Icon }]) => (
                 <div
                   key={key}
-                  className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full"
+                  className={cn(
+                    "relative group cursor-pointer p-3 rounded-xl transition-all duration-300 ease-out border-2",
+                    activeTab === key
+                      ? "bg-teal-600 text-white border-teal-600 shadow-lg ring-2 ring-teal-200 ring-offset-2 scale-110"
+                      : "bg-teal-50 text-teal-600 border-teal-50 hover:border-teal-200 hover:shadow-md"
+                  )}
                   onClick={() => setActiveTab(key as TabKey)}
                 >
-                  <Icon className=" w-4 h-4" strokeWidth={1} />
+                  <Icon
+                    className="w-5 h-5"
+                    strokeWidth={activeTab === key ? 2 : 1.5}
+                  />
                   <div
                     className="
-              absolute right-11 top-1/2 -translate-y-1/2
+              absolute right-14 top-1/2 -translate-y-1/2
               opacity-0 translate-x-[-10px]
               group-hover:opacity-100
               pointer-events-none
               group-hover:translate-x-0
               transition-all duration-200 ease-out
-              bg-gray-900 text-white text-sm text-center
-              py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
+              bg-gray-900 text-white text-sm text-center font-medium
+              py-1.5 px-3 rounded-md whitespace-nowrap shadow-xl z-50
             "
                   >
                     {t(labelKey)}
+                    {/* Arrow for tooltip */}
+                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-4 border-transparent border-l-gray-900" />
                   </div>
                 </div>
               )
@@ -111,7 +128,12 @@ function RightPanel({
           </div>
 
           <div
-            className="relative group cursor-pointer hover:bg-gray-300 p-2 rounded-full"
+            className={cn(
+              "relative group cursor-pointer p-3 rounded-xl transition-all duration-300 border-2",
+              transformWrapperBgMode === "dark"
+                ? "bg-slate-800 text-yellow-400 border-slate-800 shadow-md ring-2 ring-slate-200 ring-offset-2"
+                : "bg-orange-50 text-orange-500 border-orange-50 hover:border-orange-200 hover:shadow-md"
+            )}
             onClick={() =>
               setTransformWrapperBgMode(
                 transformWrapperBgMode === "light" ? "dark" : "light"
@@ -119,23 +141,24 @@ function RightPanel({
             }
           >
             {transformWrapperBgMode === "light" ? (
-              <Sun className=" w-4 h-4" strokeWidth={1} />
+              <Sun className="w-5 h-5" strokeWidth={1.5} />
             ) : (
-              <MoonStar className=" w-4 h-4" strokeWidth={1} />
+              <MoonStar className="w-5 h-5" strokeWidth={1.5} />
             )}
             <div
               className="
-              absolute right-11 top-1/2 -translate-y-1/2
+              absolute right-14 top-1/2 -translate-y-1/2
               opacity-0 translate-x-[-10px]
               group-hover:opacity-100
               pointer-events-none
               group-hover:translate-x-0
               transition-all duration-200 ease-out
-              bg-gray-900 text-white text-sm text-center
-              py-1 px-3 rounded-sm whitespace-nowrap shadow-lg
+              bg-gray-900 text-white text-sm text-center font-medium
+              py-1.5 px-3 rounded-md whitespace-nowrap shadow-xl z-50
             "
             >
               {t("resumeBuilder.theme.toggleTheme")}
+              <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-4 border-transparent border-l-gray-900" />
             </div>
           </div>
         </div>
@@ -195,6 +218,8 @@ function DetailsPanelActions({ activeTab, onClose }: DetailsPanelActionsProps) {
         return <TemplateTab />;
       case "theme":
         return <ThemeTab />;
+      case "font":
+        return <FontTab />;
       default:
         return null;
     }
@@ -464,6 +489,62 @@ function ThemeTab() {
           onActivate={() => handleActivate("textColor")}
           onChange={handleChange}
         />
+      </div>
+    </div>
+  );
+}
+
+const fontOptions: { value: FontFamily; label: string }[] = [
+  { value: "PLUS_JAKARTA_SANS", label: "Plus Jakarta Sans" },
+  { value: "ARIAL", label: "Arial" },
+  { value: "BAI_JAMJUREE", label: "Bai Jamjuree" },
+  { value: "BARLOW", label: "Barlow" },
+  { value: "BE_VIETNAM_PRO", label: "Be Vietnam Pro" },
+  { value: "INTER", label: "Inter" },
+  { value: "LEXEND", label: "Lexend" },
+  { value: "MAITREE", label: "Maitree" },
+  { value: "MONTSERRAT", label: "Montserrat" },
+  { value: "MONTSERRAT_ALTERNATES", label: "Montserrat Alternates" },
+  { value: "MULISH", label: "Mulish" },
+  { value: "RALEWAY", label: "Raleway" },
+  { value: "ROBOTO", label: "Roboto" },
+  { value: "ROBOTO_CONDENSED", label: "Roboto Condensed" },
+  { value: "SOURCE_CODE_PRO", label: "Source Code Pro" },
+];
+
+function FontTab() {
+  const { fontFamily, setFontFamily } = useResume();
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-2">
+        {fontOptions.map((font) => (
+          <div
+            key={font.value}
+            onClick={() => setFontFamily(font.value)}
+            className={cn(
+              "p-3 rounded-lg border transition-all duration-200 flex items-center justify-between cursor-pointer group hover:shadow-md",
+              fontFamily === font.value
+                ? "border-teal-500 bg-teal-50 shadow-sm ring-1 ring-teal-200"
+                : "border-gray-200 hover:border-teal-300 hover:bg-gray-50"
+            )}
+            style={{ fontFamily: font.label }}
+          >
+            <span
+              className={cn(
+                "text-base",
+                fontFamily === font.value
+                  ? "text-teal-900 font-medium"
+                  : "text-gray-700"
+              )}
+            >
+              {font.label}
+            </span>
+            {fontFamily === font.value && (
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-sm" />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

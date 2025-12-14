@@ -29,7 +29,11 @@ export type CustomFieldType =
 
 export const CUSTOMFIELD_MAP_ICON: Record<
   CustomFieldType,
-  React.ComponentType<{ color: string }>
+  React.ComponentType<{
+    color: string;
+    className?: string;
+    style?: React.CSSProperties;
+  }>
 > = {
   FACEBOOK: FacebookIcon,
   LINKEDIN: LinkedinIcon,
@@ -164,3 +168,38 @@ export type SectionType = keyof Omit<
 
 // EditableSectionType for sections that can be hidden/cleared (excludes basicInfo)
 export type EditableSectionType = Exclude<SectionType, "basicInfo">;
+
+export type FontFamily =
+  | "ARIAL"
+  | "BAI_JAMJUREE"
+  | "BARLOW"
+  | "BE_VIETNAM_PRO"
+  | "INTER"
+  | "LEXEND"
+  | "MAITREE"
+  | "MONTSERRAT"
+  | "MONTSERRAT_ALTERNATES"
+  | "MULISH"
+  | "PLUS_JAKARTA_SANS"
+  | "RALEWAY"
+  | "ROBOTO"
+  | "ROBOTO_CONDENSED"
+  | "SOURCE_CODE_PRO";
+
+export interface ResumeItem {
+  id: number;
+  title: string;
+  template: TemplateType;
+  fontFamily: FontFamily;
+  isSharedPublic?: boolean;
+  data: ResumeData;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResumePayload {
+  title: string;
+  template: TemplateType;
+  fontFamily: FontFamily;
+  data: ResumeData;
+}

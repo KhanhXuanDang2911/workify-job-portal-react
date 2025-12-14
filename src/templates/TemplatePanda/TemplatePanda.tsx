@@ -69,82 +69,69 @@ function TemplatePanda({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none"
-      style={{ minHeight: minPageHeight, backgroundColor: data.theme.bgColor }}
+      className="w-[900px] min-h-[1300px] mx-auto shadow-2xl relative flex"
+      style={{ backgroundColor: data.theme.bgColor }}
       ref={ref}
     >
-      {/* Top */}
+      {/* Left Sidebar */}
       <div
-        id="template-top"
-        ref={topRef}
-        className="top-0 pl-[314px] absolute w-full bg-[#DCE1F5]"
+        className="w-[300px] shrink-0 min-h-full flex flex-col py-10 px-6 gap-8"
+        style={{ backgroundColor: "#F5F7FF" }}
       >
-        <div className=" text-[#07113C] py-8 pt-10 px-[34px]">
-          <h1
-            className="text-[54px] font-normal uppercase font-fahkwang text-[#07113c] text-center"
-            style={{ color: data.theme.primaryColor }}
-          >
-            {basicInfo?.fullName}
-          </h1>
-          <p
-            className="text-lg font-semibold font-raleway mt-2 uppercase text-[#07113c] text-center"
-            style={{ color: data.theme.primaryColor }}
-          >
-            {basicInfo.position}
-          </p>
+        {/* Avatar */}
+        <div className="w-48 h-48 mx-auto -mt-2 mb-2 rounded-full overflow-hidden border-4 border-white shadow-md">
+          <img
+            src={basicInfo.profilePhoto || "/default-avatar.png"}
+            alt={basicInfo.fullName}
+            className="w-full h-full object-cover"
+          />
         </div>
-      </div>
 
-      {/* Col-1 : Left */}
-      <div
-        ref={colLeftRef}
-        className="w-[280px] absolute top-[34px] left-[34px] min-h-[500px] space-y-3"
-      >
-        {/* Avatar & Contact */}
-        <div className="bg-[#F5F7FF] py-[36px]">
-          {/* Avatar */}
-          <div className="mx-auto w-[212px] h-[270px] overflow-hidden mb-[36px]">
-            <img
-              src={basicInfo.profilePhoto || "/default-avatar.png"}
-              alt={basicInfo.fullName}
-              className="w-full h-full object-cover object-center"
-            />
-          </div>
-          {/* Contact Info */}
-          <div className="px-[18px]">
-            <h1
-              className="uppercase text-[26px] font-fahkwang font-semibold"
-              style={{ color: data.theme.primaryColor }}
-            >
-              {t("resumeBuilder.pdfHeaders.contact")}
-            </h1>
-            <div className="mt-2 space-y-2">
-              {/* Email */}
-              <div className=" flex items-center gap-2">
+        {/* Contact Info */}
+        <div className="space-y-4">
+          <h2
+            className="uppercase text-xl font-bold tracking-wider border-b-2 pb-2"
+            style={{
+              color: data.theme.primaryColor,
+              borderColor: `${data.theme.primaryColor}40`,
+            }}
+          >
+            {t("resumeBuilder.pdfHeaders.contact")}
+          </h2>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-0.5 p-1.5 rounded-full bg-white shadow-sm shrink-0"
+                style={{ color: data.theme.primaryColor }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  fill={data.theme.primaryColor || "#3d509f"}
-                  className="w-6 h-6 inline-block self-start shrink-0"
+                  fill="currentColor"
+                  className="w-3.5 h-3.5"
                 >
                   <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z" />
                   <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z" />
                 </svg>
-                <span
-                  className="ml-2 text-[#07113c] break-all"
-                  style={{ color: data.theme.textColor }}
-                >
-                  {basicInfo.email}
-                </span>
               </div>
+              <span
+                className="font-medium break-all"
+                style={{ color: data.theme.textColor }}
+              >
+                {basicInfo.email}
+              </span>
+            </div>
 
-              {/* Phone */}
-              <div className=" flex items-center gap-2">
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-0.5 p-1.5 rounded-full bg-white shadow-sm shrink-0"
+                style={{ color: data.theme.primaryColor }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  fill={data.theme.primaryColor || "#3d509f"}
-                  className="w-6 h-6 inline-block self-start  shrink-0"
+                  fill="currentColor"
+                  className="w-3.5 h-3.5"
                 >
                   <path
                     fillRule="evenodd"
@@ -152,21 +139,25 @@ function TemplatePanda({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span
-                  className="ml-2 text-[#07113c] break-all"
-                  style={{ color: data.theme.textColor }}
-                >
-                  {basicInfo.phoneNumber}
-                </span>
               </div>
+              <span
+                className="font-medium break-all"
+                style={{ color: data.theme.textColor }}
+              >
+                {basicInfo.phoneNumber}
+              </span>
+            </div>
 
-              {/* Location */}
-              <div className=" flex items-center gap-2">
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-0.5 p-1.5 rounded-full bg-white shadow-sm shrink-0"
+                style={{ color: data.theme.primaryColor }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  fill={data.theme.primaryColor || "#3d509f"}
-                  className="w-6 h-6 self-start shrink-0"
+                  fill="currentColor"
+                  className="w-3.5 h-3.5"
                 >
                   <path
                     fillRule="evenodd"
@@ -174,215 +165,244 @@ function TemplatePanda({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span
-                  className="ml-2 text-[#07113c] break-all"
-                  style={{ color: data.theme.textColor }}
-                >
-                  {basicInfo.location}
-                </span>
               </div>
-
-              {data.basicInfo.customFields &&
-                data.basicInfo.customFields.map((field, index) => {
-                  const Icon = CUSTOMFIELD_MAP_ICON[field.type];
-                  return (
-                    <div key={index} className=" flex items-center gap-2">
-                      <div className="w-6 h-6 self-start shrink-0">
-                        <Icon color={data.theme.primaryColor || "#3d509f"} />
-                      </div>
-                      <span
-                        className="ml-2 text-[#07113c] break-all"
-                        style={{ color: data.theme.textColor }}
-                      >
-                        {field.value}
-                      </span>
-                    </div>
-                  );
-                })}
+              <span
+                className="font-medium break-all"
+                style={{ color: data.theme.textColor }}
+              >
+                {basicInfo.location}
+              </span>
             </div>
+
+            {data.basicInfo.customFields &&
+              data.basicInfo.customFields.map((field, index) => {
+                const Icon = CUSTOMFIELD_MAP_ICON[field.type];
+                return (
+                  <div key={index} className="flex items-start gap-3">
+                    <div
+                      className="mt-0.5 p-1.5 rounded-full bg-white shadow-sm shrink-0"
+                      style={{ color: data.theme.primaryColor }}
+                    >
+                      <Icon className="w-3.5 h-3.5" color="currentColor" />
+                    </div>
+                    <span
+                      className="font-medium break-all"
+                      style={{ color: data.theme.textColor }}
+                    >
+                      {field.value}
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         </div>
 
-        {/* Skills */}
-        {skills && skills.length > 0 && (
-          <div className="bg-[#F5F7FF] py-[36px]">
-            <div className="px-[18px]">
-              <h1
-                className="uppercase text-[26px] font-fahkwang font-semibold"
-                style={{ color: data.theme.primaryColor }}
-              >
-                {t("resumeBuilder.pdfHeaders.skills")}
-              </h1>
-              <div className="mt-2 space-y-2">
-                {skills.map((skill, index) => (
-                  <div key={index} className=" flex items-center gap-2">
-                    <Dot
-                      size={20}
-                      color={data.theme.primaryColor || "#3d509f"}
-                      className="self-start mt-1 font-bold"
-                      strokeWidth={7}
-                    />
-                    <span className="ml-2">
-                      <span
-                        className=" font-semibold"
-                        style={{ color: data.theme.primaryColor }}
-                      >
-                        {" "}
-                        {skill.name} :
-                      </span>{" "}
-                      <span style={{ color: data.theme.textColor }}>
-                        {skill.description}
-                      </span>
-                    </span>
+        {/* Education */}
+        {education && education.length > 0 && (
+          <div className="space-y-4">
+            <h2
+              className="uppercase text-xl font-bold tracking-wider border-b-2 pb-2"
+              style={{
+                color: data.theme.primaryColor,
+                borderColor: `${data.theme.primaryColor}40`,
+              }}
+            >
+              {t("resumeBuilder.pdfHeaders.education")}
+            </h2>
+            <div className="space-y-4">
+              {education.map((edu, idx) => (
+                <div key={idx} style={{ color: data.theme.textColor }}>
+                  <div className="font-bold text-sm leading-tight">
+                    {edu.major}
                   </div>
-                ))}
-              </div>
+                  <div className="text-sm font-medium mt-0.5">{edu.name}</div>
+                  <div className="text-xs opacity-80 mt-1">
+                    {edu.startDate} - {edu.endDate}
+                  </div>
+                  {edu.score && (
+                    <div className="text-xs font-semibold mt-1">
+                      GPA: {edu.score}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Education */}
-        {education && education.length > 0 && (
-          <div className="bg-[#F5F7FF] py-[36px]">
-            <div className="px-[18px]">
-              <h1
-                className="uppercase text-[26px] font-fahkwang font-semibold"
-                style={{ color: data.theme.primaryColor }}
-              >
-                {t("resumeBuilder.pdfHeaders.education")}
-              </h1>
-              <div className="mt-2 space-y-2">
-                {education.map((e, idx) => (
+        {/* Skills */}
+        {skills && skills.length > 0 && (
+          <div className="space-y-4">
+            <h2
+              className="uppercase text-xl font-bold tracking-wider border-b-2 pb-2"
+              style={{
+                color: data.theme.primaryColor,
+                borderColor: `${data.theme.primaryColor}40`,
+              }}
+            >
+              {t("resumeBuilder.pdfHeaders.skills")}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg px-3 py-2 shadow-sm text-sm w-full"
+                >
                   <div
-                    key={idx}
-                    className="mb-3 flex items-center gap-1"
-                    style={{ color: data.theme.textColor }}
+                    className="font-bold flex items-center gap-2"
+                    style={{ color: data.theme.primaryColor }}
                   >
-                    <Dot
-                      size={10}
-                      color={data.theme.primaryColor || "#3d509f"}
-                      className="self-start mt-2 font-bold"
-                      strokeWidth={7}
-                    />
-                    <div>
-                      <div className="font-semibold">{e.name}</div>
-                      {e.major && <div className="text-sm ">{e.major}</div>}
-                      {e.score && <div className="text-sm ">{e.score}</div>}
-                      <div className="text-sm ">
-                        {e.startDate}-{e.endDate}
-                      </div>
-                    </div>
+                    <Dot size={16} strokeWidth={8} />
+                    {skill.name}
                   </div>
-                ))}
-              </div>
+                  {skill.description && (
+                    <div
+                      className="text-xs mt-1 pl-6 opacity-90"
+                      style={{ color: data.theme.textColor }}
+                    >
+                      {skill.description}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Awards */}
         {awards && awards.length > 0 && (
-          <div className="bg-[#F5F7FF] py-[36px]">
-            <div className="px-[18px]">
-              <h1
-                className="uppercase text-[26px] font-fahkwang font-semibold"
-                style={{ color: data.theme.primaryColor }}
-              >
-                {t("resumeBuilder.pdfHeaders.awards")}
-              </h1>
-              <div className="mt-2 space-y-2">
-                {awards.map((award, idx) => (
-                  <div
-                    key={idx}
-                    className="mb-3"
-                    style={{ color: data.theme.textColor }}
-                  >
-                    <div className="font-semibold">{award.title}</div>
-                    {award.date && <div className="text-sm ">{award.date}</div>}
-                  </div>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <h2
+              className="uppercase text-xl font-bold tracking-wider border-b-2 pb-2"
+              style={{
+                color: data.theme.primaryColor,
+                borderColor: `${data.theme.primaryColor}40`,
+              }}
+            >
+              {t("resumeBuilder.pdfHeaders.awards")}
+            </h2>
+            <div className="space-y-3">
+              {awards.map((award, idx) => (
+                <div key={idx} style={{ color: data.theme.textColor }}>
+                  <div className="font-bold text-sm">{award.title}</div>
+                  {award.date && (
+                    <div className="text-xs opacity-80 mt-0.5">
+                      {award.date}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Certifications*/}
+        {/* Certifications */}
         {certifications && certifications.length > 0 && (
-          <div className="bg-[#F5F7FF] py-[36px]">
-            <div className="px-[18px]">
-              <h1
-                className="uppercase text-[26px] font-fahkwang font-semibold"
-                style={{ color: data.theme.primaryColor }}
-              >
-                {t("resumeBuilder.pdfHeaders.certifications")}
-              </h1>
-              <div className="mt-2 space-y-2">
-                {certifications.map((certification, idx) => (
-                  <div
-                    key={idx}
-                    className="mb-3"
-                    style={{ color: data.theme.textColor }}
-                  >
-                    <div className="font-semibold">{certification.name}</div>
-                    {certification.date && (
-                      <div className="text-sm ">{certification.date}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <h2
+              className="uppercase text-xl font-bold tracking-wider border-b-2 pb-2"
+              style={{
+                color: data.theme.primaryColor,
+                borderColor: `${data.theme.primaryColor}40`,
+              }}
+            >
+              {t("resumeBuilder.pdfHeaders.certifications")}
+            </h2>
+            <div className="space-y-3">
+              {certifications.map((certification, idx) => (
+                <div
+                  key={idx}
+                  style={{ color: data.theme.textColor }}
+                  className="bg-white/50 p-2 rounded"
+                >
+                  <div className="font-bold text-sm">{certification.name}</div>
+                  {certification.date && (
+                    <div className="text-xs opacity-80 mt-0.5">
+                      {certification.date}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Col-2 : Right */}
-      <div className="pl-[calc(280px+34px)]" ref={colRightRef}>
-        <div className="p-[34px] space-y-4">
+      {/* Right Content */}
+      <div className="flex-1 flex flex-col min-h-full">
+        {/* Header */}
+        <div
+          className="py-12 px-10 flex flex-col justify-center"
+          style={{ backgroundColor: "#DCE1F5" }}
+        >
+          <h1
+            className="text-5xl font-bold uppercase tracking-wide leading-tight mb-3"
+            style={{ color: data.theme.primaryColor }}
+          >
+            {basicInfo?.fullName}
+          </h1>
+          <p
+            className="text-xl tracking-widest uppercase font-medium opacity-90"
+            style={{ color: data.theme.primaryColor }}
+          >
+            {basicInfo.position}
+          </p>
+        </div>
+
+        {/* Main Body */}
+        <div className="flex-1 p-10 space-y-8 bg-white">
           {/* Objective */}
           {objective && objective.description !== "<p><br></p>" && (
-            <>
+            <div>
               <div
-                className="ql-editor !p-0 text-sm leading-relaxed  "
+                className="ql-editor !p-0 text-sm leading-relaxed text-justify"
                 dangerouslySetInnerHTML={{ __html: objective.description }}
                 style={{ color: data.theme.textColor }}
               />
-              <hr
-                className="h-[1.5px] border-0"
-                style={{ backgroundColor: data.theme.primaryColor }}
-              />
-            </>
+            </div>
           )}
 
           {/* Experience */}
           {experience && experience.length > 0 && (
-            <>
-              <div>
-                <h2
-                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
-                  style={{ color: data.theme.primaryColor }}
-                >
-                  {t("resumeBuilder.pdfHeaders.experience")}
-                </h2>
+            <div>
+              <h2
+                className="flex items-center gap-3 text-2xl font-bold uppercase mb-6"
+                style={{ color: data.theme.primaryColor }}
+              >
+                <span className="w-8 h-1 bg-current rounded-full opacity-50"></span>
+                {t("resumeBuilder.pdfHeaders.experience")}
+              </h2>
 
+              <div className="space-y-8">
                 {experience.map((exp, idx) => (
                   <div
                     key={idx}
-                    className="mb-6"
-                    style={{ color: data.theme.textColor }}
+                    className="relative pl-6 border-l-2"
+                    style={{
+                      color: data.theme.textColor,
+                      borderColor: `${data.theme.primaryColor}30`,
+                    }}
                   >
-                    <div className="flex justify-between font-semibold text-sm">
-                      <div className="font-raleway uppercase text-[18px]">
+                    <div
+                      className="absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white"
+                      style={{ borderColor: data.theme.primaryColor }}
+                    ></div>
+                    <div className="flex justify-between items-baseline mb-2">
+                      <h3
+                        className="text-lg font-bold uppercase"
+                        style={{ color: data.theme.primaryColor }}
+                      >
                         {exp.position}
-                      </div>
-                      <div>
-                        <span>{exp.startDate}</span>-<span>{exp.endDate}</span>
-                      </div>
+                      </h3>
+                      <span className="text-sm font-medium opacity-75 shrink-0 ml-4">
+                        {exp.startDate} - {exp.endDate}
+                      </span>
                     </div>
-                    <div className="text-base italic  mb-2 font-raleway font-medium">
+                    <div className="text-base font-semibold mb-2 opacity-90">
                       {exp.company}
                     </div>
-
                     <div
-                      className=" ql-editor text-sm  leading-relaxed font-raleway font-medium"
+                      className="ql-editor !p-0 text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: exp.description || "",
                       }}
@@ -390,42 +410,39 @@ function TemplatePanda({
                   </div>
                 ))}
               </div>
-
-              <hr
-                className="h-[1.5px] border-0"
-                style={{ backgroundColor: data.theme.primaryColor }}
-              />
-            </>
+            </div>
           )}
 
           {/* Projects */}
           {projects && projects.length > 0 && (
-            <>
-              <div>
-                <h2
-                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
-                  style={{ color: data.theme.primaryColor }}
-                >
-                  {t("resumeBuilder.pdfHeaders.projects")}
-                </h2>
+            <div>
+              <h2
+                className="flex items-center gap-3 text-2xl font-bold uppercase mb-6"
+                style={{ color: data.theme.primaryColor }}
+              >
+                <span className="w-8 h-1 bg-current rounded-full opacity-50"></span>
+                {t("resumeBuilder.pdfHeaders.projects")}
+              </h2>
+              <div className="grid gap-6">
                 {projects.map((project, idx) => (
                   <div
                     key={idx}
-                    className="mb-6"
+                    className="bg-gray-50 p-5 rounded-xl border border-gray-100"
                     style={{ color: data.theme.textColor }}
                   >
-                    <div className="flex justify-between gap-3 font-semibold text-sm">
-                      <div className="font-raleway uppercase text-[18px] max-w-[70%]">
+                    <div className="flex justify-between items-start mb-3 border-b pb-3 border-gray-200">
+                      <h3
+                        className="text-lg font-bold uppercase"
+                        style={{ color: data.theme.primaryColor }}
+                      >
                         {project.title}
-                      </div>
-                      <div>
-                        <span>{project.startDate}</span> -{" "}
-                        <span>{project.endDate}</span>
-                      </div>
+                      </h3>
+                      <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-200 text-gray-700">
+                        {project.startDate} - {project.endDate}
+                      </span>
                     </div>
-
                     <div
-                      className="ql-editor text-sm  leading-relaxed font-raleway font-medium mt-2"
+                      className="ql-editor !p-0 text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: project.description || "",
                       }}
@@ -433,35 +450,34 @@ function TemplatePanda({
                   </div>
                 ))}
               </div>
-              <hr
-                className="h-[1.5px] border-0"
-                style={{ backgroundColor: data.theme.primaryColor }}
-              />
-            </>
+            </div>
           )}
 
           {/* References */}
           {references && references.length > 0 && (
-            <>
-              <div>
-                <h2
-                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
-                  style={{ color: data.theme.primaryColor }}
-                >
-                  {t("resumeBuilder.pdfHeaders.references")}
-                </h2>
+            <div>
+              <h2
+                className="flex items-center gap-3 text-2xl font-bold uppercase mb-6"
+                style={{ color: data.theme.primaryColor }}
+              >
+                <span className="w-8 h-1 bg-current rounded-full opacity-50"></span>
+                {t("resumeBuilder.pdfHeaders.references")}
+              </h2>
+              <div className="grid grid-cols-2 gap-6">
                 {references.map((reference, idx) => (
                   <div
                     key={idx}
-                    className="mb-3"
+                    className="p-4 rounded-lg bg-gray-50 border border-gray-100"
                     style={{ color: data.theme.textColor }}
                   >
-                    <div className="font-semibold text-sm">
+                    <div
+                      className="font-bold text-sm mb-2"
+                      style={{ color: data.theme.primaryColor }}
+                    >
                       {reference.information}
                     </div>
-
                     <div
-                      className="ql-editor text-[11px]  leading-relaxed font-raleway font-medium"
+                      className="ql-editor !p-0 text-xs leading-relaxed opacity-80"
                       dangerouslySetInnerHTML={{
                         __html: reference.description || "",
                       }}
@@ -469,35 +485,25 @@ function TemplatePanda({
                   </div>
                 ))}
               </div>
-
-              <hr
-                className="h-[1.5px] border-0"
-                style={{ backgroundColor: data.theme.primaryColor }}
-              />
-            </>
+            </div>
           )}
 
-          {/*Interests  */}
+          {/* Interests */}
           {interests && interests.description !== "<p><br></p>" && (
-            <>
-              <div>
-                <h2
-                  className=" font-bold mb-5 font-fahkwang text-[26px] uppercase"
-                  style={{ color: data.theme.primaryColor }}
-                >
-                  {t("resumeBuilder.pdfHeaders.interests")}
-                </h2>
-                <div
-                  className="ql-editor !p-0 text-sm leading-relaxed  "
-                  dangerouslySetInnerHTML={{ __html: interests.description }}
-                  style={{ color: data.theme.textColor }}
-                />
-              </div>
-              <hr
-                className="h-[1.5px] border-0"
-                style={{ backgroundColor: data.theme.primaryColor }}
+            <div>
+              <h2
+                className="flex items-center gap-3 text-2xl font-bold uppercase mb-6"
+                style={{ color: data.theme.primaryColor }}
+              >
+                <span className="w-8 h-1 bg-current rounded-full opacity-50"></span>
+                {t("resumeBuilder.pdfHeaders.interests")}
+              </h2>
+              <div
+                className="ql-editor !p-0 text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: interests.description }}
+                style={{ color: data.theme.textColor }}
               />
-            </>
+            </div>
           )}
         </div>
       </div>

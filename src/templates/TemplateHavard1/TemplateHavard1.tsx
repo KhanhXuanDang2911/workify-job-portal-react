@@ -56,9 +56,8 @@ function TemplateHavard1({
   return (
     <div
       ref={ref}
-      className="p-10 font-sans min-h-[1300px] text-gray-800 bg-white"
+      className="p-10 min-h-[1300px] text-gray-800 bg-white"
       style={{
-        fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
         minHeight: minPageHeight,
       }}
     >
@@ -120,7 +119,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.objective")}
@@ -182,7 +180,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.skills")}
@@ -225,7 +222,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.experience")}
@@ -241,7 +237,6 @@ function TemplateHavard1({
                       className="font-bold"
                       style={{
                         color: theme.textColor,
-                        fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                       }}
                     >
                       {exp.position}
@@ -250,7 +245,6 @@ function TemplateHavard1({
                       className="font-bold"
                       style={{
                         color: theme.primaryColor,
-                        fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                       }}
                     >
                       {exp.startDate} to {exp.endDate}
@@ -291,7 +285,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.projects")}
@@ -307,7 +300,6 @@ function TemplateHavard1({
                     className="font-bold"
                     style={{
                       color: theme.textColor,
-                      fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                     }}
                   >
                     {p.title}
@@ -340,7 +332,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.awards")}
@@ -369,7 +360,6 @@ function TemplateHavard1({
                   className="font-extrabold"
                   style={{
                     color: theme.primaryColor,
-                    fontFamily: "Segoe UI, Arial, Helvetica, sans-serif",
                   }}
                 >
                   {t("resumeBuilder.pdfHeaders.certifications")}

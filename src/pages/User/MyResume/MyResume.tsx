@@ -16,73 +16,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+// Actually switch was not found in list_dir. I will use Button for toggle.
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
-import { Loader2 } from "lucide-react";
-import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
-import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
-import TemplateLion from "@/templates/TemplateLion/TemplateLion";
-import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
-import TemplateTiger from "@/templates/TemplateTiger/TemplateTiger";
-import TemplateEagle from "@/templates/TemplateEagle/TemplateEagle";
-import TemplateProfessional1 from "@/templates/TemplateProfessional1/TemplateProfessional1";
-import TemplateProfessional2 from "@/templates/TemplateProfessional2/TemplateProfessional2";
-import TemplateProfessional3 from "@/templates/TemplateProfessional3/TemplateProfessional3";
-import TemplateProfessional4 from "@/templates/TemplateProfessional4/TemplateProfessional4";
-import TemplateHavard1 from "@/templates/TemplateHavard1/TemplateHavard1";
-import TemplateHavard2 from "@/templates/TemplateHavard2/TemplateHavard2";
-import type { TemplateType, ResumeData } from "@/types/resume.type";
+import { useTranslation } from "@/hooks/useTranslation";
 
-// Helper component to render template based on type
-const TemplateRenderer = ({
-  template,
-  data,
-}: {
-  template: TemplateType;
-  data: ResumeData;
-}) => {
-  switch (template) {
-    case "TEMPLATE-PANDA":
-      return <TemplatePanda data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-RABBIT":
-      return <TemplateRabbit data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-LION":
-      return <TemplateLion data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-DOLPHIN":
-      return <TemplateDolphin data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-TIGER":
-      return <TemplateTiger data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-EAGLE":
-      return <TemplateEagle data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-PROFESSIONAL-1":
-      return <TemplateProfessional1 data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-PROFESSIONAL-2":
-      return <TemplateProfessional2 data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-PROFESSIONAL-3":
-      return <TemplateProfessional3 data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-PROFESSIONAL-4":
-      return <TemplateProfessional4 data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-HAVARD-1":
-      return <TemplateHavard1 data={data} onUpdateHeight={() => {}} />;
-    case "TEMPLATE-HAVARD-2":
-      return <TemplateHavard2 data={data} onUpdateHeight={() => {}} />;
-    default:
-      return <TemplatePanda data={data} onUpdateHeight={() => {}} />;
-  }
-};
+import { Loader2, Share2, Copy, Check, Globe } from "lucide-react";
+
+// TemplateRenderer removed as CVPreview is used for both preview and PDF generation
 
 const ITEMS_PER_PAGE = 8;
 
 const MyResume = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [createdResumes, setCreatedResumes] = useState<ResumeItem[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+
+  // Delete Dialog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<number | null>(null);
+
+  // Share Dialog State
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [resumeToShare, setResumeToShare] = useState<ResumeItem | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // PDF Download State
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [resumeToDownload, setResumeToDownload] = useState<ResumeItem | null>(
     null
   );
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const downloadRef = useRef<HTMLDivElement>(null);
@@ -221,6 +189,55 @@ const MyResume = () => {
     navigate(`/${routes.VIEW_RESUME}/${id}`);
   };
 
+  // Share logic
+  const handleShare = (resume: ResumeItem) => {
+    setResumeToShare(resume);
+    setShareDialogOpen(true);
+    setCopied(false);
+  };
+
+  const toggleShare = async () => {
+    if (!resumeToShare) return;
+
+    try {
+      setIsSharing(true);
+      const newStatus = !resumeToShare.isSharedPublic;
+      const res = await resumeService.toggleShareResume(
+        resumeToShare.id,
+        newStatus
+      );
+
+      if (res.data) {
+        setResumeToShare(res.data);
+        // Update list
+        setCreatedResumes((prev) =>
+          prev.map((r) => (r.id === res.data!.id ? res.data! : r))
+        );
+        toast.success(
+          newStatus
+            ? t("auth.shareResume.toast.public")
+            : t("auth.shareResume.toast.private")
+        );
+      }
+    } catch (error) {
+      toast.error(t("auth.shareResume.toast.failed"));
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const getPublicUrl = (id: number) => {
+    return `${window.location.origin}/cv/public/${id}`;
+  };
+
+  const copyToClipboard = () => {
+    if (!resumeToShare) return;
+    navigator.clipboard.writeText(getPublicUrl(resumeToShare.id));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success(t("auth.shareResume.toast.copied"));
+  };
+
   return (
     <div
       className="flex flex-col lg:flex-row min-h-screen"
@@ -283,8 +300,17 @@ const MyResume = () => {
                       <CVPreview
                         data={resume.data}
                         template={resume.template}
+                        fontFamily={resume.fontFamily}
                       />
                     </div>
+
+                    {/* Public Badge */}
+                    {resume.isSharedPublic && (
+                      <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-10">
+                        <Globe className="w-3 h-3" /> Public
+                      </div>
+                    )}
+
                     <div className="absolute bottom-0 left-0 right-0 bg-white p-3 border-t z-10">
                       <div className="font-medium text-sm text-gray-800 truncate">
                         {resume.title}
@@ -296,8 +322,8 @@ const MyResume = () => {
 
                     {/* Hover overlay with actions */}
                     {isHovered && (
-                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200">
-                        <div className="flex gap-3">
+                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200 z-20">
+                        <div className="flex gap-2">
                           <button
                             onClick={() => handleEdit(resume.id)}
                             className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-sky-400 transition-colors"
@@ -342,6 +368,7 @@ const MyResume = () => {
                               />
                             </svg>
                           </button>
+
                           <button
                             onClick={() => handleDelete(resume.id)}
                             className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-red-500 transition-colors"
@@ -361,6 +388,7 @@ const MyResume = () => {
                               />
                             </svg>
                           </button>
+
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -387,6 +415,18 @@ const MyResume = () => {
                                 />
                               </svg>
                             )}
+                          </button>
+
+                          {/* Share Button (Moved to End) */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShare(resume);
+                            }}
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-purple-400 transition-colors"
+                            title="Chia sẻ"
+                          >
+                            <Share2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -424,9 +464,10 @@ const MyResume = () => {
               backgroundColor: "#ffffff",
             }}
           >
-            <TemplateRenderer
-              template={resumeToDownload.template}
+            <CVPreview
               data={resumeToDownload.data}
+              template={resumeToDownload.template}
+              fontFamily={resumeToDownload.fontFamily}
             />
           </div>
         </div>
@@ -451,6 +492,95 @@ const MyResume = () => {
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
               Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{t("auth.shareResume.title")}</DialogTitle>
+            <DialogDescription>
+              {t("auth.shareResume.subtitle")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+              <div className="space-y-0.5">
+                <Label className="text-base">
+                  {t("auth.shareResume.publicAccess")}
+                </Label>
+                <p className="text-sm text-gray-500">
+                  {t("auth.shareResume.publicDesc")}
+                </p>
+              </div>
+              <Button
+                variant={
+                  resumeToShare?.isSharedPublic ? "destructive" : "default"
+                }
+                className={
+                  !resumeToShare?.isSharedPublic
+                    ? "bg-green-600 hover:bg-green-700"
+                    : ""
+                }
+                onClick={toggleShare}
+                disabled={isSharing}
+              >
+                {isSharing ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : resumeToShare?.isSharedPublic ? (
+                  t("auth.shareResume.disable")
+                ) : (
+                  t("auth.shareResume.enable")
+                )}
+              </Button>
+            </div>
+
+            {resumeToShare?.isSharedPublic && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                <Label>{t("auth.shareResume.publicLink")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={getPublicUrl(resumeToShare.id)}
+                    className="flex-1 bg-gray-50"
+                  />
+                  <Button
+                    onClick={copyToClipboard}
+                    size="icon"
+                    variant="outline"
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <Button
+                  asChild
+                  variant="link"
+                  className="px-0 text-blue-600 h-auto"
+                >
+                  <a
+                    href={getPublicUrl(resumeToShare.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t("auth.shareResume.openLink")}{" "}
+                    <Globe className="w-3 h-3 ml-1" />
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShareDialogOpen(false)}>
+              {t("auth.shareResume.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

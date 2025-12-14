@@ -55,7 +55,6 @@ function TemplateHavard2({
       ref={ref}
       className="w-[900px] min-h-[1300px] mx-auto bg-white shadow-lg select-none pointer-events-none"
       style={{
-        fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
         color: "#333333",
         backgroundColor: theme.bgColor,
       }}

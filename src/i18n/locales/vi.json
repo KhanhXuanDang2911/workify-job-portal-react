@@ -201,6 +201,42 @@
       "successTitle": "Đặt lại mật khẩu thành công",
       "successDesc": "Mật khẩu của bạn đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
       "changePasswordTitle": "Đổi mật khẩu của bạn"
+    },
+    "createPassword": {
+      "title": "Tạo mật khẩu",
+      "subtitle": "Thiết lập mật khẩu an toàn cho tài khoản của bạn",
+      "passwordLabel": "Nhập mật khẩu mới",
+      "passwordPlaceholder": "Nhập mật khẩu của bạn",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu của bạn",
+      "submit": "Tạo mật khẩu",
+      "submitting": "Đang tạo...",
+      "requirements": {
+        "length": "Mật khẩu phải có ít nhất 8 ký tự.",
+        "uppercase": "Mật khẩu phải chứa ít nhất một chữ hoa.",
+        "lowercase": "Mật khẩu phải chứa ít nhất một chữ thường.",
+        "special": "Mật khẩu phải chứa ít nhất một ký tự đặc biệt."
+      },
+      "welcomeToast": "Chào mừng {{name}}!",
+      "errorToast": "Tạo mật khẩu thất bại. Vui lòng thử lại.",
+      "tokenErrorToast": "Đã xảy ra lỗi. Vui lòng thử lại."
+    },
+    "shareResume": {
+      "title": "Chia sẻ CV",
+      "subtitle": "Công khai CV của bạn để chia sẻ với nhà tuyển dụng hoặc bạn bè.",
+      "publicAccess": "Truy cập công khai",
+      "publicDesc": "Bất kỳ ai có liên kết đều có thể xem CV này.",
+      "enable": "Bật truy cập công khai",
+      "disable": "Tắt chia sẻ",
+      "publicLink": "Liên kết công khai",
+      "openLink": "Mở liên kết công khai",
+      "close": "Đóng",
+      "toast": {
+        "public": "CV hiện đã công khai",
+        "private": "CV hiện đã riêng tư",
+        "copied": "Đã sao chép liên kết vào bộ nhớ tạm",
+        "failed": "Cập nhật cài đặt chia sẻ thất bại"
+      }
     }
   },
   "validation": {
@@ -642,6 +678,17 @@
   "notFound": {
     "title": "Xin lỗi, Không tìm thấy trang",
     "description": "Trang bạn đang tìm kiếm có thể đã bị xóa, đổi tên hoặc tạm thời không khả dụng.",
+    "goToHome": "Về trang chủ"
+  },
+  "forbidden": {
+    "title": "Truy cập bị từ chối",
+    "description": "Bạn không có quyền truy cập trang này.",
+    "goToHome": "Về trang chủ"
+  },
+  "errorBoundary": {
+    "title": "Đã có lỗi xảy ra",
+    "description": "Chúng tôi xin lỗi vì sự bất tiện này. Vui lòng thử lại sau.",
+    "reload": "Tải lại trang",
     "goToHome": "Về trang chủ"
   },
   "loginRequired": {
@@ -1555,7 +1602,8 @@
     },
     "tabs": {
       "template": "Mẫu",
-      "theme": "Chủ đề"
+      "theme": "Chủ đề",
+      "font": "Phông chữ"
     },
     "actions": {
       "save": "Lưu",

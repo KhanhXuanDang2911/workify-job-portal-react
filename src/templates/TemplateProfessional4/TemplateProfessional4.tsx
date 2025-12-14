@@ -73,11 +73,10 @@ function TemplateProfessional4({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none"
+      className="w-[900px] min-h-[1300px] mx-auto shadow-lg relative pointer-events-none select-none"
       ref={ref}
       style={{
         backgroundColor: theme.bgColor,
-        fontFamily: "Arial, sans-serif",
       }}
     >
       {/* Main Content with Padding */}
@@ -137,6 +136,43 @@ function TemplateProfessional4({
               style={{ color: theme.textColor }}
               dangerouslySetInnerHTML={{ __html: objective.description }}
             />
+          </div>
+        )}
+
+        {/* EDUCATION Section */}
+        {education.length > 0 && (
+          <div className="mt-6">
+            <h2
+              className="text-lg font-bold uppercase tracking-wide mb-3"
+              style={{ color: theme.primaryColor }}
+            >
+              {t("resumeBuilder.pdfHeaders.education")}
+            </h2>
+            <div className="space-y-3">
+              {education.map((edu, idx) => (
+                <div key={idx} className="flex gap-6">
+                  {/* Left Column - Date */}
+                  <div
+                    className="w-36 shrink-0 text-sm"
+                    style={{ color: theme.textColor }}
+                  >
+                    {edu.startDate ? `${edu.startDate} - ` : ""}
+                    {edu.endDate}
+                  </div>
+
+                  {/* Right Column - Education Details */}
+                  <div className="flex-1">
+                    <p className="text-sm" style={{ color: theme.textColor }}>
+                      <span className="font-semibold">{edu.major}</span>
+                      {edu.name && `, ${edu.name}`}
+                    </p>
+                    {edu.score && (
+                      <p className="text-sm text-gray-600">GPA: {edu.score}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -229,43 +265,6 @@ function TemplateProfessional4({
                         style={{ color: theme.textColor }}
                         dangerouslySetInnerHTML={{ __html: exp.description }}
                       />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* EDUCATION Section */}
-        {education.length > 0 && (
-          <div className="mt-6">
-            <h2
-              className="text-lg font-bold uppercase tracking-wide mb-3"
-              style={{ color: theme.primaryColor }}
-            >
-              {t("resumeBuilder.pdfHeaders.education")}
-            </h2>
-            <div className="space-y-3">
-              {education.map((edu, idx) => (
-                <div key={idx} className="flex gap-6">
-                  {/* Left Column - Date */}
-                  <div
-                    className="w-36 shrink-0 text-sm"
-                    style={{ color: theme.textColor }}
-                  >
-                    {edu.startDate ? `${edu.startDate} - ` : ""}
-                    {edu.endDate}
-                  </div>
-
-                  {/* Right Column - Education Details */}
-                  <div className="flex-1">
-                    <p className="text-sm" style={{ color: theme.textColor }}>
-                      <span className="font-semibold">{edu.major}</span>
-                      {edu.name && `, ${edu.name}`}
-                    </p>
-                    {edu.score && (
-                      <p className="text-sm text-gray-600">GPA: {edu.score}</p>
                     )}
                   </div>
                 </div>

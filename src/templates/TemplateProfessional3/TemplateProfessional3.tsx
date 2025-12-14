@@ -60,7 +60,7 @@ function TemplateProfessional3({
   return (
     <div
       id="page-1"
-      className="w-[900px] min-h-[1300px] mx-auto font-sans shadow-lg relative pointer-events-none select-none"
+      className="w-[900px] min-h-[1300px] mx-auto shadow-lg relative pointer-events-none select-none"
       ref={ref}
       style={{ backgroundColor: theme.bgColor }}
     >
@@ -124,6 +124,42 @@ function TemplateProfessional3({
               style={{ color: theme.textColor }}
               dangerouslySetInnerHTML={{ __html: objective.description }}
             />
+          </div>
+        )}
+
+        {/* Education and Training Section */}
+        {education.length > 0 && (
+          <div className="mb-6">
+            <h2
+              className="text-lg font-bold tracking-wide mb-3 pb-1 border-b-2 uppercase"
+              style={{
+                color: theme.textColor,
+                borderColor: theme.primaryColor,
+              }}
+            >
+              {t("resumeBuilder.pdfHeaders.education")}
+            </h2>
+            <div className="space-y-3">
+              {education.map((edu, idx) => (
+                <div key={idx} className="flex gap-6">
+                  <div className="w-32 shrink-0 text-sm text-gray-600">
+                    {edu.startDate ? `${edu.startDate} - ` : ""}
+                    {edu.endDate}
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className="text-sm italic"
+                      style={{ color: theme.textColor }}
+                    >
+                      {edu.major}, {edu.name}
+                    </p>
+                    {edu.score && (
+                      <p className="text-sm text-gray-600">GPA: {edu.score}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -227,42 +263,6 @@ function TemplateProfessional3({
                         style={{ color: theme.textColor }}
                         dangerouslySetInnerHTML={{ __html: exp.description }}
                       />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Education and Training Section */}
-        {education.length > 0 && (
-          <div className="mb-6">
-            <h2
-              className="text-lg font-bold tracking-wide mb-3 pb-1 border-b-2 uppercase"
-              style={{
-                color: theme.textColor,
-                borderColor: theme.primaryColor,
-              }}
-            >
-              {t("resumeBuilder.pdfHeaders.education")}
-            </h2>
-            <div className="space-y-3">
-              {education.map((edu, idx) => (
-                <div key={idx} className="flex gap-6">
-                  <div className="w-32 shrink-0 text-sm text-gray-600">
-                    {edu.startDate ? `${edu.startDate} - ` : ""}
-                    {edu.endDate}
-                  </div>
-                  <div className="flex-1">
-                    <p
-                      className="text-sm italic"
-                      style={{ color: theme.textColor }}
-                    >
-                      {edu.major}, {edu.name}
-                    </p>
-                    {edu.score && (
-                      <p className="text-sm text-gray-600">GPA: {edu.score}</p>
                     )}
                   </div>
                 </div>
