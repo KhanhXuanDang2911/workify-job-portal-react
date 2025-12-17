@@ -25,6 +25,9 @@ dist-ssr
 
 .env.*.local
 .env
+.env.development
+.env.production
+.env.test
 
 .cursor
 .vscode
