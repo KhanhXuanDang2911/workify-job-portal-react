@@ -184,15 +184,47 @@ CRITICAL: Return ONLY valid JSON object. Do not wrap in markdown code blocks. Do
  * Uses Groq API (requires VITE_GROQ_API_KEY)
  */
 const callLLMAPI = async (prompt: string): Promise<string> => {
-  const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
+  // Get all available API keys
+  // We access them explicitly to ensure Vite static analysis picks them up
+  const apiKeys = [
+    import.meta.env.VITE_GROQ_API_KEY,
+    import.meta.env.VITE_GROQ_API_KEY_1,
+    import.meta.env.VITE_GROQ_API_KEY_2,
+    import.meta.env.VITE_GROQ_API_KEY_3,
+    import.meta.env.VITE_GROQ_API_KEY_4,
+    import.meta.env.VITE_GROQ_API_KEY_5,
+    import.meta.env.VITE_GROQ_API_KEY_6,
+    import.meta.env.VITE_GROQ_API_KEY_7,
+    import.meta.env.VITE_GROQ_API_KEY_8,
+  ].filter((key): key is string => !!key && key.trim() !== "");
 
-  if (!groqApiKey) {
+  if (apiKeys.length === 0) {
     throw new Error(
       "Groq API key not configured. Please set VITE_GROQ_API_KEY in environment variables."
     );
   }
 
-  return await callGroqAPI(prompt, groqApiKey);
+  let lastError: any;
+
+  // Try each key sequentially
+  for (const apiKey of apiKeys) {
+    try {
+      return await callGroqAPI(prompt, apiKey);
+    } catch (error) {
+      console.warn(
+        `Groq API call failed with key ...${apiKey.slice(-4)}. Trying next key...`,
+        error
+      );
+      lastError = error;
+      // Continue to next key
+    }
+  }
+
+  // If we get here, all keys failed
+  console.error("All Groq API keys failed");
+  throw (
+    lastError || new Error("Failed to call Groq API with any available key")
+  );
 };
 
 /**

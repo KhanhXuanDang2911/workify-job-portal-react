@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Select,
@@ -262,7 +261,7 @@ export default function SignUp() {
                 />
                 {errors.fullName && (
                   <p className="text-xs text-red-500">
-                    {errors.fullName.message}
+                    {t(errors.fullName.message || "")}
                   </p>
                 )}
               </div>
@@ -282,7 +281,9 @@ export default function SignUp() {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                  <p className="text-xs text-red-500">
+                    {t(errors.email.message || "")}
+                  </p>
                 )}
               </div>
 
@@ -315,7 +316,7 @@ export default function SignUp() {
                 </div>
                 {errors.industryId && (
                   <p className="text-xs text-red-500">
-                    {errors.industryId.message}
+                    {t(errors.industryId.message || "")}
                   </p>
                 )}
               </div>
@@ -350,7 +351,7 @@ export default function SignUp() {
                   </div>
                   {errors.password && (
                     <p className="text-xs text-red-500">
-                      {errors.password.message}
+                      {t(errors.password.message || "")}
                     </p>
                   )}
                 </div>
@@ -387,7 +388,7 @@ export default function SignUp() {
                   </div>
                   {errors.confirmPassword && (
                     <p className="text-xs text-red-500">
-                      {errors.confirmPassword.message}
+                      {t(errors.confirmPassword.message || "")}
                     </p>
                   )}
                 </div>
@@ -425,7 +426,7 @@ export default function SignUp() {
                 </div>
                 {errors.agreeToTerms && (
                   <p className="text-xs text-red-500">
-                    {errors.agreeToTerms.message}
+                    {t(errors.agreeToTerms.message || "")}
                   </p>
                 )}
               </div>

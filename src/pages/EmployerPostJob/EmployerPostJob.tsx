@@ -67,6 +67,7 @@ import type {
   Employer,
   JobRequest,
   Province,
+  Industry,
 } from "@/types";
 import { useEmployerAuth } from "@/context/employer-auth";
 import { useIndustries } from "@/hooks/industry/useIndustries";
@@ -110,7 +111,12 @@ function EmployerPostJob() {
     useIndustries();
 
   // Ensure industries is always an array
-  const industries = industriesResponse || [];
+  const industries = Array.isArray(industriesResponse)
+    ? industriesResponse
+    : (industriesResponse as any)?.data &&
+        Array.isArray((industriesResponse as any).data)
+      ? (industriesResponse as any).data
+      : [];
 
   const { data: provinces, isFetching: isFetchingProvinces } = useProvinces({
     enabled: false,
@@ -135,7 +141,7 @@ function EmployerPostJob() {
   } = useQuery({
     queryKey: ["job", jobId],
     queryFn: async () => {
-      const res = await jobService.getJobById(Number(jobId));
+      const res = await jobService.getJobByIdAsEmployer(Number(jobId));
       return res.data;
     },
     enabled: isEditMode && !!jobId,
@@ -195,7 +201,7 @@ function EmployerPostJob() {
 
   useEffect(() => {
     if (error instanceof AxiosError && error.response?.status === 404) {
-      toast.error("Job not found");
+      toast.error(t("toast.error.jobNotFound"));
       navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
     }
   }, [error, navigate]);
@@ -206,12 +212,12 @@ function EmployerPostJob() {
       return jobService.createJob(data);
     },
     onSuccess: () => {
-      toast.success("Job posted successfully! =))");
+      toast.success(t("toast.success.jobPosted"));
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
       navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
     },
     onError: (error: AxiosError<ApiError>) => {
-      toast.error("Failed to post job");
+      toast.error(t("toast.error.postJobFailed"));
     },
   });
   // Cập nhật job
@@ -220,13 +226,13 @@ function EmployerPostJob() {
       return jobService.updateJob(Number(jobId), data);
     },
     onSuccess: () => {
-      toast.success("Job updated successfully! =))");
+      toast.success(t("toast.success.jobUpdated"));
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
       queryClient.invalidateQueries({ queryKey: ["job", jobId] });
       navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
     },
     onError: (error: AxiosError<ApiError>) => {
-      toast.error("Failed to update job");
+      toast.error(t("toast.error.updateJobFailed"));
     },
   });
 
@@ -427,7 +433,10 @@ function EmployerPostJob() {
     }
   };
 
-  const onError = (errors: any) => {};
+  const onError = (errors: any) => {
+    toast.error(t("employer.postJob.pleaseCheckInputDetails"));
+    console.log(errors);
+  };
   const handleOpenModalEditJobLocations = () => {
     modalJobLocationsForm.reset({
       jobLocations: main_jobLocations.length ? main_jobLocations : [],
@@ -614,7 +623,9 @@ function EmployerPostJob() {
       {/* Header cố định trên cùng */}
       <div className="sticky top-0 z-20 py-3 bg-white border-b border-gray-200 flex-shrink-0">
         <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">
-          {isEditMode ? "Edit Job" : "Post Job"}
+          {isEditMode
+            ? t("employer.postJob.editJob")
+            : t("employer.postJob.postJob")}
         </h1>
       </div>
       {/* Nội dung  */}
@@ -623,7 +634,7 @@ function EmployerPostJob() {
         <div className="bg-white rounded shadow overflow-hidden w-full lg:w-[55%] xl:w-[50%] flex-shrink-0 flex flex-col">
           <div className="p-3 mb-4 bg-white border-b flex-shrink-0">
             <h2 className="text-xl font-semibold text-center text-gray-900 ">
-              Job Information
+              {t("employer.postJob.jobInformation")}
             </h2>
           </div>
           <div className="overflow-y-auto flex-1 px-4 pb-4">
@@ -657,7 +668,7 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.companyName && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.companyName.message}
+                        {t(mainForm.formState.errors.companyName.message || "")}
                       </span>
                     )}
                   </div>
@@ -705,14 +716,14 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.companySize && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.companySize.message}
+                        {t(mainForm.formState.errors.companySize.message || "")}
                       </span>
                     )}
                   </div>
                   {/* Company Website */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
-                      Company Website
+                      {t("employer.postJob.companyWebsite")}
                     </label>
                     <Input
                       {...mainForm.register("companyWebsite")}
@@ -723,7 +734,9 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.companyWebsite && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.companyWebsite.message}
+                        {t(
+                          mainForm.formState.errors.companyWebsite.message || ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -749,7 +762,9 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.aboutCompany && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.aboutCompany.message}
+                        {t(
+                          mainForm.formState.errors.aboutCompany.message || ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -774,7 +789,7 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.jobTitle && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.jobTitle.message}
+                        {t(mainForm.formState.errors.jobTitle.message || "")}
                       </span>
                     )}
                   </div>
@@ -924,7 +939,7 @@ function EmployerPostJob() {
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
                                           {fieldState.error.message ||
-                                            "Required"}
+                                            t("validation.required")}
                                         </span>
                                       )}
                                     </div>
@@ -1018,7 +1033,7 @@ function EmployerPostJob() {
                                         {fieldState.error && (
                                           <span className="mt-1 text-xs text-red-500">
                                             {fieldState.error.message ||
-                                              "Required"}
+                                              t("validation.required")}
                                           </span>
                                         )}
                                       </div>
@@ -1041,7 +1056,7 @@ function EmployerPostJob() {
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
                                           {fieldState.error.message ||
-                                            "Required"}
+                                            t("validation.required")}
                                         </span>
                                       )}
                                     </div>
@@ -1085,7 +1100,9 @@ function EmployerPostJob() {
                     </div>
                     {mainForm.formState.errors.jobLocations && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.jobLocations.message}
+                        {t(
+                          mainForm.formState.errors.jobLocations.message || ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -1330,12 +1347,18 @@ function EmployerPostJob() {
                             <span className="text-xs text-red-500">
                               {" "}
                               {mainForm.formState.errors.maxSalary
-                                ? mainForm.formState.errors.maxSalary.message
+                                ? t(
+                                    mainForm.formState.errors.maxSalary
+                                      .message || ""
+                                  )
                                 : " "}
                             </span>
                             <span className="text-xs text-red-500">
                               {mainForm.formState.errors.salaryUnit
-                                ? mainForm.formState.errors.salaryUnit.message
+                                ? t(
+                                    mainForm.formState.errors.salaryUnit
+                                      .message || ""
+                                  )
                                 : " "}
                             </span>
                           </div>
@@ -1398,13 +1421,19 @@ function EmployerPostJob() {
                         <div className="flex flex-row justify-between mt-1 items-center h-[24px]">
                           <span className="text-xs text-red-500">
                             {mainForm.formState.errors.minSalary
-                              ? mainForm.formState.errors.minSalary.message
+                              ? t(
+                                  mainForm.formState.errors.minSalary.message ||
+                                    ""
+                                )
                               : " "}
                           </span>
                           <span className="text-xs text-red-500">
                             {" "}
                             {mainForm.formState.errors.salaryUnit
-                              ? mainForm.formState.errors.salaryUnit.message
+                              ? t(
+                                  mainForm.formState.errors.salaryUnit
+                                    .message || ""
+                                )
                               : " "}
                           </span>
                         </div>
@@ -1413,7 +1442,7 @@ function EmployerPostJob() {
 
                     {mainForm.formState.errors.salaryType && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.salaryType.message}
+                        {t(mainForm.formState.errors.salaryType.message || "")}
                       </span>
                     )}
                   </div>
@@ -1439,7 +1468,9 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.jobDescription && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.jobDescription.message}
+                        {t(
+                          mainForm.formState.errors.jobDescription.message || ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -1464,7 +1495,7 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.requirement && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.requirement.message}
+                        {t(mainForm.formState.errors.requirement.message || "")}
                       </span>
                     )}
                   </div>
@@ -1635,7 +1666,7 @@ function EmployerPostJob() {
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
                                           {fieldState.error.message ||
-                                            "Required"}
+                                            t("validation.required")}
                                         </span>
                                       )}
                                     </div>
@@ -1697,7 +1728,7 @@ function EmployerPostJob() {
                     </div>
                     {mainForm.formState.errors.jobBenefits && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.jobBenefits.message}
+                        {t(mainForm.formState.errors.jobBenefits.message || "")}
                       </span>
                     )}
                   </div>
@@ -1761,7 +1792,10 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.educationLevel && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.educationLevel.message}
+                            {t(
+                              mainForm.formState.errors.educationLevel
+                                .message || ""
+                            )}
                           </span>
                         )}
                       </div>
@@ -1817,7 +1851,10 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.experienceLevel && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.experienceLevel.message}
+                            {t(
+                              mainForm.formState.errors.experienceLevel
+                                .message || ""
+                            )}
                           </span>
                         )}
                       </div>
@@ -1872,7 +1909,9 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.jobLevel && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.jobLevel.message}
+                            {t(
+                              mainForm.formState.errors.jobLevel.message || ""
+                            )}
                           </span>
                         )}
                       </div>
@@ -1925,7 +1964,7 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.jobType && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.jobType.message}
+                            {t(mainForm.formState.errors.jobType.message || "")}
                           </span>
                         )}
                       </div>
@@ -1981,7 +2020,7 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.gender && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.gender.message}
+                            {t(mainForm.formState.errors.gender.message || "")}
                           </span>
                         )}
                       </div>
@@ -2087,7 +2126,7 @@ function EmployerPostJob() {
                                       {t("employer.postJob.loading")}
                                     </SelectItem>
                                   ) : (
-                                    industries?.map((industry) => (
+                                    industries?.map((industry: Industry) => (
                                       <SelectItem
                                         key={industry.id}
                                         value={industry.id.toString()}
@@ -2107,7 +2146,9 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.industries && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.industries.message}
+                            {t(
+                              mainForm.formState.errors.industries.message || ""
+                            )}
                           </span>
                         )}
                       </div>
@@ -2161,7 +2202,7 @@ function EmployerPostJob() {
                         />
                         {mainForm.formState.errors.ageType && (
                           <span className="text-xs text-red-500">
-                            {mainForm.formState.errors.ageType.message}
+                            {t(mainForm.formState.errors.ageType.message || "")}
                           </span>
                         )}
                       </div>
@@ -2189,7 +2230,9 @@ function EmployerPostJob() {
                           />
                           {mainForm.formState.errors.minAge && (
                             <span className="text-xs text-red-500">
-                              {mainForm.formState.errors.minAge.message}
+                              {t(
+                                mainForm.formState.errors.minAge.message || ""
+                              )}
                             </span>
                           )}
                         </div>
@@ -2218,7 +2261,9 @@ function EmployerPostJob() {
                           />
                           {mainForm.formState.errors.maxAge && (
                             <span className="text-xs text-red-500">
-                              {mainForm.formState.errors.maxAge.message}
+                              {t(
+                                mainForm.formState.errors.maxAge.message || ""
+                              )}
                             </span>
                           )}
                         </div>
@@ -2248,7 +2293,9 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.contactPerson && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.contactPerson.message}
+                        {t(
+                          mainForm.formState.errors.contactPerson.message || ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -2267,7 +2314,7 @@ function EmployerPostJob() {
                     />
                     {mainForm.formState.errors.phoneNumber && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.phoneNumber.message}
+                        {t(mainForm.formState.errors.phoneNumber.message || "")}
                       </span>
                     )}
                   </div>
@@ -2407,7 +2454,8 @@ function EmployerPostJob() {
                                   </Select>
                                   {fieldState.error && (
                                     <span className="text-xs text-red-500">
-                                      {fieldState.error.message || "Required"}
+                                      {fieldState.error.message ||
+                                        t("validation.required")}
                                     </span>
                                   )}
                                 </div>
@@ -2476,7 +2524,8 @@ function EmployerPostJob() {
                                   </Select>
                                   {fieldState.error && (
                                     <span className="text-xs text-red-500">
-                                      {fieldState.error.message || "Required"}
+                                      {fieldState.error.message ||
+                                        t("validation.required")}
                                     </span>
                                   )}
                                 </div>
@@ -2504,7 +2553,8 @@ function EmployerPostJob() {
                                 />
                                 {fieldState.error && (
                                   <span className="text-xs text-red-500">
-                                    {fieldState.error.message || "Required"}
+                                    {fieldState.error.message ||
+                                      t("validation.required")}
                                   </span>
                                 )}
                               </div>
@@ -2515,7 +2565,10 @@ function EmployerPostJob() {
                     </BaseModal>
                     {mainForm.formState.errors.contactLocation && (
                       <span className="text-xs text-red-500">
-                        {mainForm.formState.errors.contactLocation.message}
+                        {t(
+                          mainForm.formState.errors.contactLocation.message ||
+                            ""
+                        )}
                       </span>
                     )}
                   </div>
@@ -2570,7 +2623,10 @@ function EmployerPostJob() {
                       />
                       {mainForm.formState.errors.expirationDate && (
                         <span className="text-xs text-red-500">
-                          {mainForm.formState.errors.expirationDate.message}
+                          {t(
+                            mainForm.formState.errors.expirationDate.message ||
+                              ""
+                          )}
                         </span>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
@@ -2604,20 +2660,22 @@ function EmployerPostJob() {
       </div>
       {/* Footer cố định dưới cùng */}
       <div className="sticky bottom-0 z-20 flex gap-4 px-5 py-5 bg-white border-t border-gray-200 flex-shrink-0">
-        <Button
-          className="w-[40%] border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] bg-transparent"
-          variant="outline"
-          size="lg"
-          onClick={() => {
-            if (isEditMode) {
+        {isEditMode && (
+          <Button
+            className="w-[40%] border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] bg-transparent"
+            variant="outline"
+            size="lg"
+            onClick={() => {
               navigate(`${employer_routes.BASE}/${employer_routes.JOBS}`);
-            }
-          }}
-        >
-          {isEditMode ? t("common.cancel") : t("employer.postJob.saveJob")}
-        </Button>
+            }}
+          >
+            {t("common.cancel")}
+          </Button>
+        )}
         <Button
-          className="w-[60%]  bg-[#1967d2] hover:bg-[#1251a3] disabled:opacity-50"
+          className={`${
+            isEditMode ? "w-[60%]" : "w-full"
+          } bg-[#1967d2] hover:bg-[#1251a3] disabled:opacity-50`}
           variant="default"
           size="lg"
           type="submit"

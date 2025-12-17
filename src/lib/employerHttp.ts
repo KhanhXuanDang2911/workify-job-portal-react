@@ -47,12 +47,7 @@ class EmployerHttp {
       (config) => {
         // Always read fresh token from localStorage instead of using cached value
         const currentAccessToken = employerTokenUtils.getAccessToken();
-        console.log(
-          "[Employer HTTP] Token check:",
-          currentAccessToken
-            ? `Token exists (${currentAccessToken.substring(0, 20)}...)`
-            : "NO TOKEN FOUND"
-        );
+
         if (currentAccessToken) {
           config.headers.Authorization = `Bearer ${currentAccessToken}`;
           this.accessToken = currentAccessToken; // Update cached value
@@ -65,17 +60,10 @@ class EmployerHttp {
         ) {
           delete config.headers["Content-Type"];
         }
-        console.log(
-          "[Employer HTTP] Request:",
-          config.method?.toUpperCase(),
-          config.url,
-          "| Authorization:",
-          config.headers.Authorization ? "Present" : "MISSING"
-        );
+
         return config;
       },
       (error) => {
-        console.error("[Employer HTTP] Request error:", error);
         return Promise.reject(error);
       }
     );
@@ -83,12 +71,6 @@ class EmployerHttp {
     // Response interceptor - Handle token refresh
     this.instance.interceptors.response.use(
       (response) => {
-        console.log(
-          "[Employer HTTP] Response:",
-          response.status,
-          response.config.url
-        );
-
         // Note: Sign-in tokens are handled by EmployerSignIn page component
         // Note: Sign-out tokens are handled by EmployerHeader/Sidebar components
         // Only update internal instance tokens for refresh flow
@@ -96,11 +78,6 @@ class EmployerHttp {
         return response;
       },
       async (error: AxiosError<ApiError>) => {
-        console.error(
-          "[Employer HTTP] Response error:",
-          error.response?.status,
-          error.config?.url
-        );
         const originalRequest = error.config as
           | (AxiosRequestConfig & {
               _retry?: boolean;
@@ -142,8 +119,6 @@ class EmployerHttp {
           if (!this.refreshPromise) {
             this.refreshPromise = (async () => {
               try {
-                console.log("[Employer HTTP] Attempting token refresh...");
-
                 // Call refresh token API
                 const response = await axios.post<{
                   status: number;
@@ -169,7 +144,6 @@ class EmployerHttp {
 
                 return newAccessToken;
               } catch (err) {
-                console.error("[Employer HTTP] Token refresh failed:", err);
                 this.refreshFailed = true;
                 this.accessToken = "";
                 this.refreshToken = "";

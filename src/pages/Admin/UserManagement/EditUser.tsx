@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,77 +29,11 @@ import { Eye, EyeOff, Search, XIcon, ArrowLeft, Camera } from "lucide-react";
 import { admin_routes } from "@/routes/routes.const";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const UserStatusEnum = z.enum(
-  Object.keys(UserStatus) as [keyof typeof UserStatus],
-  {
-    message: "Required",
-  }
-);
-
-const RoleEnum = z.enum(Object.keys(ROLE) as [keyof typeof ROLE], {
-  message: "Required",
-});
-
 const GENDER_ENUM = {
   MALE: "MALE",
   FEMALE: "FEMALE",
   OTHER: "OTHER",
 };
-
-type GenderType = keyof typeof GENDER_ENUM;
-
-const schema = z.object({
-  fullName: z
-    .string()
-    .min(3, "Full name must be at least 3 characters long")
-    .max(160, "Full name must not exceed 160 characters"),
-  email: z.string().min(1, "Required").regex(EMAIL_REGEX, "Invalid"),
-  password: z
-    .string()
-    .optional()
-    .refine(
-      (val) =>
-        val === undefined ||
-        val === null ||
-        val.length === 0 ||
-        (val.length >= 8 && val.length <= 160 && PASSWORD_REGEX.test(val)),
-      {
-        message:
-          "Password must be at least 8 characters long and include uppercase, lowercase, and special characters",
-      }
-    ),
-  phoneNumber: z
-    .string()
-    .transform((val) => (val === "" ? undefined : val))
-    .optional()
-    .refine((val) => !val || PHONE_REGEX.test(val), "Invalid"),
-  birthDate: z
-    .string()
-    .transform((val) => (val === "" ? undefined : val))
-    .optional()
-    .refine((val) => !val || DATE_REGEX.test(val), "Invalid"),
-  gender: z
-    .enum(Object.keys(GENDER_ENUM) as [keyof typeof GENDER_ENUM])
-    .optional()
-    .refine(
-      (val) =>
-        val === null ||
-        val === undefined ||
-        Object.keys(GENDER_ENUM).includes(val),
-      { message: "Invalid" }
-    ),
-  provinceId: z.number().int().positive().optional(),
-  districtId: z.number().int().positive().optional(),
-  industryId: z.number().int().positive().optional(),
-  detailAddress: z.string().nullable().optional(),
-  status: UserStatusEnum,
-  role: RoleEnum,
-});
-
-type UserFormData = z.infer<typeof schema>;
-
-const defaultAvatar =
-  "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
 
 export default function EditUser() {
   const { t, currentLanguage, i18n } = useTranslation();
@@ -107,18 +41,88 @@ export default function EditUser() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [showAvatarHover, setShowAvatarHover] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [provincesOptions, setProvincesOptions] = useState<
     { id: number; name: string }[]
   >([]);
   const [searchProvince, setSearchProvince] = useState("");
+
+  const schema = useMemo(() => {
+    const UserStatusEnum = z.enum(
+      Object.keys(UserStatus) as [keyof typeof UserStatus],
+      {
+        message: t("validation.required"),
+      }
+    );
+
+    const RoleEnum = z.enum(Object.keys(ROLE) as [keyof typeof ROLE], {
+      message: t("validation.required"),
+    });
+
+    return z.object({
+      fullName: z
+        .string()
+        .min(3, t("validation.fullNameMinLength"))
+        .max(160, t("validation.fullNameMaxLength")),
+      email: z
+        .string()
+        .min(1, t("validation.required"))
+        .regex(EMAIL_REGEX, t("validation.emailInvalid")),
+      password: z
+        .string()
+        .optional()
+        .refine(
+          (val) =>
+            val === undefined ||
+            val === null ||
+            val.length === 0 ||
+            (val.length >= 8 && val.length <= 160 && PASSWORD_REGEX.test(val)),
+          {
+            message: t("validation.passwordComplexity"),
+          }
+        ),
+      phoneNumber: z
+        .string()
+        .transform((val) => (val === "" ? undefined : val))
+        .optional()
+        .refine(
+          (val) => !val || PHONE_REGEX.test(val),
+          t("validation.phoneInvalid")
+        ),
+      birthDate: z
+        .string()
+        .transform((val) => (val === "" ? undefined : val))
+        .optional()
+        .refine(
+          (val) => !val || DATE_REGEX.test(val),
+          t("validation.dateInvalid")
+        ),
+      gender: z
+        .enum(Object.keys(GENDER_ENUM) as [keyof typeof GENDER_ENUM])
+        .optional()
+        .refine(
+          (val) =>
+            val === null ||
+            val === undefined ||
+            Object.keys(GENDER_ENUM).includes(val),
+          { message: t("validation.invalid") }
+        ),
+      provinceId: z.number().int().positive().optional(),
+      districtId: z.number().int().positive().optional(),
+      industryId: z.number().int().positive().optional(),
+      detailAddress: z.string().nullable().optional(),
+      status: UserStatusEnum,
+      role: RoleEnum,
+    });
+  }, [t]);
+
+  type UserFormData = z.infer<typeof schema>;
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["user", id],
@@ -161,8 +165,7 @@ export default function EditUser() {
         const [year, month, day] = dateString.split("-");
         form.setValue("birthDate", `${day}/${month}/${year}`);
       }
-      console.log(userData.gender);
-      setAvatarImage(userData.avatarUrl || defaultAvatar);
+      setAvatarImage(userData.avatarUrl || null);
     }
   }, [userData, form]);
 
@@ -270,21 +273,30 @@ export default function EditUser() {
       >
         {/* File Upload */}
         <div>
-          <label>Avatar</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createUser.fields.avatar")}
+          </label>
           <div
-            className="relative w-32 h-32 cursor-pointer"
-            onMouseEnter={() => setShowAvatarHover(true)}
-            onMouseLeave={() => setShowAvatarHover(false)}
+            className={`relative w-32 h-32 cursor-pointer border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden hover:border-[#4B9D7C] transition-colors ${
+              !avatarImage ? "bg-gray-50" : ""
+            }`}
             onClick={() => avatarInputRef.current?.click()}
           >
-            <img
-              src={avatarImage || defaultAvatar}
-              alt="Company Avatar"
-              className="w-32 h-32 rounded-lg border-4 border-white object-cover"
-            />
-            {showAvatarHover && (
-              <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
+            {avatarImage ? (
+              <>
+                <img
+                  src={avatarImage}
+                  alt="Company Avatar"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400">
+                <Camera className="h-8 w-8 mb-1" />
+                <span className="text-xs">{t("common.upload")}</span>
               </div>
             )}
           </div>
@@ -302,7 +314,7 @@ export default function EditUser() {
                   setAvatarImage(reader.result as string);
                 };
                 reader.readAsDataURL(file);
-                setAvatarFile(file);
+                // setAvatarFile(file); // duplicate
               }
             }}
           />
@@ -520,7 +532,7 @@ export default function EditUser() {
                         ))
                       ) : (
                         <div className="text-sm text-gray-500">
-                          No province found.
+                          {t("admin.createUser.noProvinceFound")}
                         </div>
                       )}
                     </div>

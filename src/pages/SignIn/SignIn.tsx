@@ -221,7 +221,9 @@ export default function SignIn() {
                   className="h-12 bg-white border border-gray-300 focus-visible:border-[#0A2E5C] focus-visible:ring-1 focus-visible:ring-[#0A2E5C]/20 transition-all duration-200 rounded-none text-sm"
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                  <p className="text-xs text-red-500">
+                    {t(errors.email.message || "")}
+                  </p>
                 )}
               </div>
 
@@ -254,7 +256,7 @@ export default function SignIn() {
                 </div>
                 {errors.password && (
                   <p className="text-xs text-red-500">
-                    {errors.password.message}
+                    {t(errors.password.message || "")}
                   </p>
                 )}
               </div>

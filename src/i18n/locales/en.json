@@ -3,6 +3,8 @@
     "search": "Search",
     "cancel": "Cancel",
     "save": "Save",
+    "upload": "Upload",
+    "uploadBackground": "Upload background",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -59,7 +61,8 @@
       "websiteUrlsUpdated": "Website URLs updated successfully",
       "companyBannerUpdated": "Company banner updated successfully",
       "aboutCompanyUpdated": "About company updated successfully",
-      "avatarUpdated": "Avatar updated successfully"
+      "avatarUpdated": "Avatar updated successfully",
+      "resumeDeleted": "Resume deleted successfully"
     },
     "error": {
       "applicationFailed": "Failed to submit application. Please try again later.",
@@ -100,11 +103,27 @@
       "notFound": "Resource not found.",
       "serverError": "Server error. Please try again later.",
       "validationError": "Validation error. Please check your input.",
-      "unknownError": "An unknown error occurred"
+      "unknownError": "An unknown error occurred",
+      "generatePdfFailed": "Failed to generate PDF",
+      "downloadPdfFailed": "Failed to download PDF",
+      "deleteResumeFailed": "Failed to delete resume",
+      "jobNotFound": "Job not found"
     },
     "info": {
       "processing": "Processing...",
       "pleaseWait": "Please wait..."
+    }
+  },
+  "postCategory": {
+    "createTitle": "Create New Category",
+    "editTitle": "Edit Category",
+    "label": {
+      "title": "Title",
+      "description": "Description"
+    },
+    "placeholder": {
+      "title": "Enter category title",
+      "description": "Enter category description"
     }
   },
   "home": {
@@ -267,9 +286,64 @@
   "validation": {
     "required": "This field is required",
     "emailInvalid": "Invalid email format",
+    "phoneInvalid": "Invalid phone number format",
+    "passwordRequired": "Password is required",
     "passwordTooShort": "Password must be at least 8 characters",
+    "passwordTooLong": "Password must not exceed 160 characters",
+    "passwordComplexity": "Password must contain at least 1 uppercase, 1 lowercase, and 1 special character",
     "passwordMismatch": "Passwords do not match",
-    "phoneInvalid": "Invalid phone number format"
+    "newPasswordSameAsCurrent": "New password cannot be the same as the current password",
+    "fullNameRequired": "Full Name is required",
+    "fullNameMinLength": "Full Name must be at least 2 characters",
+    "fullNameMaxLength": "Full Name must not exceed 50 characters",
+    "fullNameInvalid": "Full Name must contain only letters and spaces",
+    "agreeToTermsRequired": "You must agree to the terms of use",
+    "currentPasswordRequired": "Current password is required",
+    "newPasswordRequired": "New password is required",
+    "confirmPasswordRequired": "Confirm password is required",
+    "confirmNewPasswordRequired": "Confirm new password is required",
+    "companyNameRequired": "Company Name is required",
+    "companyNameTooLong": "Company Name must not exceed 1000 characters",
+    "companyWebsiteTooLong": "Website must not exceed 1000 characters",
+    "aboutCompanyRequired": "About Company is required",
+    "jobTitleRequired": "Job Title is required",
+    "jobTitleTooLong": "Job Title must not exceed 1000 characters",
+    "jobLocationRequired": "Please select at least one job location",
+    "salaryRequired": "Salary is required",
+    "salaryMinNonNegative": "Minimum salary must be non-negative",
+    "salaryMaxNonNegative": "Maximum salary must be non-negative",
+    "salaryRangeInvalid": "Minimum salary cannot be greater than maximum salary",
+    "jobDescriptionRequired": "Job Description is required",
+    "jobRequirementRequired": "Job Requirement is required",
+    "benefitRequired": "Please add at least 1 benefit",
+    "maxBenefits": "Maximum 15 benefits",
+    "benefitDescriptionTooLong": "Benefit description must not exceed 1000 characters",
+    "industriesRequired": "Please select at least one industry",
+    "minAgeInvalid": "Minimum age must be at least 15",
+    "maxAgeInvalid": "Maximum age must not exceed 100",
+    "ageRangeInvalid": "Minimum age cannot be greater than maximum age",
+    "contactPersonRequired": "Contact Person is required",
+    "contactLocationRequired": "Contact Location is required",
+    "dateFormatInvalid": "Invalid date format (dd/MM/yyyy)",
+    "dateMustBeFuture": "Expiration date must be after today",
+    "phoneRequired": "Phone number is required",
+    "provinceRequired": "Province is required",
+    "districtRequired": "District is required",
+    "companySizeRequired": "Company Size is required",
+    "companyNameMinLength": "Company Name must be at least 2 characters",
+    "companyNameMaxLength255": "Company Name must not exceed 255 characters",
+    "contactPersonMinLength": "Contact Person must be at least 2 characters",
+    "contactPersonMaxLength100": "Contact Person must not exceed 100 characters",
+    "addressRequired": "Detail Address is required",
+    "addressMinLength": "Address must be at least 5 characters",
+    "addressMaxLength255": "Address must not exceed 255 characters",
+    "urlInvalid": "Invalid URL",
+    "invalid": "Invalid value",
+    "dateInvalid": "Invalid date",
+    "titleTooLong": "Title must not exceed 255 characters",
+    "descriptionTooLong": "Description must not exceed 1000 characters",
+    "excerptTooLong": "Excerpt must not exceed 1000 characters",
+    "invalidCategory": "Invalid category"
   },
   "admin": {
     "createProvince": "Create New Province",
@@ -371,6 +445,49 @@
         "JOB_SEEKER": "Job Seeker"
       },
       "noProvinceFound": "No province found."
+    },
+    "createEmployer": {
+      "title": "Create Employer",
+      "fields": {
+        "email": "Email",
+        "password": "Password",
+        "companyName": "Company Name",
+        "avatar": "Avatar",
+        "background": "Background Details",
+        "aboutCompany": "About Company",
+        "companySize": "Company Size",
+        "status": "Status",
+        "contactPerson": "Contact Person",
+        "phoneNumber": "Phone Number",
+        "province": "Province",
+        "district": "District",
+        "detailAddress": "Detail Address",
+        "websiteUrls": "Website URLs",
+        "facebookUrl": "Facebook URL",
+        "twitterUrl": "Twitter URL",
+        "linkedinUrl": "LinkedIn URL",
+        "googleUrl": "Google URL",
+        "youtubeUrl": "YouTube URL"
+      },
+      "placeholders": {
+        "email": "Email",
+        "password": "Password",
+        "companyName": "Company Name",
+        "companySize": "Company Size",
+        "selectStatus": "Select Status",
+        "contactPerson": "Contact Person",
+        "phoneNumber": "Phone Number",
+        "selectProvince": "Select Province",
+        "selectDistrict": "Select District",
+        "detailAddress": "Detail Address",
+        "search": "Search"
+      },
+      "buttons": {
+        "add": "Add",
+        "cancel": "Cancel",
+        "create": "Create",
+        "creating": "Creating..."
+      }
     },
     "jobManagement": {
       "title": "Job Management",
@@ -1186,7 +1303,8 @@
       "updateJob": "Update Job",
       "posting": "Posting...",
       "postJob": "Post Job",
-      "pleaseSelect": "Please select"
+      "pleaseSelect": "Please select",
+      "pleaseCheckInputDetails": "Please check your input details"
     },
     "hero": {
       "titlePart1": "The",
