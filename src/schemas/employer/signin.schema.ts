@@ -4,9 +4,9 @@ import { EMAIL_REGEX } from "@/constants";
 export const signInSchema = z.object({
   email: z
     .string()
-    .min(1, "Email là bắt buộc")
-    .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
-  password: z.string().min(1, "Mật khẩu là bắt buộc"),
+    .min(1, "validation.required")
+    .regex(EMAIL_REGEX, "validation.emailInvalid"),
+  password: z.string().min(1, "validation.passwordRequired"),
 });
 
 export type SignInFormData = z.infer<typeof signInSchema>;

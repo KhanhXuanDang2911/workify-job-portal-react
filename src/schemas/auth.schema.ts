@@ -5,87 +5,80 @@ export const signUpSchema = z
   .object({
     fullName: z
       .string()
-      .min(1, "Họ và tên là bắt buộc")
-      .min(2, "Họ và tên phải có ít nhất 2 ký tự")
-      .max(50, "Họ và tên không được vượt quá 50 ký tự")
-      .regex(FULLNAME_REGEX, "Họ và tên chỉ được chứa chữ cái và khoảng trắng"),
+      .min(1, "validation.fullNameRequired")
+      .min(2, "validation.fullNameMinLength")
+      .max(50, "validation.fullNameMaxLength")
+      .regex(FULLNAME_REGEX, "validation.fullNameInvalid"),
     email: z
       .string()
-      .min(1, "Email là bắt buộc")
-      .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
+      .min(1, "validation.required")
+      .regex(EMAIL_REGEX, "validation.emailInvalid"),
     password: z
       .string()
-      .min(1, "Mật khẩu là bắt buộc")
-      .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
-      .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(
-        PASSWORD_REGEX,
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
-      ),
-    confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+      .min(1, "validation.passwordRequired")
+      .min(8, "validation.passwordTooShort")
+      .max(160, "validation.passwordTooLong")
+      .regex(PASSWORD_REGEX, "validation.passwordComplexity"),
+    confirmPassword: z.string().min(1, "validation.confirmPasswordRequired"),
     agreeToTerms: z.boolean().refine((val) => val === true, {
-      message: "Bạn phải đồng ý với điều khoản sử dụng",
+      message: "validation.agreeToTermsRequired",
     }),
     industryId: z.string().optional().nullable(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
+    message: "validation.passwordMismatch",
     path: ["confirmPassword"],
   });
 
 export const signInSchema = z.object({
   email: z
     .string()
-    .min(1, "Email là bắt buộc")
-    .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
-  password: z.string().min(1, "Mật khẩu là bắt buộc"),
+    .min(1, "validation.required")
+    .regex(EMAIL_REGEX, "validation.emailInvalid"),
+  password: z.string().min(1, "validation.passwordRequired"),
 });
 
 export const changePasswordFormSchema = z
   .object({
-    currentPassword: z.string().min(1, "Mật khẩu hiện tại là bắt buộc"),
+    currentPassword: z.string().min(1, "validation.currentPasswordRequired"),
     newPassword: z
       .string()
-      .min(1, "Mật khẩu mới là bắt buộc")
-      .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
-      .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(
-        PASSWORD_REGEX,
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
-      ),
-    confirmNewPassword: z.string().min(1, "Xác nhận mật khẩu mới là bắt buộc"),
+      .min(1, "validation.newPasswordRequired")
+      .min(8, "validation.passwordTooShort")
+      .max(160, "validation.passwordTooLong")
+      .regex(PASSWORD_REGEX, "validation.passwordComplexity"),
+    confirmNewPassword: z
+      .string()
+      .min(1, "validation.confirmNewPasswordRequired"),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Mật khẩu xác nhận không khớp",
+    message: "validation.passwordMismatch",
     path: ["confirmNewPassword"],
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
-    message: "New password cannot be the same as the current password.",
+    message: "validation.newPasswordSameAsCurrent",
     path: ["newPassword"],
   });
 
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, "Email là bắt buộc")
-    .regex(EMAIL_REGEX, "Đinh dạng email không hợp lệ"),
+    .min(1, "validation.required")
+    .regex(EMAIL_REGEX, "validation.emailInvalid"),
 });
 
 export const resetPasswordSchema = z
   .object({
     newPassword: z
       .string()
-      .min(1, "Mật khẩu mới là bắt buộc")
-      .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
-      .max(160, "Mật khẩu không được vượt quá 160 ký tự")
-      .regex(
-        PASSWORD_REGEX,
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt"
-      ),
-    confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+      .min(1, "validation.newPasswordRequired")
+      .min(8, "validation.passwordTooShort")
+      .max(160, "validation.passwordTooLong")
+      .regex(PASSWORD_REGEX, "validation.passwordComplexity"),
+    confirmPassword: z.string().min(1, "validation.confirmPasswordRequired"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
+    message: "validation.passwordMismatch",
     path: ["confirmPassword"],
   });
 

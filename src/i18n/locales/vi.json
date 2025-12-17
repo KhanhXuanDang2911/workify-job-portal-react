@@ -3,6 +3,8 @@
     "search": "Tìm kiếm",
     "cancel": "Hủy",
     "save": "Lưu",
+    "upload": "Tải ảnh lên",
+    "uploadBackground": "Tải ảnh nền",
     "delete": "Xóa",
     "edit": "Chỉnh sửa",
     "create": "Tạo mới",
@@ -59,7 +61,8 @@
       "websiteUrlsUpdated": "Cập nhật liên kết website thành công",
       "companyBannerUpdated": "Cập nhật banner công ty thành công",
       "aboutCompanyUpdated": "Cập nhật thông tin công ty thành công",
-      "avatarUpdated": "Cập nhật ảnh đại diện thành công"
+      "avatarUpdated": "Cập nhật ảnh đại diện thành công",
+      "resumeDeleted": "Xóa CV thành công"
     },
     "error": {
       "applicationFailed": "Không thể gửi ứng tuyển, thử lại sau.",
@@ -100,11 +103,27 @@
       "notFound": "Không tìm thấy tài nguyên.",
       "serverError": "Lỗi máy chủ. Vui lòng thử lại sau.",
       "validationError": "Lỗi xác thực. Vui lòng kiểm tra thông tin nhập vào.",
-      "unknownError": "Đã xảy ra lỗi không xác định"
+      "unknownError": "Đã xảy ra lỗi không xác định",
+      "generatePdfFailed": "Không thể tạo file PDF",
+      "downloadPdfFailed": "Tải xuống PDF thất bại",
+      "deleteResumeFailed": "Xóa CV thất bại",
+      "jobNotFound": "Không tìm thấy công việc"
     },
     "info": {
       "processing": "Đang xử lý...",
       "pleaseWait": "Vui lòng đợi..."
+    }
+  },
+  "postCategory": {
+    "createTitle": "Thêm danh mục mới",
+    "editTitle": "Chỉnh sửa danh mục",
+    "label": {
+      "title": "Tiêu đề",
+      "description": "Mô tả"
+    },
+    "placeholder": {
+      "title": "Nhập tiêu đề danh mục",
+      "description": "Nhập mô tả danh mục"
     }
   },
   "home": {
@@ -267,9 +286,64 @@
   "validation": {
     "required": "Trường này là bắt buộc",
     "emailInvalid": "Định dạng email không hợp lệ",
+    "phoneInvalid": "Định dạng số điện thoại không hợp lệ",
+    "passwordRequired": "Mật khẩu là bắt buộc",
     "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
-    "passwordMismatch": "Mật khẩu không khớp",
-    "phoneInvalid": "Định dạng số điện thoại không hợp lệ"
+    "passwordTooLong": "Mật khẩu không được vượt quá 160 ký tự",
+    "passwordComplexity": "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp",
+    "newPasswordSameAsCurrent": "Mật khẩu mới không được trùng với mật khẩu hiện tại",
+    "fullNameRequired": "Họ và tên là bắt buộc",
+    "fullNameMinLength": "Họ và tên phải có ít nhất 2 ký tự",
+    "fullNameMaxLength": "Họ và tên không được vượt quá 50 ký tự",
+    "fullNameInvalid": "Họ và tên chỉ được chứa chữ cái và khoảng trắng",
+    "agreeToTermsRequired": "Bạn phải đồng ý với điều khoản sử dụng",
+    "currentPasswordRequired": "Mật khẩu hiện tại là bắt buộc",
+    "newPasswordRequired": "Mật khẩu mới là bắt buộc",
+    "confirmPasswordRequired": "Xác nhận mật khẩu là bắt buộc",
+    "confirmNewPasswordRequired": "Xác nhận mật khẩu mới là bắt buộc",
+    "companyNameRequired": "Tên công ty là bắt buộc",
+    "companyNameTooLong": "Tên công ty không được vượt quá 1000 ký tự",
+    "companyWebsiteTooLong": "Website không được vượt quá 1000 ký tự",
+    "aboutCompanyRequired": "Thông tin công ty là bắt buộc",
+    "jobTitleRequired": "Tiêu đề công việc là bắt buộc",
+    "jobTitleTooLong": "Tiêu đề công việc không được vượt quá 1000 ký tự",
+    "jobLocationRequired": "Vui lòng chọn ít nhất một địa điểm làm việc",
+    "salaryRequired": "Mức lương là bắt buộc",
+    "salaryMinNonNegative": "Mức lương tối thiểu phải là số không âm",
+    "salaryMaxNonNegative": "Mức lương tối đa phải là số không âm",
+    "salaryRangeInvalid": "Mức lương tối thiểu không được lớn hơn mức lương tối đa",
+    "jobDescriptionRequired": "Mô tả công việc là bắt buộc",
+    "jobRequirementRequired": "Yêu cầu công việc là bắt buộc",
+    "benefitRequired": "Vui lòng thêm ít nhất 1 phúc lợi",
+    "maxBenefits": "Tối đa 15 phúc lợi",
+    "benefitDescriptionTooLong": "Mô tả phúc lợi không được vượt quá 1000 ký tự",
+    "industriesRequired": "Vui lòng chọn ít nhất một ngành nghề",
+    "minAgeInvalid": "Độ tuổi tối thiểu phải từ 15 trở lên",
+    "maxAgeInvalid": "Độ tuổi tối đa không được vượt quá 100",
+    "ageRangeInvalid": "Độ tuổi tối thiểu không được lớn hơn độ tuổi tối đa",
+    "contactPersonRequired": "Người liên hệ là bắt buộc",
+    "contactLocationRequired": "Địa điểm liên hệ là bắt buộc",
+    "dateFormatInvalid": "Định dạng ngày không hợp lệ (dd/MM/yyyy)",
+    "dateMustBeFuture": "Ngày hết hạn phải sau ngày hôm nay",
+    "phoneRequired": "Số điện thoại là bắt buộc",
+    "provinceRequired": "Tỉnh/Thành phố là bắt buộc",
+    "districtRequired": "Quận/Huyện là bắt buộc",
+    "companySizeRequired": "Quy mô công ty là bắt buộc",
+    "companyNameMinLength": "Tên công ty phải có ít nhất 2 ký tự",
+    "companyNameMaxLength255": "Tên công ty không được vượt quá 255 ký tự",
+    "contactPersonMinLength": "Tên người liên hệ phải có ít nhất 2 ký tự",
+    "contactPersonMaxLength100": "Tên người liên hệ không được vượt quá 100 ký tự",
+    "addressRequired": "Địa chỉ chi tiết là bắt buộc",
+    "addressMinLength": "Địa chỉ phải có ít nhất 5 ký tự",
+    "addressMaxLength255": "Địa chỉ không được vượt quá 255 ký tự",
+    "urlInvalid": "URL không hợp lệ",
+    "invalid": "Giá trị không hợp lệ",
+    "dateInvalid": "Ngày không hợp lệ",
+    "titleTooLong": "Tiêu đề không được vượt quá 255 ký tự",
+    "descriptionTooLong": "Mô tả không được vượt quá 1000 ký tự",
+    "excerptTooLong": "Tóm tắt không được vượt quá 1000 ký tự",
+    "invalidCategory": "Danh mục không hợp lệ"
   },
   "admin": {
     "createProvince": "Tạo Tỉnh/Thành phố mới",
@@ -371,6 +445,49 @@
         "JOB_SEEKER": "Người tìm việc"
       },
       "noProvinceFound": "Không tìm thấy tỉnh/thành phố."
+    },
+    "createEmployer": {
+      "title": "Tạo Nhà Tuyển Dụng",
+      "fields": {
+        "email": "Email",
+        "password": "Mật khẩu",
+        "companyName": "Tên công ty",
+        "avatar": "Ảnh đại diện",
+        "background": "Ảnh bìa",
+        "aboutCompany": "Giới thiệu công ty",
+        "companySize": "Quy mô công ty",
+        "status": "Trạng thái",
+        "contactPerson": "Người liên hệ",
+        "phoneNumber": "Số điện thoại",
+        "province": "Tỉnh thành",
+        "district": "Quận huyện",
+        "detailAddress": "Địa chỉ chi tiết",
+        "websiteUrls": "Liên kết Website",
+        "facebookUrl": "Facebook URL",
+        "twitterUrl": "Twitter URL",
+        "linkedinUrl": "LinkedIn URL",
+        "googleUrl": "Google URL",
+        "youtubeUrl": "YouTube URL"
+      },
+      "placeholders": {
+        "email": "Email",
+        "password": "Mật khẩu",
+        "companyName": "Tên công ty",
+        "companySize": "Quy mô công ty",
+        "selectStatus": "Chọn trạng thái",
+        "contactPerson": "Người liên hệ",
+        "phoneNumber": "Số điện thoại",
+        "selectProvince": "Chọn tỉnh thành",
+        "selectDistrict": "Chọn quận huyện",
+        "detailAddress": "Địa chỉ chi tiết",
+        "search": "Tìm kiếm"
+      },
+      "buttons": {
+        "add": "Thêm",
+        "cancel": "Hủy",
+        "create": "Tạo",
+        "creating": "Đang tạo..."
+      }
     },
     "jobManagement": {
       "title": "Quản lý việc làm",
@@ -1186,7 +1303,8 @@
       "updateJob": "Cập nhật công việc",
       "posting": "Đang đăng...",
       "postJob": "Đăng tin tuyển dụng",
-      "pleaseSelect": "Vui lòng chọn"
+      "pleaseSelect": "Vui lòng chọn",
+      "pleaseCheckInputDetails": "Vui lòng kiểm tra lại thông tin nhập vào"
     },
     "hero": {
       "titlePart1": "Cách",

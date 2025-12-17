@@ -23,15 +23,10 @@ publicHttp.interceptors.request.use(
     if (config.data instanceof FormData && !config.headers["Content-Type"]) {
       delete config.headers["Content-Type"];
     }
-    console.log(
-      "[Public HTTP] Request:",
-      config.method?.toUpperCase(),
-      config.url
-    );
+
     return config;
   },
   (error) => {
-    console.error("[Public HTTP] Request error:", error);
     return Promise.reject(error);
   }
 );
@@ -39,19 +34,9 @@ publicHttp.interceptors.request.use(
 // Response interceptor
 publicHttp.interceptors.response.use(
   (response) => {
-    console.log(
-      "[Public HTTP] Response:",
-      response.status,
-      response.config.url
-    );
     return response;
   },
   (error) => {
-    console.error(
-      "[Public HTTP] Response error:",
-      error.response?.status,
-      error.config?.url
-    );
     return Promise.reject(error);
   }
 );

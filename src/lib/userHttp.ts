@@ -50,12 +50,7 @@ class UserHttp {
       (config) => {
         // Always read fresh token from localStorage instead of using cached value
         const currentAccessToken = userTokenUtils.getAccessToken();
-        console.log(
-          "[User HTTP] Token check:",
-          currentAccessToken
-            ? `Token exists (${currentAccessToken.substring(0, 20)}...)`
-            : "NO TOKEN FOUND"
-        );
+
         if (currentAccessToken) {
           config.headers.Authorization = `Bearer ${currentAccessToken}`;
           this.accessToken = currentAccessToken; // Update cached value
@@ -68,17 +63,10 @@ class UserHttp {
         ) {
           delete config.headers["Content-Type"];
         }
-        console.log(
-          "[User HTTP] Request:",
-          config.method?.toUpperCase(),
-          config.url,
-          "| Authorization:",
-          config.headers.Authorization ? "Present" : "MISSING"
-        );
+
         return config;
       },
       (error) => {
-        console.error("[User HTTP] Request error:", error);
         return Promise.reject(error);
       }
     );
@@ -86,12 +74,6 @@ class UserHttp {
     // Response interceptor - Handle token refresh
     this.instance.interceptors.response.use(
       (response) => {
-        console.log(
-          "[User HTTP] Response:",
-          response.status,
-          response.config.url
-        );
-
         // Note: Sign-in tokens are handled by SignIn page component
         // Note: Sign-out tokens are handled by Header/Sidebar components
         // Only update internal instance tokens for refresh flow
@@ -99,11 +81,6 @@ class UserHttp {
         return response;
       },
       async (error: AxiosError<ApiError>) => {
-        console.error(
-          "[User HTTP] Response error:",
-          error.response?.status,
-          error.config?.url
-        );
         const originalRequest = error.config as
           | (AxiosRequestConfig & {
               _retry?: boolean;
@@ -139,9 +116,6 @@ class UserHttp {
           // If no refresh token, user was never authenticated - just reject the error
           // Don't redirect for unauthenticated users accessing public endpoints
           if (!currentRefreshToken) {
-            console.log(
-              "[User HTTP] No refresh token found - user not authenticated, skipping redirect"
-            );
             return Promise.reject(error);
           }
 
@@ -162,8 +136,6 @@ class UserHttp {
           if (!this.refreshPromise) {
             this.refreshPromise = (async () => {
               try {
-                console.log("[User HTTP] Attempting token refresh...");
-
                 // Call refresh token API
                 const response = await axios.post<{
                   status: number;
@@ -189,7 +161,6 @@ class UserHttp {
 
                 return newAccessToken;
               } catch (err) {
-                console.error("[User HTTP] Token refresh failed:", err);
                 this.refreshFailed = true;
                 this.accessToken = "";
                 this.refreshToken = "";

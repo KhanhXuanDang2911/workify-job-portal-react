@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { useTranslation } from "@/hooks/useTranslation";
+import { getFontFamilyName } from "@/utils/font.utils";
 
 import { Loader2, Share2, Copy, Check, Globe } from "lucide-react";
 
@@ -83,19 +84,40 @@ const MyResume = () => {
 
     const element = downloadRef.current;
     if (!element) {
-      toast.error("Failed to generate PDF");
+      toast.error(t("toast.error.generatePdfFailed"));
       setDownloadingId(null);
       setResumeToDownload(null);
       return;
     }
 
     try {
+      // Convert all images to base64 BEFORE calling toPng
+      const images = element.querySelectorAll("img");
+      const imagePromises = Array.from(images).map(async (img) => {
+        if (img.src.startsWith("data:")) return; // Already base64
+
+        try {
+          const response = await fetch(img.src);
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          img.src = base64;
+        } catch (e) {
+          console.warn("Failed to convert image to base64:", img.src, e);
+        }
+      });
+
+      await Promise.all(imagePromises);
+
       // Use PNG for lossless quality with good compression for text/graphics
       // pixelRatio 2.5 for sharper text while keeping file size reasonable
       const dataUrl = await toPng(element, {
         pixelRatio: 2.5, // 2.5x resolution - sharper than 2x, smaller than 3x
         backgroundColor: "#ffffff",
-        cacheBust: true,
+        cacheBust: false, // Don't bust cache since we already converted images
       });
 
       const img = new Image();
@@ -141,13 +163,13 @@ const MyResume = () => {
       };
 
       img.onerror = () => {
-        toast.error("Failed to generate PDF");
+        toast.error(t("toast.error.generatePdfFailed"));
         setDownloadingId(null);
         setResumeToDownload(null);
       };
     } catch (error) {
       console.error("Error exporting PDF:", error);
-      toast.error("Failed to download PDF");
+      toast.error(t("toast.error.downloadPdfFailed"));
       setDownloadingId(null);
       setResumeToDownload(null);
     }
@@ -172,10 +194,10 @@ const MyResume = () => {
 
     try {
       await resumeService.deleteResume(resumeToDelete);
-      toast.success("Deleted resume");
+      toast.success(t("toast.success.resumeDeleted"));
       fetchResumes(currentPage);
     } catch (error) {
-      toast.error("Failed to delete resume");
+      toast.error(t("toast.error.deleteResumeFailed"));
     } finally {
       setDeleteDialogOpen(false);
       setResumeToDelete(null);
@@ -459,6 +481,7 @@ const MyResume = () => {
             style={{
               width: "900px", // Match template width (900px as used in TemplatePanda)
               backgroundColor: "#ffffff",
+              fontFamily: getFontFamilyName(resumeToDownload.fontFamily),
             }}
           >
             <CVPreview

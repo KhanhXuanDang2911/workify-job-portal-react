@@ -15,6 +15,7 @@ import {
 import type { PostCategory } from "@/types/post.type";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface PostCategoryModalProps {
   trigger: React.ReactNode;
@@ -26,6 +27,7 @@ export default function PostCategoryModal({
   category,
 }: PostCategoryModalProps) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const isEditing = !!category;
 
   const {
@@ -58,13 +60,13 @@ export default function PostCategoryModal({
   const createMutation = useMutation({
     mutationFn: postService.createCategory,
     onSuccess: () => {
-      toast.success("Tạo danh mục thành công");
+      toast.success(t("toast.success.categoryCreated"));
       queryClient.invalidateQueries({ queryKey: ["post-categories"] });
       reset();
     },
     onError: (error: any) => {
       toast.error(
-        error?.response?.data?.message || "Có lỗi xảy ra khi tạo danh mục"
+        error?.response?.data?.message || t("toast.error.createCategoryFailed")
       );
     },
   });
@@ -73,13 +75,13 @@ export default function PostCategoryModal({
     mutationFn: ({ id, data }: { id: number; data: PostCategoryFormData }) =>
       postService.updateCategory(id, data),
     onSuccess: () => {
-      toast.success("Cập nhật danh mục thành công");
+      toast.success(t("toast.success.categoryUpdated"));
       queryClient.invalidateQueries({ queryKey: ["post-categories"] });
       reset();
     },
     onError: (error: any) => {
       toast.error(
-        error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật danh mục"
+        error?.response?.data?.message || t("toast.error.updateCategoryFailed")
       );
     },
   });
@@ -99,7 +101,9 @@ export default function PostCategoryModal({
 
   return (
     <BaseModal
-      title={isEditing ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+      title={
+        isEditing ? t("postCategory.editTitle") : t("postCategory.createTitle")
+      }
       trigger={trigger}
       className="sm:max-w-[500px]"
       footer={(onClose) => (
@@ -113,7 +117,7 @@ export default function PostCategoryModal({
             className="border-[#1967d2] text-[#1967d2] hover:bg-[#e3eefc] hover:text-[#1967d2] hover:border-[#1967d2] w-28 bg-transparent"
             disabled={createMutation.isPending || updateMutation.isPending}
           >
-            Hủy
+            {t("common.cancel")}
           </Button>
           <Button
             type="submit"
@@ -121,7 +125,7 @@ export default function PostCategoryModal({
             onClick={handleSubmit((data) => onSubmit(data, onClose))}
             disabled={createMutation.isPending || updateMutation.isPending}
           >
-            {isEditing ? "Cập nhật" : "Tạo mới"}
+            {isEditing ? t("common.update") : t("common.create")}
           </Button>
         </>
       )}
@@ -129,11 +133,12 @@ export default function PostCategoryModal({
       <form id="post-category-form" className="space-y-4 w-[500px]">
         <div className="space-y-2">
           <Label htmlFor="title">
-            Tiêu đề <span className="text-red-500">*</span>
+            {t("postCategory.label.title")}{" "}
+            <span className="text-red-500">*</span>
           </Label>
           <Input
             id="title"
-            placeholder="Nhập tiêu đề danh mục"
+            placeholder={t("postCategory.placeholder.title")}
             {...register("title")}
             className={cn(
               "focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] mt-2",
@@ -141,17 +146,20 @@ export default function PostCategoryModal({
             )}
           />
           {errors.title && (
-            <p className="text-sm text-red-500">{errors.title.message}</p>
+            <p className="text-sm text-red-500">
+              {t(errors.title.message as string)}
+            </p>
           )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="description">
-            Mô tả <span className="text-red-500">*</span>
+            {t("postCategory.label.description")}{" "}
+            <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="description"
-            placeholder="Nhập mô tả danh mục"
+            placeholder={t("postCategory.placeholder.description")}
             rows={8}
             {...register("description")}
             className={cn(
@@ -160,7 +168,9 @@ export default function PostCategoryModal({
             )}
           />
           {errors.description && (
-            <p className="text-sm text-red-500">{errors.description.message}</p>
+            <p className="text-sm text-red-500">
+              {t(errors.description.message as string)}
+            </p>
           )}
         </div>
       </form>

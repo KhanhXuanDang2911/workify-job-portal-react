@@ -25,7 +25,7 @@ import {
   UserStatus,
   UserStatusLabelEN,
 } from "@/constants";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Camera,
   Edit2,
@@ -39,84 +39,23 @@ import {
   XIcon,
 } from "lucide-react";
 import ReactQuill from "react-quill-new";
-
-const companySizeEnum = z.enum(
-  Object.keys(CompanySize) as [keyof typeof CompanySize],
-  {
-    message: "Required",
-  }
-);
-
-const UserStatusEnum = z.enum(
-  Object.keys(UserStatus) as [keyof typeof UserStatus],
-  {
-    message: "Required",
-  }
-);
-
-const schema = z.object({
-  email: z
-    .string()
-    .min(1, "Required")
-    .regex(EMAIL_REGEX, "Invalid email format"),
-  password: z
-    .string()
-    .min(1, "Required")
-    .min(8, "Password must be at least 8 characters long")
-    .max(160, "Password must not exceed 160 characters")
-    .regex(
-      PASSWORD_REGEX,
-      "Password must include at least one uppercase letter, one lowercase letter, and one special character"
-    ),
-  companyName: z
-    .string()
-    .min(1, "Required")
-    .min(2, "Company name must be at least 2 characters long")
-    .max(255, "Company name must not exceed 255 characters"),
-  companySize: companySizeEnum,
-  contactPerson: z.string().min(1, "Required"),
-  phoneNumber: z.string().regex(PHONE_REGEX, "Invalid phone number format"),
-  provinceId: z
-    .union([z.number().int().positive(), z.undefined()])
-    .refine((val) => val !== undefined, { message: "Required" }),
-  districtId: z
-    .union([z.number().int().positive(), z.undefined()])
-    .refine((val) => val !== undefined, { message: "Required" }),
-  detailAddress: z.string(),
-  status: UserStatusEnum,
-
-  aboutCompany: z.string().optional(),
-  facebookUrl: z.string().optional(),
-  twitterUrl: z.string().optional(),
-  linkedinUrl: z.string().optional(),
-  googleUrl: z.string().optional(),
-  youtubeUrl: z.string().optional(),
-  websiteUrls: z.array(z.string()).optional(),
-});
-
-const defaultBanner =
-  "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
-const defaultAvatar =
-  "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
-
-type FormData = z.infer<typeof schema>;
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CreateEmployerModal() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [bannerImage, setBannerImage] = useState<string>(defaultBanner);
-  const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [showAvatarHover, setShowAvatarHover] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-  const [showBackgroundHover, setShowBackgroundHover] = useState(false);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
 
   const [provincesOptions, setProvincesOptions] = useState<
@@ -130,7 +69,66 @@ export default function CreateEmployerModal() {
     number | null
   >(null);
   const [editingWebsiteUrlValue, setEditingWebsiteUrlValue] = useState("");
-  useState<string | null>(null);
+
+  // Schema creation inside component to use t()
+  const schema = useMemo(() => {
+    const companySizeEnum = z.enum(
+      Object.keys(CompanySize) as [keyof typeof CompanySize],
+      {
+        message: t("validation.required"),
+      }
+    );
+
+    const UserStatusEnum = z.enum(
+      Object.keys(UserStatus) as [keyof typeof UserStatus],
+      {
+        message: t("validation.required"),
+      }
+    );
+
+    return z.object({
+      email: z
+        .string()
+        .min(1, t("validation.required"))
+        .regex(EMAIL_REGEX, t("validation.emailInvalid")),
+      password: z
+        .string()
+        .min(1, t("validation.required"))
+        .min(8, t("validation.passwordTooShort"))
+        .max(160, t("validation.passwordTooLong"))
+        .regex(PASSWORD_REGEX, t("validation.passwordComplexity")),
+      companyName: z
+        .string()
+        .min(1, t("validation.required"))
+        .min(2, t("validation.companyNameMinLength"))
+        .max(255, t("validation.companyNameMaxLength255")),
+      companySize: companySizeEnum,
+      contactPerson: z.string().min(1, t("validation.required")),
+      phoneNumber: z.string().regex(PHONE_REGEX, t("validation.phoneInvalid")),
+      provinceId: z
+        .union([z.number().int().positive(), z.undefined()])
+        .refine((val) => val !== undefined, {
+          message: t("validation.required"),
+        }),
+      districtId: z
+        .union([z.number().int().positive(), z.undefined()])
+        .refine((val) => val !== undefined, {
+          message: t("validation.required"),
+        }),
+      detailAddress: z.string(),
+      status: UserStatusEnum,
+
+      aboutCompany: z.string().optional(),
+      facebookUrl: z.string().optional(),
+      twitterUrl: z.string().optional(),
+      linkedinUrl: z.string().optional(),
+      googleUrl: z.string().optional(),
+      youtubeUrl: z.string().optional(),
+      websiteUrls: z.array(z.string()).optional(),
+    });
+  }, [t]);
+
+  type FormData = z.infer<typeof schema>;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -158,18 +156,23 @@ export default function CreateEmployerModal() {
       return await employerService.createEmployer(formData);
     },
     onSuccess: () => {
-      toast.success("Create employer successfully");
+      toast.success(t("toast.success.employerCreated"));
       queryClient.invalidateQueries({ queryKey: ["employers"] });
       setOpen(false);
       form.reset();
-      setAvatarImage(defaultAvatar);
-      setBannerImage(defaultBanner);
+      setAvatarImage(null);
+      setBannerImage(null);
       setAvatarFile(null);
       setBackgroundFile(null);
       navigate(`${admin_routes.BASE}/${admin_routes.EMPLOYERS}`);
     },
-    onError: () => {
-      toast.error("Create employer failed");
+    onError: (error: any) => {
+      const apiError = error?.response?.data;
+      if (apiError?.status === 409) {
+        toast.error(apiError.message);
+      } else {
+        toast.error(t("toast.error.createEmployerFailed"));
+      }
     },
   });
 
@@ -213,14 +216,14 @@ export default function CreateEmployerModal() {
 
   return (
     <BaseModal
-      title="Tạo Nhà Tuyển Dụng"
+      title={t("admin.createEmployer.title")}
       className=""
       open={open}
       onOpenChange={setOpen}
       trigger={
         <Button className="bg-[#4B9D7C] hover:bg-[#4B9D7C]/90 text-white">
           <Plus className="w-4 h-4 mr-2" />
-          Add New
+          {t("admin.createEmployer.buttons.add")}
         </Button>
       }
       footer={(onClose) => (
@@ -235,14 +238,16 @@ export default function CreateEmployerModal() {
             disabled={createMutation.isPending}
             className="w-28"
           >
-            Hủy
+            {t("admin.createEmployer.buttons.cancel")}
           </Button>
           <Button
             onClick={form.handleSubmit((data) => createMutation.mutate(data))}
             className="bg-[#4B9D7C] w-28 hover:bg-[#4B9D7C]/90 text-white"
             disabled={createMutation.isPending}
           >
-            {createMutation.isPending ? "Đang tạo..." : "Tạo"}
+            {createMutation.isPending
+              ? t("admin.createEmployer.buttons.creating")
+              : t("admin.createEmployer.buttons.create")}
           </Button>
         </>
       )}
@@ -250,10 +255,11 @@ export default function CreateEmployerModal() {
       <form className="max-h-[400px] grid grid-cols-2 gap-4 mt-4 overflow-y-scroll px-2">
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Email <span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.email")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Email"
+            placeholder={t("admin.createEmployer.placeholders.email")}
             {...form.register("email")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -266,11 +272,12 @@ export default function CreateEmployerModal() {
 
         <div className="">
           <label className="block text-sm text-gray-600 mb-1">
-            Password <span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.password")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <div className="relative">
             <Input
-              placeholder="Password"
+              placeholder={t("admin.createEmployer.placeholders.password")}
               type={showPassword ? "text" : "password"}
               {...form.register("password")}
               className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C] pr-10"
@@ -296,10 +303,11 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Company Name <span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.companyName")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Tên công ty"
+            placeholder={t("admin.createEmployer.placeholders.companyName")}
             {...form.register("companyName")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -312,7 +320,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            About Company
+            {t("admin.createEmployer.fields.aboutCompany")}
           </label>
           <Controller
             name="aboutCompany"
@@ -331,7 +339,8 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Company Size<span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.companySize")}
+            <span className="text-red-600">*</span>
           </label>
           <Controller
             name="companySize"
@@ -339,7 +348,11 @@ export default function CreateEmployerModal() {
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Quy mô công ty" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createEmployer.placeholders.companySize"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(CompanySize).map(([key, value]) => (
@@ -364,7 +377,8 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Status <span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.status")}{" "}
+            <span className="text-red-600">*</span>
           </label>
           <Controller
             name="status"
@@ -372,7 +386,11 @@ export default function CreateEmployerModal() {
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createEmployer.placeholders.selectStatus"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(UserStatusLabelEN).map((key) => (
@@ -397,10 +415,11 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Contact Person<span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.contactPerson")}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Contact person"
+            placeholder={t("admin.createEmployer.placeholders.contactPerson")}
             {...form.register("contactPerson")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -413,10 +432,11 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Phone Number<span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.phoneNumber")}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Phone number"
+            placeholder={t("admin.createEmployer.placeholders.phoneNumber")}
             {...form.register("phoneNumber")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -429,7 +449,7 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Province
+            {t("admin.createEmployer.fields.province")}
             <span className="text-red-600">*</span>
           </label>
           <Controller
@@ -443,7 +463,11 @@ export default function CreateEmployerModal() {
                 }}
               >
                 <SelectTrigger className=" w-full">
-                  <SelectValue placeholder="Province" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createEmployer.placeholders.selectProvince"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent className="w-96 p-0">
                   <div className="p-4">
@@ -453,7 +477,9 @@ export default function CreateEmployerModal() {
                         color="#1967d2"
                       />
                       <Input
-                        placeholder="Search"
+                        placeholder={t(
+                          "admin.createEmployer.placeholders.search"
+                        )}
                         className="pl-10 focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2] pr-10"
                         value={searchProvince}
                         onChange={(event) => {
@@ -494,7 +520,7 @@ export default function CreateEmployerModal() {
                         ))
                       ) : (
                         <div className="text-sm text-gray-500">
-                          No province found.
+                          {t("admin.createEmployer.noProvinceFound")}
                         </div>
                       )}
                     </div>
@@ -512,7 +538,8 @@ export default function CreateEmployerModal() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            District<span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.district")}
+            <span className="text-red-600">*</span>
           </label>
           <Controller
             name="districtId"
@@ -527,7 +554,11 @@ export default function CreateEmployerModal() {
                   className="w-full"
                   disabled={!form.watch("provinceId")}
                 >
-                  <SelectValue placeholder="Select District" />
+                  <SelectValue
+                    placeholder={t(
+                      "admin.createEmployer.placeholders.selectDistrict"
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {districts?.map((d) => (
@@ -552,10 +583,11 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Detail Address<span className="text-red-600">*</span>
+            {t("admin.createEmployer.fields.detailAddress")}
+            <span className="text-red-600">*</span>
           </label>
           <Input
-            placeholder="Detail address"
+            placeholder={t("admin.createEmployer.placeholders.detailAddress")}
             {...form.register("detailAddress")}
             className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
@@ -568,21 +600,30 @@ export default function CreateEmployerModal() {
 
         {/* File Upload */}
         <div>
-          <label>Avatar</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createEmployer.fields.avatar")}
+          </label>
           <div
-            className="relative w-32 h-32 cursor-pointer"
-            onMouseEnter={() => setShowAvatarHover(true)}
-            onMouseLeave={() => setShowAvatarHover(false)}
+            className={`relative w-32 h-32 cursor-pointer border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden hover:border-[#4B9D7C] transition-colors ${
+              !avatarImage ? "bg-gray-50" : ""
+            }`}
             onClick={() => avatarInputRef.current?.click()}
           >
-            <img
-              src={avatarImage || defaultAvatar}
-              alt="Company Avatar"
-              className="w-32 h-32 rounded-lg border-4 border-white object-cover"
-            />
-            {showAvatarHover && (
-              <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
+            {avatarImage ? (
+              <>
+                <img
+                  src={avatarImage}
+                  alt="Company Avatar"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400">
+                <Camera className="h-8 w-8 mb-1" />
+                <span className="text-xs">{t("common.upload")}</span>
               </div>
             )}
           </div>
@@ -600,27 +641,35 @@ export default function CreateEmployerModal() {
                   setAvatarImage(reader.result as string);
                 };
                 reader.readAsDataURL(file);
-                setAvatarFile(file);
               }
             }}
           />
         </div>
         <div>
-          <label>Background</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createEmployer.fields.background")}
+          </label>
           <div
-            className="relative cursor-pointer"
-            onMouseEnter={() => setShowBackgroundHover(true)}
-            onMouseLeave={() => setShowBackgroundHover(false)}
+            className={`relative w-full h-64 cursor-pointer border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden hover:border-[#4B9D7C] transition-colors ${
+              !bannerImage ? "bg-gray-50" : ""
+            }`}
             onClick={() => backgroundInputRef.current?.click()}
           >
-            <img
-              src={bannerImage || defaultBanner}
-              alt="Company Banner"
-              className="w-full h-64 object-cover"
-            />
-            {showBackgroundHover && (
-              <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
+            {bannerImage ? (
+              <>
+                <img
+                  src={bannerImage}
+                  alt="Company Banner"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400">
+                <Camera className="h-10 w-10 mb-2" />
+                <span className="text-sm">{t("common.upload")}</span>
               </div>
             )}
           </div>
@@ -645,7 +694,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Facebook URL
+            {t("admin.createEmployer.fields.facebookUrl")}
           </label>
           <Input
             placeholder="https://facebook.com/..."
@@ -656,7 +705,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            Twitter URL
+            {t("admin.createEmployer.fields.twitterUrl")}
           </label>
           <Input
             placeholder="https://twitter.com/..."
@@ -667,7 +716,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            LinkedIn URL
+            {t("admin.createEmployer.fields.linkedinUrl")}
           </label>
           <Input
             placeholder="https://linkedin.com/..."
@@ -677,7 +726,9 @@ export default function CreateEmployerModal() {
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-1">Google URL</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t("admin.createEmployer.fields.googleUrl")}
+          </label>
           <Input
             placeholder="https://google.com/..."
             {...form.register("googleUrl")}
@@ -687,7 +738,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
-            YouTube URL
+            {t("admin.createEmployer.fields.youtubeUrl")}
           </label>
           <Input
             placeholder="https://youtube.com/..."
@@ -698,7 +749,7 @@ export default function CreateEmployerModal() {
 
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-2">
-            Website URLs
+            {t("admin.createEmployer.fields.websiteUrls")}
           </label>
 
           <div className="flex items-center gap-2 mb-2">
@@ -720,7 +771,7 @@ export default function CreateEmployerModal() {
                 setNewWebsiteUrl("");
               }}
             >
-              <PlusIcon /> Add
+              <PlusIcon /> {t("admin.createEmployer.buttons.add")}
             </Button>
           </div>
 
@@ -799,11 +850,7 @@ export default function CreateEmployerModal() {
                 );
               })}
             </ul>
-          ) : (
-            <p className="text-sm text-gray-400 italic">
-              Chưa có URL nào được thêm
-            </p>
-          )}
+          ) : null}
         </div>
       </form>
     </BaseModal>

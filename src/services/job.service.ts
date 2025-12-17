@@ -53,6 +53,15 @@ export const jobService = {
     return response.data;
   },
 
+  getJobByIdAsEmployer: async (
+    id: number
+  ): Promise<ApiResponse<JobResponse>> => {
+    const response = await employerHttp.get<ApiResponse<JobResponse>>(
+      `/jobs/${id}`
+    );
+    return response.data;
+  },
+
   deleteJob: async (id: number): Promise<ApiResponse> => {
     const response = await employerHttp.delete<ApiResponse>(`/jobs/${id}`);
     return response.data;
