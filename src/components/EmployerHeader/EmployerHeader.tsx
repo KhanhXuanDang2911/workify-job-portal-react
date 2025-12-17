@@ -42,6 +42,7 @@ interface EmployerHeaderProps {
   onMobileMenuClick?: () => void;
   mobileSidebarOpen?: boolean;
   showSidebar?: boolean; // Only show menu buttons when sidebar is available
+  device?: string; // Added to match usage in EmployerLayout
 }
 
 export default function EmployerHeader({

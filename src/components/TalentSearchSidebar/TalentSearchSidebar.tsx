@@ -56,7 +56,8 @@ import {
   initialSalary,
   schools,
 } from "@/components/TalentSearchSidebar/TalentSearchSidebarMockData";
-import type { TalentFilters } from "@/pages/Employer/SearchTalents/SearchTalents.type";
+// import type { TalentFilters } from "@/pages/Employer/SearchTalents/SearchTalents.type";
+type TalentFilters = any; // Temporary type until SearchTalents.type is created
 
 interface TalentSearchSidebarProps {
   filters: TalentFilters;
@@ -258,7 +259,7 @@ export default function TalentSearchSidebar({
                             const newCategories = checked
                               ? [...filters.jobCategories, category]
                               : filters.jobCategories.filter(
-                                  (c) => c.id !== category.id
+                                  (c: any) => c.id !== category.id
                                 );
                             onFilterChange("jobCategories", newCategories);
                           }}
@@ -323,7 +324,7 @@ export default function TalentSearchSidebar({
                             const newExperienceLevels = checked
                               ? [...filters.experienceLevel, experienceLevel]
                               : filters.experienceLevel.filter(
-                                  (c) => c.id !== experienceLevel.id
+                                  (c: any) => c.id !== experienceLevel.id
                                 );
                             onFilterChange(
                               "experienceLevel",
@@ -388,7 +389,7 @@ export default function TalentSearchSidebar({
                             const newCareerLevels = checked
                               ? [...filters.careerLevel, careerLevel]
                               : filters.careerLevel.filter(
-                                  (c) => c.id !== careerLevel.id
+                                  (c: any) => c.id !== careerLevel.id
                                 );
                             onFilterChange("careerLevel", newCareerLevels);
                           }}
@@ -577,7 +578,7 @@ export default function TalentSearchSidebar({
                             const newPositionTypes = checked
                               ? [...filters.positionType, positionType]
                               : filters.positionType.filter(
-                                  (c) => c.id !== positionType.id
+                                  (c: any) => c.id !== positionType.id
                                 );
                             onFilterChange("positionType", newPositionTypes);
                           }}

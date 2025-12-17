@@ -6,13 +6,11 @@ import {
   format,
   formatDistanceToNow,
 } from "date-fns";
-import type { TFunc } from "./types";
 
 // Lightweight wrapper to produce i18n-friendly relative times for chat
 export function formatRelativeTime(
   dateInput: string | Date,
-  t: (key: string, opts?: any) => string,
-  locale?: Locale
+  t: (key: string, opts?: any) => string
 ) {
   const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
   const now = new Date();
@@ -35,7 +33,7 @@ export function formatRelativeTime(
   if (days <= 30) return t("notifications.time.daysAgo", { count: days });
 
   // Fallback: human readable distance
-  return formatDistanceToNow(date, { addSuffix: true, locale });
+  return formatDistanceToNow(date, { addSuffix: true });
 }
 
 export type RelativeTimeFn = typeof formatRelativeTime;

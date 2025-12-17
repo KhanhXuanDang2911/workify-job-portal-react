@@ -5,9 +5,9 @@ import ScoreCardSettings from "@/pages/Employer/JobDetailManage/components/Score
 import TabsAnimation from "@/components/TabsAnimation";
 
 const tabs = [
-  { id: "application-form", label: "Application Form" },
-  { id: "hiring-pipeline", label: "Hiring Pipeline" },
-  { id: "score-card", label: "Score Card" },
+  { id: "application-form", label: "Application Form", icon: null },
+  { id: "hiring-pipeline", label: "Hiring Pipeline", icon: null },
+  { id: "score-card", label: "Score Card", icon: null },
 ];
 export default function SettingsTab() {
   const [activeTab, setActiveTab] = useState("application-form");

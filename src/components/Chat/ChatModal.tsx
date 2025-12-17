@@ -305,7 +305,7 @@ export default function ChatModal({
 
   const formatMessageTime = (dateString: string) => {
     const locale = currentLanguage === "vi" ? vi : enUS;
-    return formatRelativeTime(dateString, t, locale);
+    return formatRelativeTime(dateString, t);
   };
 
   const getOtherPartyInfo = () => {
