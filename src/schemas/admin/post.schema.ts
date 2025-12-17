@@ -4,12 +4,12 @@ import { z } from "zod";
 export const postCategorySchema = z.object({
   title: z
     .string()
-    .min(1, "Required")
-    .max(255, "Title must not exceed 255 characters"),
+    .min(1, "validation.required")
+    .max(255, "validation.titleTooLong"),
   description: z
     .string()
-    .min(1, "Required")
-    .max(1000, "Description must not exceed 1000 characters"),
+    .min(1, "validation.required")
+    .max(1000, "validation.descriptionTooLong"),
 });
 
 export type PostCategoryFormData = z.infer<typeof postCategorySchema>;
@@ -17,24 +17,24 @@ export type PostCategoryFormData = z.infer<typeof postCategorySchema>;
 const statusTypeEnum = z.enum(
   Object.keys(PostStatus) as [keyof typeof PostStatus],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 
 export const postSchema = z.object({
   title: z
     .string()
-    .min(1, "Required")
-    .max(500, "Title must not exceed 500 characters"),
+    .min(1, "validation.required")
+    .max(500, "validation.titleTooLong"),
   excerpt: z
     .string()
-    .min(1, "Required")
-    .max(1000, "Excerpt must not exceed 1000 characters"),
-  content: z.string().min(1, "Required"),
+    .min(1, "validation.required")
+    .max(1000, "validation.excerptTooLong"),
+  content: z.string().min(1, "validation.required"),
   categoryId: z
-    .number({ error: "Required" })
+    .number({ error: "validation.required" })
     .int()
-    .positive("Invalid category"),
+    .positive("validation.invalidCategory"),
   status: statusTypeEnum,
 });
 

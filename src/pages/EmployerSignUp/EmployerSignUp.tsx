@@ -84,7 +84,7 @@ function EmployerSignUp() {
 
   const onSubmit = async (data: EmployerSignUpFormData) => {
     try {
-      const response = await signUpMutation.mutateAsync({
+      await signUpMutation.mutateAsync({
         email: data.email,
         password: data.password,
         companyName: data.companyName,
@@ -163,7 +163,7 @@ function EmployerSignUp() {
                   </div>
                   {errors.email && (
                     <p className="text-xs text-red-600 font-medium">
-                      {errors.email.message}
+                      {t(errors.email.message || "")}
                     </p>
                   )}
                 </div>
@@ -204,7 +204,7 @@ function EmployerSignUp() {
                     </div>
                     {errors.password && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.password.message}
+                        {t(errors.password.message || "")}
                       </p>
                     )}
                   </div>
@@ -243,7 +243,7 @@ function EmployerSignUp() {
                     </div>
                     {errors.confirmPassword && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.confirmPassword.message}
+                        {t(errors.confirmPassword.message || "")}
                       </p>
                     )}
                   </div>
@@ -298,7 +298,7 @@ function EmployerSignUp() {
                     </div>
                     {errors.companyName && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.companyName.message}
+                        {t(errors.companyName.message || "")}
                       </p>
                     )}
                   </div>
@@ -348,7 +348,7 @@ function EmployerSignUp() {
                     />
                     {errors.companySize && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.companySize.message}
+                        {t(errors.companySize.message || "")}
                       </p>
                     )}
                   </div>
@@ -378,7 +378,7 @@ function EmployerSignUp() {
                     </div>
                     {errors.contactPerson && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.contactPerson.message}
+                        {t(errors.contactPerson.message || "")}
                       </p>
                     )}
                   </div>
@@ -405,7 +405,7 @@ function EmployerSignUp() {
                     </div>
                     {errors.phone && (
                       <p className="text-xs text-red-600 font-medium">
-                        {errors.phone.message}
+                        {t(errors.phone.message || "")}
                       </p>
                     )}
                   </div>
@@ -436,8 +436,8 @@ function EmployerSignUp() {
                       });
                     }}
                     errors={{
-                      provinceId: errors.provinceId?.message,
-                      districtId: errors.districtId?.message,
+                      provinceId: t(errors.provinceId?.message || ""),
+                      districtId: t(errors.districtId?.message || ""),
                     }}
                   />
                 </div>
@@ -465,7 +465,7 @@ function EmployerSignUp() {
                   </div>
                   {errors.detailAddress && (
                     <p className="text-xs text-red-600 font-medium">
-                      {errors.detailAddress.message}
+                      {t(errors.detailAddress.message || "")}
                     </p>
                   )}
                 </div>
@@ -522,7 +522,7 @@ function EmployerSignUp() {
                 </div>
                 {errors.acceptTerms && (
                   <p className="text-xs text-red-500">
-                    {errors.acceptTerms.message}
+                    {t(errors.acceptTerms.message || "")}
                   </p>
                 )}
               </div>

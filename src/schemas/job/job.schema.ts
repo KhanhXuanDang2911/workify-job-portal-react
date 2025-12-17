@@ -16,72 +16,72 @@ import {
 const salaryTypeEnum = z.enum(
   Object.keys(SalaryType) as [keyof typeof SalaryType],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const salaryUnitEnum = z.enum(
   Object.keys(SalaryUnit) as [keyof typeof SalaryUnit],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const educationLevelEnum = z.enum(
   Object.keys(EducationLevel) as [keyof typeof EducationLevel],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const experienceLevelEnum = z.enum(
   Object.keys(ExperienceLevel) as [keyof typeof ExperienceLevel],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const jobLevelEnum = z.enum(Object.keys(JobLevel) as [keyof typeof JobLevel], {
-  message: "Required",
+  message: "validation.required",
 });
 const jobTypeEnum = z.enum(Object.keys(JobType) as [keyof typeof JobType], {
-  message: "Required",
+  message: "validation.required",
 });
 const jobGenderEnum = z.enum(
   Object.keys(JobGender) as [keyof typeof JobGender],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const ageTypeEnum = z.enum(Object.keys(AgeType) as [keyof typeof AgeType], {
-  message: "Required",
+  message: "validation.required",
 });
 const companySizeEnum = z.enum(
   Object.keys(CompanySize) as [keyof typeof CompanySize],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 const benefitTypeEnum = z.enum(
   Object.keys(BenefitType) as [keyof typeof BenefitType],
   {
-    message: "Required",
+    message: "validation.required",
   }
 );
 
 export const locationSchema = z.object({
-  provinceId: z.number().int().positive("Required"),
+  provinceId: z.number().int().positive("validation.required"),
 
-  districtId: z.number().int().positive("Required"),
+  districtId: z.number().int().positive("validation.required"),
 
   detailAddress: z
     .string()
-    .min(1, "Required")
-    .refine((val) => val.trim().length > 0, { message: "Required" }),
+    .min(1, "validation.required")
+    .refine((val) => val.trim().length > 0, { message: "validation.required" }),
 
   provinceName: z.string().optional(),
   districtName: z.string().optional(),
 });
 
 const industrySchema = z.object({
-  id: z.number().int().positive("Required"),
-  name: z.string().min(1, "Required"),
+  id: z.number().int().positive("validation.required"),
+  name: z.string().min(1, "validation.required"),
 });
 
 export type LocationFormData = z.infer<typeof locationSchema>;
@@ -90,8 +90,8 @@ export const jobBenefitSchema = z.object({
   type: benefitTypeEnum,
   description: z
     .string()
-    .min(1, "Required")
-    .max(1000, "Description cannot exceed 1000 characters"),
+    .min(1, "validation.required")
+    .max(1000, "validation.benefitDescriptionTooLong"),
 });
 
 export type JobBenefitFormData = z.infer<typeof jobBenefitSchema>;
@@ -100,23 +100,25 @@ export const postJobSchema = z
   .object({
     companyName: z
       .string()
-      .min(1, "Required")
-      .max(1000, "Company name cannot exceed 1000 characters"),
+      .min(1, "validation.companyNameRequired")
+      .max(1000, "validation.companyNameTooLong"),
     companySize: companySizeEnum,
     companyWebsite: z
       .string()
-      .max(1000, "Website cannot exceed 1000 characters")
+      .max(1000, "validation.companyWebsiteTooLong")
       .transform((val) => (val === "" ? undefined : val))
       .optional(),
-    aboutCompany: z.string().min(1, "Required"),
+    aboutCompany: z.string().min(1, "validation.aboutCompanyRequired"),
     jobTitle: z
       .string()
-      .min(1, "Required")
-      .max(1000, "Job title cannot exceed 1000 characters"),
+      .min(1, "validation.jobTitleRequired")
+      .max(1000, "validation.jobTitleTooLong"),
     jobLocations: z
       .array(locationSchema)
       .catch([])
-      .refine((val) => val && val.length > 0, { message: "Required" }),
+      .refine((val) => val && val.length > 0, {
+        message: "validation.jobLocationRequired",
+      }),
     salaryType: salaryTypeEnum,
     minSalary: z.preprocess(
       (val) =>
@@ -124,8 +126,8 @@ export const postJobSchema = z
           ? undefined
           : Number(val),
       z
-        .number("Required")
-        .nonnegative("Minimum salary must be a non-negative number")
+        .number("validation.required")
+        .nonnegative("validation.salaryMinNonNegative")
         .optional()
     ),
     maxSalary: z.preprocess(
@@ -134,20 +136,20 @@ export const postJobSchema = z
           ? undefined
           : Number(val),
       z
-        .number("Required")
-        .nonnegative("Maximum salary must be a non-negative number")
+        .number("validation.required")
+        .nonnegative("validation.salaryMaxNonNegative")
         .optional()
     ),
     salaryUnit: z.preprocess(
       (val) => (val === "" || val === null ? undefined : val),
       salaryUnitEnum.optional()
     ),
-    jobDescription: z.string().min(1, "Required"),
-    requirement: z.string().min(1, "Required"),
+    jobDescription: z.string().min(1, "validation.jobDescriptionRequired"),
+    requirement: z.string().min(1, "validation.jobRequirementRequired"),
     jobBenefits: z
       .array(jobBenefitSchema)
-      .min(1, "At least one benefit is required")
-      .max(15, "Maximum 15 benefits allowed"),
+      .min(1, "validation.benefitRequired")
+      .max(15, "validation.maxBenefits"),
     educationLevel: educationLevelEnum,
     experienceLevel: experienceLevelEnum,
     jobLevel: jobLevelEnum,
@@ -157,7 +159,9 @@ export const postJobSchema = z
     industries: z
       .array(industrySchema)
       .catch([])
-      .refine((val) => val && val.length > 0, { message: "Required" }),
+      .refine((val) => val && val.length > 0, {
+        message: "validation.industriesRequired",
+      }),
     ageType: ageTypeEnum,
     minAge: z.preprocess(
       (val) =>
@@ -165,8 +169,8 @@ export const postJobSchema = z
       z
         .number()
         .int()
-        .min(15, "Minimum age must be at least 15")
-        .max(100, "Minimum age cannot exceed 100")
+        .min(15, "validation.minAgeInvalid")
+        .max(100, "validation.maxAgeInvalid")
         .nullable()
     ),
     maxAge: z.preprocess(
@@ -175,21 +179,21 @@ export const postJobSchema = z
       z
         .number()
         .int()
-        .min(15, "Maximum age must be at least 15")
-        .max(100, "Maximum age cannot exceed 100")
+        .min(15, "validation.minAgeInvalid")
+        .max(100, "validation.maxAgeInvalid")
         .nullable()
     ),
-    contactPerson: z.string().min(1, "Required"),
-    phoneNumber: z.string().regex(PHONE_REGEX, "Invalid"),
+    contactPerson: z.string().min(1, "validation.contactPersonRequired"),
+    phoneNumber: z.string().regex(PHONE_REGEX, "validation.phoneInvalid"),
     contactLocation: locationSchema.refine((val) => val !== undefined, {
-      message: "Required",
+      message: "validation.contactLocationRequired",
     }),
     description: z.string().optional(),
     expirationDate: z
       .string({
-        error: "Required",
+        error: "validation.required",
       })
-      .regex(DATE_REGEX, "Expiration date must be in dd/MM/yyyy format")
+      .regex(DATE_REGEX, "validation.dateFormatInvalid")
       .refine(
         (val) => {
           const [day, month, year] = val.split("/").map(Number);
@@ -200,7 +204,7 @@ export const postJobSchema = z
             date.getDate() === day
           );
         },
-        { message: "Ngày không hợp lệ" }
+        { message: "validation.dateFormatInvalid" }
       )
       .refine((val) => {
         const [day, month, year] = val.split("/").map(Number);
@@ -208,7 +212,7 @@ export const postJobSchema = z
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return expiration > today;
-      }, "Expiration date must be after today"),
+      }, "validation.dateMustBeFuture"),
   })
   .transform((data) => {
     if (
@@ -242,7 +246,7 @@ export const postJobSchema = z
       if (data.minSalary === undefined) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["minSalary"],
         });
       }
@@ -250,7 +254,7 @@ export const postJobSchema = z
       if (data.maxSalary === undefined) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["maxSalary"],
         });
       }
@@ -258,7 +262,7 @@ export const postJobSchema = z
       if (!data.salaryUnit) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["salaryUnit"],
         });
       }
@@ -267,12 +271,12 @@ export const postJobSchema = z
         if (data.minSalary >= data.maxSalary) {
           ctx.addIssue({
             code: "custom",
-            message: "Invalid range",
+            message: "validation.salaryRangeInvalid",
             path: ["minSalary"],
           });
           ctx.addIssue({
             code: "custom",
-            message: "Invalid range",
+            message: "validation.salaryRangeInvalid",
             path: ["maxSalary"],
           });
         }
@@ -283,14 +287,14 @@ export const postJobSchema = z
       if (data.minSalary === undefined) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["minSalary"],
         });
       }
       if (!data.salaryUnit) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["salaryUnit"],
         });
       }
@@ -299,7 +303,7 @@ export const postJobSchema = z
     if (data.ageType === AgeType.ABOVE && data.minAge === undefined) {
       ctx.addIssue({
         code: "custom",
-        message: "Required",
+        message: "validation.required",
         path: ["minAge"],
       });
     }
@@ -307,7 +311,7 @@ export const postJobSchema = z
     if (data.ageType === AgeType.BELOW && data.maxAge === undefined) {
       ctx.addIssue({
         code: "custom",
-        message: "Required",
+        message: "validation.required",
         path: ["maxAge"],
       });
     }
@@ -316,14 +320,14 @@ export const postJobSchema = z
       if (data.minAge === undefined) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["minAge"],
         });
       }
       if (data.maxAge === undefined) {
         ctx.addIssue({
           code: "custom",
-          message: "Required",
+          message: "validation.required",
           path: ["maxAge"],
         });
       }
@@ -331,12 +335,12 @@ export const postJobSchema = z
         if (data.minAge >= data.maxAge) {
           ctx.addIssue({
             code: "custom",
-            message: "Invalid range",
+            message: "validation.ageRangeInvalid",
             path: ["minAge"],
           });
           ctx.addIssue({
             code: "custom",
-            message: "Invalid range",
+            message: "validation.ageRangeInvalid",
             path: ["maxAge"],
           });
         }
