@@ -67,7 +67,17 @@ ${industriesList || "No industries available"}
 
 EXTRACTION RULES:
 
-1. **keyword** (string, optional): Extract job title or main search keyword. This is the job title/position name.
+1. **keyword** (string, optional): Extract ONLY the job title/position name. This is the EXACT job title that employers post (e.g., "Software Engineer", "Marketing Manager", "Frontend Developer").
+   
+   CRITICAL RULES FOR KEYWORD:
+   - ONLY extract if the input CLEARLY mentions a job title/position name
+   - DO NOT extract skills, technologies, or requirements as keyword (e.g., "React", "Node.js", "3 years experience" are NOT keywords)
+   - DO NOT extract company names, locations, or other attributes as keyword
+   - DO NOT extract general descriptions like "developer", "manager" without context - these are too vague
+   - ONLY extract when it's a SPECIFIC job title (e.g., "React Developer", "Senior Software Engineer", "Product Manager")
+   - If uncertain, return null for keyword - PRECISION over RECALL
+   - Examples of VALID keywords: "Software Engineer", "Marketing Manager", "Frontend Developer", "Data Analyst"
+   - Examples of INVALID keywords (should be null): "React", "Node.js", "remote work", "startup", "3 years", "Ho Chi Minh City"
 
 2. **provinceIds** (number[], optional): Extract province IDs from the list above. Match province names mentioned in input (can be Vietnamese or English, handle typos like "VN đồng" = "Việt Nam đồng"). Return array of IDs only if province is mentioned.
 
@@ -150,7 +160,7 @@ IMPORTANT RULES:
 - If salary is mentioned without unit, assume VND for Vietnamese context
 - Return ONLY valid parameters that can be extracted
 
-OUTPUT FORMAT (JSON only, no markdown, no explanation):
+OUTPUT FORMAT (MUST be valid JSON object, no markdown, no code blocks, no explanation):
 {
   "keyword": "string or null",
   "provinceIds": [number] or null,
@@ -166,67 +176,110 @@ OUTPUT FORMAT (JSON only, no markdown, no explanation):
   "sort": "field:direction" or null
 }
 
-Return null for parameters that cannot be extracted. Return arrays for multi-value parameters.`;
+CRITICAL: Return ONLY valid JSON object. Do not wrap in markdown code blocks. Do not add explanations. Return null for parameters that cannot be extracted. Return arrays for multi-value parameters.`;
 };
 
 /**
  * Call Gemini API to extract parameters
+ * Supports multiple API keys with fallback mechanism
  */
 const callGeminiAPI = async (prompt: string): Promise<string> => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  // Get all available API keys
+  // We access them explicitly to ensure Vite static analysis picks them up
+  const apiKeys = [
+    import.meta.env.VITE_GEMINI_API_KEY,
+    import.meta.env.VITE_GEMINI_API_KEY_1,
+    import.meta.env.VITE_GEMINI_API_KEY_2,
+    import.meta.env.VITE_GEMINI_API_KEY_3,
+  ].filter((key): key is string => !!key && key.trim() !== "");
 
-  if (!apiKey) {
+  if (apiKeys.length === 0) {
     throw new Error(
       "Gemini API key not configured. Please set VITE_GEMINI_API_KEY in environment variables."
     );
   }
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+  console.log(
+    `[Gemini API] Found ${apiKeys.length} API key(s), attempting request...`
+  );
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      }),
-    });
+  let lastError: any;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Gemini API error: ${response.status} ${response.statusText}. ${JSON.stringify(errorData)}`
+  // Try each key sequentially
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    const keyIndex = i === 0 ? "primary" : `backup-${i}`;
+
+    try {
+      console.log(
+        `[Gemini API] Attempting with ${keyIndex} key (ending in ...${apiKey.slice(-4)})`
       );
-    }
+      const result = await callGeminiAPIWithKey(prompt, apiKey);
+      console.log(`[Gemini API] Success with ${keyIndex} key`);
+      return result;
+    } catch (error) {
+      console.warn(
+        `[Gemini API] Failed with ${keyIndex} key (ending in ...${apiKey.slice(-4)}):`,
+        error instanceof Error ? error.message : error
+      );
+      lastError = error;
 
-    const data = await response.json();
-
-    if (
-      !data.candidates ||
-      !data.candidates[0] ||
-      !data.candidates[0].content
-    ) {
-      throw new Error("Invalid response format from Gemini API");
+      // If not the last key, try next one
+      if (i < apiKeys.length - 1) {
+        console.log(`[Gemini API] Trying next API key...`);
+      }
     }
-
-    const text = data.candidates[0].content.parts[0].text;
-    return text.trim();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Failed to call Gemini API");
   }
+
+  // If we get here, all keys failed
+  console.error("[Gemini API] All API keys failed");
+  throw (
+    lastError || new Error("Failed to call Gemini API with any available key")
+  );
+};
+
+/**
+ * Call Gemini API with a specific API key
+ */
+const callGeminiAPIWithKey = async (
+  prompt: string,
+  apiKey: string
+): Promise<string> => {
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      `Gemini API error: ${response.status} ${response.statusText}. ${JSON.stringify(errorData)}`
+    );
+  }
+
+  const data = await response.json();
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    throw new Error("Invalid response format from Gemini API");
+  }
+
+  const text = data.candidates[0].content.parts[0].text;
+  return text.trim();
 };
 
 /**

@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { jobService } from "@/services/job.service";
 import { industryService } from "@/services/industry.service";
 import { provinceService } from "@/services/location.service";
-import { extractSearchParams } from "@/services/smart_search";
+import { extractSearchParams } from "@/services/smart_search_gemini";
 import type { JobResponse } from "@/types/job.type";
 import { formatSalaryCompact } from "@/utils/formatSalary";
 import {
