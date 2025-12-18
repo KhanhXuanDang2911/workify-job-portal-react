@@ -49,8 +49,8 @@ interface DistrictSheetProps {
 }
 
 const formSchema = z.object({
-  name: z.string().min(1, "Required"),
-  code: z.string().min(1, "Required"),
+  name: z.string().min(1, "validation.districtNameRequired"),
+  code: z.string().min(1, "validation.codeRequired"),
   provinceId: z.number(),
 });
 

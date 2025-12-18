@@ -32,8 +32,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Required"),
-  engName: z.string().min(1, "Required"),
+  name: z.string().min(1, "validation.categoryNameRequired"),
+  engName: z.string().min(1, "validation.categoryEngNameRequired"),
   description: z.string().optional(),
 });
 
@@ -186,7 +186,7 @@ export default function CategoryJobDetails({
                   </FormControl>
                   {form.formState.errors.name ? (
                     <p className="text-red-600 text-sm min-h-[15px]">
-                      {form.formState.errors.name.message}
+                      {t(form.formState.errors.name.message || "")}
                     </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>
@@ -215,7 +215,7 @@ export default function CategoryJobDetails({
                   </FormControl>
                   {form.formState.errors.engName ? (
                     <p className="text-red-600 text-sm min-h-[15px]">
-                      {form.formState.errors.engName.message}
+                      {t(form.formState.errors.engName.message || "")}
                     </p>
                   ) : (
                     <p className="text-sm min-h-[15px]"> </p>

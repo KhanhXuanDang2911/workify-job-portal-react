@@ -1,5 +1,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function PostForm({
   isEditing,
   actor = "admin",
 }: PostFormProps) {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -179,7 +181,7 @@ export default function PostForm({
   const removeThumbnail = () => {
     setThumbnailPreview(null);
     setBanner(null);
-    setBannerError("Required");
+    setBannerError("validation.bannerRequired");
     const fileInput = document.getElementById("thumbnail") as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
@@ -230,9 +232,9 @@ export default function PostForm({
     const formData = new FormData();
 
     if (thumbnailPreview === null) {
-      setBannerError("Required");
+      setBannerError("validation.bannerRequired");
       // Show a clear toast so user knows why submission was blocked
-      showToast.error("toast.error.bannerRequired");
+      showToast.error("validation.bannerRequired");
       // Try to bring the banner input into view for the user
       const bannerEl = document.getElementById("thumbnail");
       if (bannerEl) {
@@ -302,7 +304,9 @@ export default function PostForm({
           )}
         />
         {errors.title && (
-          <p className="text-sm text-red-500">{errors.title.message}</p>
+          <p className="text-sm text-red-500">
+            {t(errors.title.message || "")}
+          </p>
         )}
       </div>
 
@@ -322,7 +326,9 @@ export default function PostForm({
           )}
         />
         {errors.excerpt && (
-          <p className="text-sm text-red-500">{errors.excerpt.message}</p>
+          <p className="text-sm text-red-500">
+            {t(errors.excerpt.message || "")}
+          </p>
         )}
       </div>
 
@@ -344,7 +350,9 @@ export default function PostForm({
           )}
         />
         {errors.content && (
-          <p className="text-sm text-red-500">{errors.content.message}</p>
+          <p className="text-sm text-red-500">
+            {t(errors.content.message || "")}
+          </p>
         )}
       </div>
 
@@ -386,7 +394,9 @@ export default function PostForm({
             )}
           />
           {errors.categoryId && (
-            <p className="text-sm text-red-500">{errors.categoryId.message}</p>
+            <p className="text-sm text-red-500">
+              {t(errors.categoryId.message || "")}
+            </p>
           )}
         </div>
 
@@ -426,7 +436,9 @@ export default function PostForm({
                 )}
               />
               {errors.status && (
-                <p className="text-sm text-red-500">{errors.status.message}</p>
+                <p className="text-sm text-red-500">
+                  {t(errors.status.message || "")}
+                </p>
               )}
             </>
           ) : // Employer: create => show disabled control with PENDING; edit => show but disabled
@@ -514,7 +526,9 @@ export default function PostForm({
                 ))}
               </div>
 
-              {errors.tags && <p className="text-sm text-red-500">{errors.tags.message}</p>}
+              {errors.tags && (
+                <p className="text-sm text-red-500">{t(errors.tags.message || "")}</p>
+              )}
             </>
           )}
         />
@@ -577,7 +591,9 @@ export default function PostForm({
             </Button>
           </label>
         </div>
-        {bannerError && <p className="text-sm text-red-500">{bannerError}</p>}
+        {bannerError && (
+          <p className="text-sm text-red-500">{t(bannerError)}</p>
+        )}
       </div>
 
       {/* Submit Button */}

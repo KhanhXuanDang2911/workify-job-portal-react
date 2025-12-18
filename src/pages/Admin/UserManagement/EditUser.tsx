@@ -23,6 +23,7 @@ import {
 } from "@/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { showToast } from "@/utils/toast";
 import { districtService, provinceService, userService } from "@/services";
 import { industryService } from "@/services/industry.service";
 import { Eye, EyeOff, Search, XIcon, ArrowLeft, Camera } from "lucide-react";
@@ -57,12 +58,12 @@ export default function EditUser() {
     const UserStatusEnum = z.enum(
       Object.keys(UserStatus) as [keyof typeof UserStatus],
       {
-        message: t("validation.required"),
+        message: t("validation.statusRequired"),
       }
     );
 
     const RoleEnum = z.enum(Object.keys(ROLE) as [keyof typeof ROLE], {
-      message: t("validation.required"),
+      message: t("validation.roleRequired"),
     });
 
     return z.object({
@@ -72,7 +73,7 @@ export default function EditUser() {
         .max(160, t("validation.fullNameMaxLength")),
       email: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.emailRequired"))
         .regex(EMAIL_REGEX, t("validation.emailInvalid")),
       password: z
         .string()
@@ -245,9 +246,18 @@ export default function EditUser() {
   };
 
   const onError = (errors: any) => {
-    console.error("Form validation failed!");
-    console.log(form.getValues("districtId"));
-    console.error("Errors:", errors);
+    console.error("Form validation failed!", errors);
+    try {
+      const firstKey = Object.keys(errors || {})[0];
+      const firstMsg = firstKey ? errors[firstKey]?.message : null;
+      if (firstMsg) {
+        showToast.error(firstMsg);
+      } else {
+        showToast.error("toast.error.validationFailed");
+      }
+    } catch (e) {
+      showToast.error("toast.error.validationFailed");
+    }
   };
 
   return (
@@ -457,7 +467,7 @@ export default function EditUser() {
           />
           {form.formState.errors.phoneNumber && (
             <p className="text-red-600 text-sm mt-1">
-              {form.formState.errors.phoneNumber.message}
+              {t(form.formState.errors.phoneNumber.message || "")}
             </p>
           )}
         </div>

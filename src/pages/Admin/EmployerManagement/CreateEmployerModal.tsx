@@ -75,47 +75,47 @@ export default function CreateEmployerModal() {
     const companySizeEnum = z.enum(
       Object.keys(CompanySize) as [keyof typeof CompanySize],
       {
-        message: t("validation.required"),
+        message: t("validation.companySizeRequired"),
       }
     );
 
     const UserStatusEnum = z.enum(
       Object.keys(UserStatus) as [keyof typeof UserStatus],
       {
-        message: t("validation.required"),
+        message: t("validation.statusRequired"),
       }
     );
 
     return z.object({
       email: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.emailRequired"))
         .regex(EMAIL_REGEX, t("validation.emailInvalid")),
       password: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.passwordRequired"))
         .min(8, t("validation.passwordTooShort"))
         .max(160, t("validation.passwordTooLong"))
         .regex(PASSWORD_REGEX, t("validation.passwordComplexity")),
       companyName: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.companyNameRequired"))
         .min(2, t("validation.companyNameMinLength"))
         .max(255, t("validation.companyNameMaxLength255")),
       companySize: companySizeEnum,
-      contactPerson: z.string().min(1, t("validation.required")),
+      contactPerson: z.string().min(1, t("validation.contactPersonRequired")),
       phoneNumber: z.string().regex(PHONE_REGEX, t("validation.phoneInvalid")),
       provinceId: z
         .union([z.number().int().positive(), z.undefined()])
         .refine((val) => val !== undefined, {
-          message: t("validation.required"),
+          message: t("validation.provinceRequired"),
         }),
       districtId: z
         .union([z.number().int().positive(), z.undefined()])
         .refine((val) => val !== undefined, {
-          message: t("validation.required"),
+          message: t("validation.districtRequired"),
         }),
-      detailAddress: z.string(),
+      detailAddress: z.string().min(1, t("validation.addressRequired")),
       status: UserStatusEnum,
 
       aboutCompany: z.string().optional(),

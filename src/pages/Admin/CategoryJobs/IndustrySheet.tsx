@@ -51,8 +51,8 @@ interface IndustrySheetProps {
 }
 
 const formSchema = z.object({
-  name: z.string().min(1, "Required"),
-  engName: z.string().min(1, "Required"),
+  name: z.string().min(1, "validation.industryNameRequired"),
+  engName: z.string().min(1, "validation.industryEngNameRequired"),
   description: z.string().optional(),
   categoryJobId: z.number(),
 });

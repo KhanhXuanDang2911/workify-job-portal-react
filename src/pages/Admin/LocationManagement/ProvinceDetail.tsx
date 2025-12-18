@@ -28,9 +28,9 @@ import type { Province } from "@/types";
 import { provinceService } from "@/services";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Required"),
-  engName: z.string().min(1, "Required"),
-  code: z.string().min(1, "Required"),
+  name: z.string().min(1, "validation.provinceNameRequired"),
+  engName: z.string().min(1, "validation.provinceEngNameRequired"),
+  code: z.string().min(1, "validation.codeRequired"),
 });
 
 type FormValues = z.infer<typeof formSchema>;

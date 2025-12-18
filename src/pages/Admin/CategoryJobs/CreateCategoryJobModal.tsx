@@ -11,8 +11,8 @@ import { toast } from "react-toastify";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const createCategoryJobSchema = z.object({
-  name: z.string().min(1, "Required"),
-  engName: z.string().min(1, "Required"),
+  name: z.string().min(1, "validation.categoryNameRequired"),
+  engName: z.string().min(1, "validation.categoryEngNameRequired"),
   description: z.string().optional(),
 });
 
@@ -85,7 +85,9 @@ export default function CreateCategoryJobModal() {
             className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
           {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            <p className="text-red-500 text-sm mt-1">
+              {t(errors.name.message || "")}
+            </p>
           )}
         </div>
 
@@ -100,7 +102,7 @@ export default function CreateCategoryJobModal() {
           />
           {errors.engName && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.engName.message}
+              {t(errors.engName.message || "")}
             </p>
           )}
         </div>

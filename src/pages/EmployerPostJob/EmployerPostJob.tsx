@@ -41,12 +41,6 @@ import { jobService, provinceService } from "@/services";
 import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  AgeType,
-  AgeTypeLabelVN,
-  benefitMapVN,
-  CompanySize,
-  CompanySizeLabel,
-  CompanySizeLabelVN,
   EducationLevel,
   EducationLevelLabelVN,
   ExperienceLevel,
@@ -59,6 +53,11 @@ import {
   JobTypeLabelVN,
   SalaryType,
   SalaryUnit,
+  CompanySize,
+  CompanySizeLabelVN,
+  AgeType,
+  AgeTypeLabelVN,
+  benefitMapVN,
 } from "@/constants";
 import { AxiosError } from "axios";
 import type {
@@ -871,7 +870,9 @@ function EmployerPostJob() {
                                 {/* Select province */}
                                 <Controller
                                   control={modalJobLocationsForm.control}
-                                  rules={{ required: "Required" }}
+                                  rules={{
+                                    required: "validation.provinceRequired",
+                                  }}
                                   name={`jobLocations.${idx}.provinceId`}
                                   render={({ field, fieldState }) => (
                                     <div className="flex flex-col gap-2">
@@ -938,8 +939,10 @@ function EmployerPostJob() {
                                       </Select>
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
-                                          {fieldState.error.message ||
-                                            t("validation.required")}
+                                          {t(
+                                            fieldState.error?.message ||
+                                              "validation.required"
+                                          )}
                                         </span>
                                       )}
                                     </div>
@@ -949,6 +952,9 @@ function EmployerPostJob() {
                                 <Controller
                                   control={modalJobLocationsForm.control}
                                   name={`jobLocations.${idx}.districtId`}
+                                  rules={{
+                                    required: "validation.districtRequired",
+                                  }}
                                   render={({ field, fieldState }) => {
                                     const currentDistricts =
                                       getDistrictsByIndex(idx);
@@ -1032,8 +1038,10 @@ function EmployerPostJob() {
                                         </Select>
                                         {fieldState.error && (
                                           <span className="mt-1 text-xs text-red-500">
-                                            {fieldState.error.message ||
-                                              t("validation.required")}
+                                            {t(
+                                              fieldState.error?.message ||
+                                                "validation.required"
+                                            )}
                                           </span>
                                         )}
                                       </div>
@@ -1055,8 +1063,10 @@ function EmployerPostJob() {
                                       />
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
-                                          {fieldState.error.message ||
-                                            t("validation.required")}
+                                          {t(
+                                            fieldState.error?.message ||
+                                              "validation.required"
+                                          )}
                                         </span>
                                       )}
                                     </div>
@@ -1665,8 +1675,10 @@ function EmployerPostJob() {
                                       />
                                       {fieldState.error && (
                                         <span className="mt-1 text-xs text-red-500">
-                                          {fieldState.error.message ||
-                                            t("validation.required")}
+                                          {t(
+                                            fieldState.error?.message ||
+                                              "validation.required"
+                                          )}
                                         </span>
                                       )}
                                     </div>
@@ -2396,7 +2408,9 @@ function EmployerPostJob() {
                             <Controller
                               name="contactLocation.provinceId"
                               control={modalContactLocationForm.control}
-                              rules={{ required: "Required" }}
+                              rules={{
+                                required: t("validation.provinceRequired"),
+                              }}
                               render={({ field, fieldState }) => (
                                 <div className="flex flex-col gap-2">
                                   <Select
@@ -2455,8 +2469,10 @@ function EmployerPostJob() {
                                   </Select>
                                   {fieldState.error && (
                                     <span className="text-xs text-red-500">
-                                      {fieldState.error.message ||
-                                        t("validation.required")}
+                                      {t(
+                                        fieldState.error?.message ||
+                                          "validation.required"
+                                      )}
                                     </span>
                                   )}
                                 </div>
@@ -2471,7 +2487,9 @@ function EmployerPostJob() {
                             <Controller
                               name="contactLocation.districtId"
                               control={modalContactLocationForm.control}
-                              rules={{ required: "Required" }}
+                              rules={{
+                                required: "validation.districtRequired",
+                              }}
                               render={({ field, fieldState }) => (
                                 <div className="flex flex-col gap-2 ">
                                   <Select
@@ -2525,8 +2543,10 @@ function EmployerPostJob() {
                                   </Select>
                                   {fieldState.error && (
                                     <span className="text-xs text-red-500">
-                                      {fieldState.error.message ||
-                                        t("validation.required")}
+                                      {t(
+                                        fieldState.error?.message ||
+                                          "validation.required"
+                                      )}
                                     </span>
                                   )}
                                 </div>
@@ -2542,7 +2562,9 @@ function EmployerPostJob() {
                           <Controller
                             name="contactLocation.detailAddress"
                             control={modalContactLocationForm.control}
-                            rules={{ required: "Required" }}
+                            rules={{
+                              required: "validation.addressRequired",
+                            }}
                             render={({ field, fieldState }) => (
                               <div className="flex flex-col gap-2 ">
                                 <Input
@@ -2554,8 +2576,10 @@ function EmployerPostJob() {
                                 />
                                 {fieldState.error && (
                                   <span className="text-xs text-red-500">
-                                    {fieldState.error.message ||
-                                      t("validation.required")}
+                                    {t(
+                                      fieldState.error?.message ||
+                                        "validation.required"
+                                    )}
                                   </span>
                                 )}
                               </div>

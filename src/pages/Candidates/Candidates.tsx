@@ -17,7 +17,7 @@ import { ResponsiveContext } from "@/context/ResponsiveContext";
 import { applicationService } from "@/services";
 import { ApplicationStatus } from "@/types";
 import Loading from "@/components/Loading";
-import CandidateSheet from "@/components/CandidateSheet";
+// CandidateSheet removed for /employer/applications — render rows/cards directly
 // type ApplicationResponse not used in this file
 import { toast } from "react-toastify";
 import { FileText, FileTextIcon, Download, MessageCircle } from "lucide-react";
@@ -457,127 +457,125 @@ function Candidates() {
                       {filteredApplications.map((application, index) => {
                         const statusInfo = getStatusInfo(application.status, t);
                         return (
-                          <CandidateSheet
+                          <tr
                             key={application.id}
-                            candidate={application}
+                            className="hover:bg-muted/30 border-b last:border-none transition-colors cursor-pointer"
                           >
-                            <tr className="hover:bg-muted/30 border-b last:border-none transition-colors cursor-pointer">
-                              <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 font-medium">
-                                {(currentPage - 1) * itemsPerPage + index + 1}
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="w-10 h-10 flex-shrink-0">
-                                    <AvatarImage src={""} />
-                                    <AvatarFallback className="bg-purple-200 text-purple-600 font-semibold">
-                                      {application.fullName.charAt(0)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                    {application.fullName}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                                {application.phoneNumber}
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400 truncate">
-                                {application.email}
-                              </td>
-                              <td
-                                className="px-4 py-3"
-                                onClick={(e) => e.stopPropagation()}
+                            <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 font-medium">
+                              {(currentPage - 1) * itemsPerPage + index + 1}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10 flex-shrink-0">
+                                  <AvatarImage src={""} />
+                                  <AvatarFallback className="bg-purple-200 text-purple-600 font-semibold">
+                                    {application.fullName.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {application.fullName}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                              {application.phoneNumber}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-400 truncate">
+                              {application.email}
+                            </td>
+                            <td
+                              className="px-4 py-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Select
+                                value={application.status}
+                                onValueChange={(value) =>
+                                  handleChangeStatus(
+                                    application.id,
+                                    value as ApplicationStatus
+                                  )
+                                }
                               >
-                                <Select
-                                  value={application.status}
-                                  onValueChange={(value) =>
-                                    handleChangeStatus(
-                                      application.id,
-                                      value as ApplicationStatus
+                                <SelectTrigger className="w-fit border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
+                                  <Badge
+                                    variant="outline"
+                                    className={`${statusInfo.badgeColor} font-medium cursor-pointer hover:opacity-80 transition-opacity`}
+                                  >
+                                    {statusInfo.label}
+                                  </Badge>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.values(ApplicationStatus).map(
+                                    (status) => {
+                                      const info = getStatusInfo(status, t);
+                                      return (
+                                        <SelectItem
+                                          key={status}
+                                          value={status}
+                                          className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                        >
+                                          <Badge
+                                            variant="outline"
+                                            className={`${info.badgeColor} font-medium`}
+                                          >
+                                            {info.label}
+                                          </Badge>
+                                        </SelectItem>
+                                      );
+                                    }
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                              {formatDate(
+                                application.createdAt,
+                                i18n.language === "vi" ? "vi-VN" : "en-US"
+                              )}
+                            </td>
+                            <td
+                              className="px-4 py-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-blue-500 text-white hover:bg-blue-600 border-blue-500"
+                                  onClick={(e) =>
+                                    handleViewCV(application.cvUrl, e)
+                                  }
+                                >
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  {t("employer.applications.viewCv")}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-purple-500 text-white hover:bg-purple-600 border-purple-500"
+                                  onClick={(e) =>
+                                    handleViewCoverLetter(
+                                      application.coverLetter,
+                                      e
                                     )
                                   }
                                 >
-                                  <SelectTrigger className="w-fit border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
-                                    <Badge
-                                      variant="outline"
-                                      className={`${statusInfo.badgeColor} font-medium cursor-pointer hover:opacity-80 transition-opacity`}
-                                    >
-                                      {statusInfo.label}
-                                    </Badge>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.values(ApplicationStatus).map(
-                                      (status) => {
-                                        const info = getStatusInfo(status, t);
-                                        return (
-                                          <SelectItem
-                                            key={status}
-                                            value={status}
-                                            className="focus:bg-sky-200 focus:text-[#1967d2]"
-                                          >
-                                            <Badge
-                                              variant="outline"
-                                              className={`${info.badgeColor} font-medium`}
-                                            >
-                                              {info.label}
-                                            </Badge>
-                                          </SelectItem>
-                                        );
-                                      }
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                                {formatDate(
-                                  application.createdAt,
-                                  i18n.language === "vi" ? "vi-VN" : "en-US"
-                                )}
-                              </td>
-                              <td
-                                className="px-4 py-3"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-blue-500 text-white hover:bg-blue-600 border-blue-500"
-                                    onClick={(e) =>
-                                      handleViewCV(application.cvUrl, e)
-                                    }
-                                  >
-                                    <FileText className="w-4 h-4 mr-1" />
-                                    {t("employer.applications.viewCv")}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-purple-500 text-white hover:bg-purple-600 border-purple-500"
-                                    onClick={(e) =>
-                                      handleViewCoverLetter(
-                                        application.coverLetter,
-                                        e
-                                      )
-                                    }
-                                  >
-                                    <FileTextIcon className="w-4 h-4 mr-1" />
-                                    Cover Letter
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="bg-green-500 text-white hover:bg-green-600 border-green-500"
-                                    onClick={(e) =>
-                                      handleOpenChat(application.id, e)
-                                    }
-                                  >
-                                    <MessageCircle className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          </CandidateSheet>
+                                  <FileTextIcon className="w-4 h-4 mr-1" />
+                                  Cover Letter
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-green-500 text-white hover:bg-green-600 border-green-500"
+                                  onClick={(e) =>
+                                    handleOpenChat(application.id, e)
+                                  }
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
                         );
                       })}
                     </tbody>
@@ -589,140 +587,138 @@ function Candidates() {
                   {filteredApplications.map((application, index) => {
                     const statusInfo = getStatusInfo(application.status, t);
                     return (
-                      <CandidateSheet
+                      <div
                         key={application.id}
-                        candidate={application}
+                        className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer"
                       >
-                        <div className="p-4 border-b border-[#e2e7f5] hover:bg-[#f8f8fd]/50 cursor-pointer">
-                          <div className="flex items-start gap-3">
-                            <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">
-                              {(currentPage - 1) * itemsPerPage + index + 1}.
-                            </div>
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={""} />
-                              <AvatarFallback className="bg-purple-200 text-purple-600">
-                                {application.fullName.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900">
-                                {application.fullName}
-                              </p>
-                              <p className="text-sm text-[#7c8493] mt-1 truncate">
-                                {application.job.jobTitle}
-                              </p>
-                              <div
-                                className="flex items-center gap-2 mt-2"
-                                onClick={(e) => e.stopPropagation()}
+                        <div className="flex items-start gap-3">
+                          <div className="text-sm text-[#7c8493] font-medium mt-1 min-w-[24px]">
+                            {(currentPage - 1) * itemsPerPage + index + 1}.
+                          </div>
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={""} />
+                            <AvatarFallback className="bg-purple-200 text-purple-600">
+                              {application.fullName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900">
+                              {application.fullName}
+                            </p>
+                            <p className="text-sm text-[#7c8493] mt-1 truncate">
+                              {application.job.jobTitle}
+                            </p>
+                            <div
+                              className="flex items-center gap-2 mt-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Select
+                                value={application.status}
+                                onValueChange={(value) =>
+                                  handleChangeStatus(
+                                    application.id,
+                                    value as ApplicationStatus
+                                  )
+                                }
                               >
-                                <Select
-                                  value={application.status}
-                                  onValueChange={(value) =>
-                                    handleChangeStatus(
-                                      application.id,
-                                      value as ApplicationStatus
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className="w-auto border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
-                                    <Badge
-                                      variant="outline"
-                                      className={`${statusInfo.badgeColor} text-xs cursor-pointer hover:opacity-80 transition-opacity`}
-                                    >
-                                      {statusInfo.label}
-                                    </Badge>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.values(ApplicationStatus).map(
-                                      (status) => {
-                                        const info = getStatusInfo(status, t);
-                                        return (
-                                          <SelectItem
-                                            key={status}
-                                            value={status}
-                                            className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                <SelectTrigger className="w-auto border-0 p-0 h-auto hover:bg-transparent focus:ring-0">
+                                  <Badge
+                                    variant="outline"
+                                    className={`${statusInfo.badgeColor} text-xs cursor-pointer hover:opacity-80 transition-opacity`}
+                                  >
+                                    {statusInfo.label}
+                                  </Badge>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.values(ApplicationStatus).map(
+                                    (status) => {
+                                      const info = getStatusInfo(status, t);
+                                      return (
+                                        <SelectItem
+                                          key={status}
+                                          value={status}
+                                          className="focus:bg-sky-200 focus:text-[#1967d2]"
+                                        >
+                                          <Badge
+                                            variant="outline"
+                                            className={`${info.badgeColor} text-xs font-medium`}
                                           >
-                                            <Badge
-                                              variant="outline"
-                                              className={`${info.badgeColor} text-xs font-medium`}
-                                            >
-                                              {info.label}
-                                            </Badge>
-                                          </SelectItem>
-                                        );
-                                      }
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                                <span className="text-xs text-[#7c8493]">
-                                  {formatDate(
-                                    application.createdAt,
-                                    i18n.language === "vi" ? "vi-VN" : "en-US"
+                                            {info.label}
+                                          </Badge>
+                                        </SelectItem>
+                                      );
+                                    }
                                   )}
+                                </SelectContent>
+                              </Select>
+                              <span className="text-xs text-[#7c8493]">
+                                {formatDate(
+                                  application.createdAt,
+                                  i18n.language === "vi" ? "vi-VN" : "en-US"
+                                )}
+                              </span>
+                            </div>
+                            <div className="mt-2 space-y-1">
+                              <div className="text-xs text-[#7c8493]">
+                                <span className="font-medium">
+                                  {t("employer.applications.phoneLabel")}:
+                                </span>{" "}
+                                {application.phoneNumber}
+                              </div>
+                              <div className="text-xs text-[#7c8493] truncate">
+                                <span className="font-medium">
+                                  {t("employer.applications.emailLabel")}:
+                                </span>{" "}
+                                {application.email}
+                              </div>
+                            </div>
+                            <div className="mt-3 flex gap-2 flex-wrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
+                                onClick={(e) =>
+                                  handleViewCV(application.cvUrl, e)
+                                }
+                              >
+                                <FileText className="w-3 h-3 mr-1" />
+                                <span className="text-xs sm:text-sm">
+                                  {t("employer.applications.viewCv")}
                                 </span>
-                              </div>
-                              <div className="mt-2 space-y-1">
-                                <div className="text-xs text-[#7c8493]">
-                                  <span className="font-medium">
-                                    {t("employer.applications.phoneLabel")}:
-                                  </span>{" "}
-                                  {application.phoneNumber}
-                                </div>
-                                <div className="text-xs text-[#7c8493] truncate">
-                                  <span className="font-medium">
-                                    {t("employer.applications.emailLabel")}:
-                                  </span>{" "}
-                                  {application.email}
-                                </div>
-                              </div>
-                              <div className="mt-3 flex gap-2 flex-wrap">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[80px]"
-                                  onClick={(e) =>
-                                    handleViewCV(application.cvUrl, e)
-                                  }
-                                >
-                                  <FileText className="w-3 h-3 mr-1" />
-                                  <span className="text-xs sm:text-sm">
-                                    {t("employer.applications.viewCv")}
-                                  </span>
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[100px]"
-                                  onClick={(e) =>
-                                    handleViewCoverLetter(
-                                      application.coverLetter,
-                                      e
-                                    )
-                                  }
-                                >
-                                  <FileTextIcon className="w-3 h-3 mr-1" />
-                                  <span className="text-xs sm:text-sm">
-                                    {t("employer.applications.coverLetter")}
-                                  </span>
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-600 border-green-600 hover:bg-green-600/10 bg-transparent flex-1 min-w-[80px]"
-                                  onClick={(e) =>
-                                    handleOpenChat(application.id, e)
-                                  }
-                                >
-                                  <MessageCircle className="w-3 h-3 mr-1" />
-                                  <span className="text-xs sm:text-sm">
-                                    {t("employer.applications.chat")}
-                                  </span>
-                                </Button>
-                              </div>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-[#4640de] border-[#4640de] hover:bg-[#4640de]/10 bg-transparent flex-1 min-w-[100px]"
+                                onClick={(e) =>
+                                  handleViewCoverLetter(
+                                    application.coverLetter,
+                                    e
+                                  )
+                                }
+                              >
+                                <FileTextIcon className="w-3 h-3 mr-1" />
+                                <span className="text-xs sm:text-sm">
+                                  {t("employer.applications.coverLetter")}
+                                </span>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-600 border-green-600 hover:bg-green-600/10 bg-transparent flex-1 min-w-[80px]"
+                                onClick={(e) =>
+                                  handleOpenChat(application.id, e)
+                                }
+                              >
+                                <MessageCircle className="w-3 h-3 mr-1" />
+                                <span className="text-xs sm:text-sm">
+                                  {t("employer.applications.chat")}
+                                </span>
+                              </Button>
                             </div>
                           </div>
                         </div>
-                      </CandidateSheet>
+                      </div>
                     );
                   })}
                 </>

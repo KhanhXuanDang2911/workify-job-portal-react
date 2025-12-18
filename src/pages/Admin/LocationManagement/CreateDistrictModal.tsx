@@ -18,9 +18,9 @@ import { districtService, provinceService } from "@/services";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const createDistrictSchema = z.object({
-  name: z.string().min(1, "Required"),
-  code: z.string().min(1, "Required"),
-  provinceId: z.number().min(1, "Required"),
+  name: z.string().min(1, "validation.districtNameRequired"),
+  code: z.string().min(1, "validation.codeRequired"),
+  provinceId: z.number().min(1, "validation.provinceRequired"),
 });
 
 type CreateDistrictForm = z.infer<typeof createDistrictSchema>;
@@ -121,7 +121,9 @@ export default function CreateDistrictModal({
             className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
           {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            <p className="text-red-500 text-sm mt-1">
+              {t(errors.name.message || "")}
+            </p>
           )}
         </div>
 
@@ -135,7 +137,9 @@ export default function CreateDistrictModal({
             className="mt-2 bg-white focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
           />
           {errors.code && (
-            <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
+            <p className="text-red-500 text-sm mt-1">
+              {t(errors.code.message || "")}
+            </p>
           )}
         </div>
 
@@ -167,7 +171,7 @@ export default function CreateDistrictModal({
           )}
           {errors.provinceId && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.provinceId.message}
+              {t(errors.provinceId.message || "")}
             </p>
           )}
         </div>

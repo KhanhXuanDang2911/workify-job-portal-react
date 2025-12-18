@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,8 +21,10 @@ import {
   UserStatus,
   UserStatusLabelEN,
 } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { showToast } from "@/utils/toast";
 import { districtService, employerService, provinceService } from "@/services";
 import {
   Edit2,
@@ -39,73 +41,86 @@ import {
 import ReactQuill from "react-quill-new";
 import { admin_routes } from "@/routes/routes.const";
 
-const companySizeEnum = z.enum(
-  Object.keys(CompanySize) as [keyof typeof CompanySize],
-  { message: "Required" }
-);
-const UserStatusEnum = z.enum(
-  Object.keys(UserStatus) as [keyof typeof UserStatus],
-  { message: "Required" }
-);
+// schema will be created inside the component to use translations
 
-const schema = z.object({
-  email: z
-    .string()
-    .min(1, "Required")
-    .regex(EMAIL_REGEX, "Invalid email format"),
-  password: z
-    .string()
-    .optional()
-    .refine(
-      (val) =>
-        val === undefined ||
-        val === null ||
-        val.length === 0 ||
-        (val.length >= 8 && val.length <= 160 && PASSWORD_REGEX.test(val)),
-      {
-        message:
-          "Password must be at least 8 characters long and include uppercase, lowercase, and special characters",
-      }
-    ),
-  companyName: z
-    .string()
-    .min(1, "Required")
-    .min(2, "Company name must be at least 2 characters long")
-    .max(255, "Company name must not exceed 255 characters"),
-  companySize: companySizeEnum,
-  contactPerson: z.string().min(1, "Required"),
-  phoneNumber: z.string().regex(PHONE_REGEX, "Invalid phone number format"),
-  provinceId: z
-    .union([z.number().int().positive()])
-    .refine((val) => val !== undefined, { message: "Province is required" }),
-  districtId: z
-    .union([z.number().int().positive()])
-    .refine((val) => val !== undefined, { message: "District is required" }),
-  detailAddress: z.string(),
-  status: UserStatusEnum,
-  aboutCompany: z.string().optional(),
-  facebookUrl: z.string().optional(),
-  twitterUrl: z.string().optional(),
-  linkedinUrl: z.string().optional(),
-  googleUrl: z.string().optional(),
-  youtubeUrl: z.string().optional(),
-  websiteUrls: z.array(z.string()).optional(),
-});
-
-type EmployerFormData = z.infer<typeof schema>;
-
-const defaultBanner =
-  "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
-const defaultAvatar =
-  "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
+const defaultBanner = null;
+const defaultAvatar = null;
 
 export default function EditEmployer() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [bannerImage, setBannerImage] = useState<string>(defaultBanner);
-  const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
+  // build schema factory so we can infer the form data type from the Zod schema
+  const buildFormSchema = (tFn: (key: string) => string) => {
+    const companySizeEnum = z.enum(
+      Object.keys(CompanySize) as [keyof typeof CompanySize],
+      { message: tFn("validation.companySizeRequired") }
+    );
+
+    const UserStatusEnum = z.enum(
+      Object.keys(UserStatus) as [keyof typeof UserStatus],
+      { message: tFn("validation.statusRequired") }
+    );
+
+    return z.object({
+      email: z
+        .string()
+        .min(1, tFn("validation.emailRequired"))
+        .regex(EMAIL_REGEX, tFn("validation.emailInvalid")),
+      password: z
+        .string()
+        .optional()
+        .refine(
+          (val) =>
+            val === undefined ||
+            val === null ||
+            val.length === 0 ||
+            (val.length >= 8 && val.length <= 160 && PASSWORD_REGEX.test(val)),
+          {
+            message: tFn("validation.passwordComplexity"),
+          }
+        ),
+      companyName: z
+        .string()
+        .min(1, tFn("validation.companyNameRequired"))
+        .min(2, tFn("validation.companyNameMinLength"))
+        .max(255, tFn("validation.companyNameTooLong")),
+      companySize: companySizeEnum,
+      contactPerson: z.string().min(1, tFn("validation.contactPersonRequired")),
+      phoneNumber: z
+        .string()
+        .regex(PHONE_REGEX, tFn("validation.phoneInvalid")),
+      provinceId: z
+        .union([z.number().int().positive(), z.undefined()])
+        .refine((val) => val !== undefined, {
+          message: tFn("validation.provinceRequired"),
+        }),
+      districtId: z
+        .union([z.number().int().positive(), z.undefined()])
+        .refine((val) => val !== undefined, {
+          message: tFn("validation.districtRequired"),
+        }),
+      detailAddress: z.string().min(1, tFn("validation.addressRequired")),
+      status: UserStatusEnum,
+      aboutCompany: z.string().optional(),
+      facebookUrl: z.string().optional(),
+      twitterUrl: z.string().optional(),
+      linkedinUrl: z.string().optional(),
+      googleUrl: z.string().optional(),
+      youtubeUrl: z.string().optional(),
+      websiteUrls: z.array(z.string()).optional(),
+    });
+  };
+
+  const formSchema = useMemo(() => buildFormSchema(t), [t]);
+
+  // infer the form data type directly from Zod schema
+  type EmployerFormData = z.infer<ReturnType<typeof buildFormSchema>>;
+
+  const [bannerImage, setBannerImage] = useState<string | null>(defaultBanner);
+  const [avatarImage, setAvatarImage] = useState<string | null>(defaultAvatar);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -138,7 +153,7 @@ export default function EditEmployer() {
   });
 
   const form = useForm<EmployerFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       status: UserStatus.ACTIVE,
       websiteUrls: [],
@@ -171,8 +186,8 @@ export default function EditEmployer() {
         websiteUrls: employerData.websiteUrls || [],
       });
       console.log("id: ", employerData.district?.id);
-      setBannerImage(employerData.backgroundUrl || defaultBanner);
-      setAvatarImage(employerData.avatarUrl || defaultAvatar);
+      setBannerImage(employerData.backgroundUrl || null);
+      setAvatarImage(employerData.avatarUrl || null);
     }
   }, [employerData, form]);
 
@@ -181,12 +196,14 @@ export default function EditEmployer() {
       return await employerService.updateEmployer(id, data);
     },
     onSuccess: () => {
-      toast.success("Updated employer successfully");
+      toast.success(t("toast.success.employerUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employers"] });
       navigate(`${admin_routes.BASE}/${admin_routes.EMPLOYERS}`);
     },
     onError: () => {
-      toast.error("Failed to update employer");
+      toast.error(
+        t("toast.error.updateEmployerFailed") || t("toast.error.unknownError")
+      );
     },
   });
 
@@ -243,9 +260,19 @@ export default function EditEmployer() {
   };
 
   const onError = (errors: any) => {
-    console.error("Form validation failed!");
-    console.log(form.getValues("districtId"));
-    console.error("Errors:", errors);
+    console.error("Form validation failed!", errors);
+    // show a translated toast for validation failures
+    try {
+      const firstKey = Object.keys(errors || {})[0];
+      const firstMsg = firstKey ? errors[firstKey]?.message : null;
+      if (firstMsg) {
+        showToast.error(firstMsg);
+      } else {
+        showToast.error("toast.error.validationFailed");
+      }
+    } catch (e) {
+      showToast.error("toast.error.validationFailed");
+    }
   };
 
   return (
@@ -559,31 +586,53 @@ export default function EditEmployer() {
           </label>
           <Input
             {...form.register("contactPerson")}
-            className="flex-1 focus-visible:ring-1 focus-visible:ring-[#4B9D7C]"
+            className={`flex-1 focus-visible:ring-1 focus-visible:ring-[#4B9D7C] ${
+              form.formState.errors.contactPerson ? "border-red-500" : ""
+            }`}
           />
+          {form.formState.errors.contactPerson && (
+            <p className="text-red-600 text-sm mt-1">
+              {form.formState.errors.contactPerson.message}
+            </p>
+          )}
         </div>
         <div>
           <label>Phone Number *</label>
-          <Input {...form.register("phoneNumber")} />
+          <Input
+            {...form.register("phoneNumber")}
+            className={`${form.formState.errors.phoneNumber ? "border-red-500" : ""}`}
+          />
+          {form.formState.errors.phoneNumber && (
+            <p className="text-red-600 text-sm mt-1">
+              {form.formState.errors.phoneNumber.message}
+            </p>
+          )}
         </div>
 
-        {/* File Upload */}
+        {/* File Upload (dashed upload frames like Create modal) */}
         <div>
-          <label>Avatar</label>
+          <label className="block text-sm text-gray-600 mb-1">Avatar</label>
           <div
-            className="relative w-32 h-32 cursor-pointer"
-            onMouseEnter={() => setShowAvatarHover(true)}
-            onMouseLeave={() => setShowAvatarHover(false)}
+            className={`relative w-32 h-32 cursor-pointer border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden hover:border-[#4B9D7C] transition-colors ${
+              !avatarImage ? "bg-gray-50" : ""
+            }`}
             onClick={() => avatarInputRef.current?.click()}
           >
-            <img
-              src={avatarImage || defaultAvatar}
-              alt="Company Avatar"
-              className="w-32 h-32 rounded-lg border-4 border-white object-cover"
-            />
-            {showAvatarHover && (
-              <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
+            {avatarImage ? (
+              <>
+                <img
+                  src={avatarImage}
+                  alt="Company Avatar"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400">
+                <Camera className="h-8 w-8 mb-1" />
+                <span className="text-xs">Upload</span>
               </div>
             )}
           </div>
@@ -601,27 +650,33 @@ export default function EditEmployer() {
                   setAvatarImage(reader.result as string);
                 };
                 reader.readAsDataURL(file);
-                setAvatarFile(file);
               }
             }}
           />
         </div>
         <div>
-          <label>Background</label>
+          <label className="block text-sm text-gray-600 mb-1">Background</label>
           <div
-            className="relative cursor-pointer"
-            onMouseEnter={() => setShowBackgroundHover(true)}
-            onMouseLeave={() => setShowBackgroundHover(false)}
+            className={`relative w-full h-64 cursor-pointer border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden hover:border-[#4B9D7C] transition-colors ${
+              !bannerImage ? "bg-gray-50" : ""
+            }`}
             onClick={() => backgroundInputRef.current?.click()}
           >
-            <img
-              src={bannerImage || defaultBanner}
-              alt="Company Banner"
-              className="w-full h-64 object-cover"
-            />
-            {showBackgroundHover && (
-              <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
+            {bannerImage ? (
+              <>
+                <img
+                  src={bannerImage}
+                  alt="Company Banner"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Camera className="h-8 w-8 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-gray-400">
+                <Camera className="h-10 w-10 mb-2" />
+                <span className="text-sm">Upload</span>
               </div>
             )}
           </div>

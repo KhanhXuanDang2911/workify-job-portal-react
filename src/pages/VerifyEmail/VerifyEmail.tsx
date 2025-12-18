@@ -22,6 +22,7 @@ export default function VerifyEmail() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [hasVerified, setHasVerified] = useState(false);
+  const [count, setCount] = useState<number | null>(null);
   const rolePath = pathname.split("/")[1];
   const role = rolePath === "employer" ? "employers" : "users";
 
@@ -34,19 +35,8 @@ export default function VerifyEmail() {
     onSuccess: (data) => {
       toast(data.message || t("auth.verifyEmail.successToast"));
 
-      setTimeout(() => {
-        try {
-          if (typeof navigate === "function") {
-            if (role === "employers") {
-              navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, {
-                replace: true,
-              });
-            } else {
-              navigate(`/${routes.SIGN_IN}`, { replace: true });
-            }
-          }
-        } catch {}
-      }, 3000);
+      // start a 3-second countdown for auto-redirect
+      setCount(3);
     },
     onError: (error: any) => {
       const errorMessage =
@@ -61,6 +51,33 @@ export default function VerifyEmail() {
       verifyMutation.mutate(token);
     }
   }, [token, hasVerified, verifyMutation]);
+
+  useEffect(() => {
+    if (count === null) return;
+
+    const timer = setInterval(() => {
+      setCount((c) => {
+        if (c === null) return c;
+        if (c <= 1) {
+          // navigate when countdown reaches 0
+          try {
+            if (role === "employers") {
+              navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, {
+                replace: true,
+              });
+            } else {
+              navigate(`/${routes.SIGN_IN}`, { replace: true });
+            }
+          } catch {}
+
+          return null;
+        }
+        return c - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [count, navigate, role]);
 
   if (!token) {
     return <NotFound />;
@@ -156,7 +173,7 @@ export default function VerifyEmail() {
             <div className="rounded-lg bg-green-50 p-4 text-center">
               <Mail className="mx-auto mb-2 h-6 w-6 text-green-600" />
               <p className="text-sm text-green-800">
-                {t("auth.verifyEmail.autoRedirect")}
+                {t("auth.verifyEmail.autoRedirect", { count: count ?? 0 })}
               </p>
             </div>
             <Button

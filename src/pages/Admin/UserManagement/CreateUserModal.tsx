@@ -59,12 +59,12 @@ export default function CreateUserModal() {
     const UserStatusEnum = z.enum(
       Object.keys(UserStatus) as [keyof typeof UserStatus],
       {
-        message: t("validation.required"),
+        message: t("validation.statusRequired"),
       }
     );
 
     const RoleEnum = z.enum(Object.keys(ROLE) as [keyof typeof ROLE], {
-      message: t("validation.required"),
+      message: t("validation.roleRequired"),
     });
 
     return z.object({
@@ -74,11 +74,11 @@ export default function CreateUserModal() {
         .max(160, t("validation.fullNameMaxLength")),
       email: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.emailRequired"))
         .regex(EMAIL_REGEX, t("validation.emailInvalid")),
       password: z
         .string()
-        .min(1, t("validation.required"))
+        .min(1, t("validation.passwordRequired"))
         .min(8, t("validation.passwordTooShort"))
         .max(160, t("validation.passwordTooLong"))
         .regex(PASSWORD_REGEX, t("validation.passwordComplexity")),
