@@ -12,7 +12,18 @@ export function formatRelativeTime(
   dateInput: string | Date,
   t: (key: string, opts?: any) => string
 ) {
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  // If server returns an ISO datetime string without timezone (e.g. "2025-12-19T10:00:00"),
+  // browsers may parse it as local time which causes incorrect relative times when
+  // server and client are in different timezones. Treat timezone-less strings as UTC
+  // by appending a trailing 'Z' so Date parses them consistently.
+  let date: Date;
+  if (typeof dateInput === "string") {
+    const s = dateInput;
+    const hasTZ = /Z|[+-]\d{2}:?\d{2}$/.test(s);
+    date = new Date(hasTZ ? s : `${s}Z`);
+  } else {
+    date = dateInput;
+  }
   const now = new Date();
   const secs = differenceInSeconds(now, date);
   if (secs < 60) return t("notifications.time.justNow");
