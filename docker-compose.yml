@@ -4,5 +4,5 @@ services:
   frontend:
     build: .
     ports:
-      - "80:80"
+      - "5173:80"
     restart: unless-stopped

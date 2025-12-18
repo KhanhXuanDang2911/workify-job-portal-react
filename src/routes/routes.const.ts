@@ -19,7 +19,7 @@ export const routes = {
   RESET_PASSWORD: "reset-password",
   CREATE_PASSWORD: "create-password",
   CREATE_CV: "cv-builder",
-  LINKEDIN_AUTHENTICATE: "linkedin/authenticate",
+  LINKEDIN_AUTHENTICATE: "auth/callback/linkedin",
   NOTIFICATIONS: "notifications",
   RESUME: "resume",
   TEMPLATES_CV: "templates-cv",
