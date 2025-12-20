@@ -6,9 +6,9 @@ git pull origin main
 if docker ps -a --format '{{.Names}}' | grep -q '^frontend-workify$'; then
   docker builder prune -f
 
-  docker stop frontend-workify
+  docker stop frontend_workify_frontend_1
 
-  docker rm frontend-workify
+  docker rm frontend_workify_frontend_1
 
   docker rmi frontend-workify:latest
 else
