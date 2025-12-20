@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { EducationItem } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface EducationItemType extends EducationItem {
@@ -49,7 +49,6 @@ export default function EducationSection() {
     }));
   });
 
-  // Sync local state with context when resume.education changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {

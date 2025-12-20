@@ -35,7 +35,6 @@ export default function VerifyEmail() {
     onSuccess: (data) => {
       toast(data.message || t("auth.verifyEmail.successToast"));
 
-      // start a 3-second countdown for auto-redirect
       setCount(3);
     },
     onError: (error: any) => {
@@ -59,7 +58,6 @@ export default function VerifyEmail() {
       setCount((c) => {
         if (c === null) return c;
         if (c <= 1) {
-          // navigate when countdown reaches 0
           try {
             if (role === "employers") {
               navigate(`${employer_routes.BASE}/${employer_routes.SIGN_IN}`, {

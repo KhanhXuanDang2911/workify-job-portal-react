@@ -10,11 +10,10 @@ export default function RichTextEditor({
   value,
   onChange,
 }: RichTextEditorProps) {
-  // Toolbar chỉ giữ các chức năng bạn cần
   const modules = {
     toolbar: [
-      ["bold", "italic", "underline"], // in đậm, in nghiêng, gạch chân
-      [{ list: "bullet" }, { list: "ordered" }], // danh sách bullet & ordered
+      ["bold", "italic", "underline"],
+      [{ list: "bullet" }, { list: "ordered" }],
     ],
   };
 

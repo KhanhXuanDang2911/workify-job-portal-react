@@ -29,14 +29,14 @@ import {
 import { employer_routes } from "@/routes/routes.const";
 import { employerTokenUtils } from "@/lib/token";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 // Note: header does not query chat unread totals here
 import { authService } from "@/services";
 import { toast } from "react-toastify";
 import { getNameInitials } from "@/utils/string";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 
 interface EmployerHeaderProps {
   onMobileMenuClick?: () => void;
@@ -80,18 +80,13 @@ export default function EmployerHeader({
     signOutMutation.mutate();
   };
 
-  // Header intentionally does not display an aggregate unread count.
-  // Aggregate unread behavior will be re-implemented from a single source of truth.
-
   return (
     <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
       <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-indigo-50/30 pointer-events-none"></div>
       <div className="main-layout relative z-10">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            {/* Menu Toggle - Mobile (always show on mobile < lg, hidden on desktop) */}
             {showSidebar && onMobileMenuClick ? (
-              // Toggle sidebar when sidebar is available
               <Button
                 variant="ghost"
                 size="sm"

@@ -33,7 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 
 interface AwardItemType extends AwardItem {
   visible: boolean;
@@ -49,7 +49,6 @@ export default function AwardsSection() {
     }));
   });
 
-  // Sync local state with context when resume.awards changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {
@@ -108,7 +107,7 @@ export default function AwardsSection() {
   };
 
   const saveItem = (data: Omit<AwardItemType, "order">) => {
-    let updatedItems = [...items];
+    const updatedItems = [...items];
     if (editingIndex !== null) {
       updatedItems[editingIndex] = { ...updatedItems[editingIndex], ...data };
     } else {

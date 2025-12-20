@@ -16,8 +16,9 @@ import { authService } from "@/services";
 import { userTokenUtils } from "@/lib/token";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 interface PasswordRequirement {
   labelKey: string;
@@ -116,6 +117,7 @@ export default function CreatePassword() {
 
   return (
     <div className="main-layout">
+      <PageTitle title={t("pageTitles.createPassword")} />
       <div className="flex min-h-screen">
         {/* Left Side */}
         <div className="hidden lg:flex lg:w-1/2 items-center justify-center ">

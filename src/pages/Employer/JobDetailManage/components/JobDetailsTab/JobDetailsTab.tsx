@@ -16,7 +16,7 @@ import {
   JobType,
 } from "@/constants";
 import Loading from "@/components/Loading";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function JobDetailsTab() {
@@ -46,7 +46,6 @@ export default function JobDetailsTab() {
   }
 
   const jobDetail: JobProp = {
-    // header
     isNew: true,
     companyBanner: employer?.backgroundUrl || "",
     companyLogo: employer?.avatarUrl || "",
@@ -67,16 +66,12 @@ export default function JobDetailsTab() {
     },
     expirationDate: job?.expirationDate || "",
 
-    // Description
     jobDescription: job?.jobDescription || "",
 
-    // Benefit
     jobBenefits: job?.jobBenefits || [],
 
-    // Requirement
     requirement: job?.requirement || "",
 
-    // Job details
     jobType: job?.jobType || JobType.FULL_TIME,
     jobLevel: job?.jobLevel || JobLevel.MANAGER,
     educationLevel: job?.educationLevel || EducationLevel.UNIVERSITY,
@@ -90,7 +85,6 @@ export default function JobDetailsTab() {
     },
     industries: job?.industries || [],
 
-    // Contact
     contactPerson: job?.contactPerson || "",
     phoneNumber: job?.phoneNumber || "",
     contactLocation: job?.contactLocation || {
@@ -109,7 +103,6 @@ export default function JobDetailsTab() {
     },
     description: job?.description || "",
 
-    // Company Information
     companySize: job?.companySize || CompanySize.FROM_100_TO_499,
     aboutCompany: job?.aboutCompany || "",
   };

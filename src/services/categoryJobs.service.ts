@@ -43,7 +43,6 @@ interface Industry {
 }
 
 export const categoryJobService = {
-  // GET endpoints are public
   getAllCategoryJobs: async (): Promise<ApiResponse<CategoryJobResponse[]>> => {
     const response = await publicHttp.get<ApiResponse<CategoryJobResponse[]>>(
       "/categories-job/all"
@@ -69,7 +68,6 @@ export const categoryJobService = {
     return response.data;
   },
 
-  // POST/PUT/DELETE endpoints require ADMIN authentication
   createCategoryJob: async (
     data: CategoryJobRequest
   ): Promise<ApiResponse<CategoryJobResponse>> => {
@@ -98,7 +96,6 @@ export const categoryJobService = {
     return response.data;
   },
 
-  // GET endpoint is public
   getIndustriesWithJobCount: async (): Promise<
     ApiResponse<CategoryJobResponse[]>
   > => {

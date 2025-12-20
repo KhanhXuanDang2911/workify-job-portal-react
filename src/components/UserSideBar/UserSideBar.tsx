@@ -58,7 +58,6 @@ export default function UserSideBar({ className }: UserSideBarProps) {
     },
   ];
 
-  // Check if current path matches or starts with the menu item href
   const isActiveItem = (href: string) => {
     if (href === `/${routes.OVERVIEW}`) {
       return location.pathname === href;

@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { CertificationItem } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 
 interface CertificationItemType extends CertificationItem {
   visible: boolean;
@@ -43,18 +43,15 @@ export default function CertificationsSection() {
   const { t } = useTranslation();
   const { resume, setResume } = useResume();
   const [items, setItems] = useState<CertificationItemType[]>(() => {
-    // Initialize from context
     return (resume.certifications || []).map((item) => ({
       ...item,
       visible: !item.isHidden,
     }));
   });
 
-  // Sync local state with context when resume.certifications changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {
-    // Skip sync if this was triggered by local update
     if (isLocalUpdate.current) {
       isLocalUpdate.current = false;
       return;
@@ -111,7 +108,7 @@ export default function CertificationsSection() {
   };
 
   const saveItem = (data: Omit<CertificationItemType, "order">) => {
-    let updatedItems = [...items];
+    const updatedItems = [...items];
     if (editingIndex !== null) {
       updatedItems[editingIndex] = { ...updatedItems[editingIndex], ...data };
     } else {

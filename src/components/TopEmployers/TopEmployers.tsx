@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +14,6 @@ export default function TopEmployers() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
 
-  // Fetch top hiring employers with limit = 8
   const {
     data: apiResponse,
     isLoading,
@@ -26,7 +23,6 @@ export default function TopEmployers() {
     queryKey: ["top-hiring-employers", 8],
     queryFn: () => employerService.getTopHiringEmployers(8),
     staleTime: 5 * 60 * 1000,
-    // staleTime: 0,
   });
 
   const itemsFromApi: any[] = Array.isArray(apiResponse?.data)
@@ -70,7 +66,6 @@ export default function TopEmployers() {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
-  // Reset slide to 0 when employers change
   useEffect(() => {
     if (mappedEmployers.length > 0) {
       setCurrentSlide(0);
@@ -79,7 +74,6 @@ export default function TopEmployers() {
 
   return (
     <section className="relative py-20 bg-gradient-to-b from-white via-indigo-50/30 to-purple-50/30 overflow-x-hidden overflow-y-visible">
-      {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-100/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-100/20 rounded-full blur-3xl"></div>

@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Vietnam flag SVG
 const VietnamFlag = () => (
   <svg
     width="20"
@@ -24,7 +23,6 @@ const VietnamFlag = () => (
   </svg>
 );
 
-// US/UK flag SVG
 const USFlag = () => (
   <svg
     width="20"

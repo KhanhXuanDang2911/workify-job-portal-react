@@ -63,19 +63,15 @@ export default function JobCategories() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 8;
 
-  // Fetch categories from API
   const { data: categoriesResponse, isLoading } = useQuery({
     queryKey: ["categories-job-count"],
     queryFn: () => jobService.getCategoriesWithJobCount(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Function to get icon based on category name (supports both Vietnamese and English)
-  // Maps to actual categories from database
   const getCategoryIcon = (name: string, engName: string): LucideIcon => {
     const searchText = `${name.toLowerCase()} ${engName.toLowerCase()}`;
 
-    // IT - Công nghệ thông tin / IT - Information Technology
     if (
       searchText.includes("it") ||
       searchText.includes("công nghệ thông tin") ||
@@ -91,7 +87,6 @@ export default function JobCategories() {
       return Code;
     }
 
-    // Xây dựng / Bất động sản / Construction / Real Estate
     if (
       searchText.includes("xây dựng") ||
       searchText.includes("construction") ||
@@ -107,7 +102,6 @@ export default function JobCategories() {
       return Building2;
     }
 
-    // Truyền thông / Media / Communication
     if (
       searchText.includes("truyền thông") ||
       searchText.includes("media") ||
@@ -123,14 +117,12 @@ export default function JobCategories() {
       return Camera;
     }
 
-    // Dịch vụ / Services
     if (
       searchText.includes("dịch vụ") &&
       !searchText.includes("tài chính") &&
       !searchText.includes("khách hàng") &&
       !searchText.includes("ăn uống")
     ) {
-      // Check for specific services
       if (
         searchText.includes("an ninh") ||
         searchText.includes("bảo vệ") ||
@@ -173,10 +165,9 @@ export default function JobCategories() {
       ) {
         return ShoppingBag;
       }
-      return Users; // General services
+      return Users;
     }
 
-    // Dịch vụ tài chính / Financial Services
     if (
       searchText.includes("dịch vụ tài chính") ||
       searchText.includes("financial services") ||
@@ -198,7 +189,6 @@ export default function JobCategories() {
       return DollarSign;
     }
 
-    // Giao dịch khách hàng / Customer Transactions
     if (
       searchText.includes("giao dịch khách hàng") ||
       searchText.includes("customer transactions") ||
@@ -222,7 +212,6 @@ export default function JobCategories() {
       return TrendingUp;
     }
 
-    // Khách sạn / Du lịch / Hotel / Tourism
     if (
       searchText.includes("khách sạn") ||
       searchText.includes("hotel") ||
@@ -236,7 +225,6 @@ export default function JobCategories() {
       return UtensilsCrossed;
     }
 
-    // Tư vấn chuyên môn / Professional Consulting
     if (
       searchText.includes("tư vấn chuyên môn") ||
       searchText.includes("professional consulting") ||
@@ -258,7 +246,6 @@ export default function JobCategories() {
       return Briefcase;
     }
 
-    // Kỹ thuật / Engineering / Technical
     if (
       searchText.includes("kỹ thuật") ||
       searchText.includes("engineering") ||
@@ -288,7 +275,6 @@ export default function JobCategories() {
       return Wrench;
     }
 
-    // Sản xuất / Manufacturing / Production
     if (
       searchText.includes("sản xuất") ||
       searchText.includes("manufacturing") ||
@@ -325,7 +311,6 @@ export default function JobCategories() {
       return Factory;
     }
 
-    // Hỗ trợ sản xuất / Production Support
     if (
       searchText.includes("hỗ trợ sản xuất") ||
       searchText.includes("production support") ||
@@ -353,7 +338,6 @@ export default function JobCategories() {
       return Car;
     }
 
-    // Bộ phận hỗ trợ / Support Department
     if (
       searchText.includes("bộ phận hỗ trợ") ||
       searchText.includes("support department") ||
@@ -375,7 +359,6 @@ export default function JobCategories() {
       return FileText;
     }
 
-    // Theo đối tượng / By Target Audience
     if (
       searchText.includes("theo đối tượng") ||
       searchText.includes("by target audience") ||
@@ -394,7 +377,6 @@ export default function JobCategories() {
       return Users;
     }
 
-    // Nghệ thuật / Thiết kế / Giải trí / Art / Design / Entertainment
     if (
       searchText.includes("nghệ thuật") ||
       searchText.includes("art") ||
@@ -408,7 +390,6 @@ export default function JobCategories() {
       return Palette;
     }
 
-    // Khác / Others
     if (
       searchText.includes("khác") ||
       searchText.includes("others") ||
@@ -417,7 +398,6 @@ export default function JobCategories() {
       return Briefcase;
     }
 
-    // Default fallback
     return Briefcase;
   };
 
@@ -472,25 +452,20 @@ export default function JobCategories() {
     },
   ];
 
-  // Transform API data to component format
   const categories = useMemo(() => {
     if (!categoriesResponse?.data) return [];
 
     return categoriesResponse.data.map(
       (category: CategoryJobResponse, index: number) => {
-        // Calculate total jobs by summing jobCount from all industries
         const totalJobs = category.industries.reduce(
           (sum, industry) => sum + (industry.jobCount || 0),
           0
         );
 
-        // Format jobs count with comma separator
         const formattedJobs = totalJobs.toLocaleString("en-US");
 
-        // Get icon based on category name (both Vietnamese and English)
         const icon = getCategoryIcon(category.name, category.engName || "");
 
-        // Get color scheme based on index for variety
         const colorIndex = index % colorSchemes.length;
         const scheme = colorSchemes[colorIndex];
 
@@ -520,7 +495,6 @@ export default function JobCategories() {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
-  // Reset slide to 0 when categories change
   useEffect(() => {
     if (categories.length > 0) {
       setCurrentSlide(0);
@@ -635,12 +609,6 @@ export default function JobCategories() {
               </Button>
             </div>
           )}
-
-          {/* <div className="text-center mt-8">
-            <Button className="bg-[#1967d2] hover:bg-[#1557b8] text-white px-8 py-3">
-              All Categories
-            </Button>
-          </div> */}
         </div>
       </div>
     </section>

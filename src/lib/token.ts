@@ -1,15 +1,9 @@
-// User token keys (path: /)
 const USER_ACCESS_TOKEN = "user_access_token";
 const USER_REFRESH_TOKEN = "user_refresh_token";
 
-// Employer token keys (path: /employer)
 const EMPLOYER_ACCESS_TOKEN = "employer_access_token";
 const EMPLOYER_REFRESH_TOKEN = "employer_refresh_token";
 
-/**
- * Token utilities for User (Job Seeker & Admin)
- * Only stores tokens, user data will be fetched from API
- */
 export const userTokenUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {
     localStorage.setItem(USER_ACCESS_TOKEN, accessToken);
@@ -36,10 +30,6 @@ export const userTokenUtils = {
   },
 };
 
-/**
- * Token utilities for Employer
- * Only stores tokens, employer data will be fetched from API
- */
 export const employerTokenUtils = {
   setTokens: (accessToken: string, refreshToken: string) => {
     localStorage.setItem(EMPLOYER_ACCESS_TOKEN, accessToken);

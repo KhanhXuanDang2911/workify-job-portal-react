@@ -24,6 +24,29 @@
     "vietnamese": "Vietnamese",
     "english": "English"
   },
+  "pageTitles": {
+    "home": "Home",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "jobSearch": "Find Jobs",
+    "employerSearch": "Find Employers",
+    "adminDashboard": "Admin Dashboard",
+    "employerDashboard": "Employer Dashboard",
+    "userOverview": "Overview",
+    "settings": "Settings",
+    "myResume": "My Resume",
+    "mySavedJobs": "Saved Jobs",
+    "myAppliedJobs": "Applied Jobs",
+    "notifications": "Notifications",
+    "candidates": "Candidates",
+    "employerPostJob": "Post a Job",
+    "employerEditJob": "Edit Job",
+    "articles": "Articles",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "createPassword": "Create Password",
+    "notFound": "Page Not Found"
+  },
   "toast": {
     "success": {
       "applicationSubmitted": "Application submitted successfully",
@@ -343,7 +366,7 @@
     "provinceRequired": "Province is required",
     "districtRequired": "District is required",
     "companySizeRequired": "Company Size is required",
-    "companyNameMinLength": "Company Name must be at least 2 characters",
+
     "companyNameMaxLength255": "Company Name must not exceed 255 characters",
     "contactPersonMinLength": "Contact Person must be at least 2 characters",
     "contactPersonMaxLength100": "Contact Person must not exceed 100 characters",
@@ -1489,7 +1512,8 @@
       "fileSize": "File size must be less than 5MB",
       "fileType": "Only .doc, .docx, .pdf files are accepted",
       "oldCvNotFound": "Previous CV not found!",
-      "jobIdInvalid": "Invalid Job ID"
+      "jobIdInvalid": "Invalid Job ID",
+      "coverLetterMaxLength": "Cover letter must not exceed 1000 characters"
     }
   },
   "companySize": {

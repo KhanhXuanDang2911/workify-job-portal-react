@@ -10,13 +10,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Bell, Check, User, FileText } from "lucide-react";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import { notificationService } from "@/services";
 import type { NotificationType } from "@/types/notification.type";
 import { employer_routes, routes } from "@/routes/routes.const";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Map notification type to icon
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case "NEW_APPLICATION":
@@ -40,7 +39,6 @@ export default function NotificationDropdown() {
     markAllAsRead: wsMarkAllAsRead,
   } = useWebSocket();
 
-  // Format relative time
   const relativeTime = (dateString?: string): string => {
     if (!dateString) return "";
     try {
@@ -68,7 +66,6 @@ export default function NotificationDropdown() {
   const [currentPage] = useState(1);
   const pageSize = 10;
 
-  // Fetch notifications from API - Use EMPLOYER-specific cache key
   const { data: notificationsResponse, isLoading } = useQuery({
     queryKey: ["employer-notifications", currentPage, pageSize],
     queryFn: () =>
@@ -76,23 +73,20 @@ export default function NotificationDropdown() {
         pageNumber: currentPage,
         pageSize: pageSize,
       }),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Fetch unread count - Use EMPLOYER-specific cache key
   const { data: unreadCountResponse } = useQuery({
     queryKey: ["employer-notifications-unread-count"],
     queryFn: () => notificationService.getUnreadCount(),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Refetch unread count when receiving new notification via WebSocket
   const prevNotificationsLengthRef = useRef(0);
   useEffect(() => {
     if (wsNotifications.length > prevNotificationsLengthRef.current) {
       const latestNotification = wsNotifications[0];
       if (!latestNotification.readFlag) {
-        // Invalidate query to refetch unread count when new unread notification arrives
         queryClient.invalidateQueries({
           queryKey: ["employer-notifications-unread-count"],
         });
@@ -101,7 +95,6 @@ export default function NotificationDropdown() {
     }
   }, [wsNotifications, queryClient]);
 
-  // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id: number) => notificationService.markAsRead(id),
     onSuccess: () => {
@@ -112,7 +105,6 @@ export default function NotificationDropdown() {
     },
   });
 
-  // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
     onSuccess: () => {
@@ -124,13 +116,11 @@ export default function NotificationDropdown() {
     },
   });
 
-  // Combine API notifications with WebSocket notifications
   const apiNotifications = notificationsResponse?.data?.items || [];
   const allNotifications = [...wsNotifications, ...apiNotifications].filter(
     (notif, index, self) => index === self.findIndex((n) => n.id === notif.id)
   );
 
-  // Use unread count from API (more accurate) or WebSocket as fallback
   const unreadCount = unreadCountResponse?.data ?? wsUnreadCount;
 
   const handleMarkAsRead = (id: number) => {
@@ -142,9 +132,7 @@ export default function NotificationDropdown() {
     markAllAsReadMutation.mutate();
   };
 
-  const handleNotificationClick = () => {
-    // No navigation on click
-  };
+  const handleNotificationClick = () => {};
 
   return (
     <Popover>

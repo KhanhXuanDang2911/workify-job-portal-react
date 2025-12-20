@@ -27,7 +27,7 @@ export interface PostRequest {
   excerpt: string;
   content: string;
   categoryId: number;
-  // tags?: string;
+
   status: PostStatus;
 }
 

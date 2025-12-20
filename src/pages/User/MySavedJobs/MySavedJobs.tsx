@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Heart, Send, Building2 } from "lucide-react";
+import { Heart, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import { routes } from "@/routes/routes.const";
 import JobApplicationModal from "@/components/JobApplicationModal/JobApplicationModal";
 import { useTranslation } from "@/hooks/useTranslation";
 import { formatSalaryCompact } from "@/utils/formatSalary";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 interface Job {
   id: number;
@@ -23,7 +23,7 @@ interface Job {
   type: string;
   logo: string;
   expireDate: string;
-  expirationDate?: string; // Raw expiration date for calculation
+  expirationDate?: string;
   savedDate: string;
   salary: string;
   posted: string;
@@ -38,9 +38,7 @@ interface Job {
   companyWebsite?: string;
 }
 
-// Format salary (using compact format)
 const formatSalary = (job: JobResponse): string => {
-  // Tạo translation function đơn giản cho các trường hợp không có i18n
   const t = (key: string) => {
     if (key.includes("Negotiable") || key.includes("negotiable"))
       return "Thỏa thuận";
@@ -51,7 +49,6 @@ const formatSalary = (job: JobResponse): string => {
   return formatSalaryCompact(job, t);
 };
 
-// Map type to color
 const mapTypeColor = (jobType?: string): string => {
   if (!jobType) return "bg-gray-400";
   if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
@@ -61,7 +58,6 @@ const mapTypeColor = (jobType?: string): string => {
   return "bg-blue-500";
 };
 
-// Format date
 const formatDate = (dateString?: string): string => {
   if (!dateString) return "";
   try {
@@ -76,7 +72,6 @@ const formatDate = (dateString?: string): string => {
   }
 };
 
-// Calculate days until expiration
 const getDaysUntilExpiration = (expirationDate?: string): number | null => {
   if (!expirationDate) return null;
   try {
@@ -90,7 +85,6 @@ const getDaysUntilExpiration = (expirationDate?: string): number | null => {
   }
 };
 
-// Relative time
 const relativePosted = (
   dateString?: string,
   t?: (key: string, options?: any) => string
@@ -127,7 +121,6 @@ export default function MySavedJobs() {
   const itemsPerPage = 9;
   const queryClient = useQueryClient();
 
-  // Fetch saved jobs
   const {
     data: savedJobsResponse,
     isLoading: isLoadingSavedJobs,
@@ -138,7 +131,6 @@ export default function MySavedJobs() {
     staleTime: 0,
   });
 
-  // Map saved jobs from API to Job interface
   const jobs = useMemo(() => {
     if (!savedJobsResponse?.data?.items) return [];
     return savedJobsResponse.data.items.map((job: JobResponse) => {
@@ -164,7 +156,7 @@ export default function MySavedJobs() {
           job.author?.avatarUrl ||
           "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
         expireDate: job.expirationDate ? formatDate(job.expirationDate) : "",
-        expirationDate: job.expirationDate || "", // Raw expiration date for calculation
+        expirationDate: job.expirationDate || "",
         savedDate: job.createdAt ? relativePosted(job.createdAt, t) : "",
         salary: formatSalary(job),
         posted: job.createdAt ? relativePosted(job.createdAt, t) : "",
@@ -187,15 +179,13 @@ export default function MySavedJobs() {
   const totalPages = savedJobsResponse?.data?.totalPages || 0;
   const currentJobs = jobs;
 
-  // Toggle save/unsave mutation
   const toggleSaveMutation = useMutation({
     mutationFn: (jobId: number) => jobService.toggleSavedJob(jobId),
     onSuccess: (_, jobId) => {
-      // Invalidate both saved-jobs list and saved-job status for this specific job
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       toast.success(t("toast.success.jobUnsaved"));
-      // Adjust page if needed
+
       if (currentPage > 1 && currentJobs.length === 1) {
         setCurrentPage(currentPage - 1);
       }
@@ -220,6 +210,7 @@ export default function MySavedJobs() {
 
   return (
     <>
+      <PageTitle title={t("pageTitles.mySavedJobs")} />
       <div className="w-full bg-white border-b border-gray-200 py-6 md:py-8">
         <div className="max-w-7xl mx-auto px-4 md:px-5">
           <h1 className="text-2xl md:text-3xl font-bold text-[#0A2E5C] mb-1">
@@ -267,7 +258,6 @@ export default function MySavedJobs() {
   );
 }
 
-// List View Component - Design similar to image
 function ListView({
   jobs,
   onUnsave,

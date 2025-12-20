@@ -11,7 +11,6 @@ import { toast } from "react-toastify";
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
 
-// Auth API paths that should NOT trigger refresh token
 const AUTH_PATHS = {
   SIGN_IN: "/auth/users/sign-in",
   SIGN_OUT: "/auth/sign-out",
@@ -45,18 +44,14 @@ class UserHttp {
       },
     });
 
-    // Request interceptor - Add user access token
     this.instance.interceptors.request.use(
       (config) => {
-        // Always read fresh token from localStorage instead of using cached value
         const currentAccessToken = userTokenUtils.getAccessToken();
 
         if (currentAccessToken) {
           config.headers.Authorization = `Bearer ${currentAccessToken}`;
-          this.accessToken = currentAccessToken; // Update cached value
+          this.accessToken = currentAccessToken;
         }
-        // Don't set Content-Type for FormData - let browser/axios set it with boundary
-        // Only delete if not explicitly set in config
         if (
           config.data instanceof FormData &&
           !config.headers["Content-Type"]
@@ -71,13 +66,8 @@ class UserHttp {
       }
     );
 
-    // Response interceptor - Handle token refresh
     this.instance.interceptors.response.use(
       (response) => {
-        // Note: Sign-in tokens are handled by SignIn page component
-        // Note: Sign-out tokens are handled by Header/Sidebar components
-        // Only update internal instance tokens for refresh flow
-
         return response;
       },
       async (error: AxiosError<ApiError>) => {
@@ -87,14 +77,12 @@ class UserHttp {
             })
           | undefined;
 
-        // Always clear tokens on sign-out error
         if (originalRequest?.url === AUTH_PATHS.SIGN_OUT) {
           this.accessToken = "";
           this.refreshToken = "";
           userTokenUtils.clearAuth();
         }
 
-        // Check if should skip refresh token
         const shouldSkipRefresh =
           !originalRequest ||
           originalRequest._retry ||
@@ -108,18 +96,12 @@ class UserHttp {
           originalRequest.url === AUTH_PATHS.AUTHENTICATE_LINKEDIN ||
           originalRequest.url === AUTH_PATHS.CREATE_PASSWORD;
 
-        // Handle 401 - Unauthorized (token expired)
         if (error.response?.status === 401 && !shouldSkipRefresh) {
-          // Check if user has refresh token (i.e., was previously authenticated)
           const currentRefreshToken = userTokenUtils.getRefreshToken();
-
-          // If no refresh token, user was never authenticated - just reject the error
-          // Don't redirect for unauthenticated users accessing public endpoints
           if (!currentRefreshToken) {
             return Promise.reject(error);
           }
 
-          // If refresh already failed, clear auth and redirect
           if (this.refreshFailed) {
             this.accessToken = "";
             this.refreshToken = "";
@@ -132,11 +114,9 @@ class UserHttp {
 
           originalRequest._retry = true;
 
-          // Create refresh promise if not exists
           if (!this.refreshPromise) {
             this.refreshPromise = (async () => {
               try {
-                // Call refresh token API
                 const response = await axios.post<{
                   status: number;
                   message: string;

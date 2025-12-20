@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,7 +20,6 @@ export default function FeaturedJobs({
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 4;
 
-  // If overrideJobs provided, use them; otherwise fetch top attractive jobs
   const {
     data: apiResponse,
     isLoading,
@@ -111,7 +108,7 @@ export default function FeaturedJobs({
       company: item.companyName || item.author?.companyName || "",
       location: locationParts.join(", ") || "",
       salary: formatSalary(item),
-      period: "", // Không cần period vì đã có trong salary
+      period: "",
       type: jobType,
       typeColor: mapTypeColor(item.jobType ?? item.jobLevel),
       posted: relativePosted(item.createdAt),
@@ -134,7 +131,6 @@ export default function FeaturedJobs({
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
-  // Reset slide to 0 when jobs change
   useEffect(() => {
     if (mappedJobs.length > 0) {
       setCurrentSlide(0);
@@ -143,7 +139,6 @@ export default function FeaturedJobs({
 
   return (
     <section className="relative py-20 bg-gradient-to-b from-white via-blue-50/30 to-indigo-50/30 overflow-hidden">
-      {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/20 rounded-full blur-3xl"></div>

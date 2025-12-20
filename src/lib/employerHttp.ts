@@ -11,7 +11,6 @@ import { toast } from "react-toastify";
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/workify/api/v1";
 
-// Auth API paths that should NOT trigger refresh token
 const AUTH_PATHS = {
   SIGN_IN: "/auth/employers/sign-in",
   SIGN_OUT: "/auth/sign-out",
@@ -42,18 +41,14 @@ class EmployerHttp {
       },
     });
 
-    // Request interceptor - Add employer access token
     this.instance.interceptors.request.use(
       (config) => {
-        // Always read fresh token from localStorage instead of using cached value
         const currentAccessToken = employerTokenUtils.getAccessToken();
 
         if (currentAccessToken) {
           config.headers.Authorization = `Bearer ${currentAccessToken}`;
           this.accessToken = currentAccessToken; // Update cached value
         }
-        // Don't set Content-Type for FormData - let browser/axios set it with boundary
-        // Only delete if not explicitly set in config
         if (
           config.data instanceof FormData &&
           !config.headers["Content-Type"]
@@ -68,13 +63,8 @@ class EmployerHttp {
       }
     );
 
-    // Response interceptor - Handle token refresh
     this.instance.interceptors.response.use(
       (response) => {
-        // Note: Sign-in tokens are handled by EmployerSignIn page component
-        // Note: Sign-out tokens are handled by EmployerHeader/Sidebar components
-        // Only update internal instance tokens for refresh flow
-
         return response;
       },
       async (error: AxiosError<ApiError>) => {
@@ -84,14 +74,12 @@ class EmployerHttp {
             })
           | undefined;
 
-        // Always clear tokens on sign-out error
         if (originalRequest?.url === AUTH_PATHS.SIGN_OUT) {
           this.accessToken = "";
           this.refreshToken = "";
           employerTokenUtils.clearAuth();
         }
 
-        // Check if should skip refresh token
         const shouldSkipRefresh =
           !originalRequest ||
           originalRequest._retry ||
@@ -102,9 +90,7 @@ class EmployerHttp {
           originalRequest.url === AUTH_PATHS.FORGOT_PASSWORD ||
           originalRequest.url === AUTH_PATHS.VERIFY_EMAIL;
 
-        // Handle 401 - Unauthorized (token expired)
         if (error.response?.status === 401 && !shouldSkipRefresh) {
-          // If refresh already failed, clear auth and redirect
           if (this.refreshFailed) {
             this.accessToken = "";
             this.refreshToken = "";
@@ -115,11 +101,9 @@ class EmployerHttp {
 
           originalRequest._retry = true;
 
-          // Create refresh promise if not exists
           if (!this.refreshPromise) {
             this.refreshPromise = (async () => {
               try {
-                // Call refresh token API
                 const response = await axios.post<{
                   status: number;
                   message: string;

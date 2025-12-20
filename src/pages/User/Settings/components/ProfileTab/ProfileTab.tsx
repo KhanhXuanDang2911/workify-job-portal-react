@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { userService, districtService, industryService } from "@/services";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { toast } from "react-toastify";
 import AddressSelector from "@/components/AddressSelector/AddressSelector";
 
@@ -38,7 +38,6 @@ export default function ProfileTab() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Type for mutation data with nullable birthDate
   type UpdateProfileData = {
     fullName: string;
     phoneNumber: string;
@@ -50,7 +49,6 @@ export default function ProfileTab() {
     industryId?: number | null;
   };
 
-  // Fetch user profile
   const { data: profileResponse, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
     queryFn: () => userService.getUserProfile(),
@@ -58,24 +56,20 @@ export default function ProfileTab() {
 
   const user = profileResponse?.data;
 
-  // Initialize form data from user profile
   useEffect(() => {
     if (user && !isInitialized) {
       const loadUserData = async () => {
-        // If user has both province and district, load districts first
         if (user.province?.id && user.district?.id) {
           try {
             const provinceId = user.province.id;
             const districtId = user.district.id;
 
-            // Load districts for the user's province FIRST
             await queryClient.prefetchQuery({
               queryKey: ["districts", provinceId],
               queryFn: () =>
                 districtService.getDistrictsByProvinceId(provinceId),
             });
 
-            // Then set all data INCLUDING district after districts are loaded
             setFormData({
               fullName: user.fullName || "",
               phoneNumber: user.phoneNumber || "",
@@ -88,8 +82,6 @@ export default function ProfileTab() {
             });
             setIsInitialized(true);
           } catch (error) {
-            console.error("Failed to load districts:", error);
-            // Fallback: set data without district
             setFormData({
               fullName: user.fullName || "",
               phoneNumber: user.phoneNumber || "",
@@ -103,7 +95,6 @@ export default function ProfileTab() {
             setIsInitialized(true);
           }
         } else {
-          // Set basic data if no province/district
           setFormData({
             fullName: user.fullName || "",
             phoneNumber: user.phoneNumber || "",
@@ -124,7 +115,6 @@ export default function ProfileTab() {
     }
   }, [user, queryClient, isInitialized]);
 
-  // load industries for select
   const { data: industriesResponse } = useQuery({
     queryKey: ["all-industries"],
     queryFn: () => industryService.getAllIndustries(),
@@ -133,7 +123,6 @@ export default function ProfileTab() {
 
   const industries = industriesResponse?.data || [];
 
-  // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: (data: UpdateProfileData) => {
       return userService.updateUserProfile({
@@ -150,7 +139,7 @@ export default function ProfileTab() {
     onSuccess: (response) => {
       toast.success(t("toast.success.profileUpdated"));
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      // Update auth context user so current session reflects changed industry
+
       try {
         const updatedUser = response.data;
         if (updatedUser) {
@@ -163,16 +152,13 @@ export default function ProfileTab() {
             },
           });
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     },
     onError: () => {
       toast.error(t("toast.error.updateProfileFailed"));
     },
   });
 
-  // Update avatar mutation
   const updateAvatarMutation = useMutation({
     mutationFn: (file: File) => userService.updateUserAvatar(file),
     onSuccess: (response) => {
@@ -191,9 +177,7 @@ export default function ProfileTab() {
             },
           });
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     },
     onError: () => {
       toast.error(t("toast.error.updateAvatarFailed"));
@@ -208,14 +192,13 @@ export default function ProfileTab() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024; // 5 MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error(t("profile.avatarSizeError"));
       e.currentTarget.value = "";
       return;
     }
 
-    // Check if image
     if (!file.type.startsWith("image/")) {
       toast.error(t("profile.avatarTypeError"));
       e.currentTarget.value = "";
@@ -238,7 +221,6 @@ export default function ProfileTab() {
       return;
     }
 
-    // Convert birthDate from yyyy-MM-dd to dd/MM/yyyy format
     let formattedBirthDate: string | null = formData.birthDate;
     if (formData.birthDate && formData.birthDate.includes("-")) {
       const [year, month, day] = formData.birthDate.split("-");
@@ -247,7 +229,6 @@ export default function ProfileTab() {
       formattedBirthDate = null;
     }
 
-    // Update profile
     updateProfileMutation.mutate({
       fullName: formData.fullName,
       phoneNumber: formData.phoneNumber,
@@ -259,7 +240,6 @@ export default function ProfileTab() {
       industryId: formData.industryId > 0 ? formData.industryId : null,
     });
 
-    // Update avatar if changed
     if (avatarFile) {
       updateAvatarMutation.mutate(avatarFile);
     }
@@ -471,7 +451,7 @@ export default function ProfileTab() {
                 setFormData({
                   ...formData,
                   provinceId: Number(value) || 0,
-                  districtId: 0, // Reset district when province changes
+                  districtId: 0,
                 });
               }}
               onDistrictChange={(value) => {

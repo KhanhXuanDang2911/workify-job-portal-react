@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { PageTitle } from "@/components/PageTitle/PageTitle";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -18,25 +19,17 @@ import JobInformation from "@/components/JobInformation";
 import JobApplicationModal from "@/components/JobApplicationModal";
 import { jobService } from "@/services/job.service";
 import type { JobResponse } from "@/types/job.type";
-import {
-  CompanySizeLabel,
-  ExperienceLevelLabelVN,
-  JobTypeLabelVN,
-  JobType,
-  ExperienceLevel,
-} from "@/constants";
+import { CompanySizeLabel, JobType, ExperienceLevel } from "@/constants";
 import Loading from "@/components/Loading";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 import { useTranslation } from "@/hooks/useTranslation";
 import { formatSalaryCompact } from "@/utils/formatSalary";
 
-// Format salary (using compact format)
 const formatSalary = (job: JobResponse, t: (key: string) => string): string => {
   return formatSalaryCompact(job, t);
 };
 
-// Map type to color
 const mapTypeColor = (jobType?: string): string => {
   if (!jobType) return "bg-gray-400";
   if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
@@ -46,7 +39,6 @@ const mapTypeColor = (jobType?: string): string => {
   return "bg-blue-500";
 };
 
-// Calculate remaining days
 const calculateRemainingDays = (
   expirationDate: string | undefined,
   t: (key: string, options?: any) => string
@@ -66,7 +58,6 @@ const calculateRemainingDays = (
   }
 };
 
-// Format date
 const formatDate = (dateString?: string): string => {
   if (!dateString) return "";
   try {
@@ -81,7 +72,6 @@ const formatDate = (dateString?: string): string => {
   }
 };
 
-// Map enum to display label using translation
 const mapEnumToJobType = (
   enumValue: string,
   t: (key: string) => string
@@ -132,7 +122,6 @@ const JobDetail = () => {
   const isAuthenticated = authState.isAuthenticated;
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Fetch job detail
   const {
     data: jobResponse,
     isLoading,
@@ -144,27 +133,24 @@ const JobDetail = () => {
     enabled: !!id,
   });
 
-  // Get employer ID from job response
   const employerId = jobResponse?.data?.author?.id;
 
-  // Fetch hiring jobs of the company
   const { data: companyJobsResponse } = useQuery({
     queryKey: ["company-hiring-jobs", employerId],
     queryFn: () => jobService.getJobsByEmployerId(employerId!, 1, 6),
     enabled: !!employerId && !!jobResponse?.data,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Map company hiring jobs (exclude current job)
   const companyHiringJobs = useMemo(() => {
     if (!companyJobsResponse?.data?.items) return [];
     const currentJobId = jobResponse?.data?.id;
-    // Get company logo from the main job response
+
     const companyLogo = jobResponse?.data?.author?.avatarUrl;
 
     return companyJobsResponse.data.items
-      .filter((job) => job.id !== currentJobId) // Exclude current job
-      .slice(0, 5) // Limit to 5 jobs
+      .filter((job) => job.id !== currentJobId)
+      .slice(0, 5)
       .map((job) => {
         const firstLocation =
           Array.isArray(job.jobLocations) && job.jobLocations.length > 0
@@ -197,7 +183,6 @@ const JobDetail = () => {
     t,
   ]);
 
-  // Fetch top 5 attractive jobs for sidebar
   const userIndustryId = authState?.user?.industry?.id;
 
   const { data: topAttractiveResponse } = useQuery({
@@ -207,16 +192,15 @@ const JobDetail = () => {
         5,
         userIndustryId ? { industryId: Number(userIndustryId) } : undefined
       ),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Map top 5 attractive jobs for sidebar
   const topAttractiveJobs = useMemo(() => {
     if (!topAttractiveResponse?.data) return [];
     const currentJobId = jobResponse?.data?.id;
     return topAttractiveResponse.data
-      .filter((job) => job.id !== currentJobId) // Exclude current job
-      .slice(0, 5) // Limit to 5 jobs
+      .filter((job) => job.id !== currentJobId)
+      .slice(0, 5)
       .map((job) => ({
         id: job.id,
         title: job.jobTitle || "",
@@ -230,7 +214,6 @@ const JobDetail = () => {
       }));
   }, [topAttractiveResponse, jobResponse?.data?.id, t]);
 
-  // Map job data for JobInformation component
   const jobData = useMemo(() => {
     if (!jobResponse?.data) return null;
 
@@ -287,7 +270,6 @@ const JobDetail = () => {
     };
   }, [jobResponse]);
 
-  // Calculate remaining days and formatted date
   const remainingDays = useMemo(() => {
     if (!jobResponse?.data?.expirationDate) return "";
     return calculateRemainingDays(jobResponse.data.expirationDate, t);
@@ -298,7 +280,6 @@ const JobDetail = () => {
     return formatDate(jobResponse.data.expirationDate);
   }, [jobResponse]);
 
-  // Format location string
   const locationString = useMemo(() => {
     if (!jobData?.jobLocation || jobData.jobLocation.length === 0) return "";
     const firstLocation = jobData.jobLocation[0];
@@ -308,7 +289,6 @@ const JobDetail = () => {
     return parts.join(", ");
   }, [jobData]);
 
-  // Format address string
   const addressString = useMemo(() => {
     if (!jobData?.jobLocation || jobData.jobLocation.length === 0) return "";
     const firstLocation = jobData.jobLocation[0];
@@ -319,19 +299,16 @@ const JobDetail = () => {
     return parts.join(", ");
   }, [jobData]);
 
-  // Format experience string
   const experienceString = useMemo(() => {
     if (!jobResponse?.data?.experienceLevel) return "";
     return mapEnumToExperience(jobResponse.data.experienceLevel, t);
   }, [jobResponse, t]);
 
-  // Format work type string
   const workTypeString = useMemo(() => {
     if (!jobResponse?.data?.jobType) return "";
     return mapEnumToJobType(jobResponse.data.jobType, t);
   }, [jobResponse, t]);
 
-  // Format company size string
   const companySizeString = useMemo(() => {
     if (!jobResponse?.data?.companySize) return "";
     return (
@@ -344,14 +321,12 @@ const JobDetail = () => {
   const queryClient = useQueryClient();
   const jobId = jobResponse?.data?.id;
 
-  // Check if job is saved - only check when user is authenticated
   const { data: isSavedResponse } = useQuery({
     queryKey: ["saved-job", jobId],
     queryFn: () => jobService.checkSavedJob(jobId!),
-    enabled: !!jobId && isAuthenticated, // Only check when authenticated
+    enabled: !!jobId && isAuthenticated,
     retry: false,
     placeholderData: () => {
-      // Check if job exists in saved-jobs cache
       const savedJobsQueries = queryClient.getQueriesData({
         queryKey: ["saved-jobs"],
       });
@@ -372,11 +347,9 @@ const JobDetail = () => {
 
   const isSaved = isSavedResponse?.data ?? false;
 
-  // Toggle save/unsave mutation
   const toggleSaveMutation = useMutation({
     mutationFn: () => jobService.toggleSavedJob(jobId!),
     onSuccess: () => {
-      // Invalidate both saved-job status and saved-jobs list
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       toast.success(
@@ -427,6 +400,13 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 relative overflow-hidden">
+      <PageTitle
+        title={
+          jobData?.jobTitle
+            ? `${jobData.jobTitle} | ${jobData.companyName}`
+            : t("jobDetail.jobDetails")
+        }
+      />
       <div className="main-layout relative z-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Job Information */}

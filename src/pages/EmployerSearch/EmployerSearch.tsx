@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageTitle } from "@/components/PageTitle/PageTitle";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,6 @@ import type { Province } from "@/types/location.type";
 import type { Employer } from "@/types/employer.type";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Sort field display names mapping
 const getSortFieldLabels = (
   t: (key: string) => string
 ): Record<string, string> => ({
@@ -37,7 +37,6 @@ const getSortFieldLabels = (
   "district.name": t("employerSearch.district"),
 });
 
-// Sort order display names
 const getSortOrderLabels = (
   t: (key: string) => string
 ): Record<"asc" | "desc", string> => ({
@@ -49,14 +48,11 @@ const EmployerSearch = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read from URL params on mount
   const keywordFromUrl = searchParams.get("keyword") || "";
   const provinceIdFromUrl = searchParams.get("provinceId");
   const companySizeFromUrl = searchParams.get("companySize") || "";
   const sortsFromUrl = searchParams.get("sorts") || "createdAt:desc";
   const pageFromUrl = searchParams.get("page");
-
-  // Parse sorts from URL (format: "field:asc|desc" or "field1:asc,field2:desc")
   const parseSortsFromUrl = (
     sortsString: string
   ): { field: string; direction: "asc" | "desc" }[] => {
@@ -76,10 +72,8 @@ const EmployerSearch = () => {
     direction: "desc",
   };
 
-  // Temporary search input (not applied until search button is clicked)
   const [searchInput, setSearchInput] = useState(keywordFromUrl);
 
-  // Applied filters (from URL - used for API calls) - auto-apply, no temp filters
   const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
   const [appliedProvinceId, setAppliedProvinceId] = useState<number | null>(
     provinceIdFromUrl ? Number(provinceIdFromUrl) : null
@@ -92,9 +86,8 @@ const EmployerSearch = () => {
     pageFromUrl ? Number(pageFromUrl) : 1
   );
 
-  const pageSize = 10; // Fixed page size
+  const pageSize = 10;
 
-  // Build sorts string for API (format: "field:asc|desc" or "field1:asc,field2:desc")
   const buildSortsString = (
     sorts: { field: string; direction: "asc" | "desc" }[]
   ): string => {
@@ -103,7 +96,6 @@ const EmployerSearch = () => {
 
   const sortsString = buildSortsString(appliedSorts);
 
-  // Update URL params when applied filters change
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -119,7 +111,6 @@ const EmployerSearch = () => {
       params.set("companySize", appliedCompanySize);
     }
 
-    // Set sorts param (format: "field:asc|desc" or "field1:asc,field2:desc")
     const sortsParam = buildSortsString(appliedSorts);
     if (sortsParam !== "createdAt:desc") {
       params.set("sorts", sortsParam);
@@ -139,7 +130,6 @@ const EmployerSearch = () => {
     setSearchParams,
   ]);
 
-  // Read from URL params when URL changes
   useEffect(() => {
     const keywordParam = searchParams.get("keyword") || "";
     const provinceIdParam = searchParams.get("provinceId");
@@ -161,12 +151,10 @@ const EmployerSearch = () => {
     setCurrentPage(pageParam ? Number(pageParam) : 1);
   }, [searchParams]);
 
-  // Reset to page 1 when applied filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [appliedKeyword, appliedProvinceId, appliedCompanySize, sortsString]);
 
-  // Fetch provinces
   const { data: provincesResponse } = useQuery({
     queryKey: ["provinces"],
     queryFn: () => provinceService.getProvinces(),
@@ -175,7 +163,6 @@ const EmployerSearch = () => {
 
   const provinces: Province[] = provincesResponse?.data || [];
 
-  // Fetch employers from API
   const {
     data: apiResponse,
     isLoading,
@@ -202,7 +189,7 @@ const EmployerSearch = () => {
           appliedCompanySize !== "all" && { companySize: appliedCompanySize }),
       }),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Don't retry on error to show error message immediately
+    retry: false,
   });
 
   const employers: Employer[] = Array.isArray(apiResponse?.data?.items)
@@ -211,13 +198,11 @@ const EmployerSearch = () => {
   const totalPages = apiResponse?.data?.totalPages || 0;
   const numberOfElements = apiResponse?.data?.numberOfElements || 0;
 
-  // Map Employer to EmployerCard format
   const mapEmployerToCard = (employer: Employer) => {
     const provinceName = employer.province?.name || "";
     const districtName = employer.district?.name || "";
     const location = [provinceName, districtName].filter(Boolean).join(", ");
 
-    // Fallback images from public URLs
     const defaultAvatar =
       "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg";
     const defaultBackground =
@@ -228,7 +213,7 @@ const EmployerSearch = () => {
       name: employer.companyName,
       logo: employer.avatarUrl || defaultAvatar,
       coverImage: employer.backgroundUrl || defaultBackground,
-      openJobs: 0, // API might not return this
+      openJobs: 0,
       location: location || "N/A",
       description: employer.aboutCompany || "",
       featured: employer.status === "ACTIVE",
@@ -237,7 +222,6 @@ const EmployerSearch = () => {
 
   const mappedEmployers = employers.map(mapEmployerToCard);
 
-  // Auto-apply handlers
   const handleProvinceChange = (value: string) => {
     setAppliedProvinceId(value === "all" ? null : Number(value));
     setCurrentPage(1);
@@ -249,12 +233,10 @@ const EmployerSearch = () => {
   };
 
   const handleSortFieldChange = (field: string) => {
-    // Auto-set direction based on field type
     let direction: "asc" | "desc" = "desc";
     if (field === "createdAt" || field === "updatedAt") {
-      direction = "desc"; // Mới nhất/Mới cập nhật = desc
+      direction = "desc";
     } else {
-      // Keep current direction for other fields, or default to desc
       direction = appliedSorts[0]?.direction || "desc";
     }
     setAppliedSorts([{ field, direction }]);
@@ -268,7 +250,6 @@ const EmployerSearch = () => {
     setCurrentPage(1);
   };
 
-  // Check if sort order selector should be shown
   const shouldShowSortOrder = () => {
     const currentField = appliedSorts[0]?.field || "createdAt";
     return currentField !== "createdAt" && currentField !== "updatedAt";
@@ -295,27 +276,7 @@ const EmployerSearch = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-16 left-16 w-40 h-40 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-full blur-2xl opacity-50 animate-breathe"></div>
-        <div className="absolute top-32 right-24 w-28 h-28 bg-gradient-to-r from-cyan-200 to-blue-200 rounded-full blur-xl opacity-60 animate-float-gentle"></div>
-        <div className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-r from-teal-200 to-green-200 rounded-full blur-2xl opacity-45 animate-float-gentle-delayed"></div>
-        <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-gradient-to-r from-indigo-200 to-purple-200 rounded-full blur-xl opacity-40 animate-breathe"></div>
-        <div className="absolute bottom-24 right-16 w-44 h-44 bg-gradient-to-r from-pink-200 to-rose-200 rounded-full blur-3xl opacity-30 animate-float-gentle"></div>
-      </div> */}
-
-      {/* Header Section */}
-      {/* <div className="bg-gradient-to-r from-white via-emerald-50 to-teal-50 border-b relative overflow-hidden backdrop-blur-sm">
-        <div className="absolute top-0 right-0 w-96 h-32 bg-gradient-to-l from-teal-200 via-emerald-100 to-transparent opacity-70"></div>
-        <div className="absolute top-0 left-0 w-64 h-24 bg-gradient-to-r from-cyan-100 to-transparent opacity-50"></div>
-        <div className="absolute top-8 left-1/3 w-5 h-5 bg-emerald-400 rounded-full opacity-60 animate-float-gentle"></div>
-        <div className="absolute top-14 right-1/4 w-3 h-3 bg-teal-400 rounded-full opacity-50 animate-float-gentle-delayed"></div>
-        <div className="container mx-auto px-4 py-8 relative z-10">
-          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-            {t("employerSearch.findTopEmployers")}
-          </h1>
-        </div>
-      </div> */}
+      <PageTitle title={t("pageTitles.employerSearch")} />
       <div
         className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
         style={{
@@ -352,11 +313,9 @@ const EmployerSearch = () => {
       </div>
 
       <div className="main-layout relative z-10 pt-20 pb-8">
-        {/* Search Bar */}
         <Card className="bg-white shadow-sm border border-gray-200 p-4 mb-8">
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* Keyword Input */}
               <div className="flex-1 relative">
                 <div className="relative">
                   <Input
@@ -376,7 +335,6 @@ const EmployerSearch = () => {
                 </div>
               </div>
 
-              {/* Search Button */}
               <Button
                 onClick={handleSearch}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
@@ -389,7 +347,6 @@ const EmployerSearch = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
-          {/* Sidebar Filters */}
           <div className="lg:col-span-2">
             <Card className="bg-white shadow-sm border border-gray-200 p-5 h-fit">
               <div className="relative z-10">
@@ -440,7 +397,6 @@ const EmployerSearch = () => {
                     <Separator className="my-4" />
                   </div>
 
-                  {/* Company Size Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
                       {t("employerSearch.companySize")}
@@ -478,7 +434,6 @@ const EmployerSearch = () => {
                     <Separator className="my-4" />
                   </div>
 
-                  {/* Sort Filter */}
                   <div className="space-y-3">
                     <h3 className="font-semibold text-[#1a1f36] text-base">
                       {t("employerSearch.sortBy")}
@@ -540,9 +495,7 @@ const EmployerSearch = () => {
             </Card>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-6">
-            {/* Results Header */}
             <Card className="bg-white shadow-sm border border-gray-200 p-4 mb-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
@@ -557,14 +510,12 @@ const EmployerSearch = () => {
               </div>
             </Card>
 
-            {/* Loading state */}
             {isLoading && (
               <div className="flex items-center justify-center py-12">
                 <Loading variant="spinner" size="lg" />
               </div>
             )}
 
-            {/* Error state */}
             {isError &&
               (() => {
                 let errorMessage = t("employerSearch.loadEmployersDataError");
@@ -620,7 +571,6 @@ const EmployerSearch = () => {
                 );
               })()}
 
-            {/* Employer Cards */}
             {!isLoading && !isError && (
               <>
                 {mappedEmployers.length > 0 ? (
@@ -631,7 +581,6 @@ const EmployerSearch = () => {
                       ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 0 && (
                       <Pagination
                         currentPage={currentPage}

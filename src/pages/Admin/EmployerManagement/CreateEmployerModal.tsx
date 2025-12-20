@@ -70,7 +70,6 @@ export default function CreateEmployerModal() {
   >(null);
   const [editingWebsiteUrlValue, setEditingWebsiteUrlValue] = useState("");
 
-  // Schema creation inside component to use t()
   const schema = useMemo(() => {
     const companySizeEnum = z.enum(
       Object.keys(CompanySize) as [keyof typeof CompanySize],

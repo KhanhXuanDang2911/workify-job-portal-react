@@ -13,7 +13,6 @@ type State = {
   hasError: boolean;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 function ErrorFallback() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,10 +24,6 @@ function ErrorFallback() {
     } else {
       navigate("/");
     }
-    // Reset state via reload or window location changes if needed,
-    // but here navigation should be enough.
-    // However, to clear the error boundary state, usually a reload is safest or a key reset.
-    // For simplicity and robustness in error states, we often force reload but let's try nav first.
     setTimeout(() => {
       window.location.reload();
     }, 100);
@@ -42,11 +37,8 @@ function ErrorFallback() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Illustration Section */}
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
-              {/* Using the same image as 404/403 but maybe unmodified or different hue if desired. 
-                   Let's use the 404 one as a generic error image for consistency. */}
               <img
                 src="https://thewebmax.org/react/jobzilla/assets/images/error-404.png"
                 alt="Error Illustration"
@@ -55,7 +47,6 @@ function ErrorFallback() {
             </div>
           </div>
 
-          {/* Text Content Section */}
           <div className="text-center lg:text-left space-y-6">
             <div className="space-y-4">
               <h1 className="text-6xl lg:text-7xl font-bold text-gray-900 leading-none">
@@ -105,9 +96,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Caught by ErrorBoundary:", error, errorInfo);
-  }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {}
 
   render() {
     if (this.state.hasError) {

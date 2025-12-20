@@ -52,7 +52,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import { ResponsiveContext } from "@/context/ResponsiveContext";
 
 type SortField =
@@ -73,7 +73,6 @@ export default function Jobs() {
   const { notifications } = useWebSocket();
   const prevNotificationsLengthRef = useRef(0);
 
-  // Get values from URL params
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
   const pageSize = (Number(searchParams.get("pageSize")) || 10) as RowsPerPage;
   const keyword = searchParams.get("keyword") || "";
@@ -114,7 +113,6 @@ export default function Jobs() {
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
-  // Helper function to update URL params
   const updateURLParams = useCallback(
     (updates: {
       pageNumber?: number;
@@ -127,7 +125,6 @@ export default function Jobs() {
       setSearchParams((prevParams) => {
         const newParams = new URLSearchParams(prevParams);
 
-        // Update or remove parameters
         const finalPageNumber =
           updates.pageNumber ?? Number(prevParams.get("pageNumber") || 1);
         const finalPageSize =
@@ -163,42 +160,36 @@ export default function Jobs() {
           });
         }
 
-        // Set or delete pageNumber
         if (finalPageNumber !== 1) {
           newParams.set("pageNumber", finalPageNumber.toString());
         } else {
           newParams.delete("pageNumber");
         }
 
-        // Set or delete pageSize
         if (finalPageSize !== 10) {
           newParams.set("pageSize", finalPageSize.toString());
         } else {
           newParams.delete("pageSize");
         }
 
-        // Set or delete keyword
         if (finalKeyword) {
           newParams.set("keyword", finalKeyword);
         } else {
           newParams.delete("keyword");
         }
 
-        // Set or delete provinceId
         if (finalProvinceId) {
           newParams.set("provinceId", finalProvinceId.toString());
         } else {
           newParams.delete("provinceId");
         }
 
-        // Set or delete industryId
         if (finalIndustryId) {
           newParams.set("industryId", finalIndustryId.toString());
         } else {
           newParams.delete("industryId");
         }
 
-        // Set or delete sorts
         if (finalSorts.length > 0) {
           const sortsString = finalSorts
             .map((s) => `${s.field}:${s.direction}`)
@@ -270,7 +261,6 @@ export default function Jobs() {
     },
   });
 
-  // Sync searchInput with keyword from URL
   useEffect(() => {
     setSearchInput(keyword);
   }, [keyword]);
@@ -287,9 +277,7 @@ export default function Jobs() {
     }
   }, [industriesData]);
 
-  // Refetch jobs when receiving notification about job status change
   useEffect(() => {
-    // Check if we're on the jobs management page
     const isOnJobsPage =
       location.pathname === `${employer_routes.BASE}/${employer_routes.JOBS}`;
 
@@ -297,13 +285,10 @@ export default function Jobs() {
       return;
     }
 
-    // Check if there are new notifications
     if (notifications.length > prevNotificationsLengthRef.current) {
       const latestNotification = notifications[0];
 
-      // Check if notification has jobId (indicates job-related notification)
       if (latestNotification?.jobId) {
-        // Refetch the jobs query to get updated status
         queryClient.invalidateQueries({
           queryKey: ["my-jobs"],
         });
@@ -805,7 +790,6 @@ export default function Jobs() {
             </table>
           </div>
         ) : (
-          // Mobile / Tablet: render responsive cards
           <div className="grid grid-cols-1 gap-4 p-4">
             {isLoadingJobsData ? (
               <div className="text-center py-8">{t("common.loading")}</div>

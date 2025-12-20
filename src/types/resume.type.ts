@@ -55,7 +55,7 @@ export interface ExperienceItem {
   position: string;
   startDate?: string;
   endDate?: string;
-  description?: string; // richtext
+  description?: string;
 }
 
 export interface EducationItem {
@@ -95,11 +95,11 @@ export interface ProjectItem {
   title: string;
   startDate?: string;
   endDate?: string;
-  description?: string; // richtext
+  description?: string;
 }
 export interface InterestItem {
   isHidden: boolean;
-  description: string; // richtext
+  description: string;
 }
 export interface ReferenceItem {
   isHidden: boolean;
@@ -109,7 +109,7 @@ export interface ReferenceItem {
 }
 
 export interface ObjectiveItem {
-  description: string; // richtext
+  description: string;
 }
 export interface Theme {
   primaryColor: string;
@@ -117,7 +117,7 @@ export interface Theme {
   textColor: string;
 }
 export interface AdditionalInformationItem {
-  description: string; // richtext
+  description: string;
 }
 export interface ResumeData {
   basicInfo: {
@@ -144,7 +144,7 @@ export interface ResumeData {
 
   theme: Theme;
 }
-// API Types
+
 export interface ResumeItem {
   id: number;
   title: string;
@@ -160,13 +160,11 @@ export interface ResumePayload {
   data: ResumeData;
 }
 
-// SectionType includes all resume sections except theme and additionalInformation
 export type SectionType = keyof Omit<
   ResumeData,
   "theme" | "additionalInformation"
 >;
 
-// EditableSectionType for sections that can be hidden/cleared (excludes basicInfo)
 export type EditableSectionType = Exclude<SectionType, "basicInfo">;
 
 export type FontFamily =

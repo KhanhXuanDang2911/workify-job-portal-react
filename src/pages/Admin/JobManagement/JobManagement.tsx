@@ -80,7 +80,7 @@ export default function JobManagement() {
     { field: SortField; direction: SortDirection }[]
   >(() => {
     const sortsParam = searchParams.get("sorts");
-    // Default to sorting by createdAt desc so updated jobs don't jump positions
+
     if (!sortsParam)
       return [
         {
@@ -122,7 +122,6 @@ export default function JobManagement() {
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
-  // Sync state to URL params
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));
@@ -243,7 +242,7 @@ export default function JobManagement() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   const { data: industries } = useQuery({
@@ -257,7 +256,7 @@ export default function JobManagement() {
         id: industry.id,
         name: industry.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -312,7 +311,7 @@ export default function JobManagement() {
     setPageSize(10);
     setIndustryId(undefined);
     setProvinceId(undefined);
-    // Reset sorts to default createdAt desc to keep stable ordering
+
     setSorts([
       {
         field: "createdAt",

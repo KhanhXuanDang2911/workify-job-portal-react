@@ -2,8 +2,8 @@ import type React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { admin_routes, routes } from "@/routes/routes.const";
 import { employer_routes } from "@/routes/routes.const";
-import { useUserAuth } from "@/context/user-auth";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useUserAuth } from "@/context/UserAuth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { ROLE } from "@/constants";
 import Loading from "@/components/Loading";
 
@@ -20,7 +20,6 @@ export default function ProtectedRoute({
   const { state: userState } = useUserAuth();
   const { state: employerState } = useEmployerAuth();
 
-  // Determine which context to use based on required role
   const isEmployerRoute = requiredRole === ROLE.EMPLOYER;
 
   const isAuthenticated = isEmployerRoute
@@ -57,7 +56,6 @@ export default function ProtectedRoute({
     return <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />;
   }
 
-  // Check role-based access
   if (requiredRole) {
     if (requiredRole === ROLE.EMPLOYER && !employer) {
       return (
@@ -69,7 +67,6 @@ export default function ProtectedRoute({
     } else if (requiredRole === ROLE.ADMIN && user?.role !== ROLE.ADMIN) {
       return <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />;
     } else if (requiredRole === ROLE.JOB_SEEKER) {
-      // JOB_SEEKER routes: Allow both JOB_SEEKER and ADMIN
       if (user?.role !== ROLE.JOB_SEEKER && user?.role !== ROLE.ADMIN) {
         return (
           <Navigate to={`/${routes.SIGN_IN}`} state={{ from: location }} />

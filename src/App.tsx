@@ -10,9 +10,9 @@ import type {
   DeviceType,
   ResponsiveContextProps,
 } from "./context/ResponsiveContext";
-import { UserAuthProvider } from "@/context/user-auth";
-import { EmployerAuthProvider } from "@/context/employer-auth";
-import { WebSocketProvider } from "@/context/websocket/WebSocketContext";
+import { UserAuthProvider } from "@/context/UserAuth";
+import { EmployerAuthProvider } from "@/context/EmployerAuth";
+import { WebSocketProvider } from "@/context/WebSocket/WebSocketContext";
 
 const getDevice = (): DeviceType => {
   const width = window.innerWidth;
@@ -62,8 +62,6 @@ function AppContent() {
 
 export default function App() {
   return (
-    // BrowserRouter already exists in main.tsx
-    // WebSocketProvider must be outside auth providers to avoid circular dependencies
     <WebSocketProvider>
       <UserAuthProvider>
         <EmployerAuthProvider>

@@ -1,12 +1,5 @@
-/**
- * Debug utility to check token storage
- * Use in browser console: window.debugTokens()
- */
-export const debugTokens = () => {
-  // Debug function disabled
-};
+export const debugTokens = () => {};
 
-// Make it available globally
 if (typeof window !== "undefined") {
   (window as any).debugTokens = debugTokens;
 }

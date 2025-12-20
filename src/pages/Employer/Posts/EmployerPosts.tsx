@@ -74,7 +74,6 @@ export default function EmployerPosts() {
     select: (res) => res.data,
   });
 
-  // Sync to URL
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));

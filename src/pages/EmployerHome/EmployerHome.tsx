@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Zap, BarChart3 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 export default function EmployerHome() {
   const { t } = useTranslation();
   return (
     <div className="h-screen bg-white overflow-hidden">
+      <PageTitle title={t("pageTitles.employerDashboard")} />
       {/* Hero Section */}
       <section
         className="relative h-full overflow-hidden"

@@ -73,7 +73,6 @@ export default function PostCategories() {
 
   const sortsString = sorts.map((s) => `${s.field}:${s.direction}`).join(",");
 
-  // Sync state to URL params
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));

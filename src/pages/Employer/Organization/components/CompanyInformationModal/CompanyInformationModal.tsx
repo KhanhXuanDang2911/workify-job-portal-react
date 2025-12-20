@@ -45,7 +45,7 @@ export default function CompanyInformationModal() {
       const response = await provinceService.getProvinces();
       return response.data;
     },
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   const {
@@ -81,7 +81,6 @@ export default function CompanyInformationModal() {
         setDistricts(response.data || []);
         return response.data;
       } catch (error) {
-        console.error("Failed to fetch districts:", error);
         toast.error("Không thể tải danh sách quận/huyện");
         return [];
       }
@@ -255,7 +254,6 @@ export default function CompanyInformationModal() {
               render={({ field }) => (
                 <ReactQuill
                   theme="snow"
-                  // readOnly
                   value={field.value}
                   onChange={field.onChange}
                   className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto"

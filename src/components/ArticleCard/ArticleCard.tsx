@@ -15,7 +15,6 @@ type Article = {
   readingTime?: string;
 };
 
-// Fallback: generate initials from name
 const getInitials = (name: string) =>
   name
     .split(" ")

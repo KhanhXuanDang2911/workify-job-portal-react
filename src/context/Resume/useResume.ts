@@ -1,4 +1,4 @@
-import { ResumeContext } from "@/context/ResumeContext/resumeContext";
+import { ResumeContext } from "./ResumeContext";
 import { useContext } from "react";
 
 export function useResume() {

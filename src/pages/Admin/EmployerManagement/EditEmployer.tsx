@@ -41,8 +41,6 @@ import {
 import ReactQuill from "react-quill-new";
 import { admin_routes } from "@/routes/routes.const";
 
-// schema will be created inside the component to use translations
-
 const defaultBanner = null;
 const defaultAvatar = null;
 
@@ -52,7 +50,6 @@ export default function EditEmployer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // build schema factory so we can infer the form data type from the Zod schema
   const buildFormSchema = (tFn: (key: string) => string) => {
     const companySizeEnum = z.enum(
       Object.keys(CompanySize) as [keyof typeof CompanySize],
@@ -116,7 +113,6 @@ export default function EditEmployer() {
 
   const formSchema = useMemo(() => buildFormSchema(t), [t]);
 
-  // infer the form data type directly from Zod schema
   type EmployerFormData = z.infer<ReturnType<typeof buildFormSchema>>;
 
   const [bannerImage, setBannerImage] = useState<string | null>(defaultBanner);
@@ -125,11 +121,9 @@ export default function EditEmployer() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [showAvatarHover, setShowAvatarHover] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-  const [showBackgroundHover, setShowBackgroundHover] = useState(false);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
 
   const [provincesOptions, setProvincesOptions] = useState<
@@ -185,7 +179,6 @@ export default function EditEmployer() {
         youtubeUrl: employerData.youtubeUrl || "",
         websiteUrls: employerData.websiteUrls || [],
       });
-      console.log("id: ", employerData.district?.id);
       setBannerImage(employerData.backgroundUrl || null);
       setAvatarImage(employerData.avatarUrl || null);
     }
@@ -218,7 +211,7 @@ export default function EditEmployer() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -235,7 +228,7 @@ export default function EditEmployer() {
     },
     select: (data) => data.map((d: any) => ({ id: d.id, name: d.name })),
     enabled: !!selectedProvinceId,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -260,8 +253,6 @@ export default function EditEmployer() {
   };
 
   const onError = (errors: any) => {
-    console.error("Form validation failed!", errors);
-    // show a translated toast for validation failures
     try {
       const firstKey = Object.keys(errors || {})[0];
       const firstMsg = firstKey ? errors[firstKey]?.message : null;
@@ -359,7 +350,6 @@ export default function EditEmployer() {
           )}
         </div>
 
-        {/* About Company */}
         <div className="col-span-2">
           <label className="block text-sm text-gray-600 mb-1">
             About Company
@@ -370,7 +360,6 @@ export default function EditEmployer() {
             render={({ field }) => (
               <ReactQuill
                 theme="snow"
-                // readOnly
                 value={field.value}
                 onChange={field.onChange}
                 className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:focus-visible:ring-1 [&_.ql-editor]:focus-visible:ring-[#4B9D7C]"

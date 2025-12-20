@@ -49,7 +49,6 @@ export default function PostForm({
   const { data: post } = useQuery({
     queryKey: ["post", id],
     queryFn: async () =>
-      // Fetch with employer token when actor is employer so the server authorizes correctly
       actor === "employer"
         ? await postService.getPostByIdAsEmployer(Number(id))
         : await postService.getPostById(Number(id)),
@@ -68,20 +67,17 @@ export default function PostForm({
 
   const createPostMutation = useMutation({
     mutationFn: (data: FormData) =>
-      // @ts-ignore actor prop will be available via closure below
       actor === "employer"
         ? postService.createPostAsEmployer(data)
         : postService.createPost(data),
     onSuccess: () => {
       showToast.success("toast.success.postCreated");
-      // Invalidate public post queries so lists (e.g. /articles) refresh
+
       try {
         queryClient.invalidateQueries({ queryKey: ["public-posts"] });
         queryClient.invalidateQueries({ queryKey: ["latest-public-posts"] });
-      } catch (e) {
-        // ignore
-      }
-      // navigate back depending on actor
+      } catch (e) {}
+
       if (actor === "employer") {
         navigate(`${employer_routes.BASE}/${employer_routes.POSTS}`);
       } else {
@@ -100,14 +96,12 @@ export default function PostForm({
         : postService.updatePost(id, data),
     onSuccess: () => {
       showToast.success("toast.success.postUpdated");
-      // Invalidate public post queries so lists (e.g. /articles) refresh
+
       try {
         queryClient.invalidateQueries({ queryKey: ["public-posts"] });
         queryClient.invalidateQueries({ queryKey: ["latest-public-posts"] });
-      } catch (e) {
-        // ignore
-      }
-      // navigate back to posts list and signal a refresh
+      } catch (e) {}
+
       if (actor === "employer") {
         navigate(`${employer_routes.BASE}/${employer_routes.POSTS}`, {
           state: { refresh: true },
@@ -157,10 +151,8 @@ export default function PostForm({
     }
   }, [post, reset, getValues]);
 
-  // Ensure `status` is registered for employer create flows so zod validation passes
   useEffect(() => {
     if (actor === "employer" && !isEditing) {
-      // Employers' posts default to PENDING on backend; register it so zod validation passes
       setValue("status", PostStatus.PENDING);
     }
   }, [actor, isEditing, setValue]);
@@ -190,30 +182,7 @@ export default function PostForm({
 
   const postCategories = postCategoriesData?.data || [];
 
-  // const [tagInputValue, setTagInputValue] = useState("");
-
-  // const handleTagKeyDown = useCallback(
-  //   (e: React.KeyboardEvent<HTMLInputElement>, field: any) => {
-  //     if (e.key === "Enter" && tagInputValue.trim()) {
-  //       e.preventDefault();
-  //       const newTag = tagInputValue.trim();
-
-  //       if (!field.value.includes(newTag)) {
-  //         field.onChange([...field.value, newTag]);
-  //       }
-
-  //       setTagInputValue("");
-  //     }
-  //   },
-  //   [tagInputValue]
-  // );
-
-  // const handleRemoveTag = useCallback((tag: string, field: any) => {
-  //   field.onChange(field.value.filter((t: string) => t !== tag));
-  // }, []);
-
   const onError = (errors: any) => {
-    // Show a helpful toast when validation fails so users know why submit did nothing
     try {
       const firstKey = Object.keys(errors || {})[0];
       const firstMsg = firstKey ? errors[firstKey]?.message : null;
@@ -228,14 +197,13 @@ export default function PostForm({
   };
 
   const onSubmit = (data: PostFormData) => {
-    console.log("[PostForm] onSubmit called", { data, actor, isEditing });
     const formData = new FormData();
 
     if (thumbnailPreview === null) {
       setBannerError("validation.bannerRequired");
-      // Show a clear toast so user knows why submission was blocked
+
       showToast.error("validation.bannerRequired");
-      // Try to bring the banner input into view for the user
+
       const bannerEl = document.getElementById("thumbnail");
       if (bannerEl) {
         bannerEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -254,13 +222,9 @@ export default function PostForm({
       categoryId: data.categoryId,
     };
 
-    console.log("[PostForm] postRequest", postRequest);
-
     if ((actor ?? "admin") === "admin") {
-      // Admin sets status from form
       postRequest.status = data.status;
     } else {
-      // Employers cannot change status; requests should use PENDING per API
       postRequest.status = PostStatus.PENDING;
     }
 
@@ -270,7 +234,6 @@ export default function PostForm({
     );
 
     if (isEditing && id) {
-      console.log("[PostForm] calling updateMutation", { id: Number(id) });
       setSubmitting(true);
       updateMutation.mutate(
         { id: Number(id), data: formData },
@@ -279,7 +242,6 @@ export default function PostForm({
         }
       );
     } else {
-      console.log("[PostForm] calling createPostMutation");
       setSubmitting(true);
       createPostMutation.mutate(formData, {
         onSettled: () => setSubmitting(false),
@@ -441,8 +403,7 @@ export default function PostForm({
                 </p>
               )}
             </>
-          ) : // Employer: create => show disabled control with PENDING; edit => show but disabled
-          isEditing ? (
+          ) : isEditing ? (
             <>
               <Label htmlFor="status">Status</Label>
               <Controller
@@ -469,7 +430,6 @@ export default function PostForm({
               />
             </>
           ) : (
-            // Employer creating a post: show disabled PENDING select to keep UI balanced
             <>
               <Label htmlFor="status">Status</Label>
               <Controller

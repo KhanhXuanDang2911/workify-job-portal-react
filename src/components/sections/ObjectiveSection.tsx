@@ -1,5 +1,5 @@
 import RichTextEditor from "@/components/RichTextEditor";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ function ObjectiveSection() {
         description: value,
       },
     }));
-    // Clear validation error when user starts typing
+
     if (validationErrors.objective) {
       setValidationErrors((prev) => ({ ...prev, objective: false }));
     }

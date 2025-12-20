@@ -16,10 +16,10 @@ export const getSearchHistory = (): SearchHistoryItem[] => {
     const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
     if (!stored) return [];
     const history = JSON.parse(stored) as SearchHistoryItem[];
-    // Lọc bỏ các item có keyword rỗng và sort
+
     return history
       .filter((item) => item.keyword && item.keyword.trim())
-      .sort((a, b) => b.timestamp - a.timestamp); // Mới nhất trước
+      .sort((a, b) => b.timestamp - a.timestamp);
   } catch (e) {
     return [];
   }
@@ -34,14 +34,12 @@ export const saveSearchHistory = (
   provinceId?: string
 ): void => {
   try {
-    // Không lưu nếu keyword rỗng
     if (!keyword || !keyword.trim()) {
       return;
     }
 
     const history = getSearchHistory();
 
-    // Tạo item mới
     const newItem: SearchHistoryItem = {
       keyword: keyword.trim(),
       industryId,
@@ -49,7 +47,6 @@ export const saveSearchHistory = (
       timestamp: Date.now(),
     };
 
-    // Loại bỏ các item trùng lặp (cùng keyword, industryId, provinceId)
     const filtered = history.filter(
       (item) =>
         item.keyword !== newItem.keyword ||
@@ -57,13 +54,10 @@ export const saveSearchHistory = (
         item.provinceId !== newItem.provinceId
     );
 
-    // Thêm item mới vào đầu
     const updated = [newItem, ...filtered].slice(0, MAX_HISTORY_ITEMS);
 
     localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
-  } catch (e) {
-    console.error("Failed to save search history:", e);
-  }
+  } catch (e) {}
 };
 
 /**
@@ -74,12 +68,10 @@ export const removeSearchHistoryItem = (timestamp: number): void => {
     const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
     if (!stored) return;
     const history = JSON.parse(stored) as SearchHistoryItem[];
-    // Xóa item có timestamp khớp
+
     const updated = history.filter((item) => item.timestamp !== timestamp);
     localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
-  } catch (e) {
-    console.error("Failed to remove search history item:", e);
-  }
+  } catch (e) {}
 };
 
 /**
@@ -88,7 +80,5 @@ export const removeSearchHistoryItem = (timestamp: number): void => {
 export const clearSearchHistory = (): void => {
   try {
     localStorage.removeItem(SEARCH_HISTORY_KEY);
-  } catch (e) {
-    console.error("Failed to clear search history:", e);
-  }
+  } catch (e) {}
 };

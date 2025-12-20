@@ -17,7 +17,6 @@ import type { JobRequest, JobResponse } from "@/types";
 import type { With } from "@/types/common";
 
 export const jobService = {
-  // ====== EMPLOYER APIs (require employer authentication) ======
   createJob: async (data: JobRequest): Promise<ApiResponse<JobResponse>> => {
     const response = await employerHttp.post<ApiResponse<JobResponse>>(
       "/jobs",
@@ -91,7 +90,6 @@ export const jobService = {
     return response.data;
   },
 
-  // ====== PUBLIC APIs (no authentication required) ======
   getJobById: async (id: number): Promise<ApiResponse<JobResponse>> => {
     const response = await publicHttp.get<ApiResponse<JobResponse>>(
       `/jobs/${id}`
@@ -99,7 +97,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Get job by ID with authentication (for admin to view all statuses)
   getJobByIdWithAuth: async (id: number): Promise<ApiResponse<JobResponse>> => {
     const response = await userHttp.get<ApiResponse<JobResponse>>(
       `/jobs/${id}`
@@ -142,7 +139,6 @@ export const jobService = {
     limit = 10,
     options?: { industryId?: number }
   ): Promise<ApiResponse<JobResponse[]>> => {
-    // If industryId provided, try fetching with it first. If no results, fallback to no industry filter.
     try {
       if (options?.industryId) {
         const response = await publicHttp.get<ApiResponse<JobResponse[]>>(
@@ -152,7 +148,6 @@ export const jobService = {
           }
         );
 
-        // If server returned any jobs, return them. Otherwise retry without industryId.
         if (
           response.data &&
           Array.isArray((response.data as any).data) &&
@@ -170,12 +165,10 @@ export const jobService = {
       );
       return fallback.data;
     } catch (e) {
-      // If any network/server error occurs, rethrow to let callers handle retries/errors
       throw e;
     }
   },
 
-  // Get personalized jobs for current user (server will fallback to top-attractive when not personalized)
   getPersonalized: async (limit = 10): Promise<ApiResponse<JobResponse[]>> => {
     const response = await userHttp.get<ApiResponse<JobResponse[]>>(
       "/jobs/personalized",
@@ -186,8 +179,6 @@ export const jobService = {
     return response.data;
   },
 
-  // ====== ADMIN APIs (require admin authentication) ======
-  // Get all jobs (ADMIN only)
   getAllJobs: async (
     params?: With<SearchParams, { provinceId?: number; industryId?: number }>
   ): Promise<ApiResponse<PageResponse<JobResponse>>> => {
@@ -200,7 +191,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Update job status (ADMIN only)
   updateJobStatusAsAdmin: async (
     id: number,
     status: JobStatus
@@ -215,7 +205,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Delete job (ADMIN only)
   deleteJobAsAdmin: async (id: number): Promise<ApiResponse> => {
     const response = await userHttp.delete<ApiResponse>(`/jobs/${id}`);
     return response.data;
@@ -230,7 +219,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Get jobs by employer id (public)
   getJobsByEmployerId: async (
     employerId: number,
     pageNumber = 1,
@@ -247,8 +235,6 @@ export const jobService = {
     return response.data;
   },
 
-  // ====== USER/JOB SEEKER APIs (require user authentication) ======
-  // Check if job is saved
   checkSavedJob: async (jobId: number): Promise<ApiResponse<boolean>> => {
     const response = await userHttp.get<ApiResponse<boolean>>(
       `/saved-jobs/check/${jobId}`
@@ -256,7 +242,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Toggle save/unsave job
   toggleSavedJob: async (jobId: number): Promise<ApiResponse> => {
     const response = await userHttp.post<ApiResponse>(
       `/saved-jobs/toggle/${jobId}`
@@ -264,7 +249,6 @@ export const jobService = {
     return response.data;
   },
 
-  // Get saved jobs with pagination
   getSavedJobs: async (
     pageNumber = 1,
     pageSize = 10

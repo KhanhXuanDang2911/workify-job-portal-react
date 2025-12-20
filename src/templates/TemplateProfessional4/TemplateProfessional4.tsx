@@ -18,7 +18,6 @@ function TemplateProfessional4({
   const { t } = useTranslation();
   const { basicInfo, objective, theme } = data;
 
-  // Filter hidden items
   const experience = (data.experience || []).filter((item) => !item.isHidden);
   const education = (data.education || []).filter((item) => !item.isHidden);
   const skills = (data.skills || []).filter((item) => !item.isHidden);
@@ -50,24 +49,20 @@ function TemplateProfessional4({
     }
   }, [minPageHeight, onUpdateHeight]);
 
-  // Split name into first and last for different font weights
   const nameParts = basicInfo.fullName.split(" ");
   const firstName = nameParts[0] || "";
   const lastName = nameParts.slice(1).join(" ") || "";
 
-  // Split skills into 2 columns
   const skillsPerColumn = Math.ceil(skills.length / 2);
   const skillsCol1 = skills.slice(0, skillsPerColumn);
   const skillsCol2 = skills.slice(skillsPerColumn);
 
-  // Build contact info string with pipes
   const contactParts = [
     basicInfo.location,
     basicInfo.phoneNumber,
     basicInfo.email,
   ].filter(Boolean);
 
-  // Add custom fields to contact
   const customFieldValues = basicInfo.customFields?.map((f) => f.value) || [];
 
   return (

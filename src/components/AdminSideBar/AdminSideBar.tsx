@@ -21,7 +21,7 @@ import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userTokenUtils } from "@/lib/token";
 import { authService } from "@/services";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { toast } from "react-toastify";
 import { admin_routes } from "@/routes/routes.const";
 import LanguageSwitcher from "@/components/LanguageSwitcher";

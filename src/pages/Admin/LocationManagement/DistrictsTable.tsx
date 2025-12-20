@@ -100,7 +100,6 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
     setPageNumber(1);
     if (searchInput.trim() === "") {
       setFilteredDistricts(districtsData || []);
-      console.log("No action");
       return;
     }
     const keyword = searchInput.toLowerCase();
@@ -109,7 +108,6 @@ export default function DistrictsTable({ provinceId }: { provinceId: number }) {
         district.name.toLowerCase().includes(keyword) ||
         district.code.toLowerCase().includes(keyword)
     );
-    console.log(filtered);
     setFilteredDistricts(filtered || []);
   };
 

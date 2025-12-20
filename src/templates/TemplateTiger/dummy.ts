@@ -1,6 +1,5 @@
 import type { ResumeData } from "@/types/resume.type";
 
-// Vietnamese dummy data
 export const templateTigerDummyVi: ResumeData = {
   basicInfo: {
     fullName: "Trần Thị Mai",
@@ -183,7 +182,6 @@ export const templateTigerDummyVi: ResumeData = {
   },
 };
 
-// English dummy data
 export const templateTigerDummyEn: ResumeData = {
   basicInfo: {
     fullName: "Sarah Johnson",
@@ -366,5 +364,4 @@ export const templateTigerDummyEn: ResumeData = {
   },
 };
 
-// Default export for backward compatibility
 export const templateTigerDummy = templateTigerDummyVi;

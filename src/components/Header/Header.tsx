@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MessageSquare } from "lucide-react";
-// header no longer queries chat unread totals here
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,14 +29,14 @@ import JobSeekerNotificationDropdown from "../JobSeekerNotificationDropdown";
 import { userTokenUtils } from "@/lib/token";
 import { toast } from "react-toastify";
 import { authService } from "@/services";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ROLE } from "@/constants";
 import { Settings } from "lucide-react";
 import { getNameInitials } from "@/utils/string";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 
 export default function Header() {
   const { t } = useTranslation();
@@ -73,9 +72,29 @@ export default function Header() {
     signOutMutation.mutate();
   };
 
-  // Note: unread header totals intentionally disabled here so the app can
-  // re-implement aggregate unread behavior from a single source of truth.
-  // Header will not fetch or display a message unread count.
+  const isActive = (path: string) => {
+    if (path === routes.BASE) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(`/${path}`);
+  };
+
+  const getLinkClassName = (path: string, isMobile = false) => {
+    const active = isActive(path);
+    const baseClass = isMobile
+      ? "px-4 py-2 text-sm rounded-md transition-colors flex items-center gap-2"
+      : "relative px-4 py-2 text-sm font-medium transition-all duration-300 rounded-lg group flex items-center gap-2";
+
+    const activeClass = isMobile
+      ? "text-[#1967d2] bg-blue-50 font-medium"
+      : "text-[#1967d2] bg-blue-50/50";
+
+    const inactiveClass = isMobile
+      ? "text-gray-600 hover:text-[#1967d2] hover:bg-gray-50"
+      : "text-gray-700 hover:text-[#1967d2] hover:bg-blue-50/50";
+
+    return `${baseClass} ${active ? activeClass : inactiveClass}`;
+  };
 
   return (
     <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
@@ -83,7 +102,6 @@ export default function Header() {
 
       <div className="main-layout relative z-10">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to={routes.BASE} className="flex items-center space-x-2 group">
             <div className="w-8 h-8 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
               <img
@@ -98,45 +116,70 @@ export default function Header() {
           </Link>
 
           <nav className="hidden lg:flex items-center space-x-1">
-            <Link
-              to={routes.BASE}
-              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
-            >
+            <Link to={routes.BASE} className={getLinkClassName(routes.BASE)}>
               <Home className="w-4 h-4" />
               {t("header.home")}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#1967d2] transition-all duration-300 ${
+                  isActive(routes.BASE) ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              ></span>
             </Link>
             <Link
               to={routes.JOB_SEARCH}
-              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+              className={getLinkClassName(routes.JOB_SEARCH)}
             >
               <Briefcase className="w-4 h-4" />
               {t("header.jobs")}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#1967d2] transition-all duration-300 ${
+                  isActive(routes.JOB_SEARCH)
+                    ? "w-full"
+                    : "w-0 group-hover:w-full"
+                }`}
+              ></span>
             </Link>
             <Link
               to={routes.ARTICLES}
-              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+              className={getLinkClassName(routes.ARTICLES)}
             >
               <BookOpen className="w-4 h-4" />
               {t("header.careerGuide")}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#1967d2] transition-all duration-300 ${
+                  isActive(routes.ARTICLES)
+                    ? "w-full"
+                    : "w-0 group-hover:w-full"
+                }`}
+              ></span>
             </Link>
             <Link
               to={routes.EMPLOYER_SEARCH}
-              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+              className={getLinkClassName(routes.EMPLOYER_SEARCH)}
             >
               <Building2 className="w-4 h-4" />
               {t("header.companies")}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#1967d2] transition-all duration-300 ${
+                  isActive(routes.EMPLOYER_SEARCH)
+                    ? "w-full"
+                    : "w-0 group-hover:w-full"
+                }`}
+              ></span>
             </Link>
             <Link
               to={routes.TEMPLATES_CV}
-              className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1967d2] transition-all duration-300 rounded-lg hover:bg-blue-50/50 group flex items-center gap-2"
+              className={getLinkClassName(routes.TEMPLATES_CV)}
             >
               <FileText className="w-4 h-4" />
               {t("header.createCV")}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#1967d2] group-hover:w-full transition-all duration-300"></span>
+              <span
+                className={`absolute bottom-0 left-0 h-0.5 bg-[#1967d2] transition-all duration-300 ${
+                  isActive(routes.TEMPLATES_CV)
+                    ? "w-full"
+                    : "w-0 group-hover:w-full"
+                }`}
+              ></span>
             </Link>
           </nav>
 
@@ -312,7 +355,7 @@ export default function Header() {
             <nav className="flex flex-col space-y-1">
               <Link
                 to={routes.BASE}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                className={getLinkClassName(routes.BASE, true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Home className="w-4 h-4" />
@@ -320,7 +363,7 @@ export default function Header() {
               </Link>
               <Link
                 to={routes.JOB_SEARCH}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                className={getLinkClassName(routes.JOB_SEARCH, true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Briefcase className="w-4 h-4" />
@@ -328,7 +371,7 @@ export default function Header() {
               </Link>
               <Link
                 to={routes.ARTICLES}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                className={getLinkClassName(routes.ARTICLES, true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <BookOpen className="w-4 h-4" />
@@ -336,7 +379,7 @@ export default function Header() {
               </Link>
               <Link
                 to={routes.EMPLOYER_SEARCH}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                className={getLinkClassName(routes.EMPLOYER_SEARCH, true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Building2 className="w-4 h-4" />
@@ -344,7 +387,7 @@ export default function Header() {
               </Link>
               <Link
                 to={routes.TEMPLATES_CV}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-[#1967d2] hover:bg-gray-50 rounded-md transition-colors flex items-center gap-2"
+                className={getLinkClassName(routes.TEMPLATES_CV, true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <FileText className="w-4 h-4" />

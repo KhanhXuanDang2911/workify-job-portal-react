@@ -6,7 +6,6 @@ import {
   type CompanySize,
 } from "@/constants/company.constant";
 
-// Helper function to strip HTML tags from string
 const stripHtmlTags = (html: string): string => {
   if (!html) return "";
   const tmp = document.createElement("DIV");

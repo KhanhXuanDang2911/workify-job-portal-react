@@ -31,7 +31,6 @@ function TemplateTiger({
   const { t } = useTranslation();
   const { basicInfo, objective } = data;
 
-  // Filter hidden items
   const experience = (data.experience || []).filter((item) => !item.isHidden);
   const education = (data.education || []).filter((item) => !item.isHidden);
   const skills = (data.skills || []).filter((item) => !item.isHidden);

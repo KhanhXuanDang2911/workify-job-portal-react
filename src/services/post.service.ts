@@ -11,8 +11,6 @@ import type {
 } from "@/types/";
 
 export const postService = {
-  // Post Categories
-  // GET endpoints are public
   getAllCategories: async (): Promise<ApiResponse<PostCategory[]>> => {
     const response = await publicHttp.get<ApiResponse<PostCategory[]>>(
       "/categories-post/all"
@@ -36,7 +34,6 @@ export const postService = {
     return response.data;
   },
 
-  // POST/PUT/DELETE endpoints require ADMIN authentication
   createCategory: async (
     data: PostCategoryRequest
   ): Promise<ApiResponse<PostCategory>> => {
@@ -65,8 +62,6 @@ export const postService = {
     return response.data;
   },
 
-  // Posts
-  // GET /posts requires ADMIN authentication (5.1)
   getPosts: async (
     params: PostsSearchParams
   ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
@@ -92,7 +87,6 @@ export const postService = {
     return response.data;
   },
 
-  // GET /posts/{id} - use userHttp for admin access to all posts including drafts
   getPostById: async (id: number): Promise<ApiResponse<PostResponse>> => {
     const response = await userHttp.get<ApiResponse<PostResponse>>(
       `/posts/${id}`
@@ -100,7 +94,6 @@ export const postService = {
     return response.data;
   },
 
-  // Employer-specific fetch for a single post (uses employer token)
   getPostByIdAsEmployer: async (
     id: number
   ): Promise<ApiResponse<PostResponse>> => {
@@ -110,9 +103,7 @@ export const postService = {
     return response.data;
   },
 
-  // POST/PUT/DELETE endpoints require ADMIN authentication
   createPost: async (data: FormData): Promise<ApiResponse<PostResponse>> => {
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.post<ApiResponse<PostResponse>>(
       "/posts",
       data,
@@ -149,7 +140,6 @@ export const postService = {
     id: number,
     data: FormData
   ): Promise<ApiResponse<PostResponse>> => {
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.put<ApiResponse<PostResponse>>(
       `/posts/${id}`,
       data,
@@ -195,7 +185,6 @@ export const postService = {
     return response.data;
   },
 
-  // PATCH /posts/{id}/{status} - update only status (ADMIN)
   patchPostStatus: async (id: number, status: string): Promise<ApiResponse> => {
     const response = await userHttp.patch<ApiResponse>(
       `/posts/${id}/${status}`
@@ -203,7 +192,6 @@ export const postService = {
     return response.data;
   },
 
-  // Public posts list (only PUBLIC posts) - public endpoint
   getPublicPosts: async (
     params: Record<string, any> = {}
   ): Promise<ApiResponse<PageResponse<any>>> => {
@@ -214,7 +202,6 @@ export const postService = {
     return response.data;
   },
 
-  // Latest public posts - public endpoint
   getLatestPublicPosts: async (
     limit?: number
   ): Promise<ApiResponse<PostResponse[]>> => {
@@ -227,7 +214,6 @@ export const postService = {
     return response.data;
   },
 
-  // Latest posts - public endpoint
   getLatestPosts: async (limit = 8): Promise<ApiResponse<PostResponse[]>> => {
     const response = await publicHttp.get<ApiResponse<PostResponse[]>>(
       "/posts/public/latest",

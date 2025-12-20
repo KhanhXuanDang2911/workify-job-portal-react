@@ -10,14 +10,12 @@ import type {
   ReferenceItem,
   InterestItem,
 } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { Menu, Undo2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Sections that support isHidden according to API docs
-// basicInfo, objective, additionalInformation do NOT have isHidden
 type HideableSectionType =
   | "experience"
   | "education"
@@ -39,7 +37,6 @@ const HIDEABLE_SECTIONS: HideableSectionType[] = [
   "interests",
 ];
 
-// Default empty values for each section type (for clear functionality)
 type ClearableSectionType = Exclude<SectionType, "basicInfo">;
 
 const getDefaultValue = (
@@ -93,7 +90,6 @@ export default function SectionActionsMenu({
     const sectionData = resume[section as HideableSectionType];
 
     if (Array.isArray(sectionData)) {
-      // For array sections (experience, education, skills, awards, certifications, projects, references)
       const hiddenItems = sectionData.map((item) => ({
         ...item,
         isHidden: true,
@@ -103,7 +99,6 @@ export default function SectionActionsMenu({
         [section]: hiddenItems,
       });
     } else if (section === "interests") {
-      // For interests (single object with isHidden)
       setResume({
         ...resume,
         interests: {
@@ -119,20 +114,16 @@ export default function SectionActionsMenu({
   const handleClearSection = () => {
     if (section === "basicInfo") return;
 
-    // Save current data for undo
     const previousData = resume[section as ClearableSectionType];
 
-    // Clear the section
     setResume({
       ...resume,
       [section]: getDefaultValue(section as ClearableSectionType),
     });
     setOpen(false);
 
-    // Get section name for toast message
     const sectionName = t(`resumeBuilder.sections.${section}`);
 
-    // Show toast with undo button
     toast.success(
       ({ closeToast }) => (
         <div className="flex items-center justify-between gap-3">
@@ -141,7 +132,6 @@ export default function SectionActionsMenu({
           </span>
           <button
             onClick={() => {
-              // Restore previous data
               setResume((currentResume) => ({
                 ...currentResume,
                 [section]: previousData,
@@ -163,7 +153,6 @@ export default function SectionActionsMenu({
     );
   };
 
-  // Don't show menu for basicInfo and objective (objective is required, can't clear)
   if (section === "basicInfo" || section === "objective") return null;
 
   return (

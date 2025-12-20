@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { PageTitle } from "@/components/PageTitle/PageTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ import { industryService } from "@/services/industry.service";
 import { toast } from "react-toastify";
 import { routes } from "@/routes/routes.const";
 import { useGoogleLogin } from "@react-oauth/google";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { userTokenUtils } from "@/lib/token";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -168,6 +169,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
+      <PageTitle title={t("pageTitles.signUp")} />
       <div className="relative z-10 min-h-screen flex">
         {/* Main Content - Centered */}
         <div className="w-full flex items-center justify-center p-4 sm:p-6 lg:p-12 min-h-screen overflow-auto">

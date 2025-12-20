@@ -56,7 +56,6 @@ const ViewResume = () => {
         }
       }
     } catch (error) {
-      console.error("Failed to load resume", error);
       toast.error(t("viewResume.toast.loadFailed"));
       navigate("/resumes");
     } finally {
@@ -70,10 +69,9 @@ const ViewResume = () => {
 
     setIsDownloading(true);
     try {
-      // Convert all images to base64 BEFORE calling toPng
       const images = input.querySelectorAll("img");
       const imagePromises = Array.from(images).map(async (img) => {
-        if (img.src.startsWith("data:")) return; // Already base64
+        if (img.src.startsWith("data:")) return;
 
         try {
           const response = await fetch(img.src);
@@ -84,47 +82,37 @@ const ViewResume = () => {
             reader.readAsDataURL(blob);
           });
           img.src = base64;
-        } catch (e) {
-          console.warn("Failed to convert image to base64:", img.src, e);
-        }
+        } catch (e) {}
       });
 
       await Promise.all(imagePromises);
 
-      // Use PNG for lossless quality with good compression for text/graphics
-      // pixelRatio 2.5 for sharper text while keeping file size reasonable
       const dataUrl = await toPng(input, {
-        pixelRatio: 2.5, // 2.5x resolution - sharper than 2x, smaller than 3x
+        pixelRatio: 2.5,
         backgroundColor: "#ffffff",
-        cacheBust: false, // Don't bust cache since we already converted images
+        cacheBust: false,
       });
 
       const img = new Image();
       img.src = dataUrl;
 
       img.onload = () => {
-        // A4 dimensions in pt: 595.28 x 841.89
         const A4_WIDTH = 595.28;
         const A4_HEIGHT = 841.89;
 
-        // Image dimensions (at 2.5x pixelRatio, divide by 2.5 to get actual size)
         const imgWidth = img.width / 2.5;
         const imgHeight = img.height / 2.5;
 
-        // Scale to fit A4 width
         const scale = A4_WIDTH / imgWidth;
         const scaledHeight = imgHeight * scale;
 
-        // Create PDF with custom page height to fit entire content without breaking
-        // This prevents content from being cut off at page boundaries
         const pdf = new jsPDF({
           orientation: "portrait",
           unit: "pt",
-          format: [A4_WIDTH, Math.max(scaledHeight, A4_HEIGHT)], // Custom page size
+          format: [A4_WIDTH, Math.max(scaledHeight, A4_HEIGHT)],
           compress: true,
         });
 
-        // Add the entire image in one piece - no page breaks
         pdf.addImage(
           img,
           "PNG",
@@ -142,12 +130,10 @@ const ViewResume = () => {
       };
 
       img.onerror = (e) => {
-        console.error("Image load error:", e);
         toast.error(t("viewResume.toast.imageLoadFailed"));
         setIsDownloading(false);
       };
     } catch (error) {
-      console.error("Error exporting PDF:", error);
       toast.error(t("viewResume.toast.downloadFailed"));
       setIsDownloading(false);
     }

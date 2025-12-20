@@ -2,12 +2,12 @@ import type React from "react";
 import { useReducer, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { EmployerAuthContext } from "./EmployerAuthContext";
-import { employerAuthReducer } from "./employerAuth.reducer";
-import { initEmployerAuthState } from "./employerAuth.types";
+import { employerAuthReducer } from "./EmployerAuthReducer";
+import { initEmployerAuthState } from "./EmployerAuthTypes";
 import { employerTokenUtils } from "@/lib/token";
 import { employerService } from "@/services/employer.service";
 import { employer_routes } from "@/routes/routes.const";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 
 interface EmployerAuthProviderProps {
   children: React.ReactNode;
@@ -23,35 +23,26 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
   const location = useLocation();
   const { setCurrentUserId } = useWebSocket();
 
-  // Initialize or re-fetch auth state when navigating to employer routes
   useEffect(() => {
     const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
 
-    // Only run on employer routes
     if (!isEmployerRoute) {
       dispatch({ type: "SET_LOADING", payload: false });
       try {
         setCurrentUserId(null, "USER");
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
       return;
     }
 
-    // Initialize auth state by fetching employer profile from API
     const initAuth = async () => {
       const accessToken = employerTokenUtils.getAccessToken();
 
-      // Skip if already authenticated with employer data AND not navigating
       if (state.isAuthenticated && state.employer && accessToken) {
-        console.log("[EmployerAuth] Already authenticated, skipping API call");
         return;
       }
 
       if (accessToken) {
         try {
-          // Fetch fresh employer data from API
-          console.log("[EmployerAuth] Fetching employer profile...");
           const response = await employerService.getEmployerProfile();
           const employer = response.data;
 
@@ -65,22 +56,13 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
           });
           try {
             setCurrentUserId(employer?.id ?? null, "EMPLOYER");
-          } catch (e) {
-            // ignore
-          }
+          } catch (e) {}
         } catch (error) {
-          console.error(
-            "[EmployerAuth] Failed to fetch employer profile:",
-            error
-          );
-          // Token might be invalid, clear auth
           employerTokenUtils.clearAuth();
           dispatch({ type: "CLEAR_EMPLOYER" });
           try {
             setCurrentUserId(null, "EMPLOYER");
-          } catch (e) {
-            // ignore
-          }
+          } catch (e) {}
         }
       } else {
         dispatch({ type: "SET_LOADING", payload: false });
@@ -89,7 +71,6 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
 
     initAuth();
 
-    // Listen for storage changes (e.g., logout in another tab)
     const handleStorageChange = () => {
       const accessToken = employerTokenUtils.getAccessToken();
 
@@ -97,9 +78,7 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
         dispatch({ type: "CLEAR_EMPLOYER" });
         try {
           setCurrentUserId(null, "EMPLOYER");
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
       }
     };
 
@@ -108,7 +87,7 @@ export const EmployerAuthProvider: React.FC<EmployerAuthProviderProps> = ({
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [location.pathname, state.isAuthenticated, state.employer]); // Run when pathname changes or auth state changes
+  }, [location.pathname, state.isAuthenticated, state.employer]);
 
   return (
     <EmployerAuthContext.Provider value={{ state, dispatch }}>

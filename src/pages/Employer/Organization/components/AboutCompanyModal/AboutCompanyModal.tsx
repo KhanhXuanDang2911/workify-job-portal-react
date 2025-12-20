@@ -46,7 +46,6 @@ function AboutCompanyModal() {
   const handleSave = (onClose: () => void) => {
     const cleanContent = aboutContent !== "<p><br></p>" ? aboutContent : "";
     if (employerData) {
-      // Validate phoneNumber before sending
       if (!employerData.phoneNumber || employerData.phoneNumber.trim() === "") {
         toast.error(t("toast.error.updateProfileFailed"));
         return;

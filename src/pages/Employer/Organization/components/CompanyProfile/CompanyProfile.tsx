@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CompanyBannerModal from "@/pages/Employer/Organization/components/CompanyBannerModal";
 import CompanyInformationModal from "@/pages/Employer/Organization/components/CompanyInformationModal";
-// sort select removed; pagination implemented instead
 import AboutCompanyModal from "@/pages/Employer/Organization/components/AboutCompanyModal";
 import { useNavigate } from "react-router-dom";
 import { employerService, jobService } from "@/services";
@@ -38,7 +37,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -62,7 +60,6 @@ export default function CompanyProfile() {
   const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
   const [showAvatarHover, setShowAvatarHover] = useState(false);
   const [showEditCoverMenu, setShowEditCoverMenu] = useState(false);
-  // pagination for hiring jobs (API uses 1-based pageNumber)
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 5;
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +72,6 @@ export default function CompanyProfile() {
     },
   });
 
-  // Get current hiring jobs - only fetch when employer data is loaded
   const {
     data: hiringJobsData,
     isLoading: isLoadingJobs,

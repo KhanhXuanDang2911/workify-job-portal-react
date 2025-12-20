@@ -65,7 +65,6 @@ export default function EmployerManagement() {
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Initialize state from URL params
   const [pageNumber, setPageNumber] = useState(
     Number(searchParams.get("pageNumber")) || 1
   );
@@ -97,7 +96,6 @@ export default function EmployerManagement() {
 
   const [searchProvince, setSearchProvince] = useState("");
 
-  // Sync state to URL params
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));
@@ -176,7 +174,7 @@ export default function EmployerManagement() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -224,7 +222,7 @@ export default function EmployerManagement() {
     setPageNumber(1);
     setPageSize(10);
     setProvinceId(undefined);
-    // setCompanySize(undefined);
+
     setSorts([]);
   };
 

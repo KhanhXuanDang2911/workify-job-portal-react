@@ -31,7 +31,6 @@ interface PipelineColumn {
   applications: ApplicationResponse[];
 }
 
-// Map ApplicationStatus to pipeline column
 const getPipelineColumn = (
   status: ApplicationStatus
 ): { id: string; title: string; color: string } => {
@@ -94,7 +93,6 @@ const getPipelineColumn = (
   );
 };
 
-// Format relative time
 const relativePosted = (dateString?: string): string => {
   if (!dateString) return "";
   try {
@@ -126,11 +124,9 @@ export default function PipelineView({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  // Group applications by status
   const pipelineColumns = useMemo(() => {
     const columnsMap = new Map<string, PipelineColumn>();
 
-    // Initialize all possible columns
     const allStatuses: ApplicationStatus[] = [
       ApplicationStatus.UNREAD,
       ApplicationStatus.VIEWED,
@@ -154,7 +150,6 @@ export default function PipelineView({
       });
     });
 
-    // Group applications by status
     applications.forEach((application) => {
       const status = application.status;
       const column = columnsMap.get(status);
@@ -164,7 +159,6 @@ export default function PipelineView({
       }
     });
 
-    // Filter out empty columns
     return Array.from(columnsMap.values()).filter((col) => col.count > 0);
   }, [applications]);
 

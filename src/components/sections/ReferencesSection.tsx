@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { ReferenceItem } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import RichTextEditor from "@/components/RichTextEditor";
 
 interface ReferenceItemType extends ReferenceItem {
@@ -50,7 +50,6 @@ export default function ReferencesSection() {
     }));
   });
 
-  // Sync local state with context when resume.references changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {
@@ -109,7 +108,7 @@ export default function ReferencesSection() {
   };
 
   const saveItem = (data: Omit<ReferenceItemType, "order">) => {
-    let updatedItems = [...items];
+    const updatedItems = [...items];
     if (editingIndex !== null) {
       updatedItems[editingIndex] = { ...updatedItems[editingIndex], ...data };
     } else {

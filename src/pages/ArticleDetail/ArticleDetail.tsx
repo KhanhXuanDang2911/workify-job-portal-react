@@ -22,7 +22,8 @@ import type { PostResponse, PostCategory } from "@/types/post.type";
 import type { JobResponse } from "@/types/job.type";
 import { JobTypeLabelVN } from "@/constants/job.constant";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 interface TOCItem {
   id: string;
@@ -38,7 +39,6 @@ export default function ArticleDetail() {
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
   const [activeSection, setActiveSection] = useState<string>("");
 
-  // Fetch article by ID
   const {
     data: articleResponse,
     isLoading: isLoadingArticle,
@@ -51,7 +51,6 @@ export default function ArticleDetail() {
 
   const articleData: PostResponse | undefined = articleResponse?.data;
 
-  // Fetch categories
   const {
     data: categoriesResponse,
     isLoading: isLoadingCategories,
@@ -65,7 +64,6 @@ export default function ArticleDetail() {
 
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
-  // Fetch latest articles for Recent Articles section
   const {
     data: latestPostsResponse,
     isLoading: isLoadingRecent,
@@ -78,7 +76,6 @@ export default function ArticleDetail() {
   });
 
   const handleCategoryClick = (categoryId: number | null) => {
-    // Navigate to articles page with category filter
     if (categoryId) {
       navigate(`/${routes.ARTICLES}?categoryId=${categoryId}`);
     } else {
@@ -86,7 +83,6 @@ export default function ArticleDetail() {
     }
   };
 
-  // Map latest posts to recent articles format
   const recentArticles = Array.isArray(latestPostsResponse?.data)
     ? latestPostsResponse.data.map((post: PostResponse) => ({
         id: post.id,
@@ -102,7 +98,6 @@ export default function ArticleDetail() {
       }))
     : [];
 
-  // Helper functions for job mapping
   const formatSalary = (job: JobResponse): string => {
     try {
       if (job.salaryType === "RANGE") {
@@ -133,7 +128,6 @@ export default function ArticleDetail() {
     return "bg-blue-500";
   };
 
-  // Fetch top attractive jobs for suggestions
   const userIndustryId = userAuth?.user?.industry?.id;
 
   const {
@@ -170,13 +164,11 @@ export default function ArticleDetail() {
     });
   }, [topAttractiveResponse]);
 
-  // Parse tags from string
   const tags =
     articleData?.tags && typeof articleData.tags === "string"
       ? articleData.tags.split("|").filter((tag) => tag.trim())
       : [];
 
-  // Process HTML content to add IDs to headings and generate TOC
   const processedContent = articleData?.content
     ? (() => {
         let headingIndex = 0;
@@ -188,11 +180,9 @@ export default function ArticleDetail() {
       })()
     : "";
 
-  // Generate table of contents from processed HTML content
   useEffect(() => {
     if (!processedContent) return;
 
-    // Wait for content to be rendered in DOM
     const timer = setTimeout(() => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(processedContent, "text/html");
@@ -217,14 +207,12 @@ export default function ArticleDetail() {
   }, [processedContent]);
 
   const handleTOCClick = (id: string) => {
-    // Prevent default if it's a button click
     const scrollToHeading = () => {
       const element = document.getElementById(id);
       if (element) {
-        // Calculate position with offset
         const elementTop =
           element.getBoundingClientRect().top + window.pageYOffset;
-        const offset = 100; // 100px above the heading
+        const offset = 100;
         const targetPosition = elementTop - offset;
 
         window.scrollTo({
@@ -237,25 +225,19 @@ export default function ArticleDetail() {
       return false;
     };
 
-    // Try immediately first
     if (!scrollToHeading()) {
-      // If element not found, wait for DOM to update
       setTimeout(() => {
         if (!scrollToHeading()) {
-          // Last retry after longer delay
           setTimeout(scrollToHeading, 300);
         }
       }, 100);
     }
   };
 
-  // Copy link functionality
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    // You could add a toast notification here
   };
 
-  // Format article data
   const article = articleData
     ? {
         title: articleData.title,
@@ -311,6 +293,7 @@ export default function ArticleDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {article && <PageTitle title={article.title} />}
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 rounded-full blur-3xl animate-pulse"></div>
@@ -326,22 +309,8 @@ export default function ArticleDetail() {
       </div>
 
       <div className="main-layout relative z-10 py-8">
-        {/* Header with back button */}
-        {/* <div className="flex items-center mb-8">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white"
-            onClick={() => navigate("/articles")}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Articles
-          </Button>
-        </div> */}
-
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Main content */}
           <div className="lg:col-span-3">
-            {/* Article header */}
             <div className="bg-white/80 backdrop-blur-sm p-8 shadow-lg border border-gray-100 mb-8">
               <div className="flex items-center gap-4 mb-4">
                 <Badge className="bg-[#1967d2] text-white">
@@ -360,7 +329,6 @@ export default function ArticleDetail() {
                 {article.title}
               </h1>
 
-              {/* Author info and social sharing */}
               <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -489,7 +457,6 @@ export default function ArticleDetail() {
               )}
             </div>
 
-            {/* Recent Articles */}
             <div className="bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-[#1967d2] mb-4">
                 {t("articleDetail.recentArticle")}
@@ -544,10 +511,8 @@ export default function ArticleDetail() {
               )}
             </div>
 
-            {/* Tags - only show if there are tags */}
             {tags.length > 0 && <TagsSidebar tags={tags} />}
 
-            {/* Suggested Jobs */}
             <div>
               {isLoadingJobs ? (
                 <div className="flex items-center justify-center py-8">

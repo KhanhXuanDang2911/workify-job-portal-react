@@ -4,7 +4,7 @@ import InfoIcon from "@/assets/icons/InfoIcon";
 import InstagramIcon from "@/assets/icons/InstagramIcon";
 import LinkedinIcon from "@/assets/icons/LinkedinIcon";
 import YoutubeIcon from "@/assets/icons/YoutubeIcon";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import type { CustomFieldType } from "@/types/resume.type";
@@ -52,7 +52,7 @@ function BasicInformationSection() {
         [field]: value,
       },
     });
-    // Clear validation error when user starts typing
+
     if (field === "fullName" && validationErrors.fullName) {
       setValidationErrors((prev) => ({ ...prev, fullName: false }));
     }
@@ -142,10 +142,8 @@ function BasicInformationSection() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Store the file for upload
     setAvatarFile(file);
 
-    // Create preview URL for displaying in the UI
     const previewUrl = URL.createObjectURL(file);
     setResume({
       ...resume,

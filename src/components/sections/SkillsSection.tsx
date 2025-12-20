@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { SkillItem } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 
 interface SkillItemType extends SkillItem {
   visible: boolean;
@@ -49,7 +49,6 @@ export default function SkillsSection() {
     }));
   });
 
-  // Sync local state with context when resume.skills changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {

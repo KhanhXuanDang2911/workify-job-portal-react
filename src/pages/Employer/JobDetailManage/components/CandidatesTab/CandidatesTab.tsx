@@ -43,7 +43,7 @@ export default function CandidatesTab() {
         receivedWithin: receivedWithin,
       }),
     enabled: !!jobId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
 
   const applications = applicationsResponse?.data?.items || [];

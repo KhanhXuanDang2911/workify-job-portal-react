@@ -28,7 +28,7 @@ function TabsAnimation({
   tabsBoxPadding,
 }: TabsAnimationProps) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const tabIndicatorRef = useRef<HTMLDivElement>(null); //flag giữ chỗ
+  const tabIndicatorRef = useRef<HTMLDivElement>(null);
 
   const moveIndicatorTo = (tabId: string, duration = 0.3) => {
     const btn = tabRefs.current.find((el) => el?.dataset.id === tabId);

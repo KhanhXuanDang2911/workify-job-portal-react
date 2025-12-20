@@ -12,36 +12,26 @@ interface SmartSearchOptions {
   provinces: Province[];
   industries: Industry[];
 }
-
-/**
- * Extract job search parameters from natural language input using Gemini AI
- */
 export const extractSearchParams = async (
   userInput: string,
   options: SmartSearchOptions
 ): Promise<Partial<JobsAdvancedSearchParams>> => {
   const { provinces, industries } = options;
 
-  // Build prompt with all available enum values and reference data
   const prompt = buildExtractionPrompt(userInput, provinces, industries);
 
   try {
-    // Call Gemini API
     const response = await callGeminiAPI(prompt);
 
-    // Parse and validate response
     const extractedParams = parseGeminiResponse(response);
 
     return extractedParams;
   } catch (error) {
-    console.error("Error extracting search params from Gemini:", error);
+    // ignore
     throw error;
   }
 };
 
-/**
- * Build comprehensive prompt for Gemini to extract search parameters
- */
 const buildExtractionPrompt = (
   userInput: string,
   provinces: Province[],
@@ -179,13 +169,7 @@ OUTPUT FORMAT (MUST be valid JSON object, no markdown, no code blocks, no explan
 CRITICAL: Return ONLY valid JSON object. Do not wrap in markdown code blocks. Do not add explanations. Return null for parameters that cannot be extracted. Return arrays for multi-value parameters.`;
 };
 
-/**
- * Call Gemini API to extract parameters
- * Supports multiple API keys with fallback mechanism
- */
 const callGeminiAPI = async (prompt: string): Promise<string> => {
-  // Get all available API keys
-  // We access them explicitly to ensure Vite static analysis picks them up
   const apiKeys = [
     import.meta.env.VITE_GEMINI_API_KEY,
     import.meta.env.VITE_GEMINI_API_KEY_1,
@@ -199,48 +183,29 @@ const callGeminiAPI = async (prompt: string): Promise<string> => {
     );
   }
 
-  console.log(
-    `[Gemini API] Found ${apiKeys.length} API key(s), attempting request...`
-  );
-
   let lastError: any;
 
-  // Try each key sequentially
   for (let i = 0; i < apiKeys.length; i++) {
     const apiKey = apiKeys[i];
     const keyIndex = i === 0 ? "primary" : `backup-${i}`;
 
     try {
-      console.log(
-        `[Gemini API] Attempting with ${keyIndex} key (ending in ...${apiKey.slice(-4)})`
-      );
       const result = await callGeminiAPIWithKey(prompt, apiKey);
-      console.log(`[Gemini API] Success with ${keyIndex} key`);
       return result;
     } catch (error) {
-      console.warn(
-        `[Gemini API] Failed with ${keyIndex} key (ending in ...${apiKey.slice(-4)}):`,
-        error instanceof Error ? error.message : error
-      );
       lastError = error;
 
-      // If not the last key, try next one
       if (i < apiKeys.length - 1) {
-        console.log(`[Gemini API] Trying next API key...`);
+        // ignore
       }
     }
   }
 
-  // If we get here, all keys failed
-  console.error("[Gemini API] All API keys failed");
   throw (
     lastError || new Error("Failed to call Gemini API with any available key")
   );
 };
 
-/**
- * Call Gemini API with a specific API key
- */
 const callGeminiAPIWithKey = async (
   prompt: string,
   apiKey: string
@@ -282,26 +247,19 @@ const callGeminiAPIWithKey = async (
   return text.trim();
 };
 
-/**
- * Parse and validate Gemini response
- */
 const parseGeminiResponse = (
   response: string
 ): Partial<JobsAdvancedSearchParams> => {
-  // Extract JSON from response (might be wrapped in markdown code blocks)
   let jsonString = response.trim();
 
-  // Remove markdown code blocks if present
   jsonString = jsonString.replace(/```json\n?/g, "").replace(/```\n?/g, "");
   jsonString = jsonString.trim();
 
   try {
     const parsed = JSON.parse(jsonString);
 
-    // Validate and clean the parsed object
     const validated: Partial<JobsAdvancedSearchParams> = {};
 
-    // Validate keyword
     if (
       parsed.keyword &&
       typeof parsed.keyword === "string" &&
@@ -310,21 +268,18 @@ const parseGeminiResponse = (
       validated.keyword = parsed.keyword.trim();
     }
 
-    // Validate provinceIds
     if (Array.isArray(parsed.provinceIds) && parsed.provinceIds.length > 0) {
       validated.provinceIds = parsed.provinceIds
         .filter((id: unknown) => typeof id === "number" && id > 0)
         .map((id: number) => Number(id));
     }
 
-    // Validate industryIds
     if (Array.isArray(parsed.industryIds) && parsed.industryIds.length > 0) {
       validated.industryIds = parsed.industryIds
         .filter((id: unknown) => typeof id === "number" && id > 0)
         .map((id: number) => Number(id));
     }
 
-    // Validate jobLevels
     if (Array.isArray(parsed.jobLevels) && parsed.jobLevels.length > 0) {
       const validJobLevels = Object.values(JobLevel);
       validated.jobLevels = parsed.jobLevels.filter((level: string) =>
@@ -334,7 +289,6 @@ const parseGeminiResponse = (
       );
     }
 
-    // Validate experienceLevels
     if (
       Array.isArray(parsed.experienceLevels) &&
       parsed.experienceLevels.length > 0
@@ -348,7 +302,6 @@ const parseGeminiResponse = (
       );
     }
 
-    // Validate educationLevels
     if (
       Array.isArray(parsed.educationLevels) &&
       parsed.educationLevels.length > 0
@@ -362,7 +315,6 @@ const parseGeminiResponse = (
       );
     }
 
-    // Validate jobTypes
     if (Array.isArray(parsed.jobTypes) && parsed.jobTypes.length > 0) {
       const validJobTypes = Object.values(JobType);
       validated.jobTypes = parsed.jobTypes.filter((type: string) =>
@@ -370,7 +322,6 @@ const parseGeminiResponse = (
       );
     }
 
-    // Validate postedWithinDays
     if (typeof parsed.postedWithinDays === "number") {
       const validDays = [1, 3, 7, 14, 30];
       if (validDays.includes(parsed.postedWithinDays)) {
@@ -378,24 +329,20 @@ const parseGeminiResponse = (
       }
     }
 
-    // Validate minSalary
     if (typeof parsed.minSalary === "number" && parsed.minSalary > 0) {
       validated.minSalary = parsed.minSalary;
     }
 
-    // Validate maxSalary
     if (typeof parsed.maxSalary === "number" && parsed.maxSalary > 0) {
       validated.maxSalary = parsed.maxSalary;
     }
 
-    // Validate salaryUnit (only if salary is present)
     if ((validated.minSalary || validated.maxSalary) && parsed.salaryUnit) {
       if (parsed.salaryUnit === "VND" || parsed.salaryUnit === "USD") {
         validated.salaryUnit = parsed.salaryUnit;
       }
     }
 
-    // Validate sort
     if (typeof parsed.sort === "string" && parsed.sort.includes(":")) {
       const [field, direction] = parsed.sort.split(":");
       const validFields = ["createdAt", "updatedAt", "expirationDate"];
@@ -408,8 +355,6 @@ const parseGeminiResponse = (
 
     return validated;
   } catch (error) {
-    console.error("Error parsing Gemini response:", error);
-    console.error("Response text:", response);
     throw new Error("Failed to parse response from Gemini API");
   }
 };

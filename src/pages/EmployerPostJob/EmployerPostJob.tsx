@@ -68,7 +68,7 @@ import type {
   Province,
   Industry,
 } from "@/types";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { useIndustries } from "@/hooks/industry/useIndustries";
 import { useProvinces } from "@/hooks/province/useProvinces";
 import { useDistrictsByProvinceId } from "@/hooks/district/useDistrictsByProvinceId";
@@ -84,6 +84,7 @@ import type {
 } from "@/components/JobInformation/JobInformation";
 import { employer_routes } from "@/routes/routes.const";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 type SectionType =
   | "header"
@@ -109,7 +110,6 @@ function EmployerPostJob() {
   const { data: industriesResponse, isFetching: isFetchingIndustries } =
     useIndustries();
 
-  // Ensure industries is always an array
   const industries = Array.isArray(industriesResponse)
     ? industriesResponse
     : (industriesResponse as any)?.data &&
@@ -125,7 +125,6 @@ function EmployerPostJob() {
   const { state } = useEmployerAuth();
   const employer = state.employer;
 
-  // Calculate expiration date: 2 months from today
   const getExpirationDate = (): string => {
     const today = new Date();
     const expirationDate = new Date(today);
@@ -152,13 +151,11 @@ function EmployerPostJob() {
     resolver: zodResolver(postJobSchema) as Resolver<PostJobFormData>,
     mode: "onSubmit",
     defaultValues: {
-      // --- Company Information ---
       companyName: "",
       companySize: jobData?.companySize,
       companyWebsite: "",
       aboutCompany: "",
 
-      // --- Job Info ---
       jobTitle: "",
       jobLocations: [],
       salaryType: jobData?.salaryType,
@@ -169,7 +166,6 @@ function EmployerPostJob() {
       requirement: "",
       jobBenefits: [],
 
-      // --- Job Details ---
       educationLevel: jobData?.educationLevel,
       experienceLevel: jobData?.experienceLevel,
       jobLevel: jobData?.jobLevel,
@@ -181,7 +177,6 @@ function EmployerPostJob() {
       minAge: undefined,
       maxAge: undefined,
 
-      // --- Contact ---
       contactPerson: "",
       phoneNumber: "",
       contactLocation: {
@@ -193,7 +188,6 @@ function EmployerPostJob() {
       },
       description: "",
 
-      // --- Other ---
       expirationDate: getExpirationDate(),
     },
   });
@@ -205,7 +199,6 @@ function EmployerPostJob() {
     }
   }, [error, navigate]);
 
-  // Tạo job
   const createJobMutation = useMutation({
     mutationFn: async (data: JobRequest) => {
       return jobService.createJob(data);
@@ -219,7 +212,6 @@ function EmployerPostJob() {
       toast.error(t("toast.error.postJobFailed"));
     },
   });
-  // Cập nhật job
   const updateJobMutation = useMutation({
     mutationFn: async (data: JobRequest) => {
       return jobService.updateJob(Number(jobId), data);
@@ -235,7 +227,6 @@ function EmployerPostJob() {
     },
   });
 
-  // Modal form cho job locations
   const modalJobLocationsForm = useForm<{
     jobLocations: LocationFormData[];
   }>({
@@ -256,7 +247,6 @@ function EmployerPostJob() {
   const main_jobLocations: LocationFormData[] =
     mainForm.watch("jobLocations") || [];
 
-  // Modal form cho contact location
   const modalContactLocationForm = useForm<{
     contactLocation: LocationFormData;
   }>({
@@ -267,7 +257,6 @@ function EmployerPostJob() {
     ),
     mode: "onChange",
   });
-  // Modal form cho benefits
   const modalBenefitForm = useForm<{ benefits: JobBenefitFormData[] }>({
     resolver: zodResolver(
       z.object({
@@ -314,7 +303,6 @@ function EmployerPostJob() {
       });
     }
   };
-  //1234
   useLayoutEffect(() => {
     if (isEditMode && jobData) {
       const job = jobData;
@@ -434,7 +422,6 @@ function EmployerPostJob() {
 
   const onError = (errors: any) => {
     toast.error(t("employer.postJob.pleaseCheckInputDetails"));
-    console.log(errors);
   };
   const handleOpenModalEditJobLocations = () => {
     modalJobLocationsForm.reset({
@@ -534,7 +521,6 @@ function EmployerPostJob() {
     formData: PostJobFormData
   ): { job: JobProp; hideActionButtons: boolean } => {
     const job: JobProp = {
-      //header
       isNew: true,
       companyBanner:
         employer?.backgroundUrl ||
@@ -565,16 +551,12 @@ function EmployerPostJob() {
       },
       expirationDate: formData.expirationDate,
 
-      // Description
       jobDescription: formData.jobDescription,
 
-      // Benefit
       jobBenefits: formData.jobBenefits,
 
-      // Requirement
       requirement: formData.requirement,
 
-      // Job details
       jobType: formData.jobType,
       jobLevel: formData.jobLevel,
       educationLevel: formData.educationLevel,
@@ -587,7 +569,6 @@ function EmployerPostJob() {
       },
       industries: formData.industries,
 
-      // Contact
       contactPerson: formData.contactPerson || "Contact Person",
       phoneNumber: formData.phoneNumber || "Phone Number",
       contactLocation: {
@@ -606,19 +587,22 @@ function EmployerPostJob() {
       },
       description: formData.description,
 
-      // Company Information
       companySize: formData.companySize,
       aboutCompany: formData.aboutCompany || "About Company",
     };
 
     return { job, hideActionButtons: true };
   };
-  // const previewData = getPreviewData(watchedValues);
-
-  // console.log("previewData: ",previewData);
 
   return (
     <main className="relative flex flex-col flex-1 bg-sky-50 min-h-screen">
+      <PageTitle
+        title={
+          isEditMode
+            ? t("employer.postJob.editJob")
+            : t("employer.postJob.postJob")
+        }
+      />
       {/* Header cố định trên cùng */}
       <div className="sticky top-0 z-20 py-3 bg-white border-b border-gray-200 flex-shrink-0">
         <h1 className="text-3xl font-medium p-2 text-center text-[#1967d2]">
@@ -647,12 +631,10 @@ function EmployerPostJob() {
                 className="space-y-6"
                 onSubmit={mainForm.handleSubmit(onSubmit, onError)}
               >
-                {/* Company Information */}
                 <div>
                   <label className="block text-2xl text-[#1967d2] font-medium mb-2">
                     {t("employer.postJob.companyInformation")}
                   </label>
-                  {/*  Company Name */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
                       {t("employer.postJob.companyName")}{" "}
@@ -660,7 +642,6 @@ function EmployerPostJob() {
                     </label>
                     <Input
                       {...mainForm.register("companyName")}
-                      // disabled
                       placeholder={t("employer.postJob.companyNamePlaceholder")}
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("companyInformation")}
@@ -671,7 +652,6 @@ function EmployerPostJob() {
                       </span>
                     )}
                   </div>
-                  {/*  Company Size */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
                       {t("employer.postJob.companySize")}{" "}
@@ -719,14 +699,12 @@ function EmployerPostJob() {
                       </span>
                     )}
                   </div>
-                  {/* Company Website */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
                       {t("employer.postJob.companyWebsite")}
                     </label>
                     <Input
                       {...mainForm.register("companyWebsite")}
-                      // disabled
                       placeholder="Company Website"
                       className="focus-visible:border-none focus-visible:ring-1 focus-visible:ring-[#1967d2]"
                       onFocus={() => handleFieldFocus("header")}
@@ -739,7 +717,6 @@ function EmployerPostJob() {
                       </span>
                     )}
                   </div>
-                  {/* About Company */}
                   <div className="mb-4">
                     <label className="block mb-1 text-sm font-medium">
                       {t("employer.postJob.aboutCompany")}{" "}
@@ -751,7 +728,6 @@ function EmployerPostJob() {
                       render={({ field }) => (
                         <ReactQuill
                           theme="snow"
-                          // readOnly
                           value={field.value}
                           onChange={field.onChange}
                           className="bg-white [&_.ql-editor]:min-h-[150px] [&_.ql-editor]:max-h-[160px] [&_.ql-editor]:overflow-y-auto"

@@ -1,25 +1,18 @@
-/**
- * Format số tiền ngắn gọn với đơn vị K (nghìn) và M (triệu)
- * @param amount - Số tiền cần format
- * @param unit - Đơn vị tiền tệ (VND hoặc USD)
- * @returns Chuỗi đã format (ví dụ: "20M VND", "1.2K USD")
- */
 export const formatCompactSalary = (
   amount: number,
   unit: "VND" | "USD"
 ): string => {
   if (unit === "VND") {
-    // VND: M (triệu) cho >= 1.000.000
     if (amount >= 1_000_000) {
       const millions = amount / 1_000_000;
-      // Nếu là số nguyên, không hiển thị phần thập phân
+
       if (millions % 1 === 0) {
         return `${millions}M VND`;
       }
-      // Làm tròn đến 1 chữ số thập phân
+
       return `${millions.toFixed(1)}M VND`;
     }
-    // VND: K (nghìn) cho >= 1.000 và < 1.000.000
+
     if (amount >= 1_000) {
       const thousands = amount / 1_000;
       if (thousands % 1 === 0) {
@@ -27,10 +20,9 @@ export const formatCompactSalary = (
       }
       return `${thousands.toFixed(1)}K VND`;
     }
-    // < 1.000: giữ nguyên
+
     return `${amount.toLocaleString("vi-VN")} VND`;
   } else {
-    // USD: M (triệu) cho >= 1.000.000
     if (amount >= 1_000_000) {
       const millions = amount / 1_000_000;
       if (millions % 1 === 0) {
@@ -38,7 +30,7 @@ export const formatCompactSalary = (
       }
       return `${millions.toFixed(1)}M USD`;
     }
-    // USD: K (nghìn) cho >= 1.000 và < 1.000.000
+
     if (amount >= 1_000) {
       const thousands = amount / 1_000;
       if (thousands % 1 === 0) {
@@ -46,17 +38,11 @@ export const formatCompactSalary = (
       }
       return `${thousands.toFixed(1)}K USD`;
     }
-    // < 1.000: giữ nguyên
+
     return `${amount.toLocaleString("en-US")} USD`;
   }
 };
 
-/**
- * Format lương từ JobResponse với format ngắn gọn
- * @param job - JobResponse object
- * @param t - Translation function
- * @returns Chuỗi lương đã format
- */
 export const formatSalaryCompact = (
   job: {
     salaryType: string;

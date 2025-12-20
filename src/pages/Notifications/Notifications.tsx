@@ -3,13 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import Pagination from "@/components/Pagination";
 import { Bell, Check, User, FileText, CheckCheck } from "lucide-react";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import { notificationService } from "@/services";
 import type { NotificationType } from "@/types/notification.type";
 import Loading from "@/components/Loading";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Map notification type to icon
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case "NEW_APPLICATION":
@@ -27,7 +26,6 @@ export default function Notifications() {
   const { markAsRead: wsMarkAsRead, markAllAsRead: wsMarkAllAsRead } =
     useWebSocket();
 
-  // Format relative time
   const relativeTime = (dateString?: string): string => {
     if (!dateString) return "";
     try {
@@ -55,7 +53,6 @@ export default function Notifications() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Fetch notifications from API
   const { data: notificationsResponse, isLoading } = useQuery({
     queryKey: ["notifications", currentPage, pageSize],
     queryFn: () =>
@@ -63,17 +60,15 @@ export default function Notifications() {
         pageNumber: currentPage,
         pageSize: pageSize,
       }),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Fetch unread count
   const { data: unreadCountResponse } = useQuery({
     queryKey: ["notifications-unread-count"],
     queryFn: () => notificationService.getUnreadCount(),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id: number) => notificationService.markAsRead(id),
     onSuccess: () => {
@@ -84,7 +79,6 @@ export default function Notifications() {
     },
   });
 
-  // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
     onSuccess: () => {
@@ -96,11 +90,9 @@ export default function Notifications() {
     },
   });
 
-  // Use API notifications only for pagination (WebSocket notifications are shown in dropdown)
   const apiNotifications = notificationsResponse?.data?.items || [];
   const allNotifications = apiNotifications;
 
-  // Use unread count from API (more accurate)
   const unreadCount = unreadCountResponse?.data ?? 0;
   const totalPages = notificationsResponse?.data?.totalPages || 0;
   const totalItems = notificationsResponse?.data?.items?.length || 0;

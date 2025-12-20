@@ -25,6 +25,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { getFontFamilyName } from "@/utils/font.utils";
 
 import { Loader2, Share2, Copy, Check, Globe } from "lucide-react";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -34,17 +35,14 @@ const MyResume = () => {
   const [createdResumes, setCreatedResumes] = useState<ResumeItem[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
-  // Delete Dialog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<number | null>(null);
 
-  // Share Dialog State
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [resumeToShare, setResumeToShare] = useState<ResumeItem | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // PDF Download State
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [resumeToDownload, setResumeToDownload] = useState<ResumeItem | null>(
     null
@@ -65,9 +63,7 @@ const MyResume = () => {
         setCreatedResumes(res.data.items);
         setTotalPages(res.data.totalPages);
       }
-    } catch (error) {
-      console.error("Failed to fetch resumes", error);
-    }
+    } catch (error) {}
   };
 
   const handlePageChange = (page: number) => {
@@ -79,7 +75,6 @@ const MyResume = () => {
     setDownloadingId(resume.id);
     setResumeToDownload(resume);
 
-    // Wait for the template to render
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const element = downloadRef.current;
@@ -91,10 +86,9 @@ const MyResume = () => {
     }
 
     try {
-      // Convert all images to base64 BEFORE calling toPng
       const images = element.querySelectorAll("img");
       const imagePromises = Array.from(images).map(async (img) => {
-        if (img.src.startsWith("data:")) return; // Already base64
+        if (img.src.startsWith("data:")) return;
 
         try {
           const response = await fetch(img.src);
@@ -105,47 +99,37 @@ const MyResume = () => {
             reader.readAsDataURL(blob);
           });
           img.src = base64;
-        } catch (e) {
-          console.warn("Failed to convert image to base64:", img.src, e);
-        }
+        } catch (e) {}
       });
 
       await Promise.all(imagePromises);
 
-      // Use PNG for lossless quality with good compression for text/graphics
-      // pixelRatio 2.5 for sharper text while keeping file size reasonable
       const dataUrl = await toPng(element, {
-        pixelRatio: 2.5, // 2.5x resolution - sharper than 2x, smaller than 3x
+        pixelRatio: 2.5,
         backgroundColor: "#ffffff",
-        cacheBust: false, // Don't bust cache since we already converted images
+        cacheBust: false,
       });
 
       const img = new Image();
       img.src = dataUrl;
 
       img.onload = () => {
-        // A4 dimensions in pt: 595.28 x 841.89
         const A4_WIDTH = 595.28;
         const A4_HEIGHT = 841.89;
 
-        // Image dimensions (at 2.5x pixelRatio, divide by 2.5 to get actual size)
         const imgWidth = img.width / 2.5;
         const imgHeight = img.height / 2.5;
 
-        // Scale to fit A4 width
         const scale = A4_WIDTH / imgWidth;
         const scaledHeight = imgHeight * scale;
 
-        // Create PDF with custom page height to fit entire content without breaking
-        // This prevents content from being cut off at page boundaries
         const pdf = new jsPDF({
           orientation: "portrait",
           unit: "pt",
-          format: [A4_WIDTH, Math.max(scaledHeight, A4_HEIGHT)], // Custom page size
+          format: [A4_WIDTH, Math.max(scaledHeight, A4_HEIGHT)],
           compress: true,
         });
 
-        // Add the entire image in one piece - no page breaks
         pdf.addImage(
           img,
           "PNG",
@@ -168,7 +152,6 @@ const MyResume = () => {
         setResumeToDownload(null);
       };
     } catch (error) {
-      console.error("Error exporting PDF:", error);
       toast.error(t("toast.error.downloadPdfFailed"));
       setDownloadingId(null);
       setResumeToDownload(null);
@@ -176,7 +159,6 @@ const MyResume = () => {
   };
 
   const handleCreateNew = () => {
-    // Navigate to templates page to choose a template
     navigate("/templates-cv");
   };
 
@@ -208,7 +190,6 @@ const MyResume = () => {
     navigate(`/${routes.VIEW_RESUME}/${id}`);
   };
 
-  // Share logic
   const handleShare = (resume: ResumeItem) => {
     setResumeToShare(resume);
     setShareDialogOpen(true);
@@ -228,7 +209,7 @@ const MyResume = () => {
 
       if (res.data) {
         setResumeToShare(res.data);
-        // Update list
+
         setCreatedResumes((prev) =>
           prev.map((r) => (r.id === res.data!.id ? res.data! : r))
         );
@@ -265,6 +246,7 @@ const MyResume = () => {
           "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
       }}
     >
+      <PageTitle title={t("pageTitles.myResume")} />
       {/* Sidebar */}
       <div className="lg:ml-5 lg:my-4 w-full lg:w-64 flex-shrink-0">
         <UserSideBar />
@@ -479,7 +461,7 @@ const MyResume = () => {
           <div
             ref={downloadRef}
             style={{
-              width: "900px", // Match template width (900px as used in TemplatePanda)
+              width: "900px",
               backgroundColor: "#ffffff",
               fontFamily: getFontFamilyName(resumeToDownload.fontFamily),
             }}

@@ -9,14 +9,12 @@ import type {
 } from "@/types";
 
 export const provinceService = {
-  // Public: Get all provinces
   getProvinces: async (): Promise<ApiResponse<Province[]>> => {
     const response =
       await publicHttp.get<ApiResponse<Province[]>>("/provinces");
     return response.data;
   },
 
-  // Public: Get provinces with filters
   getProvincesWithFilters: async (
     params: SearchParams
   ): Promise<ApiResponse<PageResponse<Province>>> => {
@@ -27,7 +25,6 @@ export const provinceService = {
     return response.data;
   },
 
-  // Public: Get province by ID
   getProvinceById: async (id: number): Promise<ApiResponse<Province>> => {
     const response = await publicHttp.get<ApiResponse<Province>>(
       `/provinces/${id}`
@@ -35,7 +32,6 @@ export const provinceService = {
     return response.data;
   },
 
-  // Admin: Create province
   createProvince: async (data: {
     name: string;
     engName: string;
@@ -48,7 +44,6 @@ export const provinceService = {
     return response.data;
   },
 
-  // Admin: Update province
   updateProvince: async (
     id: number,
     data: { name?: string; engName?: string; code?: string }
@@ -60,7 +55,6 @@ export const provinceService = {
     return response.data;
   },
 
-  // Admin: Delete province
   deleteProvince: async (id: number): Promise<ApiResponse<null>> => {
     const response = await userHttp.delete<ApiResponse<null>>(
       `/provinces/${id}`
@@ -70,14 +64,12 @@ export const provinceService = {
 };
 
 export const districtService = {
-  // Public: Get all districts
   getDistricts: async (): Promise<ApiResponse<District[]>> => {
     const response =
       await publicHttp.get<ApiResponse<District[]>>("/districts");
     return response.data;
   },
 
-  // Public: Get districts by province ID
   getDistrictsByProvinceId: async (
     provinceId: number
   ): Promise<ApiResponse<District[]>> => {
@@ -87,7 +79,6 @@ export const districtService = {
     return response.data;
   },
 
-  // Public: Get district by ID
   getDistrictById: async (id: number): Promise<ApiResponse<District>> => {
     const response = await publicHttp.get<ApiResponse<District>>(
       `/districts/${id}`
@@ -95,7 +86,6 @@ export const districtService = {
     return response.data;
   },
 
-  // Admin: Create district
   createDistrict: async (data: {
     name: string;
     code: string;
@@ -108,7 +98,6 @@ export const districtService = {
     return response.data;
   },
 
-  // Admin: Update district
   updateDistrict: async (
     id: number,
     data: { name?: string; code?: string; provinceId?: number }
@@ -120,7 +109,6 @@ export const districtService = {
     return response.data;
   },
 
-  // Admin: Delete district
   deleteDistrict: async (id: number): Promise<ApiResponse<null>> => {
     const response = await userHttp.delete<ApiResponse<null>>(
       `/districts/${id}`

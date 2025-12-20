@@ -64,7 +64,6 @@ export default function UserManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  // Initialize state from URL params
   const [pageNumber, setPageNumber] = useState(
     Number(searchParams.get("pageNumber")) || 1
   );
@@ -89,7 +88,6 @@ export default function UserManagement() {
     });
   });
 
-  // Sync state to URL params
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));

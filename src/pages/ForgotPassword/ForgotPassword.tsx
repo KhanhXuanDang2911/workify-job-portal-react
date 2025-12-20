@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import type { ApiError } from "@/types";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 type ResetMethod = "email" | "sms" | null;
 
@@ -305,6 +306,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen bg-white">
+      <PageTitle title={t("pageTitles.forgotPassword")} />
       {step === "select" && renderSelectMethod()}
       {step === "email" && renderEmailForm()}
       {step === "success" && renderSuccess()}

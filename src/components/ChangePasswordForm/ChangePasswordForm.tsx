@@ -92,7 +92,6 @@ export default function ChangePasswordForm({
       reset();
     },
     onError: (error: any) => {
-      console.log("Change Password errors: ", error);
       const apiError = error.response?.data as ApiError;
 
       if (apiError?.status === 411) {

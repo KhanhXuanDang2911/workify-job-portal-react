@@ -60,7 +60,6 @@ export default function IndustriesTable({
 
   const queryClient = useQueryClient();
 
-  // Reset to page 1 when categoryJobId changes
   useEffect(() => {
     setPageNumber(1);
     setKeyword("");

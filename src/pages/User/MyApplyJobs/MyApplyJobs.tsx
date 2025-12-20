@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import PageTitle from "@/components/PageTitle/PageTitle";
 import {
   MapPin,
   Building2,
@@ -25,9 +26,9 @@ import { JobType } from "@/constants/job.constant";
 import ChatModal from "@/components/Chat/ChatModal";
 import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { toast } from "react-toastify";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 
 interface ApplicationJob {
   id: number;
@@ -44,7 +45,6 @@ interface ApplicationJob {
   applyCount: number;
 }
 
-// Map application status to label and color
 const getStatusInfo = (
   status: ApplicationStatus,
   t: (key: string) => string
@@ -91,7 +91,6 @@ const getStatusInfo = (
   return statusMap[status] || { label: status, color: "bg-gray-500" };
 };
 
-// Relative time
 const relativePosted = (
   dateString?: string,
   t?: (key: string, options?: any) => string
@@ -132,7 +131,6 @@ export default function MyApplyJobs() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Chat modal state
   const [showChatModal, setShowChatModal] = useState(false);
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationResponse | null>(null);
@@ -140,7 +138,6 @@ export default function MyApplyJobs() {
     number | null
   >(null);
 
-  // Handle open chat
   const handleOpenChat = async (
     applicationId: number,
     e?: React.MouseEvent
@@ -185,7 +182,6 @@ export default function MyApplyJobs() {
     }
   };
 
-  // Fetch my applications
   const {
     data: applicationsResponse,
     isLoading: isLoadingApplications,
@@ -201,7 +197,6 @@ export default function MyApplyJobs() {
     staleTime: 0,
   });
 
-  // Fetch top attractive jobs for suggestions
   const userIndustryId = userAuth?.user?.industry?.id;
 
   const { data: topAttractiveResponse } = useQuery({
@@ -211,10 +206,9 @@ export default function MyApplyJobs() {
         7,
         userIndustryId ? { industryId: Number(userIndustryId) } : undefined
       ),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Map applications from API to ApplicationJob interface
   const applications = useMemo(() => {
     if (!applicationsResponse?.data?.items) return [];
     return applicationsResponse.data.items.map((application) => {
@@ -224,7 +218,7 @@ export default function MyApplyJobs() {
         applicationId: application.id,
         title: application.job.jobTitle || "",
         company: application.job.employer.companyName || "",
-        location: t("myApplyJobs.locationNotUpdated"), // ApplicationResponse doesn't include location
+        location: t("myApplyJobs.locationNotUpdated"),
         logo:
           application.job.employer.avatarUrl ||
           "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
@@ -240,14 +234,13 @@ export default function MyApplyJobs() {
     });
   }, [applicationsResponse, t]);
 
-  // Map suggested jobs
   const suggestedJobs = useMemo(() => {
     if (!topAttractiveResponse?.data) return [];
     return topAttractiveResponse.data.map((job) => ({
       id: job.id,
       title: job.jobTitle || "",
       company: job.companyName || job.author?.companyName || "",
-      salary: t("jobSearch.salaryNegotiable"), // Simplified for suggested jobs
+      salary: t("jobSearch.salaryNegotiable"),
       type:
         JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
         job.jobType,
@@ -258,9 +251,7 @@ export default function MyApplyJobs() {
     }));
   }, [topAttractiveResponse, t]);
 
-  // Refetch applications when receiving notification about application status change
   useEffect(() => {
-    // Check if we're on the applied-jobs page
     const isOnAppliedJobsPage =
       location.pathname === `/${routes.MY_APPLIED_JOBS}`;
 
@@ -268,13 +259,10 @@ export default function MyApplyJobs() {
       return;
     }
 
-    // Check if there are new notifications
     if (notifications.length > prevNotificationsLengthRef.current) {
       const latestNotification = notifications[0];
 
-      // Check if notification has applicationId (indicates application-related notification)
       if (latestNotification?.applicationId) {
-        // Refetch the applications query to get updated status
         queryClient.invalidateQueries({
           queryKey: ["my-applications"],
         });
@@ -294,6 +282,7 @@ export default function MyApplyJobs() {
 
   return (
     <>
+      <PageTitle title={t("pageTitles.myAppliedJobs")} />
       <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 overflow-hidden">
         {/* Animated background shapes */}
         <div className="absolute inset-0 overflow-hidden">
@@ -370,7 +359,6 @@ export default function MyApplyJobs() {
   );
 }
 
-// Table View Component
 function TableView({
   applications,
   onOpenChat,

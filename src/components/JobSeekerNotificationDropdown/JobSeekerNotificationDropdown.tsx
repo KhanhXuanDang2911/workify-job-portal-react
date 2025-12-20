@@ -11,12 +11,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Bell, Check, User, FileText } from "lucide-react";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import { notificationService } from "@/services";
 import type { NotificationType } from "@/types/notification.type";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Map notification type to icon
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case "NEW_APPLICATION":
@@ -41,7 +40,6 @@ export default function JobSeekerNotificationDropdown() {
   const [currentPage] = useState(1);
   const pageSize = 10;
 
-  // Format relative time with translation
   const relativeTime = (dateString?: string): string => {
     if (!dateString) return "";
     try {
@@ -67,7 +65,6 @@ export default function JobSeekerNotificationDropdown() {
     }
   };
 
-  // Fetch notifications from API - Use USER-specific cache key
   const { data: notificationsResponse, isLoading } = useQuery({
     queryKey: ["user-notifications", currentPage, pageSize],
     queryFn: () =>
@@ -75,23 +72,20 @@ export default function JobSeekerNotificationDropdown() {
         pageNumber: currentPage,
         pageSize: pageSize,
       }),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Fetch unread count - Use USER-specific cache key
   const { data: unreadCountResponse } = useQuery({
     queryKey: ["user-notifications-unread-count"],
     queryFn: () => notificationService.getUnreadCount(),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
   });
 
-  // Refetch unread count when receiving new notification via WebSocket
   const prevNotificationsLengthRef = useRef(0);
   useEffect(() => {
     if (wsNotifications.length > prevNotificationsLengthRef.current) {
       const latestNotification = wsNotifications[0];
       if (!latestNotification.readFlag) {
-        // Invalidate query to refetch unread count when new unread notification arrives
         queryClient.invalidateQueries({
           queryKey: ["user-notifications-unread-count"],
         });
@@ -100,7 +94,6 @@ export default function JobSeekerNotificationDropdown() {
     }
   }, [wsNotifications, queryClient]);
 
-  // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id: number) => notificationService.markAsRead(id),
     onSuccess: () => {
@@ -111,7 +104,6 @@ export default function JobSeekerNotificationDropdown() {
     },
   });
 
-  // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
     onSuccess: () => {
@@ -123,13 +115,11 @@ export default function JobSeekerNotificationDropdown() {
     },
   });
 
-  // Combine API notifications with WebSocket notifications
   const apiNotifications = notificationsResponse?.data?.items || [];
   const allNotifications = [...wsNotifications, ...apiNotifications].filter(
     (notif, index, self) => index === self.findIndex((n) => n.id === notif.id)
   );
 
-  // Use unread count from API (more accurate) or WebSocket as fallback
   const unreadCount = unreadCountResponse?.data ?? wsUnreadCount;
 
   const handleMarkAsRead = (id: number) => {
@@ -141,9 +131,7 @@ export default function JobSeekerNotificationDropdown() {
     markAllAsReadMutation.mutate();
   };
 
-  const handleNotificationClick = () => {
-    // No navigation on click
-  };
+  const handleNotificationClick = () => {};
 
   return (
     <Popover>

@@ -38,7 +38,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import ChatModal from "@/components/Chat/ChatModal";
 import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { toast } from "react-toastify";
 
 interface TableViewProps {
@@ -54,7 +54,6 @@ interface TableViewProps {
   onReceivedWithinChange?: (days: number | undefined) => void;
 }
 
-// Map ApplicationStatus to stage name and progress
 function getStageInfo(
   status: ApplicationStatus,
   t: (key: string) => string
@@ -118,7 +117,6 @@ function getStageInfo(
   );
 }
 
-// Format relative time
 function relativePosted(
   dateString: string | undefined,
   t: (key: string, options?: any) => string

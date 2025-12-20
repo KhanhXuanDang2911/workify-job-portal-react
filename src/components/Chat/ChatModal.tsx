@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { chatService } from "@/services/chat.service";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import type { ConversationResponse, MessageResponse } from "@/types/chat.type";
 import { Send, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -58,7 +58,6 @@ export default function ChatModal({
   } = useWebSocket();
   const queryClient = useQueryClient();
 
-  // Fetch conversation by applicationId if not provided
   const { data: conversationData } = useQuery({
     queryKey: ["conversation", applicationId],
     queryFn: () => chatService.getConversationByApplicationId(applicationId!),
@@ -86,7 +85,6 @@ export default function ChatModal({
     }
   }, [open]);
 
-  // Fetch messages
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
@@ -129,13 +127,11 @@ export default function ChatModal({
           }
         );
 
-        // If employer sends first message and user is viewing, update conversation state
         if (
           currentUserType === "USER" &&
           newMessage.senderType === "EMPLOYER" &&
           !conversation.hasEmployerMessage
         ) {
-          // Update local state immediately for better UX
           setConversation((prev) => {
             if (!prev) return prev;
             return {
@@ -143,15 +139,13 @@ export default function ChatModal({
               hasEmployerMessage: true,
             };
           });
-          // Invalidate conversation query to sync with backend
+
           if (applicationId) {
             queryClient.invalidateQueries({
               queryKey: ["conversation", applicationId],
             });
           }
         }
-
-        // Do not auto mark as seen here — we'll mark as seen when the user focuses the input.
       }
     });
 
@@ -167,7 +161,6 @@ export default function ChatModal({
     applicationId,
   ]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     const timer = setTimeout(() => {
       if (messagesEndRef.current) {
@@ -183,11 +176,9 @@ export default function ChatModal({
   useEffect(() => {
     if (open && conversation?.id) {
       refetchMessages();
-      // Do not mark as seen on open. Marking will happen when input is focused.
     }
   }, [open, conversation?.id, refetchMessages]);
 
-  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!conversation?.id) throw new Error("No conversation selected");
@@ -202,7 +193,6 @@ export default function ChatModal({
         const msg: MessageResponse = res?.data ?? res;
         if (!msg) return;
 
-        // Update messages cache so sender sees the message immediately
         queryClient.setQueryData<{ data: MessageResponse[] }>(
           ["messages", conversation!.id],
           (old) => {
@@ -213,17 +203,12 @@ export default function ChatModal({
           }
         );
 
-        // Record this message id so when the websocket echoes it back we don't
-        // mark it as unread or show transient notifications for the sender.
         try {
           if (msg?.id && typeof recordOwnSentMessage === "function") {
             recordOwnSentMessage(msg.id);
           }
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
 
-        // Update conversations list so preview shows lastMessage immediately
         queryClient.setQueryData(
           [
             "conversations",
@@ -245,7 +230,6 @@ export default function ChatModal({
           }
         );
 
-        // keep focus in the input so user can continue typing
         try {
           const focusChatInput = () => {
             const el = document.querySelector(
@@ -259,25 +243,16 @@ export default function ChatModal({
                 const len = inputEl.value?.length ?? 0;
                 try {
                   inputEl.setSelectionRange(len, len);
-                } catch (e) {
-                  // ignore
-                }
-              } catch (e) {
-                // ignore
-              }
+                } catch (e) {}
+              } catch (e) {}
             }
           };
 
-          // Try immediate focus
           focusChatInput();
-          // Fallback: focus again after a short delay to handle re-renders/UI focus steals
+
           setTimeout(focusChatInput, 50);
-        } catch (e) {
-          // ignore
-        }
-      } catch (e) {
-        // ignore
-      }
+        } catch (e) {}
+      } catch (e) {}
     },
     onError: (error: any) => {
       const errorMessage =
@@ -290,9 +265,6 @@ export default function ChatModal({
     const trimmedMessage = message.trim();
     if (!trimmedMessage || !canSendMessage) return;
 
-    // Always use REST API to save message to database
-    // Backend will automatically broadcast the message via WebSocket to other clients
-    // This ensures message is saved in database AND delivered in real-time
     sendMessageMutation.mutate(trimmedMessage);
   }, [message, canSendMessage, sendMessageMutation]);
 
@@ -399,7 +371,6 @@ export default function ChatModal({
                     messages[index - 1].senderId !== msg.senderId ||
                     messages[index - 1].senderType !== msg.senderType;
 
-                  // Check if time difference is more than 1 minute
                   const showTime =
                     index === messages.length - 1 ||
                     messages[index + 1].senderId !== msg.senderId ||
@@ -409,7 +380,7 @@ export default function ChatModal({
                       messages[index + 1].senderType === msg.senderType &&
                       new Date(messages[index + 1].createdAt).getTime() -
                         new Date(msg.createdAt).getTime() >
-                        60000); // 1 minute in milliseconds
+                        60000);
 
                   return (
                     <div
@@ -503,20 +474,16 @@ export default function ChatModal({
                 onFocus={() => {
                   const side =
                     currentUserType === "EMPLOYER" ? "employer" : "user";
-                  // mark this conversation as focused (for other components)
+
                   queryClient.setQueryData(
                     ["focusedConversation", side],
                     conversation?.id
                   );
 
-                  // Optimistically clear local unread state for snappy UX,
-                  // then call server to persist (server will emit SEEN_UPDATE to reconcile).
                   if (conversation?.id) {
                     try {
                       markConversationAsSeenLocally(conversation.id);
-                    } catch (e) {
-                      // ignore
-                    }
+                    } catch (e) {}
                     chatService.markAsSeen(conversation.id).catch(() => {});
                   }
                 }}

@@ -42,7 +42,6 @@ export interface EmployerWebsiteUpdateRequest {
 }
 
 export const employerService = {
-  // Employer Sign Up (public)
   signUp: async (
     data: EmployerSignUpRequest
   ): Promise<ApiResponse<Employer>> => {
@@ -53,14 +52,12 @@ export const employerService = {
     return response.data;
   },
 
-  // Get Employer Profile (authenticated employer only)
   getEmployerProfile: async (): Promise<ApiResponse<Employer>> => {
     const response =
       await employerHttp.get<ApiResponse<Employer>>("/employers/me");
     return response.data;
   },
 
-  // Update Employer Profile (authenticated employer only)
   updateEmployerProfile: async (
     data: EmployerUpdateRequest
   ): Promise<ApiResponse<Employer>> => {
@@ -71,11 +68,10 @@ export const employerService = {
     return response.data;
   },
 
-  // Update Employer Avatar (authenticated employer only)
   updateEmployerAvatar: async (file: File): Promise<ApiResponse<Employer>> => {
     const formData = new FormData();
     formData.append("avatar", file);
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
+
     const response = await employerHttp.patch<ApiResponse<Employer>>(
       "/employers/me/avatar",
       formData,
@@ -88,13 +84,12 @@ export const employerService = {
     return response.data;
   },
 
-  // Update Employer Background (authenticated employer only)
   updateEmployerBackground: async (
     file: File
   ): Promise<ApiResponse<Employer>> => {
     const formData = new FormData();
     formData.append("background", file);
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
+
     const response = await employerHttp.patch<ApiResponse<Employer>>(
       "/employers/me/background",
       formData,
@@ -107,7 +102,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Update Employer Website URLs (authenticated employer only)
   updateEmployerWebsiteUrls: async (
     data: EmployerWebsiteUpdateRequest
   ): Promise<ApiResponse<Employer>> => {
@@ -118,7 +112,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Search Employers (public)
   searchEmployers: async (
     params: Record<string, any> = {}
   ): Promise<ApiResponse<any>> => {
@@ -128,7 +121,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Get Employers with Search Params (public)
   getEmployersWithSearchParam: async (
     params: With<SearchParams, { provinceId?: number }>
   ): Promise<ApiResponse<PageResponse<Employer>>> => {
@@ -139,7 +131,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Admin: Get Employers with Search Params (authenticated - get all statuses)
   getEmployersForAdmin: async (
     params: With<SearchParams, { provinceId?: number }>
   ): Promise<ApiResponse<PageResponse<Employer>>> => {
@@ -150,7 +141,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Get Employer by ID (public)
   getEmployerById: async (id: number): Promise<ApiResponse<Employer>> => {
     const response = await publicHttp.get<ApiResponse<Employer>>(
       `/employers/${id}`
@@ -158,7 +148,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Admin: Get Employer by ID (authenticated - get all statuses)
   getEmployerByIdForAdmin: async (
     id: number
   ): Promise<ApiResponse<Employer>> => {
@@ -168,7 +157,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Get Top Hiring Employers (public)
   getTopHiringEmployers: async (
     limit = 10
   ): Promise<ApiResponse<Employer[]>> => {
@@ -181,9 +169,7 @@ export const employerService = {
     return response.data;
   },
 
-  // Admin: Create Employer
   createEmployer: async (data: FormData): Promise<ApiResponse<Employer>> => {
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.post<ApiResponse<Employer>>(
       "/employers",
       data,
@@ -196,12 +182,10 @@ export const employerService = {
     return response.data;
   },
 
-  // Admin: Update Employer
   updateEmployer: async (
     id: number,
     data: FormData
   ): Promise<ApiResponse<Employer>> => {
-    // Set Content-Type header for multipart/form-data - axios/browser will add boundary automatically
     const response = await userHttp.put<ApiResponse<Employer>>(
       `/employers/${id}`,
       data,
@@ -214,7 +198,6 @@ export const employerService = {
     return response.data;
   },
 
-  // Admin: Delete Employer
   deleteEmployer: async (id: number): Promise<ApiResponse> => {
     const response = await userHttp.delete<ApiResponse>(`/employers/${id}`);
     return response.data;

@@ -14,6 +14,7 @@ import type { ApiError } from "@/types";
 import { routes, employer_routes } from "@/routes/routes.const";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 interface PasswordRequirement {
   label: string;
@@ -183,6 +184,7 @@ export default function ResetPassword() {
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4 bg-white">
+      <PageTitle title={t("pageTitles.resetPassword")} />
       <div className="w-full max-w-4xl flex flex-col lg:flex-row items-center gap-12">
         {/* Left Side - Illustration */}
         <div className="hidden lg:flex lg:w-1/2 justify-center">

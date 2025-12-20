@@ -29,7 +29,7 @@ import SectionActionsMenu from "@/components/SectionActionsMenu";
 import ExperienceSection from "@/components/sections/ExperienceSection";
 import type { SectionType } from "@/types/resume.type";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -101,7 +101,6 @@ const sections: {
   },
 ];
 
-// Sections that support isHidden (array sections + interests)
 type HideableSectionType =
   | "experience"
   | "education"
@@ -130,7 +129,6 @@ function LeftPanel() {
 
   const detailRefs = useRef<Record<string, HTMLDetailsElement | null>>({});
 
-  // eslint-disable-next-line react-hooks/refs
   sections.forEach(({ id }) => {
     detailRefs.current[id] = detailRefs.current[id] || null;
   });
@@ -146,7 +144,6 @@ function LeftPanel() {
     detailEl.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Check if a section is hidden
   const isSectionHidden = (sectionId: SectionType): boolean => {
     if (!HIDEABLE_SECTIONS.includes(sectionId as HideableSectionType)) {
       return false;
@@ -159,7 +156,6 @@ function LeftPanel() {
     }
 
     if (Array.isArray(sectionData)) {
-      // Section is hidden if ALL items are hidden or if there are no items
       if (sectionData.length === 0) return false;
       return sectionData.every((item) => item.isHidden);
     }
@@ -167,7 +163,6 @@ function LeftPanel() {
     return false;
   };
 
-  // Unhide a section
   const unhideSection = (sectionId: SectionType) => {
     if (!HIDEABLE_SECTIONS.includes(sectionId as HideableSectionType)) return;
 

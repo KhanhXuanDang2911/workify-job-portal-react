@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { ProjectItem } from "@/types/resume.type";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import RichTextEditor from "@/components/RichTextEditor";
 
 interface ProjectItemType extends ProjectItem {
@@ -50,7 +50,6 @@ export default function ProjectsSection() {
     }));
   });
 
-  // Sync local state with context when resume.projects changes from external source (e.g., API load)
   const isLocalUpdate = useRef(false);
 
   useEffect(() => {
@@ -109,7 +108,7 @@ export default function ProjectsSection() {
   };
 
   const saveItem = (data: Omit<ProjectItemType, "order">) => {
-    let updatedItems = [...items];
+    const updatedItems = [...items];
     if (editingIndex !== null) {
       updatedItems[editingIndex] = { ...updatedItems[editingIndex], ...data };
     } else {

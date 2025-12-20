@@ -1,16 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-// date helpers available in `formatRelativeTime`
+
 import { formatRelativeTime } from "@/lib/relativeTime";
 import { useTranslation } from "@/hooks/useTranslation";
 import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
 import ChatWindow from "@/components/Chat/ChatWindow";
-import { useUserAuth } from "@/context/user-auth";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useUserAuth } from "@/context/UserAuth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { employer_routes } from "@/routes/routes.const";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import type { MessageResponse } from "@/types/chat.type";
 
 export default function MessagesPage() {
@@ -37,9 +37,6 @@ export default function MessagesPage() {
   const queryClient = useQueryClient();
   const { subscribeToMessages, conversationUnread } = useWebSocket();
 
-  // Note: per-conversation unread counts and header aggregate are not
-  // maintained locally. UI will not display per-conversation unread numbers.
-
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationResponse | null>(null);
 
@@ -47,11 +44,10 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const unsubscribe = subscribeToMessages((payload: any) => {
-      // payload may be envelope { type: 'MESSAGE', message, unread } or raw MessageResponse
       try {
         if (payload?.type === "MESSAGE") {
           const msg: MessageResponse = payload.message;
-          // ignore duplicate message events
+
           if (msg?.id && processedMessageIdsRef.current.has(msg.id)) return;
           if (msg?.id) processedMessageIdsRef.current.add(msg.id);
           const convId = msg.conversationId;
@@ -79,19 +75,15 @@ export default function MessagesPage() {
               return list;
             }
           );
-          // header aggregate not updated here
         } else if (payload?.type === "SEEN_UPDATE") {
-          // payload.unread contains conversation-level unread for each side
           const convUnread = payload.unread;
           const convId = convUnread?.conversationId;
-          // do not update per-conversation unread counts locally
+
           if (convId) {
-            // intentionally no-op for unread bookkeeping
           }
         } else {
-          // assume raw MessageResponse
           const msg: MessageResponse = payload as MessageResponse;
-          // ignore duplicate message events
+
           if (msg?.id && processedMessageIdsRef.current.has(msg.id)) return;
           if (msg?.id) processedMessageIdsRef.current.add(msg.id);
           const convId = msg.conversationId;
@@ -116,12 +108,8 @@ export default function MessagesPage() {
               return list;
             }
           );
-          // header aggregate not updated here
         }
-      } catch (e) {
-        // swallow parse errors
-        console.error("ws message handler error", e);
-      }
+      } catch (e) {}
     });
 
     return () => unsubscribe();
@@ -166,7 +154,7 @@ export default function MessagesPage() {
                     c.lastMessageSenderType &&
                     c.lastMessageSenderId === currentUserId &&
                     c.lastMessageSenderType === currentUserType;
-                  // Bold only when there's unread AND the last message is not sent by current user
+
                   const shouldBold = !!unread && !isOwnLastMessage;
                   const prefix = isOwnLastMessage
                     ? currentLanguage === "en"
@@ -178,7 +166,7 @@ export default function MessagesPage() {
                       key={c.id}
                       onClick={() => {
                         setSelectedConversation(c);
-                        // record active conversation globally so header can avoid incrementing totals
+
                         queryClient.setQueryData(
                           [
                             "activeConversation",
@@ -186,10 +174,6 @@ export default function MessagesPage() {
                           ],
                           c.id
                         );
-
-                        // Do NOT mark as read here. Marking will occur when the user focuses the
-                        // input inside the conversation (matches Facebook UX). We only open the
-                        // conversation and expose the activeConversation id for header logic.
                       }}
                       className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
                     >

@@ -64,7 +64,6 @@ const CVPreview = ({
     }
   };
 
-  // Template actual width: 900px
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(1);
 
@@ -72,7 +71,7 @@ const CVPreview = ({
     const updateScale = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const cvWidth = 900; // Template actual width in pixels
+        const cvWidth = 900;
         setScale(containerWidth / cvWidth);
       }
     };
@@ -88,7 +87,7 @@ const CVPreview = ({
         className="bg-white origin-top-left"
         style={{
           width: "900px",
-          minHeight: "1273px", // Maintain A4 aspect ratio (900 * 1.414)
+          minHeight: "1273px",
           transform: `scale(${scale})`,
           fontFamily: getFontFamilyName(fontFamily),
         }}

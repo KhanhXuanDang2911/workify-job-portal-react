@@ -9,14 +9,14 @@ export interface ConversationResponse {
   employerId: number;
   employerName: string;
   employerAvatar: string | null;
-  // Number of unread messages for the current viewer (jobSeeker or employer)
+
   unreadCount?: number;
   lastMessage: string | null;
   lastMessageSenderId: number | null;
   lastMessageSenderType: "USER" | "EMPLOYER" | null;
   hasEmployerMessage: boolean;
-  createdAt: string; // ISO 8601
-  updatedAt: string; // ISO 8601
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MessageResponse {
@@ -28,7 +28,7 @@ export interface MessageResponse {
   senderAvatar: string | null;
   content: string;
   seen: boolean;
-  createdAt: string; // ISO 8601
+  createdAt: string;
 }
 
 export interface SendMessageRequest {

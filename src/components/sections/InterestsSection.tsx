@@ -1,5 +1,5 @@
 import RichTextEditor from "@/components/RichTextEditor";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 function InterestsSection() {
   const { resume, setResume } = useResume();
 

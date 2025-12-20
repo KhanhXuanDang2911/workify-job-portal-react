@@ -17,7 +17,7 @@ import CreatePassword from "@/pages/CreatePassword";
 import GuestRoute from "@/routes/GuestRoute";
 import LinkedInAuthenticate from "@/pages/LinkedInAuthenticate";
 import ResumeBuilder from "@/pages/ResumeBuilder";
-import { ResumeProvider } from "@/context/ResumeContext/resumeProvider";
+import { ResumeProvider } from "@/context/Resume/ResumeProvider";
 import TemplatesCV from "@/pages/TemplatesCV/TemplatesCV";
 import PublicResume from "@/pages/PublicResume/PublicResume";
 const UserPublicRoutes: RouteObject[] = [

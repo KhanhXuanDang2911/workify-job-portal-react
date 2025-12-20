@@ -16,7 +16,6 @@ export interface IndustryRequest {
 }
 
 export const industryService = {
-  // GET endpoints are public
   getAllIndustries: async (): Promise<ApiResponse<Industry[]>> => {
     const response =
       await publicHttp.get<ApiResponse<Industry[]>>("/industries/all");
@@ -42,7 +41,6 @@ export const industryService = {
     return response.data;
   },
 
-  // POST/PUT/DELETE endpoints require ADMIN authentication
   createIndustry: async (
     data: IndustryRequest
   ): Promise<ApiResponse<Industry>> => {

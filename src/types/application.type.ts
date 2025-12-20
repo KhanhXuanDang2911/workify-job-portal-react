@@ -19,7 +19,7 @@ export interface ApplicationRequest {
   phoneNumber: string;
   coverLetter: string;
   jobId: number;
-  cvUrl?: string; // Required for link application
+  cvUrl?: string;
 }
 
 export interface ApplicationResponse {

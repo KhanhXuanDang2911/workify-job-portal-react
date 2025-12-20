@@ -1,7 +1,7 @@
 import type React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useUserAuth } from "@/context/user-auth";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useUserAuth } from "@/context/UserAuth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { ROLE } from "@/constants";
 import { admin_routes, employer_routes } from "@/routes/routes.const";
 import Loading from "@/components/Loading";
@@ -15,7 +15,6 @@ export default function GuestRoute({ children }: GuestRouteProps) {
   const { state: employerState } = useEmployerAuth();
   const location = useLocation();
 
-  // Determine if current route is employer route
   const isEmployerRoute = location.pathname.startsWith(employer_routes.BASE);
 
   const isLoading = userState.isLoading || employerState.isLoading;
@@ -28,7 +27,6 @@ export default function GuestRoute({ children }: GuestRouteProps) {
     );
   }
 
-  // If on employer route, only check employer auth
   if (isEmployerRoute) {
     if (employerState.isAuthenticated && employerState.employer) {
       return (
@@ -38,11 +36,10 @@ export default function GuestRoute({ children }: GuestRouteProps) {
         />
       );
     }
-    // Allow access to employer guest pages even if user is logged in
+
     return <>{children}</>;
   }
 
-  // If on user/admin route, only check user auth
   if (userState.isAuthenticated && userState.user) {
     if (userState.user.role === ROLE.ADMIN) {
       return (

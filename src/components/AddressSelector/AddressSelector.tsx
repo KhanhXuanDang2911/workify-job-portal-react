@@ -14,10 +14,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 interface AddressSelectorProps {
   provinceId: number;
   districtId: number;
-  // wardId: string;
   onProvinceChange: (value: string) => void;
   onDistrictChange: (value: string) => void;
-  // onWardChange: (value: string) => void;
   errors?: {
     provinceId?: string;
     districtId?: string;
@@ -27,10 +25,10 @@ interface AddressSelectorProps {
 function AddressSelector({
   provinceId,
   districtId,
-  // wardId,
+
   onProvinceChange,
   onDistrictChange,
-  // onWardChange,
+
   errors,
 }: AddressSelectorProps) {
   const { t } = useTranslation();
@@ -56,21 +54,17 @@ function AddressSelector({
     [queryDistricts.data?.data]
   );
 
-  // Reset district only when province changes (not on initial load)
   useEffect(() => {
     if (provinceId > 0 && districts.length > 0 && districtId > 0) {
-      // Check if province has changed
       const provinceChanged = previousProvinceId.current !== provinceId;
 
       if (provinceChanged) {
-        // Check if current district belongs to new province
         const districtExists = districts.some((d) => d.id === districtId);
         if (!districtExists) {
           onDistrictChange("0");
         }
       }
 
-      // Update previous province id
       previousProvinceId.current = provinceId;
     }
   }, [provinceId, districts, districtId, onDistrictChange]);

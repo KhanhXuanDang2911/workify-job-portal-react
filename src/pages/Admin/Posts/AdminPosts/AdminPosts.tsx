@@ -75,7 +75,7 @@ export default function AdminPosts() {
     { field: SortField; direction: SortDirection }[]
   >(() => {
     const sortsParam = searchParams.get("sorts");
-    // default to newest first when no sorts provided
+
     if (!sortsParam) return [{ field: "createdAt", direction: "desc" }];
     return sortsParam.split(",").map((s) => {
       const [field, direction] = s.split(":");
@@ -101,7 +101,6 @@ export default function AdminPosts() {
     }
   }, [location.state]);
 
-  // Sync state to URL params
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("pageNumber", String(pageNumber));
@@ -146,7 +145,7 @@ export default function AdminPosts() {
     useQuery({
       queryKey: ["post-categories", initialCategoryFilter],
       queryFn: () => postService.getAllCategories(),
-      staleTime: 30 * 60 * 1000, // 30 minutes
+      staleTime: 30 * 60 * 1000,
     });
 
   const deleteMutation = useMutation({
@@ -217,7 +216,6 @@ export default function AdminPosts() {
   const totalPages = postsData?.data.totalPages || 0;
   const totalPosts = postsData?.data.numberOfElements || 0;
   const postCategories = postCategoriesData?.data || [];
-  console.log(totalPosts);
 
   const ClearFilters = () => {
     setKeyword("");

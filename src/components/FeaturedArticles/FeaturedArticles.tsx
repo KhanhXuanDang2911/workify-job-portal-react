@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +14,6 @@ export default function FeaturedArticles() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const itemsPerSlide = 3;
 
-  // Fetch latest posts with limit = 9
   const {
     data: apiResponse,
     isLoading,
@@ -67,7 +64,6 @@ export default function FeaturedArticles() {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
-  // Reset slide to 0 when articles change
   useEffect(() => {
     if (mappedArticles.length > 0) {
       setCurrentSlide(0);

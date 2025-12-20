@@ -24,6 +24,29 @@
     "vietnamese": "Tiếng Việt",
     "english": "Tiếng Anh"
   },
+  "pageTitles": {
+    "home": "Trang chủ",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "jobSearch": "Tìm việc làm",
+    "employerSearch": "Tìm nhà tuyển dụng",
+    "adminDashboard": "Bảng điều khiển Admin",
+    "employerDashboard": "Bảng điều khiển Nhà tuyển dụng",
+    "userOverview": "Tổng quan",
+    "settings": "Cài đặt",
+    "myResume": "CV của tôi",
+    "mySavedJobs": "Việc làm đã lưu",
+    "myAppliedJobs": "Việc làm đã ứng tuyển",
+    "notifications": "Thông báo",
+    "candidates": "Ứng viên",
+    "employerPostJob": "Đăng tuyển dụng",
+    "employerEditJob": "Chỉnh sửa tuyển dụng",
+    "articles": "Bài viết",
+    "forgotPassword": "Quên mật khẩu",
+    "resetPassword": "Đặt lại mật khẩu",
+    "createPassword": "Tạo mật khẩu",
+    "notFound": "Không tìm thấy trang"
+  },
   "toast": {
     "success": {
       "applicationSubmitted": "Ứng tuyển thành công",
@@ -343,7 +366,7 @@
     "provinceRequired": "Tỉnh/Thành phố là bắt buộc",
     "districtRequired": "Quận/Huyện là bắt buộc",
     "companySizeRequired": "Quy mô công ty là bắt buộc",
-    "companyNameMinLength": "Tên công ty phải có ít nhất 2 ký tự",
+
     "companyNameMaxLength255": "Tên công ty không được vượt quá 255 ký tự",
     "contactPersonMinLength": "Tên người liên hệ phải có ít nhất 2 ký tự",
     "contactPersonMaxLength100": "Tên người liên hệ không được vượt quá 100 ký tự",
@@ -1489,7 +1512,8 @@
       "fileSize": "Kích thước file phải nhỏ hơn 5MB",
       "fileType": "Chỉ chấp nhận file .doc, .docx, .pdf",
       "oldCvNotFound": "Không tìm thấy CV cũ!",
-      "jobIdInvalid": "Job ID không hợp lệ"
+      "jobIdInvalid": "Job ID không hợp lệ",
+      "coverLetterMaxLength": "Thư xin việc không được vượt quá 1000 ký tự"
     }
   },
   "companySize": {

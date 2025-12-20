@@ -13,7 +13,7 @@ import { employerTokenUtils } from "@/lib/token";
 import type { ApiError } from "@/types";
 import { toast } from "react-toastify";
 import type { AxiosError } from "axios";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function EmployerSignIn() {

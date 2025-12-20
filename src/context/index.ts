@@ -1,2 +1,2 @@
-export * from "./user-auth";
-export * from "./employer-auth";
+export * from "./UserAuth";
+export * from "./EmployerAuth";

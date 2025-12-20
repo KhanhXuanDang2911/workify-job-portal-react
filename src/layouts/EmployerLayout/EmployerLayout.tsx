@@ -4,7 +4,7 @@ import EmployerSidebar from "@/components/EmployerSideBar";
 import Footer from "@/components/Footer";
 import { useContext, useState } from "react";
 import { ResponsiveContext } from "@/context/ResponsiveContext";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
 import { employer_routes } from "@/routes/routes.const";
 
 const employerPublicRoutes = [
@@ -30,7 +30,6 @@ export default function EmployerLayout() {
   );
   const isBaseRoute = location.pathname === employer_routes.BASE;
 
-  // Only show sidebar menu buttons when authenticated and not on public/base routes
   const showSidebar = isAuthenticated && !isPublicRoute && !isBaseRoute;
 
   return (

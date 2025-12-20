@@ -5,8 +5,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
 import ChatWindow from "@/components/Chat/ChatWindow";
-import { useEmployerAuth } from "@/context/employer-auth";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useEmployerAuth } from "@/context/EmployerAuth";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import type { MessageResponse } from "@/types/chat.type";
 
 export default function EmployerMessagesPage() {
@@ -30,8 +30,6 @@ export default function EmployerMessagesPage() {
   const { subscribeToMessages, conversationUnread } = useWebSocket();
   const processedMessageIdsRef = useRef<Set<number>>(new Set());
 
-  // per-conversation unread counts are not maintained locally in employer messages
-
   const currentUserId = employerState.employer?.id;
   const currentUserType = "EMPLOYER";
   const { t, currentLanguage } = useTranslation();
@@ -41,7 +39,7 @@ export default function EmployerMessagesPage() {
       try {
         if (payload?.type === "MESSAGE") {
           const msg: MessageResponse = payload.message;
-          // ignore duplicate message events
+
           if (msg?.id && processedMessageIdsRef.current.has(msg.id)) return;
           if (msg?.id) processedMessageIdsRef.current.add(msg.id);
           const convId = msg.conversationId;
@@ -63,15 +61,12 @@ export default function EmployerMessagesPage() {
                 updated.lastMessageSenderType = msg.senderType;
                 updated.updatedAt = now;
 
-                // do not modify per-conversation unreadCount locally
                 return list.map((c) => (c.id === convId ? updated : c));
               }
 
               return list;
             }
           );
-          // header aggregate not updated here
-          // (we still update conversation lastMessage above)
         } else if (payload?.type === "SEEN_UPDATE") {
           const convUnread = payload.unread;
           const convId = convUnread?.conversationId;
@@ -85,18 +80,15 @@ export default function EmployerMessagesPage() {
                   : old.data || [];
                 const idx = list.findIndex((c) => c.id === convId);
                 if (idx !== -1) {
-                  // intentionally do not apply per-conversation unread counts locally
                   return list;
                 }
                 return list;
               }
             );
-
-            // header aggregate not updated here
           }
         } else {
           const msg: MessageResponse = payload as MessageResponse;
-          // ignore duplicate message events
+
           if (msg?.id && processedMessageIdsRef.current.has(msg.id)) return;
           if (msg?.id) processedMessageIdsRef.current.add(msg.id);
           const convId = msg.conversationId;
@@ -121,11 +113,8 @@ export default function EmployerMessagesPage() {
               return list;
             }
           );
-          // header aggregate not updated here
         }
-      } catch (e) {
-        console.error("ws handler error", e);
-      }
+      } catch (e) {}
     });
 
     return () => unsubscribe();
@@ -168,13 +157,11 @@ export default function EmployerMessagesPage() {
                       key={c.id}
                       onClick={() => {
                         setSelectedConversation(c);
-                        // expose active conversation id for header logic
+
                         queryClient.setQueryData(
                           ["activeConversation", "employer"],
                           c.id
                         );
-                        // Do NOT mark as read here. Marking will occur when the user focuses
-                        // the input inside the conversation (ChatWindow onFocus).
                       }}
                       className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${isActive ? "bg-blue-50" : "hover:bg-gray-50"}`}
                     >

@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 import { routes } from "@/routes/routes.const";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -65,7 +65,6 @@ import type { JobBenefit } from "@/types/benefit.type";
 import { cn } from "@/lib/utils";
 
 export interface JobProp {
-  // header
   isNew: boolean;
   companyBanner: string;
   companyLogo: string;
@@ -85,16 +84,12 @@ export interface JobProp {
   };
   expirationDate: string;
 
-  // Description
   jobDescription: string;
 
-  // Benefit
   jobBenefits: JobBenefit[];
 
-  // Requirement
   requirement: string;
 
-  // Job details
   jobType: JobType;
   jobLevel: JobLevel;
   educationLevel: EducationLevel;
@@ -106,7 +101,6 @@ export interface JobProp {
     name: string;
   }>;
 
-  // Contact
   contactPerson: string;
   phoneNumber: string;
   contactLocation: {
@@ -116,8 +110,6 @@ export interface JobProp {
   };
   description?: string;
 
-  // Company Information
-  // companyName: string;
   companySize: CompanySize;
   aboutCompany: string;
 }
@@ -158,14 +150,12 @@ function JobInformation({
   const isAuthenticated = authState.isAuthenticated;
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Check if job is saved - use placeholderData from saved-jobs cache to avoid flash
   const { data: isSavedResponse } = useQuery({
     queryKey: ["saved-job", jobId],
     queryFn: () => jobService.checkSavedJob(jobId!),
-    enabled: !!jobId && isAuthenticated, // Only check when authenticated
+    enabled: !!jobId && isAuthenticated,
     retry: false,
     placeholderData: () => {
-      // Check if job exists in saved-jobs cache
       const savedJobsQueries = queryClient.getQueriesData({
         queryKey: ["saved-jobs"],
       });
@@ -186,11 +176,9 @@ function JobInformation({
 
   const isSaved = isSavedResponse?.data ?? false;
 
-  // Toggle save/unsave mutation
   const toggleSaveMutation = useMutation({
     mutationFn: () => jobService.toggleSavedJob(jobId!),
     onSuccess: () => {
-      // Invalidate both saved-job status and saved-jobs list
       queryClient.invalidateQueries({ queryKey: ["saved-job", jobId] });
       queryClient.invalidateQueries({ queryKey: ["saved-jobs"] });
       toast.success(
@@ -216,7 +204,6 @@ function JobInformation({
     toggleSaveMutation.mutate();
   };
 
-  // Share functions
   const getJobUrl = () => {
     if (!jobId) return window.location.href;
     return `${window.location.origin}/${routes.JOB_DETAIL}/${jobId}`;
@@ -227,11 +214,10 @@ function JobInformation({
   };
 
   const getShareDescription = () => {
-    // Strip HTML tags from job description for share text
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = job.jobDescription || "";
     const textContent = tempDiv.textContent || tempDiv.innerText || "";
-    // Limit to 200 characters for share
+
     return textContent.length > 200
       ? textContent.substring(0, 200) + "..."
       : textContent;
@@ -242,23 +228,17 @@ function JobInformation({
     const title = getShareTitle();
     const description = getShareDescription();
 
-    // Facebook doesn't support pre-filling text via URL parameters
-    // It only uses Open Graph meta tags from the page
-    // We'll share the URL and copy the text to clipboard for user to paste
     const shareText = `${title}\n\n${description}\n\n${url}`;
 
-    // Copy text to clipboard
     navigator.clipboard
       .writeText(shareText)
       .then(() => {
         toast.success(t("jobInformation.shareContentCopied"));
       })
       .catch(() => {
-        // Fallback: just open share dialog
         toast.info(t("jobInformation.openingFacebook"));
       });
 
-    // Open Facebook share dialog
     const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
   };
@@ -268,8 +248,6 @@ function JobInformation({
     const title = getShareTitle();
     const summary = getShareDescription();
 
-    // LinkedIn shareArticle with mini=true supports title and summary parameters
-    // Format: title, summary, source are all required for pre-filling
     const shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(summary)}&source=${encodeURIComponent(window.location.origin)}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
   };
@@ -532,7 +510,6 @@ function JobInformation({
         </div>
       </div>
 
-      {/* Navigation Bar */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-6 py-3">
         <div className="flex gap-6 overflow-x-auto">
           <button
@@ -797,7 +774,6 @@ function JobInformation({
 
         <Separator />
 
-        {/* Contact Section */}
         <div ref={contactRef} className="scroll-mt-20">
           <div className="flex items-center gap-3 mb-6">
             <Phone className="w-6 h-6 text-[#1967d2]" />

@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// date calculations are handled by `formatRelativeTime`
+
 import { formatRelativeTime } from "@/lib/relativeTime";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { chatService } from "@/services/chat.service";
-import { useWebSocket } from "@/context/websocket/WebSocketContext";
+import { useWebSocket } from "@/context/WebSocket/WebSocketContext";
 import type { ConversationResponse, MessageResponse } from "@/types/chat.type";
 import { Send, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -53,25 +53,20 @@ export default function ChatWindow({
     if (initialConversation) setConversation(initialConversation);
   }, [initialConversation]);
 
-  // Focus input & mark as read when switching conversation
   useEffect(() => {
     if (conversation?.id && inputRef.current) {
       inputRef.current.focus();
-      // Mark as read logic (same as onFocus)
+
       const side = currentUserType === "EMPLOYER" ? "employer" : "user";
       queryClient.setQueryData(["focusedConversation", side], conversation.id);
 
-      // Optimistically clear unread locally for instant UX, then call server
       if (conversation?.id) {
         try {
           markConversationAsSeenLocally(conversation.id);
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
         chatService.markAsSeen(conversation.id).catch(() => {});
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation?.id]);
 
   useEffect(() => {
@@ -83,7 +78,6 @@ export default function ChatWindow({
         })
         .catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId]);
 
   const {
@@ -123,7 +117,6 @@ export default function ChatWindow({
           newMessage = payload.message as MessageResponse;
         else newMessage = payload as MessageResponse;
       } catch (e) {
-        console.error("ws parse error", e);
         return;
       }
 
@@ -164,7 +157,6 @@ export default function ChatWindow({
           return prev;
         });
 
-        // If the user is focused on this conversation (input focused), mark as seen immediately
         try {
           const side = currentUserType === "EMPLOYER" ? "employer" : "user";
           const focusedConvId = queryClient.getQueryData([
@@ -178,17 +170,12 @@ export default function ChatWindow({
             inputFocused &&
             conversation.id
           ) {
-            // Optimistically clear locally then call server to persist.
             try {
               markConversationAsSeenLocally(conversation.id);
-            } catch (e) {
-              // ignore
-            }
+            } catch (e) {}
             chatService.markAsSeen(conversation.id).catch(() => {});
           }
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) {}
       }
 
       if (
@@ -197,7 +184,6 @@ export default function ChatWindow({
       ) {
         const msg = newMessage;
         const convId = msg.conversationId;
-        // ignore payload.unread for now while unread logic is removed
 
         queryClient.setQueryData(
           [
@@ -217,16 +203,11 @@ export default function ChatWindow({
               updated.lastMessageSenderType = msg.senderType;
               updated.updatedAt = msg.createdAt;
 
-              // We previously updated conversation.unreadCount here. That
-              // logic has been removed to avoid local unread bookkeeping.
-
               return list.map((c) => (c.id === convId ? updated : c));
             }
             return list;
           }
         );
-
-        // header aggregate not updated here (per-conversation unread removed)
       }
     });
 
@@ -295,10 +276,8 @@ export default function ChatWindow({
           if (msg?.id && typeof recordOwnSentMessage === "function") {
             recordOwnSentMessage(msg.id);
           }
-        } catch (e) {
-          // ignore
-        }
-        // keep focus in the input so user can continue typing
+        } catch (e) {}
+
         try {
           const el = inputRef.current;
           if (el) {
@@ -306,12 +285,8 @@ export default function ChatWindow({
             const len = el.value?.length ?? 0;
             el.setSelectionRange(len, len);
           }
-        } catch (e) {
-          // ignore if focusing fails
-        }
-      } catch (e) {
-        // ignore
-      }
+        } catch (e) {}
+      } catch (e) {}
     },
     onError: (error: any) => {
       const errorMessage =
@@ -509,13 +484,11 @@ export default function ChatWindow({
                   ["focusedConversation", side],
                   conversation.id
                 );
-                // Mark this conversation as seen when input is focused
+
                 if (conversation?.id) {
                   try {
                     markConversationAsSeenLocally(conversation.id);
-                  } catch (e) {
-                    // ignore
-                  }
+                  } catch (e) {}
                   chatService.markAsSeen(conversation.id).catch(() => {});
                 }
               }}

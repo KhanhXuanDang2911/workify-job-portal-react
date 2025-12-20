@@ -19,7 +19,6 @@ function TemplateProfessional3({
   const { t } = useTranslation();
   const { basicInfo, objective, theme } = data;
 
-  // Filter hidden items
   const experience = (data.experience || []).filter((item) => !item.isHidden);
   const education = (data.education || []).filter((item) => !item.isHidden);
   const skills = (data.skills || []).filter((item) => !item.isHidden);
@@ -51,7 +50,6 @@ function TemplateProfessional3({
     }
   }, [minPageHeight, onUpdateHeight]);
 
-  // Split skills into 3 columns
   const skillsPerColumn = Math.ceil(skills.length / 3);
   const skillsCol1 = skills.slice(0, skillsPerColumn);
   const skillsCol2 = skills.slice(skillsPerColumn, skillsPerColumn * 2);

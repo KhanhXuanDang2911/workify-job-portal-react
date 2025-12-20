@@ -20,8 +20,6 @@ const EmployerProtectedRoutes: RouteObject[] = [
     element: <EmployerLayout />,
     children: [
       {
-        // Allow optional jobId in the url so employer can refresh and keep the
-        // selected job: /employer/applications or /employer/applications/:jobId
         path: `${employer_routes.APPLICATIONS}/:jobId?`,
         element: (
           <ProtectedRoute requiredRole={ROLE.EMPLOYER}>

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { UserCircle, SettingsIcon } from "lucide-react";
 import TabsAnimation from "@/components/TabsAnimation";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ export default function Settings() {
           "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
       }}
     >
+      <PageTitle title={t("pageTitles.settings")} />
       {/* Sidebar */}
       <div className="lg:ml-5 lg:my-4 w-full lg:w-64 flex-shrink-0">
         <UserSideBar />

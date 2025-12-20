@@ -1,25 +1,25 @@
-import type { UserAuthState } from "./userAuth.types";
+import type { EmployerAuthState } from "./EmployerAuthTypes";
 
-export type UserAuthAction =
-  | { type: "SET_USER"; payload: UserAuthState }
-  | { type: "CLEAR_USER" }
+export type EmployerAuthAction =
+  | { type: "SET_EMPLOYER"; payload: EmployerAuthState }
+  | { type: "CLEAR_EMPLOYER" }
   | { type: "SET_LOADING"; payload: boolean };
 
-export const userAuthReducer = (
-  state: UserAuthState,
-  action: UserAuthAction
-): UserAuthState => {
+export const employerAuthReducer = (
+  state: EmployerAuthState,
+  action: EmployerAuthAction
+): EmployerAuthState => {
   switch (action.type) {
-    case "SET_USER":
+    case "SET_EMPLOYER":
       return {
         ...state,
-        user: action.payload.user,
+        employer: action.payload.employer,
         isAuthenticated: action.payload.isAuthenticated,
         isLoading: false,
       };
-    case "CLEAR_USER":
+    case "CLEAR_EMPLOYER":
       return {
-        user: null,
+        employer: null,
         isAuthenticated: false,
         isLoading: false,
       };

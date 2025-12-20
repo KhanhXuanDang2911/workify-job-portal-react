@@ -1,7 +1,4 @@
-import {
-  ResumeContext,
-  type ValidationErrors,
-} from "@/context/ResumeContext/resumeContext";
+import { ResumeContext, type ValidationErrors } from "./ResumeContext";
 import { routes } from "@/routes/routes.const";
 import type { FontFamily, ResumeData, TemplateType } from "@/types/resume.type";
 import { useState, type ReactNode, useEffect } from "react";
@@ -17,7 +14,6 @@ interface ApiError {
   errors?: { field: string; message: string }[];
 }
 
-// Initial resume data for creating new CV (using default-avatar.png)
 const initialResumeData: ResumeData = {
   ...templatePandaDummy,
   basicInfo: {
@@ -26,7 +22,6 @@ const initialResumeData: ResumeData = {
   },
 };
 
-// Helper function to check if rich text content is empty
 const isRichTextEmpty = (html: string | undefined | null): boolean => {
   if (!html) return true;
   const textContent = html
@@ -50,18 +45,16 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
     idFromUrl ? Number(idFromUrl) : null
   );
   const [isSaving, setIsSaving] = useState(false);
-  // Initial loading state: true if editing (has ID), false if creating
+
   const [isLoading, setIsLoading] = useState(!!idFromUrl);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
   );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  // Validate resume data
   const validateResume = (): boolean => {
     const errors: ValidationErrors = {};
 
-    // BasicInfo - all fields required per API docs
     if (!resume.basicInfo.position?.trim()) {
       errors.position = true;
     }
@@ -77,7 +70,7 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
     if (!resume.basicInfo.location?.trim()) {
       errors.location = true;
     }
-    // Objective - description required
+
     if (isRichTextEmpty(resume.objective?.description)) {
       errors.objective = true;
     }
@@ -92,9 +85,7 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
     return !hasErrors;
   };
 
-  // Load resume if ID exists
   useEffect(() => {
-    // Update resumeId if idFromUrl changes
     if (idFromUrl) {
       const id = Number(idFromUrl);
       if (id !== resumeId) {
@@ -119,7 +110,6 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
             setResume(res.data.data);
           }
         } catch (error) {
-          console.error("Failed to load resume", error);
           const axiosError = error as AxiosError;
           if (axiosError.response?.status === 403) {
             navigate(`/${routes.FORBIDDEN}`, { replace: true });
@@ -145,29 +135,26 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
       };
 
       if (resumeId) {
-        // Update
         const res = await resumeService.updateResume(
           resumeId,
           payload,
           avatarFile
         );
         if (res.data) {
-          setAvatarFile(null); // Reset after successful save
+          setAvatarFile(null);
           toast.success(t("resumeBuilder.toolbar.toast.saveSuccess"));
           navigate("/my-resumes");
         }
       } else {
-        // Create
         const res = await resumeService.createResume(payload, avatarFile);
         if (res.data) {
           setResumeId(res.data.id);
-          setAvatarFile(null); // Reset after successful save
+          setAvatarFile(null);
           toast.success(t("resumeBuilder.toolbar.toast.saveSuccess"));
           navigate("/my-resumes");
         }
       }
     } catch (error) {
-      console.error("Failed to save resume", error);
       const axiosError = error as AxiosError<ApiError>;
       const errorMessage =
         axiosError.response?.data?.message ||

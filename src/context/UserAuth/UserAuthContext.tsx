@@ -1,7 +1,7 @@
 import { createContext } from "react";
-import type { UserAuthState } from "./userAuth.types";
-import type { UserAuthAction } from "./userAuth.reducer";
-import { initUserAuthState } from "./userAuth.types";
+import type { UserAuthState } from "./UserAuthTypes";
+import type { UserAuthAction } from "./UserAuthReducer";
+import { initUserAuthState } from "./UserAuthTypes";
 
 interface UserAuthContextType {
   state: UserAuthState;

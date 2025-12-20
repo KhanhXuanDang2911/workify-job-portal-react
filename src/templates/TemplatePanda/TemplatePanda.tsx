@@ -20,7 +20,6 @@ function TemplatePanda({
   const { t } = useTranslation();
   const { basicInfo, objective } = data;
 
-  // Filter hidden items
   const experience = (data.experience || []).filter((item) => !item.isHidden);
   const education = (data.education || []).filter((item) => !item.isHidden);
   const skills = (data.skills || []).filter((item) => !item.isHidden);
@@ -42,7 +41,6 @@ function TemplatePanda({
     const updateMinPageHeight = () => {
       if (colLeftRef.current) {
         const leftHeight = colLeftRef.current.offsetHeight;
-        // Chọn max giữa PAGE_HEIGHT cứng và height colLeft
         setMinPageHeight(Math.max(PAGE_HEIGHT, leftHeight + 68));
       }
       if (topRef.current && colRightRef.current) {

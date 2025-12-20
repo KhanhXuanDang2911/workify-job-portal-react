@@ -4,7 +4,6 @@ import employerHttp from "@/lib/employerHttp";
 import type { ApiResponse, User, Employer } from "@/types";
 
 export const authService = {
-  // User Sign Up
   signUp: async (data: {
     fullName: string;
     email: string;
@@ -28,7 +27,6 @@ export const authService = {
     return response.data;
   },
 
-  // User Sign In
   signIn: async (data: {
     email: string;
     password: string;
@@ -41,7 +39,6 @@ export const authService = {
     return response.data;
   },
 
-  // Employer Sign In
   signInEmployer: async (data: {
     email: string;
     password: string;
@@ -54,7 +51,6 @@ export const authService = {
     return response.data;
   },
 
-  // Sign Out (User/Admin)
   signOut: async (
     accessToken: string,
     refreshToken: string
@@ -72,7 +68,6 @@ export const authService = {
     return response.data;
   },
 
-  // Sign Out Employer
   signOutEmployer: async (
     accessToken: string,
     refreshToken: string
@@ -90,7 +85,6 @@ export const authService = {
     return response.data;
   },
 
-  // Verify Email
   verifyEmail: async (
     token: string,
     role: "users" | "employers"
@@ -107,7 +101,6 @@ export const authService = {
     return response.data;
   },
 
-  // Change Password (requires authentication)
   changePassword: async (
     data: { currentPassword: string; newPassword: string },
     role: "users" | "employers" | "admins"
@@ -118,7 +111,6 @@ export const authService = {
     } else if (role === "employers") {
       httpClient = employerHttp;
     } else {
-      // For admins, we'll use userHttp (or create adminHttp if needed)
       httpClient = userHttp;
     }
 
@@ -129,7 +121,6 @@ export const authService = {
     return response.data;
   },
 
-  // Forgot Password
   forgotPassword: async (
     email: string,
     role: "users" | "employers"
@@ -141,7 +132,6 @@ export const authService = {
     return response.data;
   },
 
-  // Reset Password
   resetPassword: async (
     token: string,
     newPassword: string,
@@ -159,7 +149,6 @@ export const authService = {
     return response.data;
   },
 
-  // Google Login (User)
   googleLogin: async (
     authorizationCode: string
   ): Promise<
@@ -189,7 +178,6 @@ export const authService = {
     return response.data;
   },
 
-  // LinkedIn Login (User)
   linkedInLogin: async (
     authorizationCode: string
   ): Promise<
@@ -219,7 +207,6 @@ export const authService = {
     return response.data;
   },
 
-  // Create Password (for social login users)
   createPassword: async (
     token: string,
     password: string
@@ -240,7 +227,6 @@ export const authService = {
     return response.data;
   },
 
-  // Refresh Token - User
   refreshTokenUser: async (
     refreshToken: string
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {
@@ -258,7 +244,6 @@ export const authService = {
     return response.data;
   },
 
-  // Refresh Token - Employer
   refreshTokenEmployer: async (
     refreshToken: string
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> => {

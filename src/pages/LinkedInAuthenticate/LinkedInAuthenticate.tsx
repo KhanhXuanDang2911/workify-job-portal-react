@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import { userTokenUtils } from "@/lib/token";
 import NotFound from "@/pages/NotFound";
 import { routes } from "@/routes/routes.const";

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { ArrowDownToLine, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -48,18 +48,15 @@ export default function Toolbar({
   };
 
   const handleClickedSaveButton = async () => {
-    // Validate using context validation
     if (!validateResume()) {
       return;
     }
 
-    // In edit mode, save directly without dialog
     if (isEditMode) {
       await saveResume();
       return;
     }
 
-    // In create mode, show dialog to enter name
     setTempResumeName(resumeName);
     setOpenDialogSave(true);
   };

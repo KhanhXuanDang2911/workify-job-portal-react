@@ -54,7 +54,6 @@ export default function CreateUserModal() {
   >([]);
   const [searchProvince, setSearchProvince] = useState("");
 
-  // Define schema inside useMemo to use t()
   const schema = useMemo(() => {
     const UserStatusEnum = z.enum(
       Object.keys(UserStatus) as [keyof typeof UserStatus],
@@ -70,7 +69,7 @@ export default function CreateUserModal() {
     return z.object({
       fullName: z
         .string()
-        .min(3, t("validation.fullNameMinLength")) // Ensure these keys exist or use generic
+        .min(3, t("validation.fullNameMinLength"))
         .max(160, t("validation.fullNameMaxLength")),
       email: z
         .string()
@@ -174,7 +173,7 @@ export default function CreateUserModal() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -183,7 +182,6 @@ export default function CreateUserModal() {
     }
   }, [provinces]);
 
-  // load industries for select
   const { data: industriesResponse } = useQuery({
     queryKey: ["all-industries"],
     queryFn: () => industryService.getAllIndustries(),
@@ -207,7 +205,7 @@ export default function CreateUserModal() {
         name: district.name,
       })),
     enabled: !!seletedProvinceId,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   return (
@@ -292,7 +290,6 @@ export default function CreateUserModal() {
                   setAvatarImage(reader.result as string);
                 };
                 reader.readAsDataURL(file);
-                // setAvatarFile(file); // Already set above
               }
             }}
           />

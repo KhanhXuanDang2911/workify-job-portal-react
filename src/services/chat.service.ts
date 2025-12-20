@@ -7,9 +7,7 @@ import type {
   SendMessageRequest,
 } from "@/types/chat.type";
 
-// Helper to get the appropriate HTTP client based on current route
 const getHttpClient = () => {
-  // Check if we're on employer route
   if (typeof window !== "undefined") {
     const pathname = window.location.pathname;
     if (pathname.startsWith("/employer")) {
@@ -20,7 +18,6 @@ const getHttpClient = () => {
 };
 
 export const chatService = {
-  // Get conversations for employer
   getEmployerConversations: async (): Promise<
     ApiResponse<ConversationResponse[]>
   > => {
@@ -31,7 +28,6 @@ export const chatService = {
     return response.data;
   },
 
-  // Get conversations for user
   getUserConversations: async (): Promise<
     ApiResponse<ConversationResponse[]>
   > => {
@@ -40,7 +36,6 @@ export const chatService = {
     return response.data;
   },
 
-  // Get conversation by application ID
   getConversationByApplicationId: async (
     applicationId: number
   ): Promise<ApiResponse<ConversationResponse>> => {
@@ -51,7 +46,6 @@ export const chatService = {
     return response.data;
   },
 
-  // Get messages by conversation ID
   getMessages: async (
     conversationId: number
   ): Promise<ApiResponse<MessageResponse[]>> => {
@@ -62,7 +56,6 @@ export const chatService = {
     return response.data;
   },
 
-  // Send message
   sendMessage: async (
     data: SendMessageRequest
   ): Promise<ApiResponse<MessageResponse>> => {
@@ -74,7 +67,6 @@ export const chatService = {
     return response.data;
   },
 
-  // Mark messages as seen
   markAsSeen: async (conversationId: number): Promise<ApiResponse<void>> => {
     const http = getHttpClient();
     const response = await http.put<ApiResponse<void>>(
@@ -82,7 +74,7 @@ export const chatService = {
     );
     return response.data;
   },
-  // Get total unread count for current user
+
   getUnreadCount: async (): Promise<ApiResponse<{ totalUnread: number }>> => {
     const http = getHttpClient();
     const response = await http.get<ApiResponse<{ totalUnread: number }>>(

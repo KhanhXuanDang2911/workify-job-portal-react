@@ -12,7 +12,7 @@ import Notifications from "@/pages/Notifications";
 import ResumeBuilder from "@/pages/ResumeBuilder";
 import MessagesPage from "@/pages/Messages/Messages";
 import ViewResume from "@/pages/ViewResume";
-import { ResumeProvider } from "@/context/ResumeContext/resumeProvider";
+import { ResumeProvider } from "@/context/Resume/ResumeProvider";
 
 const UserProtectedRoutes: RouteObject[] = [
   {

@@ -34,22 +34,18 @@ export function useDistrictsForLocations({
     })),
   });
 
-  // Helper function để lấy districts theo index
   const getDistrictsByIndex = (idx: number): District[] => {
     return districtQueries[idx]?.data || [];
   };
 
-  // Helper function để check loading state
   const isLoadingByIndex = (idx: number): boolean => {
     return districtQueries[idx]?.isLoading || false;
   };
 
-  // Helper function để check error state
   const getErrorByIndex = (idx: number) => {
     return districtQueries[idx]?.error;
   };
 
-  // Tổng hợp trạng thái
   const isAnyLoading = districtQueries.some((query) => query.isLoading);
   const hasAnyError = districtQueries.some((query) => query.isError);
 

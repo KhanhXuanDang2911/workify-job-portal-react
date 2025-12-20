@@ -30,7 +30,6 @@ const BaseModal: React.FC<BaseModalProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
 
-  // Use controlled or uncontrolled mode
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
 

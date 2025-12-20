@@ -17,8 +17,6 @@ import { ResponsiveContext } from "@/context/ResponsiveContext";
 import { applicationService } from "@/services";
 import { ApplicationStatus } from "@/types";
 import Loading from "@/components/Loading";
-// CandidateSheet removed for /employer/applications — render rows/cards directly
-// type ApplicationResponse not used in this file
 import { toast } from "react-toastify";
 import { FileText, FileTextIcon, Download, MessageCircle } from "lucide-react";
 import {
@@ -32,9 +30,9 @@ import { useTranslation } from "@/hooks/useTranslation";
 import ChatModal from "@/components/Chat/ChatModal";
 import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
-import { useEmployerAuth } from "@/context/employer-auth";
+import { useEmployerAuth } from "@/context/EmployerAuth";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
-// Map ApplicationStatus to display text and color with badge styles
 const getStatusInfo = (
   status: ApplicationStatus,
   t: (key: string) => string
@@ -88,7 +86,6 @@ const getStatusInfo = (
   );
 };
 
-// Format date - will be updated inside component to use i18n
 const formatDate = (dateString?: string, locale: string = "vi-VN"): string => {
   if (!dateString) return "";
   try {
@@ -115,10 +112,6 @@ function Candidates() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // NOTE: removed fetching all jobs here to avoid extra API calls.
-  // The page now relies on `selectedJobId` from the route params.
-
-  // Fetch applications by job
   const {
     data: applicationsResponse,
     isLoading: isLoadingApplications,
@@ -132,7 +125,7 @@ function Candidates() {
         pageSize: itemsPerPage,
       }),
     enabled: !!selectedJobId,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
     refetchOnMount: true,
   });
 
@@ -142,7 +135,6 @@ function Candidates() {
   const totalCandidates = applicationsResponse?.data?.numberOfElements || 0;
   const totalPages = applicationsResponse?.data?.totalPages || 0;
 
-  // Chat modal state
   const [showChatModal, setShowChatModal] = useState(false);
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationResponse | null>(null);
@@ -150,7 +142,6 @@ function Candidates() {
     number | null
   >(null);
 
-  // Change application status mutation
   const changeStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: ApplicationStatus }) =>
       applicationService.changeApplicationStatus(id, status),
@@ -168,7 +159,6 @@ function Candidates() {
     },
   });
 
-  // Filter applications by search keyword
   const filteredApplications = applications.filter((app) => {
     if (!searchKeyword) return true;
     const keyword = searchKeyword.toLowerCase();
@@ -179,10 +169,6 @@ function Candidates() {
     );
   });
 
-  // Auto-select first job if available
-  // Previously this component fetched all jobs and auto-selected the first one.
-  // That behaviour was removed per request: the page now expects `jobId` from
-  // the URL. If `params.jobId` changes, update selection accordingly.
   useEffect(() => {
     if (params.jobId) {
       const id = Number(params.jobId);
@@ -192,14 +178,12 @@ function Candidates() {
     }
   }, [params.jobId]);
 
-  // Refetch applications when job is selected/changed
   useEffect(() => {
     if (selectedJobId) {
       refetchApplications();
     }
   }, [selectedJobId, refetchApplications]);
 
-  // Handle change status
   const handleChangeStatus = (
     applicationId: number,
     newStatus: ApplicationStatus
@@ -207,7 +191,6 @@ function Candidates() {
     changeStatusMutation.mutate({ id: applicationId, status: newStatus });
   };
 
-  // Handle view CV
   const handleViewCV = (cvUrl: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (cvUrl) {
@@ -217,18 +200,15 @@ function Candidates() {
     }
   };
 
-  // State for cover letter dialog
   const [coverLetterDialogOpen, setCoverLetterDialogOpen] = useState(false);
   const [selectedCoverLetter, setSelectedCoverLetter] = useState<string>("");
 
-  // Handle view cover letter
   const handleViewCoverLetter = (coverLetter: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedCoverLetter(coverLetter);
     setCoverLetterDialogOpen(true);
   };
 
-  // Handle open chat
   const handleOpenChat = async (applicationId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -240,7 +220,6 @@ function Candidates() {
         setShowChatModal(true);
       }
     } catch (error: any) {
-      console.error("Error fetching conversation:", error);
       const status = error?.response?.status;
       const message = error?.response?.data?.message;
 
@@ -269,7 +248,6 @@ function Candidates() {
     }
   };
 
-  // Handle export to Excel
   const handleExportToExcel = () => {
     if (filteredApplications.length === 0) {
       toast.warning(t("employer.applications.noDataToExport"));
@@ -277,7 +255,6 @@ function Candidates() {
     }
 
     try {
-      // Prepare data for Excel
       const excelData = filteredApplications.map((application, index) => {
         const statusInfo = getStatusInfo(application.status, t);
         return {
@@ -297,38 +274,33 @@ function Candidates() {
         };
       });
 
-      // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(excelData);
 
-      // Set column widths
       const colWidths = [
-        { wch: 5 }, // STT
-        { wch: 25 }, // Full Name
-        { wch: 30 }, // Email
-        { wch: 15 }, // Phone Number
-        { wch: 20 }, // Status
-        { wch: 20 }, // Applied Date
-        { wch: 50 }, // CV Link
-        { wch: 30 }, // Position
+        { wch: 5 },
+        { wch: 25 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 50 },
+        { wch: 30 },
       ];
       ws["!cols"] = colWidths;
 
-      // Add worksheet to workbook
       XLSX.utils.book_append_sheet(
         wb,
         ws,
         t("employer.applications.excel.sheetName")
       );
 
-      // Generate filename with current date
       const currentDate = new Date()
         .toLocaleDateString("vi-VN")
         .replace(/\//g, "-");
       const jobTitle = selectedJobId ? `job_${selectedJobId}` : "All";
       const filename = `${t("employer.applications.excel.filenamePrefix")}_${jobTitle}_${currentDate}.xlsx`;
 
-      // Write file
       XLSX.writeFile(wb, filename);
 
       toast.success(
@@ -343,6 +315,7 @@ function Candidates() {
 
   return (
     <>
+      <PageTitle title={t("pageTitles.candidates")} />
       {/* Main Content */}
       <main className="flex-1 p-6">
         {/* Content Header */}

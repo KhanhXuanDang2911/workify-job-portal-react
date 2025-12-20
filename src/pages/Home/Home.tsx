@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageTitle } from "@/components/PageTitle/PageTitle";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -39,24 +41,21 @@ export default function Home() {
     "Engineer",
   ];
 
-  // Query industries
   const { data: industriesResponse } = useQuery({
     queryKey: ["all-industries"],
     queryFn: () => industryService.getAllIndustries(),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
-  // Query provinces
   const { data: provincesResponse } = useQuery({
     queryKey: ["all-provinces"],
     queryFn: () => provinceService.getProvinces(),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   const industries = industriesResponse?.data || [];
   const provinces = provincesResponse?.data || [];
 
-  // Personalized jobs for the current user (server will fallback when not personalized)
   const { data: personalizedResponse } = useQuery({
     queryKey: ["personalized-jobs", 8],
     queryFn: () => jobService.getPersonalized(8),
@@ -68,7 +67,6 @@ export default function Home() {
     : undefined;
 
   const handleSearch = () => {
-    // Lưu vào search history
     if (keyword.trim() || selectedIndustryId || selectedProvinceId) {
       saveSearchHistory(
         keyword.trim(),
@@ -77,7 +75,6 @@ export default function Home() {
       );
     }
 
-    // Build search params
     const params = new URLSearchParams();
     if (keyword.trim()) {
       params.set("keyword", keyword.trim());
@@ -89,7 +86,6 @@ export default function Home() {
       params.append("provinceId", selectedProvinceId);
     }
 
-    // Navigate to job search
     const queryString = params.toString();
     navigate(`/${routes.JOB_SEARCH}${queryString ? `?${queryString}` : ""}`);
   };
@@ -102,6 +98,7 @@ export default function Home() {
 
   return (
     <>
+      <PageTitle title={t("pageTitles.home")} />
       {/* Hero Section */}
       <section
         className="relative min-h-screen flex items-center overflow-hidden"

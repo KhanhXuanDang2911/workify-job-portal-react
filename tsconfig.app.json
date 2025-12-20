@@ -10,18 +10,12 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    // "verbatimModuleSyntax": true,  // Disabled to allow enum exports
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    /* Linting */
     "strict": true,
-    // "noUnusedLocals": true,  // Disabled to allow unused variables
-    // "noUnusedParameters": true,  // Disabled to allow unused parameters
-    // "erasableSyntaxOnly": true,  // Disabled to allow enum exports
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },

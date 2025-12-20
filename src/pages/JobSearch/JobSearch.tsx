@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { PageTitle } from "@/components/PageTitle/PageTitle";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ import {
 } from "@/constants/job.constant";
 import Loading from "@/components/Loading";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import {
   getSearchHistory,
   removeSearchHistoryItem,
@@ -48,9 +49,6 @@ import {
 } from "@/utils/searchHistory";
 import { X, Clock } from "lucide-react";
 
-// ===================== MAPPING FUNCTIONS =====================
-
-// Map display labels to enum values (using translation keys)
 const mapLevelToEnum = (label: string, t: (key: string) => string): string => {
   const mapping: Record<string, string> = {
     [t("jobSearch.enums.jobLevel.INTERN")]: JobLevel.INTERN,
@@ -66,7 +64,6 @@ const mapLevelToEnum = (label: string, t: (key: string) => string): string => {
   return mapping[label] || label;
 };
 
-// Reverse mapping: enum to display label
 const mapEnumToLevel = (
   enumValue: string,
   t: (key: string) => string
@@ -104,7 +101,6 @@ const mapExperienceToEnum = (
   return mapping[label] || label;
 };
 
-// Reverse mapping: enum to display label
 const mapEnumToExperience = (
   enumValue: string,
   t: (key: string) => string
@@ -147,7 +143,6 @@ const mapEducationToEnum = (
   return mapping[label] || label;
 };
 
-// Reverse mapping: enum to display label
 const mapEnumToEducation = (
   enumValue: string,
   t: (key: string) => string
@@ -185,7 +180,6 @@ const mapJobTypeToEnum = (
   return mapping[label] || label;
 };
 
-// Reverse mapping: enum to display label
 const mapEnumToJobType = (
   enumValue: string,
   t: (key: string) => string
@@ -219,7 +213,6 @@ const mapDatePostedToDays = (
   return mapping[label];
 };
 
-// Reverse mapping: days to display label
 const mapDaysToDatePosted = (
   days: number,
   t: (key: string) => string
@@ -234,12 +227,10 @@ const mapDaysToDatePosted = (
   return mapping[days];
 };
 
-// Format salary from JobResponse (using compact format)
 const formatSalary = (job: JobResponse, t: (key: string) => string): string => {
   return formatSalaryCompact(job, t);
 };
 
-// Map type to color
 const mapTypeColor = (jobType?: string): string => {
   if (!jobType) return "bg-gray-400";
   if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
@@ -249,7 +240,6 @@ const mapTypeColor = (jobType?: string): string => {
   return "bg-blue-500";
 };
 
-// Format relative time
 const relativePosted = (
   createdAt?: string,
   t?: (key: string, options?: any) => string
@@ -270,7 +260,6 @@ const relativePosted = (
   }
 };
 
-// Transform JobResponse to JobCard format
 const mapJobToCard = (job: JobResponse, t: (key: string) => string) => {
   const firstLocation =
     Array.isArray(job.jobLocations) && job.jobLocations.length > 0
@@ -292,7 +281,7 @@ const mapJobToCard = (job: JobResponse, t: (key: string) => string) => {
     company: job.companyName || job.author?.companyName || "",
     location: locationParts.join(", ") || "",
     salary: formatSalary(job, t),
-    period: "", // Không cần period vì đã có trong salary
+    period: "",
     type: mapEnumToJobType(job.jobType, t),
     typeColor: mapTypeColor(job.jobType),
     posted: relativePosted(job.createdAt, t),
@@ -302,8 +291,6 @@ const mapJobToCard = (job: JobResponse, t: (key: string) => string) => {
     companyWebsite: job.companyWebsite,
   };
 };
-
-// ===================== MULTI-SELECT COMPONENT =====================
 
 interface MultiSelectOption {
   id: string;
@@ -401,22 +388,19 @@ const MultiSelectDropdown = ({
   );
 };
 
-// ===================== COMPONENT =====================
-
 interface JobSearchFilters {
-  industry: string[]; // Industry IDs
-  level: string[]; // Display labels
-  experience: string[]; // Display labels
-  salaryMin: number; // >= 0
-  salaryMax: number; // >= 0
-  salaryUnit: "VND" | "USD"; // Salary unit
-  education: string[]; // Display labels
-  jobType: string[]; // Display labels
-  datePosted: string[]; // Display labels
-  provinceId: string[]; // Province IDs
+  industry: string[];
+  level: string[];
+  experience: string[];
+  salaryMin: number;
+  salaryMax: number;
+  salaryUnit: "VND" | "USD";
+  education: string[];
+  jobType: string[];
+  datePosted: string[];
+  provinceId: string[];
 }
 
-// Sort field display names mapping
 const getSortFieldLabels = (
   t: (key: string) => string
 ): Record<string, string> => ({
@@ -425,7 +409,6 @@ const getSortFieldLabels = (
   expirationDate: t("jobSearch.expiringSoon"),
 });
 
-// Sort order display names
 const getSortOrderLabels = (
   t: (key: string) => string
 ): Record<"asc" | "desc", string> => ({
@@ -435,6 +418,7 @@ const getSortOrderLabels = (
 
 const JobSearch = () => {
   const { t } = useTranslation();
+
   const { state: userAuth } = useUserAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -446,7 +430,6 @@ const JobSearch = () => {
   const historyDropdownRef = useRef<HTMLDivElement>(null);
   const jobsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Handle click outside to close history dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -461,7 +444,6 @@ const JobSearch = () => {
     };
 
     if (showHistory) {
-      // Delay adding listener to avoid immediate close
       const timeoutId = setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside);
       }, 0);
@@ -473,7 +455,6 @@ const JobSearch = () => {
     }
   }, [showHistory]);
 
-  // Parse sorts from URL (format: "field:asc|desc")
   const parseSortsFromUrl = (
     sortsString: string
   ): { field: string; direction: "asc" | "desc" } => {
@@ -485,7 +466,6 @@ const JobSearch = () => {
     };
   };
 
-  // Parse filters from URL params
   const parseFiltersFromUrl = (params: URLSearchParams): JobSearchFilters => {
     const levelParams = params.getAll("level");
     const experienceParams = params.getAll("experience");
@@ -510,16 +490,14 @@ const JobSearch = () => {
     };
   };
 
-  // Read from URL params on mount
   const keywordFromUrl = searchParams.get("keyword") || "";
   const sortsFromUrl = searchParams.get("sorts") || "createdAt:desc";
   const pageFromUrl = searchParams.get("page");
   const initialFilters = parseFiltersFromUrl(searchParams);
   const initialSort = parseSortsFromUrl(sortsFromUrl);
 
-  // Applied filters (from URL - used for API calls) - no temp filters, auto-apply
   const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
-  const [tempKeyword, setTempKeyword] = useState(keywordFromUrl); // Temp state for keyword input
+  const [tempKeyword, setTempKeyword] = useState(keywordFromUrl);
   const [appliedFilters, setAppliedFilters] =
     useState<JobSearchFilters>(initialFilters);
   const [appliedSort, setAppliedSort] = useState<{
@@ -530,7 +508,6 @@ const JobSearch = () => {
     pageFromUrl ? Number(pageFromUrl) : 1
   );
 
-  // Temp state for salary inputs (only apply on blur/enter)
   const [tempSalaryMin, setTempSalaryMin] = useState<string>(
     initialFilters.salaryMin > 0 ? initialFilters.salaryMin.toString() : ""
   );
@@ -538,23 +515,20 @@ const JobSearch = () => {
     initialFilters.salaryMax > 0 ? initialFilters.salaryMax.toString() : ""
   );
 
-  const pageSize = 10; // Fixed page size
+  const pageSize = 10;
 
-  // Build sorts string for API (format: "field:asc|desc")
   const sortsString = `${appliedSort.field}:${appliedSort.direction}`;
 
-  // Load search history on mount
   useEffect(() => {
     setSearchHistory(getSearchHistory());
   }, []);
 
-  // Refresh search history function
   const refreshSearchHistory = () => {
     setSearchHistory(getSearchHistory());
   };
 
   const handleSearch = () => {
-    setAppliedKeyword(tempKeyword); // Apply the temp keyword
+    setAppliedKeyword(tempKeyword);
     setCurrentPage(1);
     setShowHistory(false);
     if (tempKeyword.trim()) {
@@ -571,13 +545,11 @@ const JobSearch = () => {
     }
   };
 
-  // Handle smart search
   const handleSmartSearch = async () => {
     if (!smartSearchInput.trim() || isExtractingParams) return;
 
     setIsExtractingParams(true);
     try {
-      // Step 2: Call Gemini to extract params
       const extractedParams = await extractSearchParams(
         smartSearchInput.trim(),
         {
@@ -586,15 +558,12 @@ const JobSearch = () => {
         }
       );
 
-      // Step 3 & 4: Apply extracted params and update filters
       const newFilters: JobSearchFilters = { ...appliedFilters };
 
-      // Apply keyword
       if (extractedParams.keyword) {
         setAppliedKeyword(extractedParams.keyword);
       }
 
-      // Apply provinceIds
       if (
         extractedParams.provinceIds &&
         extractedParams.provinceIds.length > 0
@@ -604,7 +573,6 @@ const JobSearch = () => {
         );
       }
 
-      // Apply industryIds
       if (
         extractedParams.industryIds &&
         extractedParams.industryIds.length > 0
@@ -614,14 +582,12 @@ const JobSearch = () => {
         );
       }
 
-      // Apply jobLevels (map enum to display labels)
       if (extractedParams.jobLevels && extractedParams.jobLevels.length > 0) {
         newFilters.level = extractedParams.jobLevels.map((level) =>
           mapEnumToLevel(level, t)
         );
       }
 
-      // Apply experienceLevels
       if (
         extractedParams.experienceLevels &&
         extractedParams.experienceLevels.length > 0
@@ -631,7 +597,6 @@ const JobSearch = () => {
         );
       }
 
-      // Apply educationLevels
       if (
         extractedParams.educationLevels &&
         extractedParams.educationLevels.length > 0
@@ -641,14 +606,12 @@ const JobSearch = () => {
         );
       }
 
-      // Apply jobTypes
       if (extractedParams.jobTypes && extractedParams.jobTypes.length > 0) {
         newFilters.jobType = extractedParams.jobTypes.map((type) =>
           mapEnumToJobType(type, t)
         );
       }
 
-      // Apply postedWithinDays
       if (extractedParams.postedWithinDays) {
         const daysLabel = mapDaysToDatePosted(
           extractedParams.postedWithinDays,
@@ -659,7 +622,6 @@ const JobSearch = () => {
         }
       }
 
-      // Apply salary
       if (extractedParams.minSalary || extractedParams.maxSalary) {
         newFilters.salaryMin = extractedParams.minSalary || 0;
         newFilters.salaryMax = extractedParams.maxSalary || 0;
@@ -667,7 +629,6 @@ const JobSearch = () => {
           (extractedParams.salaryUnit as "VND" | "USD") || "VND";
       }
 
-      // Apply sort
       if (extractedParams.sort) {
         const [field, direction] = extractedParams.sort.split(":");
         setAppliedSort({
@@ -676,11 +637,9 @@ const JobSearch = () => {
         });
       }
 
-      // Update filters
       setAppliedFilters(newFilters);
       setCurrentPage(1);
 
-      // Scroll to results
       if (jobsSectionRef.current) {
         jobsSectionRef.current.scrollIntoView({
           behavior: "smooth",
@@ -688,8 +647,6 @@ const JobSearch = () => {
         });
       }
     } catch (error) {
-      console.error("Error in smart search:", error);
-      // You can add toast notification here
     } finally {
       setIsExtractingParams(false);
     }
@@ -697,8 +654,8 @@ const JobSearch = () => {
 
   const handleHistoryItemClick = (item: SearchHistoryItem) => {
     const keyword = item.keyword || "";
-    setTempKeyword(keyword); // Update temp keyword
-    setAppliedKeyword(keyword); // Apply immediately for history items
+    setTempKeyword(keyword);
+    setAppliedKeyword(keyword);
     const newFilters = { ...appliedFilters };
     if (item.industryId) {
       newFilters.industry = [item.industryId];
@@ -713,7 +670,6 @@ const JobSearch = () => {
     setAppliedFilters(newFilters);
     setCurrentPage(1);
     setShowHistory(false);
-    // Trigger query by updating applied filters
   };
 
   const handleRemoveHistoryItem = (
@@ -724,7 +680,7 @@ const JobSearch = () => {
     e.stopPropagation();
     removeSearchHistoryItem(item.timestamp);
     refreshSearchHistory();
-    // Keep history open after deleting an item
+
     setShowHistory(true);
   };
 
@@ -733,11 +689,10 @@ const JobSearch = () => {
     e.stopPropagation();
     clearSearchHistory();
     refreshSearchHistory();
-    // Keep history open after clearing
+
     setShowHistory(true);
   };
 
-  // Update URL params when applied filters change
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -757,7 +712,6 @@ const JobSearch = () => {
       });
     }
 
-    // Set all filter params
     if (appliedFilters.level.length > 0) {
       appliedFilters.level.forEach((label) => {
         params.append("level", mapLevelToEnum(label, t));
@@ -800,7 +754,6 @@ const JobSearch = () => {
       params.set("salaryUnit", appliedFilters.salaryUnit);
     }
 
-    // Set sorts param (format: "field:asc|desc")
     if (sortsString !== "createdAt:desc") {
       params.set("sorts", sortsString);
     }
@@ -818,7 +771,6 @@ const JobSearch = () => {
     setSearchParams,
   ]);
 
-  // Read from URL params when URL changes (only on mount or external navigation)
   useEffect(() => {
     const keywordParam = searchParams.get("keyword") || "";
     const sortsParam = searchParams.get("sorts") || "createdAt:desc";
@@ -829,11 +781,10 @@ const JobSearch = () => {
     const parsedFilters = parseFiltersFromUrl(searchParams);
 
     setAppliedKeyword(keywordParam);
-    setTempKeyword(keywordParam); // Sync temp keyword with URL
+    setTempKeyword(keywordParam);
     setAppliedSort(parsedSort);
     setAppliedFilters(parsedFilters);
 
-    // Update temp salary values from URL
     setTempSalaryMin(
       parsedFilters.salaryMin > 0 ? parsedFilters.salaryMin.toString() : ""
     );
@@ -841,26 +792,22 @@ const JobSearch = () => {
       parsedFilters.salaryMax > 0 ? parsedFilters.salaryMax.toString() : ""
     );
 
-    // Only update currentPage if it's different from URL to avoid loop
     if (pageFromUrl !== currentPage) {
       setCurrentPage(pageFromUrl);
     }
-  }, [searchParams]); // Remove currentPage from dependency to avoid loop
+  }, [searchParams]);
 
-  // If user has an industry set and no industry filter applied, auto-apply it
   const autoAppliedRef = useRef(false);
 
   useEffect(() => {
     try {
-      // Only auto-apply once per mount/session
       if (autoAppliedRef.current) return;
 
       const userIndustryId = userAuth?.user?.industry?.id;
 
-      // If URL already contains an industry filter, do not override it
       const urlIndustryIds = searchParams.getAll("industryId");
       if (urlIndustryIds.length > 0) {
-        autoAppliedRef.current = true; // respect explicit URL, mark as applied so we don't run again
+        autoAppliedRef.current = true;
         return;
       }
 
@@ -873,13 +820,9 @@ const JobSearch = () => {
       }
 
       autoAppliedRef.current = true;
-    } catch (e) {
-      // ignore
-    }
-    // Run when user industry or search params are available on mount
+    } catch (e) {}
   }, [userAuth?.user?.industry?.id, searchParams]);
 
-  // Reset to page 1 when applied filters change (but not when reading from URL)
   const prevFiltersRef = useRef({
     appliedKeyword,
     appliedFilters,
@@ -904,7 +847,6 @@ const JobSearch = () => {
     }
   }, [appliedKeyword, appliedFilters, sortsString]);
 
-  // Load industries and provinces
   const { data: industriesResponse } = useQuery({
     queryKey: ["industries"],
     queryFn: () => industryService.getAllIndustries(),
@@ -921,7 +863,6 @@ const JobSearch = () => {
 
   const provinces = provincesResponse?.data || [];
 
-  // Build API params from applied filters
   const apiParams = useMemo(() => {
     const params: any = {
       pageNumber: currentPage,
@@ -963,7 +904,6 @@ const JobSearch = () => {
     }
 
     if (appliedFilters.datePosted.length > 0) {
-      // Use the minimum days (most recent)
       const days = appliedFilters.datePosted
         .map((v) => mapDatePostedToDays(v, t))
         .filter((d): d is number => d !== undefined);
@@ -972,7 +912,6 @@ const JobSearch = () => {
       }
     }
 
-    // Apply salary filter if user has set values
     if (appliedFilters.salaryMin > 0 || appliedFilters.salaryMax > 0) {
       if (appliedFilters.salaryMin > 0) {
         params.minSalary = appliedFilters.salaryMin;
@@ -983,13 +922,11 @@ const JobSearch = () => {
       params.salaryUnit = appliedFilters.salaryUnit;
     }
 
-    // Format sort with order: createdAt:desc
     params.sort = sortsString;
 
     return params;
   }, [appliedKeyword, appliedFilters, sortsString, currentPage, pageSize]);
 
-  // Fetch jobs
   const {
     data: jobsResponse,
     isLoading,
@@ -998,7 +935,7 @@ const JobSearch = () => {
   } = useQuery({
     queryKey: ["job-search", apiParams],
     queryFn: () => jobService.searchJobsAdvanced(apiParams),
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 1 * 60 * 1000,
   });
 
   const jobs = useMemo(() => {
@@ -1007,7 +944,7 @@ const JobSearch = () => {
   }, [jobsResponse, t]);
 
   const totalPages = jobsResponse?.data?.totalPages || 0;
-  // Calculate total jobs: if on last page, use actual count, otherwise estimate
+
   const totalJobs =
     totalPages > 0
       ? currentPage === totalPages
@@ -1015,7 +952,6 @@ const JobSearch = () => {
         : totalPages * pageSize
       : 0;
 
-  // Fetch top attractive jobs for suggestions
   const userIndustryId = userAuth?.user?.industry?.id;
 
   const { data: topAttractiveResponse } = useQuery({
@@ -1025,7 +961,7 @@ const JobSearch = () => {
         8,
         userIndustryId ? { industryId: Number(userIndustryId) } : undefined
       ),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   const suggestedJobs = useMemo(() => {
@@ -1078,14 +1014,12 @@ const JobSearch = () => {
     setCurrentPage(1);
   };
 
-  // Handle clear smart search
   const handleClearSmartSearch = () => {
     setSmartSearchInput("");
     handleClearFilters();
     setTempKeyword("");
   };
 
-  // Auto-apply filters when changed
   const handleCheckboxChange = (
     category: keyof Pick<
       JobSearchFilters,
@@ -1111,7 +1045,6 @@ const JobSearch = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Multi-select handlers - auto-apply
   const handleProvinceToggle = (provinceId: string) => {
     const isSelected = appliedFilters.provinceId.includes(provinceId);
     if (isSelected) {
@@ -1144,20 +1077,17 @@ const JobSearch = () => {
     setCurrentPage(1);
   };
 
-  // Auto-apply sort when changed - auto-set direction based on field
   const handleSortFieldChange = (field: string) => {
-    // Auto-set direction based on field type
     let direction: "asc" | "desc" = "desc";
     if (field === "expirationDate") {
-      direction = "asc"; // Sắp hết hạn = gần nhất = asc
+      direction = "asc";
     } else if (field === "createdAt" || field === "updatedAt") {
-      direction = "desc"; // Mới nhất/Mới cập nhật = desc
+      direction = "desc";
     }
     setAppliedSort({ field, direction });
     setCurrentPage(1);
   };
 
-  // Apply salary filter when user finishes typing (onBlur or Enter)
   const applySalaryFilter = () => {
     const min = tempSalaryMin ? Math.max(0, parseFloat(tempSalaryMin) || 0) : 0;
     const max = tempSalaryMax ? Math.max(0, parseFloat(tempSalaryMax) || 0) : 0;
@@ -1169,7 +1099,6 @@ const JobSearch = () => {
     setCurrentPage(1);
   };
 
-  // Handle salary unit change (immediate apply)
   const handleSalaryUnitChange = (unit: "VND" | "USD") => {
     setAppliedFilters({
       ...appliedFilters,
@@ -1178,7 +1107,6 @@ const JobSearch = () => {
     setCurrentPage(1);
   };
 
-  // Filter options
   const levelOptions = Object.values(JobLevel).map((key) => ({
     value: mapEnumToLevel(key, t),
     key,
@@ -1209,26 +1137,7 @@ const JobSearch = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Animated Background */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full blur-xl opacity-60 animate-float-gentle"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full blur-lg opacity-50 animate-float-gentle-delayed"></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-green-200 to-emerald-200 rounded-full blur-2xl opacity-40 animate-breathe"></div>
-      </div> */}
-
-      {/* Header */}
-      {/* <div className="bg-gradient-to-r from-white via-blue-50 to-indigo-50 border-b relative overflow-hidden backdrop-blur-sm">
-        <div className="absolute top-0 right-0 w-96 h-32 bg-gradient-to-l from-cyan-200 via-blue-100 to-transparent opacity-70">
-          <div className="absolute top-4 right-8">
-            <Cross className="w-8 h-8 text-blue-400 animate-pulse" />
-          </div>
-        </div>
-        <div className="container mx-auto px-4 py-8 relative z-10">
-          <h1 className="text-4xl font-semibold text-center text-[#1967d2] mb-4">
-            Find Your Dream Job
-          </h1>
-        </div>
-      </div> */}
+      <PageTitle title={t("pageTitles.jobSearch")} />
       <div
         className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 border-b border-gray-200"
         style={{ overflow: "visible" }}
@@ -1405,7 +1314,6 @@ const JobSearch = () => {
                             }
                             disabled={isExtractingParams}
                             onKeyDown={(e) => {
-                              // Enter = search
                               if (
                                 e.key === "Enter" &&
                                 !e.ctrlKey &&
@@ -1415,7 +1323,6 @@ const JobSearch = () => {
                                 e.preventDefault();
                                 handleSmartSearch();
                               }
-                              // Ctrl+Enter or Cmd+Enter = new line (default behavior)
                             }}
                           />
                           <p className="text-xs text-gray-500 mt-2">

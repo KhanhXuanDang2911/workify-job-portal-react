@@ -31,7 +31,7 @@ import type {
 } from "@/types/resume.type";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
 import { cn } from "@/lib/utils";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { templatePandaDummy } from "@/templates/TemplatePanda/dummy";
 import { templateRabbitDummy } from "@/templates/TemplateRabbit/dummy";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
@@ -359,8 +359,8 @@ const templates: TemplateItem<{
   },
 ];
 
-const TEMPLATE_WIDTH = 900; // chiều rộng gốc của template
-const TEMPLATE_HEIGHT = 1300; // chiều cao gốc của template
+const TEMPLATE_WIDTH = 900;
+const TEMPLATE_HEIGHT = 1300;
 
 function TemplateTab() {
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -437,7 +437,6 @@ function ThemeTab() {
   );
   const [type, setType] = useState<keyof Theme>("primaryColor");
 
-  // Sync nếu context thay đổi từ bên ngoài
   useEffect(() => {
     setSelectedColor(theme[type]);
   }, [type]);

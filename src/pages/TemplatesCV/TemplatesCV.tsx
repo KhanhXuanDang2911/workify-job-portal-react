@@ -10,9 +10,9 @@ import {
   templateRabbitDummyVi,
   templateRabbitDummyEn,
 } from "@/templates/TemplateRabbit/dummy";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import { useNavigate } from "react-router-dom";
-import { useUserAuth } from "@/context/user-auth/useUserAuth";
+import { useUserAuth } from "@/context/UserAuth/useUserAuth";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import {
   templateLionDummyVi,
@@ -77,12 +77,10 @@ type TemplateItem<P = any> = {
   categories: string[];
 };
 
-// Reordered templates: Havard -> Professional -> Animal (Creative)
 const templates: TemplateItem<{
   data?: ResumeData;
   ref?: RefObject<HTMLDivElement | null>;
 }>[] = [
-  // Harvard Series
   {
     id: "template-havard-1",
     name: "Havard 1 (Classic)",
@@ -102,7 +100,6 @@ const templates: TemplateItem<{
     categories: ["havard", "no-avatar"],
   },
 
-  // Professional Series
   {
     id: "template-professional-1",
     name: "Professional 1",
@@ -140,7 +137,6 @@ const templates: TemplateItem<{
     categories: ["professional", "no-avatar"],
   },
 
-  // Animal / Creative Series (Moved to bottom)
   {
     id: "template-tiger",
     name: "Template Tiger",
@@ -197,7 +193,7 @@ const templates: TemplateItem<{
   },
 ];
 
-const TEMPLATE_WIDTH = 900; // chiều rộng gốc của template
+const TEMPLATE_WIDTH = 900;
 
 export default function TemplatesCV() {
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -213,13 +209,11 @@ export default function TemplatesCV() {
   const { state } = useUserAuth();
   const { isAuthenticated } = state;
 
-  // Constants for Modal Scaling
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const templateContentRef = useRef<HTMLDivElement>(null);
   const [modalScale, setModalScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState(1300);
 
-  // Get current language
   const currentLang = i18n.language;
 
   useEffect(() => {
@@ -243,40 +237,33 @@ export default function TemplatesCV() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, [containerRefs, templates]); // Re-run when templates list could theoretically change, though it's static here
+  }, [containerRefs, templates]);
 
-  // Logic to update Modal Preview Scale & Height
   useEffect(() => {
     if (!selectedTemplate) return;
 
     const updateModalLayout = () => {
       if (modalContainerRef.current) {
         const containerWidth = modalContainerRef.current.clientWidth;
-        // padding-x is 32px (p-4) on small, 64px (p-8) on medium.
-        // We use clientWidth of component which includes padding content box if box-sizing is content-box, but standard is border-box.
-        // Actually best is to just take clientWidth.
-        // Let's assume some margin for safety.
-        const availableWidth = containerWidth - 32; // Safety margin
+
+        const availableWidth = containerWidth - 32;
 
         const newScale = Math.min(availableWidth / TEMPLATE_WIDTH, 1);
         setModalScale(newScale);
 
         if (templateContentRef.current) {
-          // Measure the real height of the template (unscaled)
           const originalHeight = templateContentRef.current.offsetHeight;
-          // Update wrapper height
+
           setScaledHeight(originalHeight * newScale);
         }
       }
     };
 
-    // Initial call after small delay to allow render
     const timeoutId = setTimeout(updateModalLayout, 100);
 
     const observer = new ResizeObserver(updateModalLayout);
     if (modalContainerRef.current) observer.observe(modalContainerRef.current);
 
-    // Also listen to window resize as fallback
     window.addEventListener("resize", updateModalLayout);
 
     return () => {
@@ -379,8 +366,7 @@ export default function TemplatesCV() {
                 const Component = tpl.component;
                 const isEnglish = currentLang.startsWith("en");
                 const dummyData = isEnglish ? tpl.dummyDataEn : tpl.dummyDataVi;
-                // Use a unique key based on filter to re-trigger animations if needed, or simple index
-                // Using tpl.id is best for React reconciliation
+
                 return (
                   <div
                     key={tpl.id}
@@ -390,11 +376,6 @@ export default function TemplatesCV() {
                     <div
                       className="aspect-[210/297] overflow-hidden border border-gray-200 rounded-xl relative bg-white group-hover:border-blue-200 transition-colors w-full"
                       ref={(el) => {
-                        // Find the index in the ORIGINAL templates array to map the ref correctly if needed
-                        // But here we are rendering filtered lists.
-                        // The resizing logic uses containerRefs by index.
-                        // We need to manage refs dynamically.
-                        // Simplified approach: Just assign to a new ref array based on current render index.
                         if (el) containerRefs.current[idx] = el;
                       }}
                     >
@@ -402,7 +383,7 @@ export default function TemplatesCV() {
                         style={{
                           width: 900,
                           height: 1300,
-                          transform: `scale(${scales[idx] || 0.4})`, // Default scale to avoid jump
+                          transform: `scale(${scales[idx] || 0.4})`,
                           transformOrigin: "top left",
                         }}
                         className="absolute top-0 left-0 pointer-events-none select-none"
@@ -545,7 +526,7 @@ export default function TemplatesCV() {
                   ref={templateContentRef}
                   style={{
                     width: TEMPLATE_WIDTH,
-                    minHeight: "1300px", // Baseline A4 height
+                    minHeight: "1300px",
                     transform: `scale(${modalScale})`,
                     transformOrigin: "top left",
                     position: "absolute",
@@ -580,7 +561,7 @@ export default function TemplatesCV() {
                   }
 
                   setTemplate(selectedTemplate.type);
-                  // Determine dummy data based on language
+
                   const isEnglish = currentLang.startsWith("en");
                   const dummyData = isEnglish
                     ? selectedTemplate.dummyDataEn

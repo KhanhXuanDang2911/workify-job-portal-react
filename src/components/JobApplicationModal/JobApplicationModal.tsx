@@ -24,16 +24,15 @@ import {
 } from "lucide-react";
 import { applicationService } from "@/services/application.service";
 import { userService } from "@/services/user.service";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import type { User } from "@/types";
 import LoginRequiredModal from "@/components/LoginRequiredModal/LoginRequiredModal";
 import { Textarea } from "@/components/ui/textarea";
 import ChatModal from "@/components/Chat/ChatModal";
-import { chatService } from "@/services/chat.service";
 import type { ConversationResponse } from "@/types/chat.type";
 
 interface JobApplicationModalProps {
-  jobId?: number; // Make optional since we can get from URL
+  jobId?: number;
   jobTitle: string;
   companyName: string;
   children: React.ReactNode;
@@ -46,7 +45,7 @@ export default function JobApplicationModal({
   children,
 }: JobApplicationModalProps) {
   const { t } = useTranslation();
-  // Get jobId from URL params if not provided as prop
+
   const { id } = useParams<{ id: string }>();
   const jobId = jobIdProp || (id ? Number(id) : undefined);
 
@@ -56,7 +55,7 @@ export default function JobApplicationModal({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [applyOption, setApplyOption] = useState<"new" | "reuse">("new"); // "new" = upload CV mới, "reuse" = dùng CV cũ
+  const [applyOption, setApplyOption] = useState<"new" | "reuse">("new");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const queryClient = useQueryClient();
@@ -67,46 +66,40 @@ export default function JobApplicationModal({
     null
   );
 
-  // Fetch user profile if not available in auth context
   const { data: profileResponse, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["userProfile"],
     queryFn: () => userService.getUserProfile(),
     enabled: isOpen && !authState.user,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
-  // Use user from auth context if available, otherwise use fetched profile
   const profile: User | null = authState.user || profileResponse?.data || null;
 
-  // Fetch latest application by job - only when authenticated
   const { data: latestApplicationResponse, isLoading: isLoadingLatest } =
     useQuery({
       queryKey: ["latestApplication", jobId],
       queryFn: () => applicationService.getLatestApplicationByJob(jobId!),
-      enabled: isOpen && !!jobId && authState.isAuthenticated, // Only fetch when authenticated
+      enabled: isOpen && !!jobId && authState.isAuthenticated,
     });
 
   const latestApplication = latestApplicationResponse?.data;
 
-  // Initialize form data when modal opens or data loads
   useEffect(() => {
     if (isOpen) {
       if (latestApplication) {
-        // Có application trước đó - có 2 option
         setFullName(latestApplication.fullName || profile?.fullName || "");
         setEmail(latestApplication.email || profile?.email || "");
         setPhoneNumber(
           latestApplication.phoneNumber || profile?.phoneNumber || ""
         );
         setCoverLetter(latestApplication.coverLetter || "");
-        setApplyOption("reuse"); // Mặc định dùng CV cũ
+        setApplyOption("reuse");
       } else {
-        // Lần đầu tiên - BẮT BUỘC phải upload file CV
         setFullName(profile?.fullName || "");
         setEmail(profile?.email || "");
         setPhoneNumber(profile?.phoneNumber || "");
         setCoverLetter("");
-        setApplyOption("new"); // Chỉ có option upload CV mới
+        setApplyOption("new");
       }
       setSelectedFile(null);
       setErrors({});
@@ -135,24 +128,22 @@ export default function JobApplicationModal({
       }
 
       setSelectedFile(file);
-      setApplyOption("new"); // Khi chọn file mới, chuyển sang option upload CV mới
+      setApplyOption("new");
       setErrors({ ...errors, file: "" });
     }
+
+    event.target.value = "";
   };
 
-  // Apply mutation
   const applyMutation = useMutation({
     mutationFn: async () => {
-      // Get cover letter text
       const coverLetterText = coverLetter.trim();
 
-      // Validate jobId
       if (!jobId || isNaN(Number(jobId))) {
         throw new Error(t("jobApplicationModal.validation.jobIdInvalid"));
       }
       const validJobId = Number(jobId);
 
-      // Validate required fields
       if (!fullName.trim()) {
         throw new Error(t("jobApplicationModal.validation.fullNameRequired"));
       }
@@ -164,7 +155,6 @@ export default function JobApplicationModal({
       }
 
       if (applyOption === "reuse") {
-        // Option 2: Dùng CV cũ (chỉ sửa thông tin, CV giữ nguyên)
         if (!latestApplication) {
           throw new Error(t("jobApplicationModal.validation.oldCvNotFound"));
         }
@@ -177,10 +167,9 @@ export default function JobApplicationModal({
           phoneNumber: phoneNumber.trim(),
           coverLetter: coverLetterText,
           jobId: validJobId,
-          cvUrl: latestApplication.cvUrl, // Dùng CV cũ từ latestApplication
+          cvUrl: latestApplication.cvUrl,
         });
       } else {
-        // Option 1: Upload CV mới (lần đầu hoặc lần sau)
         if (!selectedFile) {
           throw new Error(t("jobApplicationModal.validation.fileRequired"));
         }
@@ -203,22 +192,14 @@ export default function JobApplicationModal({
       });
       queryClient.invalidateQueries({ queryKey: ["latestApplication", jobId] });
 
-      // Don't open chat modal automatically after applying
-      // User can't send message until employer sends first message anyway
-      // Just close the application modal
       handleCancel();
     },
     onError: (error: any) => {
-      console.error("Application error:", error);
-      console.error("Error response:", error?.response?.data);
-      console.error("Error status:", error?.response?.status);
-      console.error("Error config:", error?.config);
-
       let errorMessage = t("toast.error.applicationFailed");
 
       if (error?.response?.data) {
         const data = error.response.data;
-        // Try different ways to extract error message
+
         if (data.message) {
           errorMessage = data.message;
         } else if (typeof data === "string") {
@@ -242,7 +223,6 @@ export default function JobApplicationModal({
     },
   });
 
-  // Validation regexes from API docs
   const EMAIL_REGEX =
     /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,63}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,253}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
   const PHONE_REGEX = /^(?:\+84|0)[35789][0-9]{8}$/;
@@ -250,7 +230,6 @@ export default function JobApplicationModal({
   const handleSubmit = () => {
     const newErrors: { [key: string]: string } = {};
 
-    // Validate fullName: 3-160 characters (required)
     if (!fullName.trim()) {
       newErrors.fullName = t("jobApplicationModal.validation.fullNameRequired");
     } else {
@@ -266,39 +245,36 @@ export default function JobApplicationModal({
       }
     }
 
-    // Validate email: regex (required)
     if (!email.trim()) {
       newErrors.email = t("jobApplicationModal.validation.emailRequired");
     } else if (!EMAIL_REGEX.test(email.trim())) {
       newErrors.email = t("jobApplicationModal.validation.emailInvalid");
     }
 
-    // Validate phoneNumber: regex (required)
     if (!phoneNumber.trim()) {
       newErrors.phone = t("jobApplicationModal.validation.phoneRequired");
     } else {
-      // Remove spaces and format phone number for validation
       const cleanedPhone = phoneNumber.trim().replace(/\s/g, "");
       if (!PHONE_REGEX.test(cleanedPhone)) {
         newErrors.phone = t("jobApplicationModal.validation.phoneInvalid");
       }
     }
 
-    // Validate coverLetter: required
     if (!coverLetter.trim()) {
       newErrors.coverLetter = t(
         "jobApplicationModal.validation.coverLetterRequired"
       );
+    } else if (coverLetter.trim().length > 1000) {
+      newErrors.coverLetter = t(
+        "jobApplicationModal.validation.coverLetterMaxLength"
+      );
     }
 
-    // Validate CV based on option
     if (applyOption === "new") {
-      // Option 1: Upload CV mới - BẮT BUỘC phải có file
       if (!selectedFile) {
         newErrors.file = t("jobApplicationModal.validation.fileRequired");
       }
     } else {
-      // Option 2: Dùng CV cũ - phải có latestApplication và cvUrl
       if (!latestApplication || !latestApplication.cvUrl) {
         newErrors.cv = t("jobApplicationModal.validation.oldCvNotFound");
       }
@@ -306,6 +282,7 @@ export default function JobApplicationModal({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      toast.error(t("toast.error.validationError"));
       return;
     }
 
@@ -323,10 +300,8 @@ export default function JobApplicationModal({
     setErrors({});
   };
 
-  // Check authentication and role before opening modal
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      // Check if user is authenticated
       if (!authState.isAuthenticated) {
         setShowLoginModal(true);
         return;
@@ -630,7 +605,6 @@ export default function JobApplicationModal({
                       )}
                     </div>
                   ) : (
-                    /* Lần đầu - chỉ có option upload CV mới */
                     <>
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                         <p className="text-sm text-blue-800">

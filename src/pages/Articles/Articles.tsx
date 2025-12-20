@@ -10,6 +10,7 @@ import { postService } from "@/services/post.service";
 import { routes } from "@/routes/routes.const";
 import type { PostResponse, PostCategory } from "@/types/post.type";
 import { useTranslation } from "@/hooks/useTranslation";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 type Article = {
   id?: number;
@@ -26,12 +27,10 @@ export default function Articles() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read from URL params on mount
   const keywordFromUrl = searchParams.get("keyword") || "";
   const categoryIdFromUrl = searchParams.get("categoryId");
   const pageFromUrl = searchParams.get("page");
 
-  // Applied filters (from URL)
   const [appliedKeyword, setAppliedKeyword] = useState(keywordFromUrl);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     categoryIdFromUrl ? Number(categoryIdFromUrl) : null
@@ -40,12 +39,10 @@ export default function Articles() {
     pageFromUrl ? Number(pageFromUrl) : 1
   );
 
-  // Temp search term (before applying)
   const [tempSearchTerm, setTempSearchTerm] = useState(keywordFromUrl);
 
   const pageSize = 4;
 
-  // Update URL params when applied filters change
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -64,7 +61,6 @@ export default function Articles() {
     setSearchParams(params, { replace: true });
   }, [appliedKeyword, selectedCategoryId, currentPage, setSearchParams]);
 
-  // Read from URL params when URL changes
   useEffect(() => {
     const keywordParam = searchParams.get("keyword") || "";
     const categoryIdParam = searchParams.get("categoryId");
@@ -76,12 +72,10 @@ export default function Articles() {
     setTempSearchTerm(keywordParam);
   }, [searchParams]);
 
-  // Reset to page 1 when search or category changes
   useEffect(() => {
     setCurrentPage(1);
   }, [appliedKeyword, selectedCategoryId]);
 
-  // Fetch categories
   const { data: categoriesResponse } = useQuery({
     queryKey: ["post-categories"],
     queryFn: () => postService.getAllCategories(),
@@ -90,7 +84,6 @@ export default function Articles() {
 
   const categories: PostCategory[] = categoriesResponse?.data || [];
 
-  // Fetch latest articles for Recent Articles section
   const {
     data: latestPostsResponse,
     isLoading: isLoadingRecent,
@@ -100,11 +93,10 @@ export default function Articles() {
     queryKey: ["latest-public-posts", 6],
     queryFn: () => postService.getLatestPublicPosts(6),
     staleTime: 5 * 60 * 1000,
-    // Always refetch when this component mounts so recent posts show up quickly
+
     refetchOnMount: "always",
   });
 
-  // Fetch articles from API
   const {
     data: apiResponse,
     isLoading,
@@ -126,11 +118,10 @@ export default function Articles() {
         ...(selectedCategoryId && { categoryId: selectedCategoryId }),
       }),
     staleTime: 5 * 60 * 1000,
-    // Ensure we refetch when the Articles page mounts so newly published posts appear
+
     refetchOnMount: "always",
   });
 
-  // Map PostResponse to Article format
   const mapPostToArticle = (post: PostResponse): Article => ({
     id: post.id,
     title: post.title,
@@ -179,7 +170,6 @@ export default function Articles() {
     setCurrentPage(1);
   };
 
-  // Map latest posts to recent articles format
   const recentArticles = Array.isArray(latestPostsResponse?.data)
     ? latestPostsResponse.data.map((post: PostResponse) => ({
         id: post.id,
@@ -197,41 +187,7 @@ export default function Articles() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-      {/* Background decorative elements */}
-      {/* <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-200 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-10 right-10 w-20 h-1 bg-gradient-to-r from-blue-300 to-transparent"></div>
-        <div className="absolute bottom-10 left-10 w-16 h-1 bg-gradient-to-r from-purple-300 to-transparent"></div>
-        <div className="absolute top-1/2 right-5 w-1 h-24 bg-gradient-to-b from-teal-300 to-transparent"></div>
-        <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-        <div
-          className="absolute bottom-1/3 right-1/4 w-3 h-3 bg-purple-400 rounded-full animate-bounce"
-          style={{ animationDelay: "1s" }}
-        ></div>
-      </div> */}
-
-      {/* Header */}
-      {/* <div className="main-layout relative z-10 py-8">
-        <div className="flex items-center mb-8">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white"
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Button>
-        </div>
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Articles
-          </h1>
-          <p className="text-gray-600">
-            Discover the latest insights and tips for your career journey
-          </p>
-        </div>
-      </div> */}
+      <PageTitle title={t("pageTitles.articles")} />
       <div
         className="w-full h-[450px] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center"
         style={{

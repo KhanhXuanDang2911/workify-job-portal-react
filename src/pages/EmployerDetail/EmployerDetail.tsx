@@ -23,6 +23,7 @@ import Pagination from "@/components/Pagination";
 import type { JobResponse } from "@/types/job.type";
 import { useTranslation } from "@/hooks/useTranslation";
 import { formatSalaryCompact } from "@/utils/formatSalary";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 export default function EmployerDetail() {
   const { t, currentLanguage } = useTranslation();
@@ -31,7 +32,6 @@ export default function EmployerDetail() {
   const jobsPerPage = 3;
   const availableJobsRef = useRef<HTMLDivElement>(null);
 
-  // Fetch employer data
   const {
     data: employerResponse,
     isLoading,
@@ -46,7 +46,6 @@ export default function EmployerDetail() {
 
   const employer = employerResponse?.data;
 
-  // Fetch jobs by employer id
   const { data: jobsResponse, isLoading: isLoadingJobs } = useQuery({
     queryKey: ["employer-jobs", id, currentPage, jobsPerPage],
     queryFn: () =>
@@ -58,7 +57,6 @@ export default function EmployerDetail() {
   const totalJobs = jobsResponse?.data?.numberOfElements || 0;
   const totalPages = jobsResponse?.data?.totalPages || 0;
 
-  // Scroll to Available Jobs section when page changes
   useEffect(() => {
     if (currentPage > 1 && availableJobsRef.current) {
       availableJobsRef.current.scrollIntoView({
@@ -68,7 +66,6 @@ export default function EmployerDetail() {
     }
   }, [currentPage]);
 
-  // Handle page change with scroll
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     if (availableJobsRef.current) {
@@ -81,7 +78,6 @@ export default function EmployerDetail() {
     }
   };
 
-  // Build full address
   const buildFullAddress = () => {
     if (!employer) return "";
     const parts = [
@@ -92,7 +88,6 @@ export default function EmployerDetail() {
     return parts.join(", ") || t("employerDetail.notUpdated");
   };
 
-  // Build Google Maps URL for iframe
   const buildGoogleMapsUrl = () => {
     const address = buildFullAddress();
     if (!address || address === t("employerDetail.notUpdated")) {
@@ -102,7 +97,6 @@ export default function EmployerDetail() {
     return `https://maps.google.com/maps?width=100%25&height=400&hl=en&q=${encodedAddress}&t=&z=14&ie=UTF8&iwloc=B&output=embed`;
   };
 
-  // Get company size label
   const getCompanySizeLabel = () => {
     if (!employer?.companySize) return t("employerDetail.notUpdated");
     return (
@@ -112,7 +106,6 @@ export default function EmployerDetail() {
     );
   };
 
-  // Parse websiteUrls (can be array or string)
   const getWebsiteUrls = () => {
     if (!employer?.websiteUrls) return [];
     if (Array.isArray(employer.websiteUrls)) return employer.websiteUrls;
@@ -124,16 +117,13 @@ export default function EmployerDetail() {
     }
   };
 
-  // Sort and map jobs
   const sortedJobs = useMemo(() => {
     const jobsList = jobsResponse?.data?.items || [];
 
-    // Format salary from JobResponse (using compact format)
     const formatSalary = (job: JobResponse): string => {
       return formatSalaryCompact(job, t);
     };
 
-    // Map type to color
     const mapTypeColor = (jobType?: string): string => {
       if (!jobType) return "bg-gray-400";
       if (jobType.includes("FULL") || jobType.includes("TEMPORARY_FULL"))
@@ -143,7 +133,6 @@ export default function EmployerDetail() {
       return "bg-blue-500";
     };
 
-    // Get relative posted time
     const relativePosted = (dateString: string): string => {
       try {
         const date = new Date(dateString);
@@ -169,7 +158,6 @@ export default function EmployerDetail() {
       }
     };
 
-    // Transform JobResponse to JobCard format
     const mapJobToCard = (job: JobResponse) => {
       const firstLocation =
         Array.isArray(job.jobLocations) && job.jobLocations.length > 0
@@ -191,7 +179,7 @@ export default function EmployerDetail() {
         company: job.companyName || job.author?.companyName || "",
         location: locationParts.join(", ") || "",
         salary: formatSalary(job),
-        period: "", // Không cần period vì đã có trong salary
+        period: "",
         type:
           JobTypeLabelVN[job.jobType as keyof typeof JobTypeLabelVN] ||
           job.jobType,
@@ -211,14 +199,12 @@ export default function EmployerDetail() {
       const jobB = jobsList.find((j) => j.id === b.id);
       if (!jobA || !jobB) return 0;
 
-      // Sort by updatedAt (most recent first)
       return (
         new Date(jobB.updatedAt).getTime() - new Date(jobA.updatedAt).getTime()
       );
     });
   }, [jobsResponse?.data?.items, employer, t]);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex items-center justify-center">
@@ -227,7 +213,6 @@ export default function EmployerDetail() {
     );
   }
 
-  // Error state
   if (isError || !employer) {
     let errorMessage = t("employerDetail.loadError");
 
@@ -259,6 +244,7 @@ export default function EmployerDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 relative overflow-hidden">
+      <PageTitle title={employer.companyName} />
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full blur-xl opacity-60 animate-float-gentle"></div>

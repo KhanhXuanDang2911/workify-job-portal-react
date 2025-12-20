@@ -10,33 +10,28 @@ import {
   applicationService,
 } from "@/services";
 import { Loader2 } from "lucide-react";
+import PageTitle from "@/components/PageTitle/PageTitle";
 
 export default function Overview() {
   const { t } = useTranslation();
 
-  // Fetch user profile
   const { data: profileResponse } = useQuery({
     queryKey: ["userProfile"],
     queryFn: () => userService.getUserProfile(),
   });
 
-  // Fetch resumes count - placeholder for now until backend API is available
   const { data: resumesData, isLoading: isLoadingResumes } = useQuery({
     queryKey: ["myResumes"],
     queryFn: async () => {
-      // TODO: Replace with actual API call when available
-      // For now, return a mock count
       return { data: { totalElements: 0 } };
     },
   });
 
-  // Fetch saved jobs count
   const { data: savedJobsResponse, isLoading: isLoadingSavedJobs } = useQuery({
     queryKey: ["savedJobs", { pageNumber: 1, pageSize: 1 }],
     queryFn: () => jobService.getSavedJobs(1, 1),
   });
 
-  // Fetch applied jobs count
   const { data: appliedJobsResponse, isLoading: isLoadingAppliedJobs } =
     useQuery({
       queryKey: ["myApplications", { pageNumber: 1, pageSize: 1 }],
@@ -44,7 +39,6 @@ export default function Overview() {
         applicationService.getMyApplications({ pageNumber: 1, pageSize: 1 }),
     });
 
-  // Fetch unread notifications count
   const { data: unreadCountResponse, isLoading: isLoadingUnreadCount } =
     useQuery({
       queryKey: ["unreadNotificationsCount"],
@@ -106,6 +100,7 @@ export default function Overview() {
           "linear-gradient(90deg,#FCD1C0 0%,#BBDFD5 43%,#88D5D6 100%)",
       }}
     >
+      <PageTitle title={t("pageTitles.userOverview")} />
       {/* Sidebar */}
       <div className="lg:ml-5 lg:my-4 w-full lg:w-64 flex-shrink-0">
         <UserSideBar />

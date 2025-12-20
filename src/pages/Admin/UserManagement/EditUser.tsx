@@ -195,7 +195,7 @@ export default function EditUser() {
         id: province.id,
         name: province.name,
       })),
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function EditUser() {
     },
     select: (data) => data.map((d: any) => ({ id: d.id, name: d.name })),
     enabled: !!selectedProvinceId,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -223,7 +223,6 @@ export default function EditUser() {
     form.setValue("gender", userData?.gender || undefined);
   }, [districts, userData, form]);
 
-  // load industries for select
   const { data: industriesResponse } = useQuery({
     queryKey: ["all-industries"],
     queryFn: () => industryService.getAllIndustries(),
@@ -246,7 +245,6 @@ export default function EditUser() {
   };
 
   const onError = (errors: any) => {
-    console.error("Form validation failed!", errors);
     try {
       const firstKey = Object.keys(errors || {})[0];
       const firstMsg = firstKey ? errors[firstKey]?.message : null;
@@ -324,7 +322,6 @@ export default function EditUser() {
                   setAvatarImage(reader.result as string);
                 };
                 reader.readAsDataURL(file);
-                // setAvatarFile(file); // duplicate
               }
             }}
           />

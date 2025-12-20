@@ -12,10 +12,13 @@ import {
 } from "lucide-react";
 import { admin_routes } from "@/routes/routes.const";
 import { Link } from "react-router-dom";
-import { useUserAuth } from "@/context/user-auth";
+import { useUserAuth } from "@/context/UserAuth";
 import Loading from "@/components/Loading";
+import PageTitle from "@/components/PageTitle/PageTitle";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const { state } = useUserAuth();
   const user = state.user;
 
@@ -100,6 +103,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      <PageTitle title={t("pageTitles.adminDashboard", "Admin Dashboard")} />
       <div className="max-w-7xl mx-auto">
         {/* Welcome Header */}
         <div className="mb-8">

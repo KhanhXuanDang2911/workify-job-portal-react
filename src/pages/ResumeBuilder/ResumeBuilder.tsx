@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import TemplatePanda from "@/templates/TemplatePanda/TemplatePanda";
 import TemplateRabbit from "@/templates/TemplateRabbit/TemplateRabbit";
-import { useResume } from "@/context/ResumeContext/useResume";
+import { useResume } from "@/context/Resume/useResume";
 import LeftPanel from "@/components/LeftPanel";
 import TemplateLion from "@/templates/TemplateLion/TemplateLion";
 import TemplateDolphin from "@/templates/TemplateDolphin/TemplateDolphin";
@@ -90,11 +90,8 @@ function ResumeBuilder() {
     fontFamily,
   } = useResume();
 
-  // Removed local getFontFamilyName in favor of utility
-
   const templateRef = useRef<HTMLDivElement>(null);
 
-  // Map template slug to dummy data based on language
   const getTemplateDummyData = (templateType: TemplateType, lang: string) => {
     const isEnglish = lang.startsWith("en");
     const dummyDataMap: Record<TemplateType, typeof templatePandaDummyVi> =
@@ -130,15 +127,11 @@ function ResumeBuilder() {
     return dummyDataMap[templateType];
   };
 
-  // Load CV from ID (edit mode) or create new from template
   useEffect(() => {
-    // If ID exists in path param, ResumeProvider will handle loading
     if (idParam) {
-      // ResumeProvider already loads data via resumeId from context
       return;
     }
 
-    // Create new CV from template
     if (templateParam) {
       const uppercaseTemplate = templateParam.toUpperCase() as TemplateType;
       const validTemplates: TemplateType[] = [
@@ -157,10 +150,10 @@ function ResumeBuilder() {
       ];
       if (validTemplates.includes(uppercaseTemplate)) {
         setTemplate(uppercaseTemplate);
-        // Get language from URL query param (default to 'vi')
+
         const lang = searchParams.get("lang") || "vi";
         const dummyData = getTemplateDummyData(uppercaseTemplate, lang);
-        // Use default-avatar.png when creating new CV (not the template preview avatar)
+
         setResume({
           ...dummyData,
           basicInfo: {
@@ -172,7 +165,6 @@ function ResumeBuilder() {
         navigate("/404", { replace: true });
       }
     } else {
-      // No template and no ID, redirect to templates page
       navigate("/templates-cv", { replace: true });
     }
   }, [templateParam, idParam, setTemplate, setResume, navigate, searchParams]);
@@ -197,22 +189,17 @@ function ResumeBuilder() {
       if (!transformWrapperRef.current) return;
 
       const wrapperWidth = transformWrapperRef.current.clientWidth;
-      // 900px is the fixed width of the template
-      // maintain some padding (32px total horizontal padding)
+
       const padding = 32;
       const availableWidth = wrapperWidth - padding;
 
-      // Calculate scale to fit width
-      // Limit max scale to 1 (don't stretch on large screens)
       const newScale = Math.min(availableWidth / 900, 1);
 
       setScale(newScale);
     };
 
-    // Initial check
     updateScale();
 
-    // Use ResizeObserver for robust monitoring
     const observer = new ResizeObserver(() => {
       updateScale();
     });
@@ -242,7 +229,6 @@ function ResumeBuilder() {
     };
   }, []);
 
-  // Get resume context for header
   const {
     saveResume: saveResumeFromContext,
     isSaving: isSavingFromContext,
@@ -251,7 +237,6 @@ function ResumeBuilder() {
   } = useResume();
 
   const handleSaveFromHeader = async () => {
-    // Validate using context validation
     if (!validateResume()) {
       return;
     }
@@ -317,12 +302,12 @@ function ResumeBuilder() {
         className={cn(
           "fixed bottom-0 overflow-auto pt-8 pb-20 lg:pb-8 px-4 transition-all duration-300",
           transformWrapperBgMode === "light" ? "bg-[#FAFAFA]" : "bg-[#414141]",
-          // Desktop positioning
+
           "lg:top-[128px] lg:left-[320px] xl:left-[544px] lg:right-[44px]",
-          // Mobile/Tablet positioning
+
           "top-0 left-0 right-0 z-40",
           activeMobileTab === "editor" ? "hidden lg:block" : "block",
-          // Add extra padding-bottom to ensure scrolling past the scaled element is comfortable
+
           "pb-32"
         )}
       >
@@ -331,17 +316,17 @@ function ResumeBuilder() {
           ref={transformComponentRef}
           className="bg-white shadow-2xl [&_*]:!select-text [&_*]:!cursor-text mx-auto origin-top-left transition-all duration-200"
           style={{
-            width: "900px", // Match template actual width
+            width: "900px",
             height: `${contentHeight}px`,
-            minHeight: "1273px", // A4 aspect ratio (900 * 1.414)
+            minHeight: "1273px",
             userSelect: "text",
             cursor: "text",
             transform: `scale(${scale})`,
             fontFamily: getFontFamilyName(fontFamily),
-            // Apply negative margins to offset the layout space that remains unscaled
+
             marginBottom: `-${contentHeight * (1 - scale)}px`,
             marginRight: `-${900 * (1 - scale)}px`,
-            // On mobile, we might need extra top margin if there is a header overlapping
+
             marginTop: window.innerWidth < 1024 ? "60px" : "0",
           }}
         >
