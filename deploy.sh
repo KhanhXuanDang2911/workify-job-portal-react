@@ -4,7 +4,7 @@ set -e
 git pull origin main
 
 if docker ps -a --format '{{.Names}}' | grep -q '^frontend-workify$'; then
-  docker builder prune -f
+  docker system prune -f
 
   docker stop frontend_workify_frontend_1
 
@@ -15,4 +15,4 @@ else
   echo "Container frontend-workify does not exist, skip stop/remove"
 fi
 
-docker-compose up -d --build
+docker compose up -d --build
