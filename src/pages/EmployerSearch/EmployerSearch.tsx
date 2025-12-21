@@ -213,7 +213,7 @@ const EmployerSearch = () => {
       name: employer.companyName,
       logo: employer.avatarUrl || defaultAvatar,
       coverImage: employer.backgroundUrl || defaultBackground,
-      openJobs: 0,
+      openJobs: employer.numberOfHiringJobs || 0,
       location: location || "N/A",
       description: employer.aboutCompany || "",
       featured: employer.status === "ACTIVE",

@@ -16,6 +16,7 @@ interface SuggestedJob {
   type: string;
   typeColor: string;
   logo?: string;
+  salaryType?: string;
 }
 
 interface SuggestedJobsProps {
@@ -82,7 +83,13 @@ const SuggestedJobs: React.FC<SuggestedJobsProps> = ({ jobs, onViewAll }) => {
                         {job.company}
                       </p>
                       <p className="text-sm font-semibold text-blue-600">
-                        {job.salary}/{t("suggestedJobs.month")}
+                        {job.salary}
+                        {job.salaryType !== "NEGOTIABLE" &&
+                          job.salaryType !== "COMPETITIVE" && (
+                            <span className="text-xs font-normal text-gray-500">
+                              /{t("suggestedJobs.month")}
+                            </span>
+                          )}
                       </p>
                     </div>
                   </div>

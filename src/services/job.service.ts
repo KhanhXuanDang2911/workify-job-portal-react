@@ -264,4 +264,9 @@ export const jobService = {
     );
     return response.data;
   },
+
+  getTotalJobCount: async (): Promise<ApiResponse<number>> => {
+    const response = await publicHttp.get<ApiResponse<number>>("/jobs/count");
+    return response.data;
+  },
 };

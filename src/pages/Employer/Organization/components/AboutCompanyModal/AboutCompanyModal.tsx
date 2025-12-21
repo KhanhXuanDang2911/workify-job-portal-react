@@ -32,8 +32,8 @@ function AboutCompanyModal() {
   }, [employerData]);
 
   const updateAboutMutation = useMutation({
-    mutationFn: (data: CompanyInformationModalFormData) =>
-      employerService.updateEmployerProfile(data),
+    mutationFn: (data: { aboutCompany: string }) =>
+      employerService.updateAboutCompany(data),
     onSuccess: () => {
       toast.success(t("toast.success.aboutCompanyUpdated"));
       queryClient.invalidateQueries({ queryKey: ["employerProfile"] });
@@ -46,20 +46,8 @@ function AboutCompanyModal() {
   const handleSave = (onClose: () => void) => {
     const cleanContent = aboutContent !== "<p><br></p>" ? aboutContent : "";
     if (employerData) {
-      if (!employerData.phoneNumber || employerData.phoneNumber.trim() === "") {
-        toast.error(t("toast.error.updateProfileFailed"));
-        return;
-      }
-
       updateAboutMutation.mutate(
         {
-          companyName: employerData.companyName,
-          companySize: employerData.companySize,
-          contactPerson: employerData.contactPerson,
-          phoneNumber: employerData.phoneNumber,
-          provinceId: employerData.province?.id || 1,
-          districtId: employerData.district?.id || 1,
-          detailAddress: employerData.detailAddress || "",
           aboutCompany: cleanContent,
         },
         {

@@ -2158,7 +2158,28 @@ function EmployerPostJob() {
                           render={({ field }) => (
                             <Select
                               key={field.value}
-                              onValueChange={field.onChange}
+                              onValueChange={(val) => {
+                                field.onChange(val);
+                                if (val === AgeType.NONE) {
+                                  mainForm.setValue("minAge", null, {
+                                    shouldValidate: false,
+                                  });
+                                  mainForm.setValue("maxAge", null, {
+                                    shouldValidate: false,
+                                  });
+                                  mainForm.clearErrors(["minAge", "maxAge"]);
+                                } else if (val === AgeType.ABOVE) {
+                                  mainForm.setValue("maxAge", null, {
+                                    shouldValidate: false,
+                                  });
+                                  mainForm.clearErrors("maxAge");
+                                } else if (val === AgeType.BELOW) {
+                                  mainForm.setValue("minAge", null, {
+                                    shouldValidate: false,
+                                  });
+                                  mainForm.clearErrors("minAge");
+                                }
+                              }}
                               value={field.value ? field.value.toString() : ""}
                             >
                               <SelectTrigger

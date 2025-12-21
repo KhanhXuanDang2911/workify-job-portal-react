@@ -989,6 +989,7 @@ const JobSearch = () => {
         logo:
           job.author?.avatarUrl ||
           "https://static.vecteezy.com/system/resources/previews/008/214/517/large_2x/abstract-geometric-logo-or-infinity-line-logo-for-your-company-free-vector.jpg",
+        salaryType: job.salaryType,
       };
     });
   }, [topAttractiveResponse, t]);
@@ -1135,6 +1136,14 @@ const JobSearch = () => {
     { value: t("jobSearch.datePostedMonth"), days: 30 },
   ];
 
+  const { data: totalJobCountResponse } = useQuery({
+    queryKey: ["total-job-count"],
+    queryFn: () => jobService.getTotalJobCount(),
+    staleTime: 30 * 1000,
+  });
+
+  const totalActiveJobs = totalJobCountResponse?.data || 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
       <PageTitle title={t("pageTitles.jobSearch")} />
@@ -1167,7 +1176,9 @@ const JobSearch = () => {
               <div className="text-center mb-6">
                 <h1 className="text-3xl md:text-4xl font-bold mb-3">
                   <span className="text-blue-600">
-                    {t("jobSearch.heroTitle", { count: totalJobs || 22 })}
+                    {t("jobSearch.heroTitle", {
+                      count: totalActiveJobs,
+                    })}
                   </span>
                 </h1>
                 <p className="text-gray-600 max-w-2xl mx-auto">

@@ -15,19 +15,15 @@ interface CompanyBannerModalProps {
   trigger: React.ReactNode;
 }
 
-const defaultBanners = [
-  "https://plus.unsplash.com/premium_photo-1701853893878-c42e95905f5d?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://plus.unsplash.com/premium_photo-1670513725725-664c7d3c2789?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  "https://plus.unsplash.com/premium_photo-1673197406917-546fd8675a27?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-];
-
 export default function CompanyBannerModal({
   currentBanner,
   onBannerChange,
   trigger,
 }: CompanyBannerModalProps) {
   const { t } = useTranslation();
-  const [userBanners, setUserBanners] = useState<string[]>([currentBanner]);
+  const [userBanners, setUserBanners] = useState<string[]>(
+    currentBanner ? [currentBanner] : []
+  );
   const [selectedBanner, setSelectedBanner] = useState<string>(currentBanner);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
@@ -56,6 +52,9 @@ export default function CompanyBannerModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Reset input value to allow selecting the same file again if deleted
+      e.target.value = "";
+
       if (file.size > 3 * 1024 * 1024) {
         setError("File size must not exceed 3MB");
         return;
@@ -65,7 +64,8 @@ export default function CompanyBannerModal({
       const reader = new FileReader();
       reader.onloadend = () => {
         const newBanner = reader.result as string;
-        setUserBanners([...userBanners, newBanner]);
+        // Replace existing banner list with new banner
+        setUserBanners([newBanner]);
         setSelectedBanner(newBanner);
         setSelectedFile(file);
       };
@@ -74,9 +74,10 @@ export default function CompanyBannerModal({
   };
 
   const handleRemoveBanner = (banner: string) => {
-    setUserBanners(userBanners.filter((b) => b !== banner));
+    const newBanners = userBanners.filter((b) => b !== banner);
+    setUserBanners(newBanners);
     if (selectedBanner === banner) {
-      setSelectedBanner(userBanners[0] || defaultBanners[0]);
+      setSelectedBanner(newBanners[0] || "");
     }
   };
 
@@ -98,7 +99,7 @@ export default function CompanyBannerModal({
     <BaseModal
       title="Company Banner"
       trigger={trigger}
-      className="!max-w-3xl"
+      className="!max-w-4xl"
       footer={(onClose) => (
         <div className="flex gap-3 justify-end">
           <Button
@@ -127,73 +128,53 @@ export default function CompanyBannerModal({
       )}
     >
       <div className="space-y-6">
-        {/* Your Banners */}
         <div>
-          <h3 className="font-medium mb-3">Your banners</h3>
-          <div className="flex gap-4 flex-wrap">
-            {/* Add New Photo Button */}
-            <button
-              onClick={handleAddPhoto}
-              className="w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-[#1967d2] hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                <Plus className="h-6 w-6 text-[#1967d2]" />
-              </div>
-              <span className="text-sm text-gray-600">Add new photo</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {/* User Uploaded Banners */}
-            {userBanners.map((banner, index) => (
-              <div
-                key={index}
-                className={`relative w-48 h-32 rounded-lg overflow-hidden cursor-pointer border-2 ${selectedBanner === banner ? "border-[#1967d2]" : "border-transparent"}`}
-                onClick={() => setSelectedBanner(banner)}
+          <h3 className="font-medium mb-3">Your banner</h3>
+          {userBanners.length > 0 && selectedBanner ? (
+            <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-[#1967d2]">
+              <img
+                src={selectedBanner}
+                alt="Company Banner"
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveBanner(selectedBanner);
+                }}
+                className="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors group"
+                title="Remove banner"
               >
-                <img
-                  src={banner || "/placeholder.svg"}
-                  alt={`Banner ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveBanner(banner);
-                  }}
-                  className="absolute top-1 right-1 w-6 h-6 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
-            ))}
-          </div>
+                <X className="h-5 w-5 text-white" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handleAddPhoto}
+                className="w-full aspect-[3/1] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-[#1967d2] hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                  <Plus className="h-8 w-8 text-[#1967d2]" />
+                </div>
+                <span className="text-base font-medium text-gray-900">
+                  Add new photo
+                </span>
+                <p className="text-sm text-gray-500 mt-2">
+                  Supports: JPG, PNG, GIF (Max 3MB)
+                </p>
+              </button>
+            </>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        </div>
-
-        {/* Default Banners */}
-        <div>
-          <h3 className="font-medium mb-3">Workify's default banner</h3>
-          <div className="flex gap-4 flex-wrap">
-            {defaultBanners.map((banner, index) => (
-              <div
-                key={index}
-                className={`relative w-48 h-32 rounded-lg overflow-hidden cursor-pointer border-2 ${selectedBanner === banner ? "border-[#1967d2]" : "border-transparent"}`}
-                onClick={() => setSelectedBanner(banner)}
-              >
-                <img
-                  src={banner || "/placeholder.svg"}
-                  alt={`Default Banner ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </BaseModal>

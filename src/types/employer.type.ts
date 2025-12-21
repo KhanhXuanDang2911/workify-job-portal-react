@@ -24,4 +24,5 @@ export interface Employer {
   province: Province | null;
   district: District | null;
   detailAddress: string;
+  numberOfHiringJobs: number;
 }

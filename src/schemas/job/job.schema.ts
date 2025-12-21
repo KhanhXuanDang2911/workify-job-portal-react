@@ -128,7 +128,7 @@ export const postJobSchema = z
           ? undefined
           : Number(val),
       z
-        .number("validation.minSalaryRequired")
+        .number({ message: "validation.invalidNumber" })
         .nonnegative("validation.salaryMinNonNegative")
         .optional()
     ),
@@ -138,7 +138,7 @@ export const postJobSchema = z
           ? undefined
           : Number(val),
       z
-        .number("validation.maxSalaryRequired")
+        .number({ message: "validation.invalidNumber" })
         .nonnegative("validation.salaryMaxNonNegative")
         .optional()
     ),
@@ -169,7 +169,7 @@ export const postJobSchema = z
       (val) =>
         val === "" || val === null || val === undefined ? null : Number(val),
       z
-        .number()
+        .number({ message: "validation.invalidNumber" })
         .int()
         .min(15, "validation.minAgeInvalid")
         .max(100, "validation.maxAgeInvalid")
@@ -179,7 +179,7 @@ export const postJobSchema = z
       (val) =>
         val === "" || val === null || val === undefined ? null : Number(val),
       z
-        .number()
+        .number({ message: "validation.invalidNumber" })
         .int()
         .min(15, "validation.minAgeInvalid")
         .max(100, "validation.maxAgeInvalid")
@@ -234,6 +234,27 @@ export const postJobSchema = z
         maxSalary: undefined,
       };
     }
+
+    if (data.ageType === AgeType.NONE) {
+      return {
+        ...data,
+        minAge: null,
+        maxAge: null,
+      };
+    }
+    if (data.ageType === AgeType.ABOVE) {
+      return {
+        ...data,
+        maxAge: null,
+      };
+    }
+    if (data.ageType === AgeType.BELOW) {
+      return {
+        ...data,
+        minAge: null,
+      };
+    }
+
     return data;
   })
   .superRefine((data, ctx) => {

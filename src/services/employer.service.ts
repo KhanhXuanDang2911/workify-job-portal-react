@@ -112,6 +112,16 @@ export const employerService = {
     return response.data;
   },
 
+  updateAboutCompany: async (data: {
+    aboutCompany: string;
+  }): Promise<ApiResponse<Employer>> => {
+    const response = await employerHttp.patch<ApiResponse<Employer>>(
+      "/employers/me/about",
+      data
+    );
+    return response.data;
+  },
+
   searchEmployers: async (
     params: Record<string, any> = {}
   ): Promise<ApiResponse<any>> => {

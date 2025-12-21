@@ -13,6 +13,8 @@ import {
   Linkedin,
   Youtube,
   Twitter,
+  Building2,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -47,17 +49,12 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const defaultBanner =
-  "https://i.pinimg.com/1200x/80/27/c6/8027c6c615900bf009b322294b61fcb2.jpg";
-const defaultAvatar =
-  "https://i.pinimg.com/1200x/5a/22/d8/5a22d8574a6de748e79d81dc22463702.jpg";
-
 export default function CompanyProfile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [bannerImage, setBannerImage] = useState<string>(defaultBanner);
-  const [avatarImage, setAvatarImage] = useState<string>(defaultAvatar);
+  const [bannerImage, setBannerImage] = useState<string>("");
+  const [avatarImage, setAvatarImage] = useState<string>("");
   const [showAvatarHover, setShowAvatarHover] = useState(false);
   const [showEditCoverMenu, setShowEditCoverMenu] = useState(false);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -109,8 +106,8 @@ export default function CompanyProfile() {
 
   useEffect(() => {
     if (employerData) {
-      setAvatarImage(employerData.avatarUrl || defaultAvatar);
-      setBannerImage(employerData.backgroundUrl || defaultBanner);
+      setAvatarImage(employerData.avatarUrl || "");
+      setBannerImage(employerData.backgroundUrl || "");
     }
   }, [employerData]);
 
@@ -135,11 +132,18 @@ export default function CompanyProfile() {
       <div className="bg-white rounded-lg shadow-sm">
         {/* Banner Section */}
         <div className="relative">
-          <img
-            src={bannerImage || defaultBanner}
-            alt="Company Banner"
-            className="w-full h-64 object-cover"
-          />
+          {bannerImage ? (
+            <img
+              src={bannerImage}
+              alt="Company Banner"
+              className="w-full h-64 object-cover"
+            />
+          ) : (
+            <div className="w-full h-64 bg-gradient-to-r from-sky-400 to-blue-600 flex items-center justify-center">
+              <ImageIcon className="w-16 h-16 text-white/30" />
+            </div>
+          )}
+
           <DropdownMenu
             open={showEditCoverMenu}
             onOpenChange={setShowEditCoverMenu}
@@ -175,25 +179,36 @@ export default function CompanyProfile() {
           {/* Avatar */}
           <div className="absolute -bottom-16 left-8">
             <div
-              className="relative cursor-pointer"
+              className="relative cursor-pointer group"
               onMouseEnter={() => setShowAvatarHover(true)}
               onMouseLeave={() => setShowAvatarHover(false)}
               onClick={handleAvatarClick}
             >
-              <img
-                src={avatarImage || defaultAvatar}
-                alt="Company Avatar"
-                className="w-32 h-32 rounded-lg border-4 border-white object-cover"
-              />
-              {showAvatarHover && (
-                <div className="absolute inset-0 bg-black opacity-40 rounded-lg flex items-center justify-center">
+              <div className="w-32 h-32 rounded-lg border-4 border-white bg-white shadow-md overflow-hidden flex items-center justify-center">
+                {avatarImage ? (
+                  <img
+                    src={avatarImage}
+                    alt="Company Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                    <Building2 className="w-12 h-12 text-slate-300" />
+                  </div>
+                )}
+                {/* Hover Overlay */}
+                <div
+                  className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
+                    showAvatarHover ? "opacity-100" : "opacity-0"
+                  }`}
+                >
                   {updateAvatarMutation.isPending ? (
                     <Loader2 className="h-8 w-8 animate-spin text-white" />
                   ) : (
                     <Camera className="h-8 w-8 text-white" />
                   )}
                 </div>
-              )}
+              </div>
             </div>
             <input
               ref={avatarInputRef}
