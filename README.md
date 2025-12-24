@@ -1,6 +1,6 @@
-# Workify - Next-Gen Recruitment Platform 🚀
+# Workify - Next-Gen Recruitment Platform
 
-![Workify Banner](public/logo.png?height=100)
+🔗 [VIDEO DEMO](https://drive.google.com/file/d/1CJimhS9WhL_E3HuIQnvzL0eMC3MITL61/view?usp=drive_link)
 
 > **Workify** is a comprehensive, modern job portal application designed to bridge the gap between talent and opportunity. It leverages state-of-the-art web technologies to provide a seamless, real-time, and intelligent recruitment experience for job seekers, employers, and administrators.
 
